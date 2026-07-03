@@ -43,6 +43,26 @@ The status filter supports `open`, `closed`, `merged`, and `draft`. The aggregat
 The shared date picker, timezone behavior, saved views, and tab navigation are documented in
 [Dashboard](./dashboard.md).
 
+## Outliers and weekend filtering
+
+Average-based PR metrics can include unusually large or small samples, such as a PR left open during a holiday or a burst
+of automated comments. CLI commands that compute averages expose two cleaning options:
+
+```bash
+--weekends include|exclude|weekends_only
+--outlier-mode include|flag|exclude
+```
+
+`--weekends` controls the sample set before averages are calculated. Use `include` to keep all samples, `exclude` to use
+weekday samples only, or `weekends_only` to inspect weekend activity separately.
+
+`--outlier-mode` controls detected outliers. Use `include` to keep all samples without reporting outliers, `flag` to keep
+all samples and print outliers, or `exclude` to remove outliers before computing the average. Outliers are detected with
+the interquartile range rule: values outside `Q1 - 1.5 * IQR` and `Q3 + 1.5 * IQR` are flagged. Weekend filtering runs
+before outlier detection.
+
+These options are available on `smm prs average-review-time`, `smm prs average-open`, and `smm prs average-comments`.
+
 ## Dashboard cards
 
 The Pull Requests tab includes:
@@ -279,6 +299,8 @@ smm prs average-review-time
 | Labels            | Filters PRs by attached labels.      | `--labels=bug,enhancement` |
 | Top               | Show top N authors (default: 10).    | `--top=20`              |
 | Raw filters       | Comma-separated raw filter string.   | `--raw-filters="status=merged"` |
+| Weekends          | Include, exclude, or isolate weekend samples. | `--weekends=exclude` |
+| Outlier mode      | Include, flag, or exclude detected outliers. | `--outlier-mode=flag` |
 | Output            | Output format (text or json). Defaults to text. | `--output=json` |
 
 :::

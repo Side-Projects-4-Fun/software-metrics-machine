@@ -100,6 +100,44 @@ export BLA_123_SMM_TIMEZONE=UTC   # used for github_repository "bla/123"
 -h, --help              display help
 ```
 
+## Outliers and weekend filtering
+
+Some average-based PR and pipeline commands support data cleaning options before computing the final average.
+
+```
+--weekends <mode>       include|exclude|weekends_only  (default: include)
+--outlier-mode <mode>   include|flag|exclude           (default: include)
+```
+
+`--weekends` controls which samples are considered:
+
+- `include`: keep all samples.
+- `exclude`: use only weekday samples.
+- `weekends_only`: use only Saturday and Sunday samples.
+
+`--outlier-mode` controls how unusually high or low samples are handled:
+
+- `include`: compute averages from all samples and do not report outliers.
+- `flag`: compute averages from all samples and report detected outliers.
+- `exclude`: remove detected outliers before computing averages and report what was removed.
+
+Outliers are detected with the interquartile range rule: values below `Q1 - 1.5 * IQR` or above `Q3 + 1.5 * IQR` are
+marked as outliers. Weekend filtering runs before outlier detection, so outlier bounds are calculated from the selected
+weekday/weekend sample set.
+
+These options are available on:
+
+- `smm prs average-review-time`
+- `smm prs average-open`
+- `smm prs average-comments`
+- `smm pipelines summary`
+- `smm pipelines runs-duration`
+- `smm pipelines jobs-summary`
+- `smm pipelines jobs-time-execution`
+- `smm pipelines jobs-steps-average-time`
+- `smm pipelines jobs-by-status`
+- `smm pipelines lead-time`
+
 ## Commands
 
 ### `smm prs` — Pull request operations
@@ -183,7 +221,7 @@ View PRs grouped by author.
 ```
 
 #### `smm prs average-review-time`
-View average review time (days) by author. Same options as `by-author`.
+View average review time (days) by author. Same options as `by-author`, plus the outlier and weekend filtering options.
 
 #### `smm prs average-open`
 View average PR open time (days) aggregated by period.
@@ -198,6 +236,8 @@ View average PR open time (days) aggregated by period.
 --aggregate-by <period>       day|week|month  (default: week)
 --raw-filters <filters>
 --output <format>             text|json  (default: text)
+--weekends <mode>             include|exclude|weekends_only  (default: include)
+--outlier-mode <mode>         include|flag|exclude  (default: include)
 ```
 
 #### `smm prs average-comments`
@@ -240,6 +280,8 @@ Display a summary of pipeline runs.
 --end-date <date>
 --raw-filters <f>
 --output <format>     text|json  (default: text)
+--weekends <mode>     include|exclude|weekends_only  (default: include)
+--outlier-mode <mode> include|flag|exclude  (default: include)
 ```
 
 #### `smm pipelines by-status`
@@ -259,6 +301,8 @@ View pipeline run durations.
 --end-date <date>
 --workflow <name>     filter by workflow name
 --output <format>     text|json  (default: text)
+--weekends <mode>     include|exclude|weekends_only  (default: include)
+--outlier-mode <mode> include|flag|exclude  (default: include)
 ```
 
 #### `smm pipelines runs-by`
@@ -279,6 +323,8 @@ Display a summary of pipeline jobs.
 --start-date <date>
 --end-date <date>
 --output <format>     text|json  (default: text)
+--weekends <mode>     include|exclude|weekends_only  (default: include)
+--outlier-mode <mode> include|flag|exclude  (default: include)
 ```
 
 #### `smm pipelines jobs-time-execution`
@@ -289,6 +335,8 @@ View pipeline job execution times.
 --end-date <date>
 --job <name>          filter by job name
 --output <format>     text|json  (default: text)
+--weekends <mode>     include|exclude|weekends_only  (default: include)
+--outlier-mode <mode> include|flag|exclude  (default: include)
 ```
 
 #### `smm pipelines jobs-steps-average-time`
@@ -299,6 +347,8 @@ View pipeline job steps average execution times.
 --end-date <date>
 --job <name>
 --output <format>     text|json  (default: text)
+--weekends <mode>     include|exclude|weekends_only  (default: include)
+--outlier-mode <mode> include|flag|exclude  (default: include)
 ```
 
 #### `smm pipelines jobs-by-status`
@@ -308,6 +358,8 @@ View pipeline jobs grouped by status.
 --start-date <date>
 --end-date <date>
 --output <format>     text|json  (default: text)
+--weekends <mode>     include|exclude|weekends_only  (default: include)
+--outlier-mode <mode> include|flag|exclude  (default: include)
 ```
 
 #### `smm pipelines deployment-frequency`
@@ -327,6 +379,8 @@ Calculate lead time for changes (DORA metric).
 --start-date <date>
 --end-date <date>
 --output <format>     text|json  (default: text)
+--weekends <mode>     include|exclude|weekends_only  (default: include)
+--outlier-mode <mode> include|flag|exclude  (default: include)
 ```
 
 ---

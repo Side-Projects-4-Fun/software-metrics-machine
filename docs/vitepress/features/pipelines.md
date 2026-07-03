@@ -22,7 +22,27 @@ The dashboard tab currently includes:
 Several tables link to provider pages such as workflow runs, job runs, and workflow metrics when the configured provider
 supports those URLs.
 
+## Outliers and weekend filtering
 
+Pipeline duration metrics can be skewed by unusually slow runs, retries, provider incidents, or weekend-only activity.
+CLI commands that compute averages expose two cleaning options:
+
+```bash
+--weekends include|exclude|weekends_only
+--outlier-mode include|flag|exclude
+```
+
+`--weekends` controls the sample set before averages are calculated. Use `include` to keep all samples, `exclude` to use
+weekday samples only, or `weekends_only` to inspect weekend executions separately.
+
+`--outlier-mode` controls detected outliers. Use `include` to keep all samples without reporting outliers, `flag` to keep
+all samples and print outliers, or `exclude` to remove outliers before computing the average. Outliers are detected with
+the interquartile range rule: values outside `Q1 - 1.5 * IQR` and `Q3 + 1.5 * IQR` are flagged. Weekend filtering runs
+before outlier detection.
+
+These options are available on `smm pipelines summary`, `smm pipelines runs-duration`, `smm pipelines jobs-summary`,
+`smm pipelines jobs-time-execution`, `smm pipelines jobs-steps-average-time`, `smm pipelines jobs-by-status`, and
+`smm pipelines lead-time`.
 
 ## Pipeline by Status
 
@@ -121,6 +141,8 @@ smm pipelines runs-duration
 | Aggregate     | Aggregate the data by day, plotting each day computing the desired metric                                               | `--aggregate-by-day=true`     |
 | Raw Filters   | Filters by the fields available by the provider, for example, if using GitHub, you can filters by any filter in the API | `--raw-filters=status=completed,conclusion=success`     |
 | Workflow path | Filter by the workflow file path                                                                                        | `--workflow-path=".github/workflows/ci.yml"`     |
+| Weekends      | Include, exclude, or isolate weekend samples.                                                                           | `--weekends=exclude` |
+| Outlier mode  | Include, flag, or exclude detected outliers.                                                                            | `--outlier-mode=flag` |
 
 ### Examples - Runs duration
 
@@ -285,5 +307,4 @@ card includes:
 - Average step duration by day.
 - Overall time proportion by step.
 - A sortable table of steps, average duration, and count.
-
 
