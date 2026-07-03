@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SortableTable } from '@/components/ui/sortable-table';
+import { ClientPaginatedSortableTable } from '@/components/ui/client-paginated-sortable-table';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { JobStepsAverageTimeData, JobStepsAverageTimeByDayData } from './types';
 import { formatDurationMinutes } from './duration-format';
@@ -164,7 +164,7 @@ export default function JobStepsAnalysis({
 
         {/* Breakdown List */}
         <div className="overflow-x-auto">
-          <SortableTable
+          <ClientPaginatedSortableTable
             columns={[
               {
                 key: 'name',
@@ -204,6 +204,7 @@ export default function JobStepsAnalysis({
             }))}
             getRowKey={(step) => step.name}
             defaultSort={{ key: 'averageDurationMinutes', direction: 'desc' }}
+            pageSize={10}
           />
         </div>
       </CardContent>

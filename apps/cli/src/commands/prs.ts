@@ -5,6 +5,7 @@ import {
   GitlabMrClient,
   GitHubRateLimitManager,
   GitHubPullRequestsFetchRepository,
+  parseMetricCleaningOptions,
   PRFilters,
   PRSummary,
   PRsService,
@@ -61,6 +62,8 @@ function buildPRFilters(options: {
   labels?: string;
   state?: string;
   rawFilters?: string;
+  weekends?: string;
+  outlierMode?: string;
 }): PRFilters {
   const filters: PRFilters = {
     startDate: options.startDate,
@@ -70,6 +73,10 @@ function buildPRFilters(options: {
     authors: parseCsvList(options.authors),
     labels: parseCsvList(options.labels),
     rawFilters: options.rawFilters,
+    cleaning: parseMetricCleaningOptions({
+      weekends: options.weekends,
+      outlierMode: options.outlierMode,
+    }),
   };
 
   if (options.state) {
@@ -85,6 +92,41 @@ function formatOptionalDate(value?: string): string {
 
 function formatHours(value: number): string {
   return Number.isInteger(value) ? String(value) : String(Math.round(value * 100) / 100);
+}
+
+type CliOutlier = {
+  value: number;
+  timestamp: string;
+  lowerBound: number;
+  upperBound: number;
+  item?: {
+    number?: number;
+    title?: string;
+    author?: string;
+    url?: string;
+  };
+};
+
+function formatOutlierLine(outlier: CliOutlier): string {
+  const item = outlier.item;
+  const identity = item
+    ? [`#${item.number ?? 'unknown'}`, item.title, item.author].filter(Boolean).join(' | ')
+    : 'unknown item';
+  return `    - ${identity}: ${outlier.value.toFixed(2)} (${outlier.timestamp}, bounds ${outlier.lowerBound.toFixed(2)} - ${outlier.upperBound.toFixed(2)})`;
+}
+
+function printOutliers(screen: ReturnType<SmmCommand['getScreen']>, outliers?: CliOutlier[]): void {
+  if (!outliers || outliers.length === 0) {
+    return;
+  }
+
+  screen.printLine(`  Outliers: ${outliers.length}`);
+  for (const outlier of outliers.slice(0, 10)) {
+    screen.printLine(formatOutlierLine(outlier));
+  }
+  if (outliers.length > 10) {
+    screen.printLine(`    ...and ${outliers.length - 10} more`);
+  }
 }
 
 export function formatPRSummary(summary: PRSummary): string {
@@ -457,6 +499,16 @@ export function createPRsCommands(program: SmmCommand): void {
     .option('--top <number>', 'Show top N authors', '10')
     .option('--raw-filters <filters>', 'Comma-separated raw filter string')
     .option('--output <format>', 'Output format (text|json)', 'text')
+    .option(
+      '--weekends <mode>',
+      'Weekend handling for averages: include, exclude, or weekends_only',
+      'include'
+    )
+    .option(
+      '--outlier-mode <mode>',
+      'Outlier handling for averages: include, flag, or exclude',
+      'include'
+    )
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PRsCommand');
       try {
@@ -471,6 +523,7 @@ export function createPRsCommands(program: SmmCommand): void {
           screen.printLine('\n=== Average Review Time by Author ===\n');
           for (const review of reviews) {
             screen.printLine(`${review.author}: ${review.avg_days.toFixed(2)} days`);
+            printOutliers(screen, review.outliers);
           }
         }
 
@@ -497,6 +550,16 @@ export function createPRsCommands(program: SmmCommand): void {
     .option('--aggregate-by <period>', 'Aggregation period: day, week, or month (default: week)')
     .option('--raw-filters <filters>', 'Comma-separated raw filter string')
     .option('--output <format>', 'Output format (text|json)', 'text')
+    .option(
+      '--weekends <mode>',
+      'Weekend handling for averages: include, exclude, or weekends_only',
+      'include'
+    )
+    .option(
+      '--outlier-mode <mode>',
+      'Outlier handling for averages: include, flag, or exclude',
+      'include'
+    )
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PRsCommand');
       try {
@@ -511,6 +574,7 @@ export function createPRsCommands(program: SmmCommand): void {
           screen.printLine('\n=== Average PR Open Time ===\n');
           for (const period of periods) {
             screen.printLine(`${period.period}: ${period.avg_days.toFixed(2)} days`);
+            printOutliers(screen, period.outliers);
           }
         }
 
@@ -540,6 +604,16 @@ export function createPRsCommands(program: SmmCommand): void {
     )
     .option('--raw-filters <filters>', 'Comma-separated raw filter string')
     .option('--output <format>', 'Output format (text|json)', 'text')
+    .option(
+      '--weekends <mode>',
+      'Weekend handling for averages: include, exclude, or weekends_only',
+      'include'
+    )
+    .option(
+      '--outlier-mode <mode>',
+      'Outlier handling for averages: include, flag, or exclude',
+      'include'
+    )
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PRsCommand');
       try {
@@ -562,16 +636,24 @@ export function createPRsCommands(program: SmmCommand): void {
               screen.printLine(
                 `${tf.period}: ${tf.averageComments} avg comments (${tf.count} PRs)`
               );
+              printOutliers(screen, tf.outliers?.comments);
             }
           }
         } else {
           const metrics = await service.getMetrics(filters);
 
           if (options.output === 'json') {
-            screen.printLine(JSON.stringify({ avg_comments: metrics.averageComments }, null, 2));
+            screen.printLine(
+              JSON.stringify(
+                { avg_comments: metrics.averageComments, outliers: metrics.outliers?.comments },
+                null,
+                2
+              )
+            );
           } else {
             screen.printLine(`\n=== Average Comments per PR ===\n`);
             screen.printLine(`Average Comments: ${metrics.averageComments}`);
+            printOutliers(screen, metrics.outliers?.comments);
           }
         }
 

@@ -1,4 +1,4 @@
-import { buildPullRequestApiParams } from '@/server/utils/apiParams';
+import { buildPipelineApiParams, buildPullRequestApiParams } from '@/server/utils/apiParams';
 
 describe('buildPullRequestApiParams', () => {
   it('includes status when pullRequestStatus is provided', () => {
@@ -12,6 +12,8 @@ describe('buildPullRequestApiParams', () => {
       pullRequestStatus: 'merged',
       aggregateBy: 'week',
       timezone: 'Europe/Madrid',
+      weekends: 'weekends_only',
+      outlierMode: 'flag',
     });
 
     expect(params.status).toBe('merged');
@@ -22,6 +24,8 @@ describe('buildPullRequestApiParams', () => {
     expect(params.exclude_commenters).toBe('renovate');
     expect(params.labels).toBe('bug');
     expect(params.timezone).toBe('Europe/Madrid');
+    expect(params.weekends).toBe('weekends_only');
+    expect(params.outlier_mode).toBe('flag');
   });
 
   it('omits status when pullRequestStatus is not provided', () => {
@@ -34,5 +38,28 @@ describe('buildPullRequestApiParams', () => {
     });
 
     expect(params.status).toBeUndefined();
+  });
+});
+
+describe('buildPipelineApiParams', () => {
+  it('includes average cleanup filters', () => {
+    const params = buildPipelineApiParams({
+      startDate: '2026-01-01',
+      endDate: '2026-01-31',
+      workflowSelector: 'release.yml',
+      workflowStatus: ['completed'],
+      workflowConclusions: ['success'],
+      jobSelector: ['deploy'],
+      branch: ['main'],
+      event: ['push'],
+      aggregateMetric: 'avg',
+      weekends: 'weekends_only',
+      outlierMode: 'exclude',
+    });
+
+    expect(params.weekends).toBe('weekends_only');
+    expect(params.outlier_mode).toBe('exclude');
+    expect(params.workflow_path).toBe('release.yml');
+    expect(params.job_name).toBe('deploy');
   });
 });

@@ -89,9 +89,9 @@ describe('SavedFiltersOverview', () => {
     const pipelinesLink = screen.getByRole('link', { name: /Release Jobs/i });
     const sourceCodeLink = screen.getByRole('link', { name: /Hotspots/i });
 
-    expect(insightsLink).toHaveAttribute('href', '/dashboard/insights?startDate=2024-01-01&endDate=2024-01-31&aggregateMetric=sum&topEntries=20&typeChurn=commits&aggregateBy=week&sonarqubeRemoveFolders=true');
-    expect(pipelinesLink).toHaveAttribute('href', '/dashboard/pipelines?workflowSelector=release.yml&workflowStatus=completed&aggregateMetric=sum&topEntries=20&typeChurn=commits&aggregateBy=week&sonarqubeRemoveFolders=true');
-    expect(sourceCodeLink).toHaveAttribute('href', '/dashboard/source-code?aggregateMetric=sum&ignorePatternFiles=dist%2F**&includePatternFiles=src%2F**&topEntries=20&typeChurn=commits&aggregateBy=week&sonarqubeRemoveFolders=true');
+    expect(insightsLink).toHaveAttribute('href', '/dashboard/insights?startDate=2024-01-01&endDate=2024-01-31&aggregateMetric=sum&topEntries=20&typeChurn=commits&aggregateBy=week&weekends=include&outlierMode=include&sonarqubeRemoveFolders=true');
+    expect(pipelinesLink).toHaveAttribute('href', '/dashboard/pipelines?workflowSelector=release.yml&workflowStatus=completed&aggregateMetric=sum&topEntries=20&typeChurn=commits&aggregateBy=week&weekends=include&outlierMode=include&sonarqubeRemoveFolders=true');
+    expect(sourceCodeLink).toHaveAttribute('href', '/dashboard/source-code?aggregateMetric=sum&ignorePatternFiles=dist%2F**&includePatternFiles=src%2F**&topEntries=20&typeChurn=commits&aggregateBy=week&weekends=include&outlierMode=include&sonarqubeRemoveFolders=true');
   });
 
   it('selects the saved filter project before opening it', async () => {

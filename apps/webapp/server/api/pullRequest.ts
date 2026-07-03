@@ -1,5 +1,13 @@
 import { ApiParams, fetchAPI } from './client';
 
+type MetricOutlier = {
+  value: number;
+  timestamp: string;
+  lowerBound: number;
+  upperBound: number;
+  item: Record<string, unknown>;
+};
+
 export const pullRequestAPI = {
   // Data endpoints
   summary: (params?: ApiParams) =>
@@ -21,7 +29,7 @@ export const pullRequestAPI = {
     ),
   
   averageReviewTime: (params?: ApiParams) =>
-    fetchAPI<Array<{ author: string; avg_hours: number }>>(
+    fetchAPI<Array<{ author: string; avg_days?: number; avg_hours?: number; outliers?: MetricOutlier[] }>>(
       '/pull-requests/average-review-time',
       params
     ),
@@ -33,19 +41,19 @@ export const pullRequestAPI = {
     ),
   
   averageOpenBy: (params?: ApiParams) =>
-    fetchAPI<Array<{ period: string; avg_days: number }>>(
+    fetchAPI<Array<{ period: string; avg_days: number; outliers?: MetricOutlier[] }>>(
       '/pull-requests/average-open-by',
       params
     ),
   
   averageComments: (params?: ApiParams) =>
-    fetchAPI<{ avg_comments: number }>('/pull-requests/average-comments', params),
+    fetchAPI<{ avg_comments: number; outliers?: MetricOutlier[] }>('/pull-requests/average-comments', params),
 
   commentsByAuthor: (params?: ApiParams) =>
     fetchAPI<Array<{ author: string; count: number }>>('/pull-requests/comments-by-author', params),
 
   firstCommentTime: (params?: ApiParams) =>
-    fetchAPI<Array<{ author: string; avg_hours: number; prs_with_comments: number }>>(
+    fetchAPI<Array<{ author: string; avg_hours: number; prs_with_comments: number; outliers?: MetricOutlier[] }>>(
       '/pull-requests/first-comment-time',
       params
     ),

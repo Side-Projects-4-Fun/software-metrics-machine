@@ -11,6 +11,7 @@ import {
   PullRequestCommentJsonResponse,
   PullRequestLabelJsonResponse,
 } from '../providers/github/github-response-types';
+import { shouldIncludeTimestampForWeekendsMode } from '../domain/metric-samples';
 import type { Configuration } from '../infrastructure/configuration';
 
 /**
@@ -491,8 +492,25 @@ export class ReadPullRequestsRepositoryBuilder {
 
   build(): IReadPullRequestsRepository {
     return {
-      loadPrsWithFilters: async (_filters?: PRFilters) => [...this.prs],
+      loadPrsWithFilters: async (filters?: PRFilters) => {
+        return this.prs.filter((pr) =>
+          shouldIncludeTimestampForWeekendsMode(
+            pr.mergedAt || pr.closedAt || pr.createdAt,
+            filters?.cleaning?.weekends,
+            (dateString) => this.isWeekday(dateString)
+          )
+        );
+      },
     };
+  }
+
+  private isWeekday(dateString?: string): boolean {
+    if (!dateString) {
+      return true;
+    }
+
+    const day = new Date(dateString).getUTCDay();
+    return day >= 1 && day <= 5;
   }
 }
 
@@ -533,14 +551,23 @@ export class PipelinesRepositoryBuilder {
     );
     const selectedEvents = this.parseCsvList(options.event);
     const targetJobConclusion = options.jobConclusion?.trim().toLowerCase();
-    const start = options.startDate ? this.toTimestamp(options.startDate) : 0;
-    const end = options.endDate ? this.toEndOfDayTimestamp(options.endDate) : 0;
+    const start = options.startDate ? this.toDateBoundaryTimestamp(options.startDate, 'start') : 0;
+    const end = options.endDate ? this.toDateBoundaryTimestamp(options.endDate, 'end') : 0;
 
     let runs = this.runs.filter((run) => {
       if (start || end) {
         const runTimestamp = this.toTimestamp(run.completedAt || run.createdAt);
         if (start && runTimestamp < start) return false;
         if (end && runTimestamp > end) return false;
+      }
+      if (
+        !shouldIncludeTimestampForWeekendsMode(
+          run.completedAt || run.createdAt,
+          options.weekends,
+          (dateString) => this.isWeekday(dateString)
+        )
+      ) {
+        return false;
       }
       if (options.workflowPath && run.path !== options.workflowPath) return false;
       if (selectedBranches.length > 0 && !selectedBranches.includes(run.branch || '')) return false;
@@ -610,12 +637,70 @@ export class PipelinesRepositoryBuilder {
     return Number.isFinite(parsed) ? parsed : 0;
   }
 
-  private toEndOfDayTimestamp(value: string): number {
+  private toDateBoundaryTimestamp(value: string, boundary: 'start' | 'end'): number {
     if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-      return new Date(`${value}T23:59:59.999Z`).getTime();
+      return boundary === 'end'
+        ? new Date(`${value}T23:59:59.999Z`).getTime()
+        : new Date(`${value}T00:00:00.000Z`).getTime();
+    }
+
+    const isoWeekMatch = value.match(/^(\d{4})-W(\d{2})$/);
+    if (isoWeekMatch) {
+      const year = Number(isoWeekMatch[1]);
+      const week = Number(isoWeekMatch[2]);
+      const weekBoundary = this.getIsoWeekBoundaryTimestamp(year, week, boundary);
+      if (weekBoundary !== undefined) {
+        return weekBoundary;
+      }
     }
 
     return this.toTimestamp(value);
+  }
+
+  private getIsoWeekBoundaryTimestamp(
+    year: number,
+    week: number,
+    boundary: 'start' | 'end'
+  ): number | undefined {
+    const weekStart = this.getIsoWeekStartDate(year, week);
+    if (!weekStart) {
+      return undefined;
+    }
+
+    const boundaryDate = new Date(weekStart);
+    if (boundary === 'end') {
+      boundaryDate.setUTCDate(boundaryDate.getUTCDate() + 6);
+      boundaryDate.setUTCHours(23, 59, 59, 999);
+    } else {
+      boundaryDate.setUTCHours(0, 0, 0, 0);
+    }
+
+    return boundaryDate.getTime();
+  }
+
+  private getIsoWeekStartDate(year: number, week: number): Date | undefined {
+    if (!Number.isInteger(year) || !Number.isInteger(week) || week < 1 || week > 53) {
+      return undefined;
+    }
+
+    const january4th = new Date(Date.UTC(year, 0, 4, 12, 0, 0));
+    const january4thDayOfWeek = january4th.getUTCDay() || 7;
+    const week1Monday = new Date(january4th);
+    week1Monday.setUTCDate(january4th.getUTCDate() - (january4thDayOfWeek - 1));
+
+    const targetMonday = new Date(week1Monday);
+    targetMonday.setUTCDate(week1Monday.getUTCDate() + (week - 1) * 7);
+
+    return targetMonday;
+  }
+
+  private isWeekday(dateString?: string): boolean {
+    if (!dateString) {
+      return true;
+    }
+
+    const day = new Date(dateString).getUTCDay();
+    return day >= 1 && day <= 5;
   }
 }
 

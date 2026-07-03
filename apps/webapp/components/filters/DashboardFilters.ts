@@ -20,6 +20,10 @@ export interface DashboardFilters {
   pullRequestStatus?: 'open' | 'closed' | 'merged' | 'draft';
   aggregateBy?: string;
 
+  // Average computation filters
+  weekends: 'include' | 'exclude' | 'weekends_only';
+  outlierMode: 'include' | 'flag' | 'exclude';
+
   // Source code filters
   ignorePatternFiles: string;
   includePatternFiles: string;
@@ -56,6 +60,8 @@ export const DASHBOARD_FILTER_QUERY_KEYS = [
   'labelSelector',
   'pullRequestStatus',
   'aggregateBy',
+  'weekends',
+  'outlierMode',
   'sonarqubeRemoveFolders',
 ] as const;
 
@@ -74,6 +80,8 @@ export const defaultFilters: DashboardFilters = {
   excludeCommenterSelect: [],
   labelSelector: [],
   aggregateBy: 'week',
+  weekends: 'include',
+  outlierMode: 'include',
   ignorePatternFiles: '',
   includePatternFiles: '',
   authorSelectSourceCode: [],
@@ -157,6 +165,8 @@ export function parseDashboardFilters(
     labelSelector: getArrayValue(searchParams.labelSelector),
     pullRequestStatus: getSingleValue(searchParams.pullRequestStatus) as DashboardFilters['pullRequestStatus'] || fallback.pullRequestStatus,
     aggregateBy: getSingleValue(searchParams.aggregateBy) || fallback.aggregateBy,
+    weekends: parseWeekends(getSingleValue(searchParams.weekends), fallback.weekends),
+    outlierMode: parseOutlierMode(getSingleValue(searchParams.outlierMode), fallback.outlierMode),
     sonarqubeRemoveFolders: toBoolean(searchParams.sonarqubeRemoveFolders, fallback.sonarqubeRemoveFolders),
   };
 }
@@ -197,7 +207,25 @@ export function serializeDashboardFilters(filters: DashboardFilters): URLSearchP
   appendList('labelSelector', filters.labelSelector);
   append('pullRequestStatus', filters.pullRequestStatus);
   append('aggregateBy', filters.aggregateBy);
+  append('weekends', filters.weekends);
+  append('outlierMode', filters.outlierMode);
   append('sonarqubeRemoveFolders', filters.sonarqubeRemoveFolders ? 'true' : 'false');
 
   return params;
+}
+
+function parseWeekends(
+  value: string | undefined,
+  fallback: DashboardFilters['weekends'],
+): DashboardFilters['weekends'] {
+  return value === 'exclude' || value === 'include' || value === 'weekends_only'
+    ? value
+    : fallback;
+}
+
+function parseOutlierMode(
+  value: string | undefined,
+  fallback: DashboardFilters['outlierMode'],
+): DashboardFilters['outlierMode'] {
+  return value === 'flag' || value === 'exclude' || value === 'include' ? value : fallback;
 }

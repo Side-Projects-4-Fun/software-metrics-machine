@@ -1,3 +1,5 @@
+import type { MetricCleaningOptions, MetricOutlier } from '../metric-samples';
+
 /**
  * Pipeline-related domain types for deployment frequency and metrics
  */
@@ -58,7 +60,17 @@ export interface PipelineFilters {
   jobConclusion?: string;
   includeDefined?: boolean; // Only .yml/.yaml files
   rawFilters?: string;
+  cleaning?: MetricCleaningOptions;
 }
+
+export interface PipelineAverageOutlierItem {
+  runId: string;
+  workflowName?: string;
+  jobName?: string;
+  stepName?: string;
+}
+
+export type PipelineAverageOutlier = MetricOutlier<PipelineAverageOutlierItem>;
 
 export interface DeploymentFrequency {
   date: string;
@@ -71,6 +83,7 @@ export interface PipelineMetrics {
   failedRuns: number;
   successRate: number; // percentage
   averageDurationMinutes: number;
+  outliers?: PipelineAverageOutlier[];
 }
 
 export interface JobMetrics {
@@ -88,6 +101,7 @@ export interface JobMetrics {
   timedOutCount: number;
   actionRequiredCount: number;
   unknownCount: number;
+  outliers?: PipelineAverageOutlier[];
 }
 
 export interface PipelineComputedDurations {

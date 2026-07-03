@@ -1,6 +1,7 @@
 import { IRepository } from '../infrastructure';
 import { TimeZoneProvider } from '../infrastructure/timezone-provider';
 import { PRDetails, PRFilters } from '../domain/prs/pr-types';
+import { shouldIncludeTimestampForWeekendsMode } from '../domain/metric-samples';
 import { CommonRepository, RawFilter } from './common-repository';
 import {
   PullRequestCommentJsonResponse,
@@ -51,6 +52,16 @@ export class PullRequestsRepository
           const created = new Date(pr.created_at);
           if (start && created < start) return false;
           if (end && created > end) return false;
+        }
+
+        if (
+          !shouldIncludeTimestampForWeekendsMode(
+            this.getPRMetricDate(pr),
+            filters.cleaning?.weekends,
+            (dateString) => this.isWeekday(dateString)
+          )
+        ) {
+          return false;
         }
 
         if (authorSet && !authorSet.has((pr.user?.login || 'unknown').toLowerCase())) {
@@ -138,6 +149,21 @@ export class PullRequestsRepository
     });
 
     return this.applyRawFilters(mappedPrs, this.parseRawFilters(filters?.rawFilters));
+  }
+
+  private getPRMetricDate(pr: PullRequestJsonResponse): string {
+    return pr.merged_at || pr.closed_at || pr.created_at;
+  }
+
+  private isWeekday(dateString?: string): boolean {
+    if (!dateString) {
+      return true;
+    }
+
+    const dateKey = this.timeZoneProvider.getDateKey(dateString);
+    const [year, month, day] = dateKey.split('-').map(Number);
+    const timezoneDay = new Date(Date.UTC(year, month - 1, day, 12, 0, 0)).getUTCDay();
+    return timezoneDay >= 1 && timezoneDay <= 5;
   }
 
   private normalizeList(value?: string | string[]): string[] {

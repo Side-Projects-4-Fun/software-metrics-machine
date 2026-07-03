@@ -193,6 +193,60 @@ describe('PullRequestsRepository filters', () => {
     expect(prs.map((pr) => pr.number)).toEqual([2]);
   });
 
+  it('excludes weekend PRs when cleaning.weekends is set to exclude', async () => {
+    const repository = new PullRequestsRepository(
+      {
+        loadAll: vi.fn().mockResolvedValue([
+          new PullRequestJsonResponseBuilder()
+            .withId('1')
+            .withNumber('1')
+            .withCreatedAt('2026-06-06T10:00:00Z')
+            .build(),
+          new PullRequestJsonResponseBuilder()
+            .withId('2')
+            .withNumber('2')
+            .withCreatedAt('2026-06-08T10:00:00Z')
+            .build(),
+        ]),
+      } as any,
+      { loadAll: vi.fn().mockResolvedValue([]) } as any,
+      timeZoneProvider
+    );
+
+    const prs = await repository.loadPrsWithFilters({
+      cleaning: { weekends: 'exclude' },
+    });
+
+    expect(prs.map((pr) => pr.number)).toEqual([2]);
+  });
+
+  it('keeps only weekend PRs when cleaning.weekends is set to weekends_only', async () => {
+    const repository = new PullRequestsRepository(
+      {
+        loadAll: vi.fn().mockResolvedValue([
+          new PullRequestJsonResponseBuilder()
+            .withId('1')
+            .withNumber('1')
+            .withCreatedAt('2026-06-06T10:00:00Z')
+            .build(),
+          new PullRequestJsonResponseBuilder()
+            .withId('2')
+            .withNumber('2')
+            .withCreatedAt('2026-06-08T10:00:00Z')
+            .build(),
+        ]),
+      } as any,
+      { loadAll: vi.fn().mockResolvedValue([]) } as any,
+      timeZoneProvider
+    );
+
+    const prs = await repository.loadPrsWithFilters({
+      cleaning: { weekends: 'weekends_only' },
+    });
+
+    expect(prs.map((pr) => pr.number)).toEqual([1]);
+  });
+
   it('keeps only PRs whose author matches the authors filter, case-insensitively', async () => {
     const repository = new PullRequestsRepository(
       {

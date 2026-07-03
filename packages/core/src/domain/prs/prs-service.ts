@@ -9,10 +9,18 @@ import {
   PRSummaryFirstCommentTime,
   PRSummaryPullRequest,
   PRSummaryResponse,
+  PRAverageOutlierItem,
 } from './pr-types';
 import { IReadPullRequestsRepository } from '../../aggregates/pull-requests-repository';
 import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
 import { stopWords } from './stop-words';
+import {
+  averageMetricSamples,
+  cleanMetricSamples,
+  MetricCleaningOptions,
+  MetricOutlier,
+  MetricSample,
+} from '../metric-samples';
 
 export interface IPRsService {
   getMetrics(filters?: PRFilters): Promise<PRMetrics>;
@@ -26,7 +34,14 @@ export interface IPRsService {
   getFirstCommentTime(
     filters?: PRFilters,
     top?: number
-  ): Promise<Array<{ author: string; avg_hours: number; prs_with_comments: number }>>;
+  ): Promise<
+    Array<{
+      author: string;
+      avg_hours: number;
+      prs_with_comments: number;
+      outliers?: Array<MetricOutlier<PRAverageOutlierItem>>;
+    }>
+  >;
   getThroughTime(
     filters?: PRFilters,
     aggregateBy?: string
@@ -35,11 +50,15 @@ export interface IPRsService {
   getAverageReviewTime(
     filters?: PRFilters,
     top?: number
-  ): Promise<Array<{ author: string; avg_days: number }>>;
+  ): Promise<
+    Array<{ author: string; avg_days: number; outliers?: Array<MetricOutlier<PRAverageOutlierItem>> }>
+  >;
   getAverageOpenBy(
     filters?: PRFilters,
     aggregateBy?: string
-  ): Promise<Array<{ period: string; avg_days: number }>>;
+  ): Promise<
+    Array<{ period: string; avg_days: number; outliers?: Array<MetricOutlier<PRAverageOutlierItem>> }>
+  >;
 }
 
 /**
@@ -67,12 +86,17 @@ export class PRsService implements IPRsService {
     const closedPRs = prs.filter((pr) => pr.closedAt && !pr.mergedAt);
     const openPRs = prs.filter((pr) => !pr.closedAt && !pr.mergedAt);
 
-    const openDays = mergedPRs.map((pr) => this.calculateOpenDays(pr));
-    const averageOpenDays =
-      openDays.length > 0 ? openDays.reduce((a, b) => a + b, 0) / openDays.length : 0;
+    const cleanedOpenDays = this.cleanPRSamples(
+      mergedPRs.map((pr) => this.toPRSample(pr, this.calculateOpenDays(pr))),
+      filters?.cleaning
+    );
+    const averageOpenDays = averageMetricSamples(cleanedOpenDays.samples);
 
-    const totalComments = prs.reduce((sum, pr) => sum + (pr.totalComments || 0), 0);
-    const averageComments = prs.length > 0 ? totalComments / prs.length : 0;
+    const cleanedComments = this.cleanPRSamples(
+      prs.map((pr) => this.toPRSample(pr, pr.totalComments || 0)),
+      filters?.cleaning
+    );
+    const averageComments = averageMetricSamples(cleanedComments.samples);
 
     const mostCommentedPRs = prs
       .filter((pr) => pr.totalComments > 0)
@@ -103,6 +127,12 @@ export class PRsService implements IPRsService {
       leadTime: Math.round(averageOpenDays * 100) / 100,
       commentSummary,
       labelSummary,
+      outliers: this.shouldExposeOutliers(filters?.cleaning)
+        ? {
+            openDays: cleanedOpenDays.outliers,
+            comments: cleanedComments.outliers,
+          }
+        : undefined,
     };
   }
 
@@ -131,7 +161,7 @@ export class PRsService implements IPRsService {
 
     for (const month of months) {
       const monthPRs = byMonth.get(month)!;
-      const metrics = this.calculateTimeframeMetrics(month, monthPRs);
+      const metrics = this.calculateTimeframeMetrics(month, monthPRs, filters?.cleaning);
       result.push(metrics);
     }
 
@@ -165,7 +195,7 @@ export class PRsService implements IPRsService {
 
     for (const week of weeks) {
       const weekPRs = byWeek.get(week)!;
-      const metrics = this.calculateTimeframeMetrics(week, weekPRs);
+      const metrics = this.calculateTimeframeMetrics(week, weekPRs, filters?.cleaning);
       result.push(metrics);
     }
 
@@ -193,13 +223,17 @@ export class PRsService implements IPRsService {
     const result: LabelSummary[] = [];
 
     for (const [label, labelPRs] of labelMap.entries()) {
-      const openDays = labelPRs.map((pr) => this.calculateOpenDays(pr));
-      const averageOpenDays = openDays.reduce((a, b) => a + b, 0) / openDays.length;
+      const cleanedOpenDays = this.cleanPRSamples(
+        labelPRs.map((pr) => this.toPRSample(pr, this.calculateOpenDays(pr))),
+        filters?.cleaning
+      );
+      const averageOpenDays = averageMetricSamples(cleanedOpenDays.samples);
 
       result.push({
         label,
         count: labelPRs.length,
         averageOpenDays: Math.round(averageOpenDays * 100) / 100,
+        outliers: this.shouldExposeOutliers(filters?.cleaning) ? cleanedOpenDays.outliers : undefined,
       });
     }
 
@@ -332,10 +366,12 @@ export class PRsService implements IPRsService {
   async getAverageReviewTime(
     filters?: PRFilters,
     top?: number
-  ): Promise<Array<{ author: string; avg_days: number }>> {
+  ): Promise<
+    Array<{ author: string; avg_days: number; outliers?: Array<MetricOutlier<PRAverageOutlierItem>> }>
+  > {
     const prs = await this.filterPRs(filters);
     const merged = prs.filter((pr) => Boolean(pr.mergedAt) || Boolean(pr.closedAt));
-    const grouped = new Map<string, number[]>();
+    const grouped = new Map<string, Array<MetricSample<PRAverageOutlierItem>>>();
 
     for (const pr of merged) {
       const start = this.toTimestamp(pr.createdAt);
@@ -343,16 +379,20 @@ export class PRsService implements IPRsService {
       const days = (end - start) / (1000 * 60 * 60 * 24);
       const author = pr.author?.login || 'unknown';
       const existing = grouped.get(author) || [];
-      existing.push(days);
+      existing.push(this.toPRSample(pr, days));
       grouped.set(author, existing);
     }
 
     const maxRows = top || 10;
     return Array.from(grouped.entries())
-      .map(([author, values]) => ({
-        author,
-        avg_days: values.reduce((a, b) => a + b, 0) / values.length,
-      }))
+      .map(([author, values]) => {
+        const cleaned = this.cleanPRSamples(values, filters?.cleaning);
+        return {
+          author,
+          avg_days: averageMetricSamples(cleaned.samples),
+          outliers: this.shouldExposeOutliers(filters?.cleaning) ? cleaned.outliers : undefined,
+        };
+      })
       .sort((a, b) => b.avg_days - a.avg_days)
       .slice(0, maxRows);
   }
@@ -360,10 +400,12 @@ export class PRsService implements IPRsService {
   async getAverageOpenBy(
     filters?: PRFilters,
     aggregateBy?: string
-  ): Promise<Array<{ period: string; avg_days: number }>> {
+  ): Promise<
+    Array<{ period: string; avg_days: number; outliers?: Array<MetricOutlier<PRAverageOutlierItem>> }>
+  > {
     const prs = await this.filterPRs(filters);
     const mode = this.normalizeAggregation(aggregateBy);
-    const grouped = new Map<string, number[]>();
+    const grouped = new Map<string, Array<MetricSample<PRAverageOutlierItem>>>();
 
     for (const pr of prs) {
       const period = this.toPeriodKey(pr.createdAt, mode);
@@ -371,15 +413,19 @@ export class PRsService implements IPRsService {
       const end = this.toTimestamp(pr.mergedAt || pr.closedAt || pr.createdAt);
       const days = (end - start) / (1000 * 60 * 60 * 24);
       const existing = grouped.get(period) || [];
-      existing.push(days);
+      existing.push(this.toPRSample(pr, days));
       grouped.set(period, existing);
     }
 
     return Array.from(grouped.entries())
-      .map(([period, values]) => ({
-        period,
-        avg_days: values.reduce((a, b) => a + b, 0) / values.length,
-      }))
+      .map(([period, values]) => {
+        const cleaned = this.cleanPRSamples(values, filters?.cleaning);
+        return {
+          period,
+          avg_days: averageMetricSamples(cleaned.samples),
+          outliers: this.shouldExposeOutliers(filters?.cleaning) ? cleaned.outliers : undefined,
+        };
+      })
       .sort((a, b) => a.period.localeCompare(b.period));
   }
 
@@ -410,18 +456,34 @@ export class PRsService implements IPRsService {
     return this.tz.getWeekKey(date);
   }
 
-  private calculateTimeframeMetrics(period: string, prs: PRDetails[]): PRsByTimeframe {
-    const openDays = prs.map((pr) => this.calculateOpenDays(pr));
-    const averageOpenDays = openDays.reduce((a, b) => a + b, 0) / openDays.length;
+  private calculateTimeframeMetrics(
+    period: string,
+    prs: PRDetails[],
+    cleaning?: MetricCleaningOptions
+  ): PRsByTimeframe {
+    const cleanedOpenDays = this.cleanPRSamples(
+      prs.map((pr) => this.toPRSample(pr, this.calculateOpenDays(pr))),
+      cleaning
+    );
+    const averageOpenDays = averageMetricSamples(cleanedOpenDays.samples);
 
-    const totalComments = prs.reduce((sum, pr) => sum + (pr.totalComments || 0), 0);
-    const averageComments = totalComments / prs.length;
+    const cleanedComments = this.cleanPRSamples(
+      prs.map((pr) => this.toPRSample(pr, pr.totalComments || 0)),
+      cleaning
+    );
+    const averageComments = averageMetricSamples(cleanedComments.samples);
 
     return {
       period,
       count: prs.length,
       averageOpenDays: Math.round(averageOpenDays * 100) / 100,
       averageComments: Math.round(averageComments * 100) / 100,
+      outliers: this.shouldExposeOutliers(cleaning)
+        ? {
+            openDays: cleanedOpenDays.outliers,
+            comments: cleanedComments.outliers,
+          }
+        : undefined,
     };
   }
 
@@ -592,9 +654,16 @@ export class PRsService implements IPRsService {
   async getFirstCommentTime(
     filters?: PRFilters,
     top?: number
-  ): Promise<Array<{ author: string; avg_hours: number; prs_with_comments: number }>> {
+  ): Promise<
+    Array<{
+      author: string;
+      avg_hours: number;
+      prs_with_comments: number;
+      outliers?: Array<MetricOutlier<PRAverageOutlierItem>>;
+    }>
+  > {
     const prs = await this.filterPRs(filters);
-    const grouped = new Map<string, number[]>();
+    const grouped = new Map<string, Array<MetricSample<PRAverageOutlierItem>>>();
 
     for (const pr of prs) {
       if (!Array.isArray(pr.comments) || pr.comments.length === 0) {
@@ -618,18 +687,47 @@ export class PRsService implements IPRsService {
       const author = pr.author?.login || 'unknown';
       const hours = (firstCommentAt - prOpenedAt) / (1000 * 60 * 60);
       const existing = grouped.get(author) || [];
-      existing.push(hours);
+      existing.push(this.toPRSample(pr, hours));
       grouped.set(author, existing);
     }
 
     const maxRows = top || 10;
     return Array.from(grouped.entries())
-      .map(([author, values]) => ({
-        author,
-        avg_hours: values.reduce((a, b) => a + b, 0) / values.length,
-        prs_with_comments: values.length,
-      }))
+      .map(([author, values]) => {
+        const cleaned = this.cleanPRSamples(values, filters?.cleaning);
+        return {
+          author,
+          avg_hours: averageMetricSamples(cleaned.samples),
+          prs_with_comments: cleaned.samples.length,
+          outliers: this.shouldExposeOutliers(filters?.cleaning) ? cleaned.outliers : undefined,
+        };
+      })
       .sort((a, b) => b.avg_hours - a.avg_hours)
       .slice(0, maxRows);
+  }
+
+  private toPRSample(pr: PRDetails, value: number): MetricSample<PRAverageOutlierItem> {
+    return {
+      value,
+      timestamp: pr.mergedAt || pr.closedAt || pr.createdAt,
+      item: {
+        id: pr.id,
+        number: pr.number,
+        title: pr.title,
+        author: pr.author?.login || 'unknown',
+        url: pr.url,
+      },
+    };
+  }
+
+  private cleanPRSamples(
+    samples: Array<MetricSample<PRAverageOutlierItem>>,
+    options?: MetricCleaningOptions
+  ) {
+    return cleanMetricSamples(samples, options);
+  }
+
+  private shouldExposeOutliers(options?: MetricCleaningOptions): boolean {
+    return options?.outlierMode === 'flag' || options?.outlierMode === 'exclude';
   }
 }

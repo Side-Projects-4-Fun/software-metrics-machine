@@ -1,3 +1,11 @@
+export interface MetricOutlier {
+  value: number;
+  timestamp: string;
+  lowerBound: number;
+  upperBound: number;
+  item: Record<string, unknown>;
+}
+
 export interface ByAuthorData {
   author: string;
   count: number;
@@ -7,6 +15,7 @@ export interface AvgReviewTimeData {
   author: string;
   avg_days?: number;
   avg_hours?: number;
+  outliers?: MetricOutlier[];
 }
 
 export interface CommentsByAuthorData {
@@ -18,6 +27,7 @@ export interface FirstCommentTimeData {
   author: string;
   avg_hours: number;
   prs_with_comments: number;
+  outliers?: MetricOutlier[];
 }
 
 export interface OpenThroughTimeData {
@@ -29,10 +39,12 @@ export interface OpenThroughTimeData {
 export interface AvgOpenByData {
   period: string;
   avg_days: number;
+  outliers?: MetricOutlier[];
 }
 
 export interface AvgCommentsData {
   avg_comments: number;
+  outliers?: MetricOutlier[];
 }
 
 export interface SummaryData {

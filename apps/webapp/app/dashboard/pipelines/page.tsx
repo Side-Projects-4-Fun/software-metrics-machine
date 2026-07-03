@@ -29,6 +29,8 @@ import JobsByStatusCard from '@/components/charts/pipeline/JobsByStatusCard';
 import JobsRerunCard from '@/components/charts/pipeline/JobsRerunCard';
 import JobStepsAnalysis from '@/components/charts/pipeline/JobStepsAnalysis';
 import { Card, CardContent } from '@/components/ui/card';
+import { toOutlierRows } from '@/components/charts/outliers-utils';
+import OutliersCard, { MetricOutlierRow } from '@/components/charts/OutliersCard';
 
 type ResultWrapper<T> = {
   result: T;
@@ -62,6 +64,7 @@ export default async function PipelinesPage({
   let jobStepsTime: JobStepsAverageTimeData[] = [];
   let jobStepsTimeByDay: JobStepsAverageTimeByDayData[] = [];
   let totalRuns = 0;
+  let outliers: MetricOutlierRow[] = [];
 
   const isSingleJobSelected = filters.jobSelector && filters.jobSelector.length === 1;
 
@@ -116,6 +119,7 @@ export default async function PipelinesPage({
           total_runs: d.total_runs ?? 0,
           name: d.name,
           value: d.value,
+          outliers: d.outliers,
         }))
       : [];
 
@@ -145,6 +149,7 @@ export default async function PipelinesPage({
         workflow_name: a.workflow_name,
         avg_time: a.avg_time || 0,
         count: a.count || 0,
+        outliers: a.outliers,
       }));
     }
 
@@ -157,7 +162,8 @@ export default async function PipelinesPage({
       avgTimeByDayData = avgTimeByDayResult.map((a: JobsAverageTimeByDayResponseItem): JobsAverageTimeByDayData => ({
         day: a.day || 'Unknown',
         avg_time: a.avg_time || 0,
-        count: a.count || 0
+        count: a.count || 0,
+        outliers: a.outliers,
       }));
     }
 
@@ -175,6 +181,7 @@ export default async function PipelinesPage({
           success_rate: item.success_rate || 0,
           failure_rate: item.failure_rate || 0,
           rerun_count: item.rerun_count || 0,
+          outliers: item.outliers,
         }))
       : [];
 
@@ -211,6 +218,7 @@ export default async function PipelinesPage({
         name: item.name || 'Unknown',
         averageDurationMinutes: item.averageDurationMinutes || 0,
         count: item.count || 0,
+        outliers: item.outliers,
       }));
     }
 
@@ -226,6 +234,30 @@ export default async function PipelinesPage({
         return obj;
       });
     }
+    outliers = [
+      ...durationData.flatMap((item) =>
+        toOutlierRows(`Run duration: ${item.workflow}`, item.outliers)
+      ),
+      ...avgTimeData.flatMap((item) =>
+        toOutlierRows(`Job average time: ${item.job_name}`, item.outliers)
+      ),
+      ...avgTimeByDayData.flatMap((item) =>
+        toOutlierRows(`Job average time by day: ${item.day}`, item.outliers)
+      ),
+      ...jobsSummaryData.flatMap((item) =>
+        toOutlierRows(`Job summary duration: ${item.job_name}`, item.outliers)
+      ),
+      ...jobStepsTime.flatMap((item) =>
+        toOutlierRows(`Step average time: ${item.name}`, item.outliers)
+      ),
+      ...(Array.isArray(jobStepsByDayResult)
+        ? jobStepsByDayResult.flatMap((item) =>
+            item.steps.flatMap((step) =>
+              toOutlierRows(`Step average time by day: ${item.day} / ${step.name}`, step.outliers)
+            )
+          )
+        : []),
+    ];
   } catch (error) {
     console.error('Error fetching pipeline data:', error);
     jobsByStatus = [];
@@ -243,6 +275,7 @@ export default async function PipelinesPage({
 
   return (
     <div className="space-y-6">
+      <OutliersCard rows={outliers} />
       <Card>
         <CardContent>
           <div className="p-4 bg-blue-50 rounded-lg">

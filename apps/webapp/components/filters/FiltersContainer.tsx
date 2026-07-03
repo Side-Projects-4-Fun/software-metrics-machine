@@ -174,6 +174,22 @@ export default function FiltersContainer({ repository }: { repository: string })
               options={eventOptions}
               onChange={(values) => updateFilter('event', values)}
             />
+            <SelectFilter
+              label="Weekends"
+              value={filters.weekends}
+              options={['include', 'exclude', 'weekends_only']}
+              onChange={(value) =>
+                updateFilter('weekends', value as 'include' | 'exclude' | 'weekends_only')
+              }
+            />
+            <SelectFilter
+              label="Outliers"
+              value={filters.outlierMode}
+              options={['include', 'flag', 'exclude']}
+              onChange={(value) =>
+                updateFilter('outlierMode', value as 'include' | 'flag' | 'exclude')
+              }
+            />
           </Stack>
         </Box>
       )}
@@ -220,6 +236,22 @@ export default function FiltersContainer({ repository }: { repository: string })
               value={filters.aggregateBy}
               options={['day', 'week', 'month']}
               onChange={(value) => updateFilter('aggregateBy', value)}
+            />
+            <SelectFilter
+              label="Weekends"
+              value={filters.weekends}
+              options={['include', 'exclude', 'weekends_only']}
+              onChange={(value) =>
+                updateFilter('weekends', value as 'include' | 'exclude' | 'weekends_only')
+              }
+            />
+            <SelectFilter
+              label="Outliers"
+              value={filters.outlierMode}
+              options={['include', 'flag', 'exclude']}
+              onChange={(value) =>
+                updateFilter('outlierMode', value as 'include' | 'flag' | 'exclude')
+              }
             />
           </Stack>
         </Box>

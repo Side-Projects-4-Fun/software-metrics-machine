@@ -22,6 +22,8 @@ export interface DashboardFilters {
   labelSelector?: string[];
   pullRequestStatus?: 'open' | 'closed' | 'merged' | 'draft';
   aggregateBy?: string;
+  weekends?: 'include' | 'exclude' | 'weekends_only';
+  outlierMode?: 'include' | 'flag' | 'exclude';
   sonarqubeRemoveFolders?: boolean;
 }
 
@@ -40,6 +42,8 @@ export function buildPipelineApiParams(filters: DashboardFilters): ApiParams {
     branch: filters.branch?.length ? filters.branch.join(',') : undefined,
     event: filters.event?.length ? filters.event.join(',') : undefined,
     metric: filters.aggregateMetric,
+    weekends: filters.weekends,
+    outlier_mode: filters.outlierMode,
   };
 }
 
@@ -79,6 +83,8 @@ export function buildPullRequestApiParams(filters: DashboardFilters): ApiParams 
     labels: filters.labelSelector?.length ? filters.labelSelector.join(',') : undefined,
     status: filters.pullRequestStatus,
     aggregate_by: filters.aggregateBy,
+    weekends: filters.weekends,
+    outlier_mode: filters.outlierMode,
   };
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SortableTable } from '@/components/ui/sortable-table';
+import { ClientPaginatedSortableTable } from '@/components/ui/client-paginated-sortable-table';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { JobSummaryData, JobRerunsByDayData } from './types';
 import { TargetInfo } from '@/components/charts/TargetInfo';
@@ -115,11 +115,12 @@ export default function JobsRerunCard({ data, dataByDay }: JobsRerunCardProps) {
             <h3 className="text-sm font-medium text-gray-700">Jobs Summary</h3>
             <span className="text-xs text-gray-400">Failure rate = (failed / total runs) × 100</span>
           </div>
-          <SortableTable
+          <ClientPaginatedSortableTable
             columns={columns}
             rows={Array.isArray(data) ? data : []}
             getRowKey={(item) => `${item.workflow_name || 'unknown'}:${item.job_name || 'unknown'}`}
             defaultSort={{ key: 'rerun_count', direction: 'desc' }}
+            pageSize={10}
           />
         </div>
       </CardContent>

@@ -15,6 +15,7 @@ import { METRIC_TARGETS, type TargetDefinition, type SourceEntry } from '@/compo
 
 interface MetricCategory {
   label: string;
+  description?: string;
   metrics: { key: string; definition: TargetDefinition }[];
 }
 
@@ -64,6 +65,14 @@ const CATEGORIES: MetricCategory[] = [
       { key: 'sonarqube-coverage', definition: METRIC_TARGETS['sonarqube-coverage'] },
       { key: 'sonarqube-complexity', definition: METRIC_TARGETS['sonarqube-complexity'] },
       { key: 'sonarqube-measurements', definition: METRIC_TARGETS['sonarqube-measurements'] },
+    ],
+  },
+  {
+    label: 'Outlier Detection',
+    description:
+      'SMM flags outliers using the interquartile range (IQR) method. For each metric distribution, values below Q1 - 1.5 x IQR or above Q3 + 1.5 x IQR are flagged so teams can investigate unusual events and potential quality risks.',
+    metrics: [
+      { key: 'metric-outliers', definition: METRIC_TARGETS['metric-outliers'] },
     ],
   },
 ];
@@ -221,6 +230,11 @@ function CategorySection({ category }: { category: MetricCategory }) {
       >
         {category.label}
       </Typography>
+      {category.description && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.7 }}>
+          {category.description}
+        </Typography>
+      )}
       <Box
         sx={{
           display: 'grid',
@@ -235,6 +249,88 @@ function CategorySection({ category }: { category: MetricCategory }) {
         {category.metrics.map((metric) => (
           <MetricCard key={metric.key} metric={metric} />
         ))}
+      </Box>
+    </Box>
+  );
+}
+
+function OutlierImplementationDetails() {
+  return (
+    <Box
+      sx={{
+        mb: 4,
+        p: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 2,
+        bgcolor: 'background.paper',
+      }}
+    >
+      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
+        How Outliers Work In SMM
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.7 }}>
+        The outliers panel is generated from outlier arrays returned by backend metric endpoints. Each outlier row uses the same schema: timestamp, value, lowerBound, upperBound, and item metadata used to label and link the event.
+      </Typography>
+
+      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+        Pipeline Data Used
+      </Typography>
+      <Box component="ul" sx={{ m: 0, mb: 2, pl: 2.5 }}>
+        <Box component="li" sx={{ mb: 0.75 }}>
+          <Typography variant="body2">Run duration per workflow (runsDuration outliers)</Typography>
+        </Box>
+        <Box component="li" sx={{ mb: 0.75 }}>
+          <Typography variant="body2">Job average time per job (jobsAverageTime outliers)</Typography>
+        </Box>
+        <Box component="li" sx={{ mb: 0.75 }}>
+          <Typography variant="body2">Job average time by day (jobsAverageTimeByDay outliers)</Typography>
+        </Box>
+        <Box component="li" sx={{ mb: 0.75 }}>
+          <Typography variant="body2">Job summary duration aggregates (jobsSummary outliers)</Typography>
+        </Box>
+        <Box component="li" sx={{ mb: 0.75 }}>
+          <Typography variant="body2">Step average time (jobStepsAverageTime outliers)</Typography>
+        </Box>
+        <Box component="li" sx={{ mb: 0 }}>
+          <Typography variant="body2">Step average time by day and step (jobStepsAverageTimeByDay step outliers)</Typography>
+        </Box>
+      </Box>
+
+      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+        Pull Request Data Used
+      </Typography>
+      <Box component="ul" sx={{ m: 0, mb: 2, pl: 2.5 }}>
+        <Box component="li" sx={{ mb: 0.75 }}>
+          <Typography variant="body2">Average review time per author (averageReviewTime outliers)</Typography>
+        </Box>
+        <Box component="li" sx={{ mb: 0.75 }}>
+          <Typography variant="body2">Average open days per period (averageOpenBy outliers)</Typography>
+        </Box>
+        <Box component="li" sx={{ mb: 0.75 }}>
+          <Typography variant="body2">Average comments per PR (averageComments outliers)</Typography>
+        </Box>
+        <Box component="li" sx={{ mb: 0 }}>
+          <Typography variant="body2">Time to first comment per author (firstCommentTime outliers)</Typography>
+        </Box>
+      </Box>
+
+      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+        Detection And Rendering Flow
+      </Typography>
+      <Box component="ol" sx={{ m: 0, pl: 2.5 }}>
+        <Box component="li" sx={{ mb: 0.75 }}>
+          <Typography variant="body2">The backend computes outliers per metric distribution using IQR bounds.</Typography>
+        </Box>
+        <Box component="li" sx={{ mb: 0.75 }}>
+          <Typography variant="body2">Dashboard pages collect outliers from each metric response and convert them with toOutlierRows.</Typography>
+        </Box>
+        <Box component="li" sx={{ mb: 0.75 }}>
+          <Typography variant="body2">Rows are labeled with metric context such as workflow, job, step, period, or author.</Typography>
+        </Box>
+        <Box component="li" sx={{ mb: 0 }}>
+          <Typography variant="body2">The Flagged Outliers card shows value, IQR bounds, timestamp, and item link to support root-cause analysis.</Typography>
+        </Box>
       </Box>
     </Box>
   );
@@ -270,6 +366,8 @@ export default function ReferencesPage() {
           />
         </Box>
       </Box>
+
+      <OutlierImplementationDetails />
 
       {CATEGORIES.map((category) => (
         <CategorySection key={category.label} category={category} />

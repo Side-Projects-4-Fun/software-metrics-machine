@@ -1,6 +1,12 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { PRsService, PRDetails, PullRequestFiltersRepository, PRFilters } from '@smmachine/core';
+import {
+  parseMetricCleaningOptions,
+  PRsService,
+  PRDetails,
+  PullRequestFiltersRepository,
+  PRFilters,
+} from '@smmachine/core';
 import type {
   PRSummaryResponse,
   PRThroughTimeResponse,
@@ -29,10 +35,22 @@ export class PullRequestsController {
     @Query('exclude_authors') excludeAuthors?: string,
     @Query('exclude_commenters') excludeCommenters?: string,
     @Query('labels') labels?: string,
-    @Query('status') status?: PRDetails['state']
+    @Query('status') status?: PRDetails['state'],
+    @Query('weekends') weekends?: string,
+    @Query('outlier_mode') outlierMode?: string
   ): Promise<PRSummaryResponse> {
     return this.prsService.getSummary(
-      this.toFilters(startDate, endDate, authors, excludeAuthors, excludeCommenters, labels, status)
+      this.toFilters(
+        startDate,
+        endDate,
+        authors,
+        excludeAuthors,
+        excludeCommenters,
+        labels,
+        status,
+        weekends,
+        outlierMode
+      )
     ) as Promise<PRSummaryResponse>;
   }
 
@@ -45,7 +63,9 @@ export class PullRequestsController {
     @Query('exclude_authors') excludeAuthors?: string,
     @Query('exclude_commenters') excludeCommenters?: string,
     @Query('labels') labels?: string,
-    @Query('status') status?: PRDetails['state']
+    @Query('status') status?: PRDetails['state'],
+    @Query('weekends') weekends?: string,
+    @Query('outlier_mode') outlierMode?: string
   ): Promise<PRThroughTimeResponse> {
     const rows = await this.prsService.getThroughTime(
       this.toFilters(
@@ -55,7 +75,9 @@ export class PullRequestsController {
         excludeAuthors,
         excludeCommenters,
         labels,
-        status
+        status,
+        weekends,
+        outlierMode
       ),
       aggregateBy
     );
@@ -71,7 +93,9 @@ export class PullRequestsController {
     @Query('authors') authors?: string,
     @Query('exclude_authors') excludeAuthors?: string,
     @Query('exclude_commenters') excludeCommenters?: string,
-    @Query('status') status?: PRDetails['state']
+    @Query('status') status?: PRDetails['state'],
+    @Query('weekends') weekends?: string,
+    @Query('outlier_mode') outlierMode?: string
   ): Promise<PRByAuthorResponse> {
     const maxRows = top ? Number(top) : 10;
     const result = await this.prsService.getByAuthor(
@@ -82,7 +106,9 @@ export class PullRequestsController {
         excludeAuthors,
         excludeCommenters,
         labels,
-        status
+        status,
+        weekends,
+        outlierMode
       ),
       Number.isFinite(maxRows) ? maxRows : 10
     );
@@ -99,7 +125,9 @@ export class PullRequestsController {
     @Query('authors') authors?: string,
     @Query('exclude_authors') excludeAuthors?: string,
     @Query('exclude_commenters') excludeCommenters?: string,
-    @Query('status') status?: PRDetails['state']
+    @Query('status') status?: PRDetails['state'],
+    @Query('weekends') weekends?: string,
+    @Query('outlier_mode') outlierMode?: string
   ): Promise<PRAverageReviewTimeResponse> {
     const maxRows = top ? Number(top) : 10;
     const result = await this.prsService.getAverageReviewTime(
@@ -110,7 +138,9 @@ export class PullRequestsController {
         excludeAuthors,
         excludeCommenters,
         labels,
-        status
+        status,
+        weekends,
+        outlierMode
       ),
       Number.isFinite(maxRows) ? maxRows : 10
     );
@@ -127,7 +157,9 @@ export class PullRequestsController {
     @Query('authors') authors?: string,
     @Query('exclude_authors') excludeAuthors?: string,
     @Query('exclude_commenters') excludeCommenters?: string,
-    @Query('status') status?: PRDetails['state']
+    @Query('status') status?: PRDetails['state'],
+    @Query('weekends') weekends?: string,
+    @Query('outlier_mode') outlierMode?: string
   ): Promise<PRAverageOpenByResponse> {
     return this.prsService.getAverageOpenBy(
       this.toFilters(
@@ -137,7 +169,9 @@ export class PullRequestsController {
         excludeAuthors,
         excludeCommenters,
         labels,
-        status
+        status,
+        weekends,
+        outlierMode
       ),
       aggregateBy
     );
@@ -151,12 +185,24 @@ export class PullRequestsController {
     @Query('authors') authors?: string,
     @Query('exclude_authors') excludeAuthors?: string,
     @Query('exclude_commenters') excludeCommenters?: string,
-    @Query('status') status?: PRDetails['state']
+    @Query('status') status?: PRDetails['state'],
+    @Query('weekends') weekends?: string,
+    @Query('outlier_mode') outlierMode?: string
   ): Promise<PRAverageCommentsResponse> {
     const metrics = await this.prsService.getMetrics(
-      this.toFilters(startDate, endDate, authors, excludeAuthors, excludeCommenters, labels, status)
+      this.toFilters(
+        startDate,
+        endDate,
+        authors,
+        excludeAuthors,
+        excludeCommenters,
+        labels,
+        status,
+        weekends,
+        outlierMode
+      )
     );
-    return { avg_comments: metrics.averageComments };
+    return { avg_comments: metrics.averageComments, outliers: metrics.outliers?.comments };
   }
 
   @Get('/pull-requests/comments-by-author')
@@ -168,7 +214,9 @@ export class PullRequestsController {
     @Query('authors') authors?: string,
     @Query('exclude_authors') excludeAuthors?: string,
     @Query('exclude_commenters') excludeCommenters?: string,
-    @Query('status') status?: PRDetails['state']
+    @Query('status') status?: PRDetails['state'],
+    @Query('weekends') weekends?: string,
+    @Query('outlier_mode') outlierMode?: string
   ): Promise<PRCommentsByAuthorResponse> {
     const maxRows = top ? Number(top) : 10;
     const result = await this.prsService.getCommentsByAuthor(
@@ -179,7 +227,9 @@ export class PullRequestsController {
         excludeAuthors,
         excludeCommenters,
         labels,
-        status
+        status,
+        weekends,
+        outlierMode
       ),
       Number.isFinite(maxRows) ? maxRows : 10
     );
@@ -196,7 +246,9 @@ export class PullRequestsController {
     @Query('authors') authors?: string,
     @Query('exclude_authors') excludeAuthors?: string,
     @Query('exclude_commenters') excludeCommenters?: string,
-    @Query('status') status?: PRDetails['state']
+    @Query('status') status?: PRDetails['state'],
+    @Query('weekends') weekends?: string,
+    @Query('outlier_mode') outlierMode?: string
   ): Promise<PRFirstCommentTimeResponse> {
     const maxRows = top ? Number(top) : 10;
     const result = await this.prsService.getFirstCommentTime(
@@ -207,7 +259,9 @@ export class PullRequestsController {
         excludeAuthors,
         excludeCommenters,
         labels,
-        status
+        status,
+        weekends,
+        outlierMode
       ),
       Number.isFinite(maxRows) ? maxRows : 10
     );
@@ -227,7 +281,9 @@ export class PullRequestsController {
     excludeAuthors?: string,
     excludeCommenters?: string,
     labels?: string,
-    status?: PRDetails['state']
+    status?: PRDetails['state'],
+    weekends?: string,
+    outlierMode?: string
   ): PRFilters {
     return {
       startDate,
@@ -237,6 +293,7 @@ export class PullRequestsController {
       excludeCommenters,
       labels,
       state: status,
+      cleaning: parseMetricCleaningOptions({ weekends, outlierMode }),
     };
   }
 }

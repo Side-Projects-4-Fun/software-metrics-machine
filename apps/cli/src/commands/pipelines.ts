@@ -1,5 +1,9 @@
 import type { SmmCommand } from './smm-command';
-import { PipelinesService, type PipelineFilters } from '@smmachine/core';
+import {
+  parseMetricCleaningOptions,
+  PipelinesService,
+  type PipelineFilters,
+} from '@smmachine/core';
 import PipelineFactory from '@smmachine/core/aggregates/pipeline-factory';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 
@@ -32,6 +36,8 @@ function buildPipelineFilters(options: {
   workflow?: string;
   job?: string;
   rawFilters?: string;
+  weekends?: string;
+  outlierMode?: string;
 }): PipelineFilters {
   return {
     startDate: options.startDate,
@@ -39,7 +45,48 @@ function buildPipelineFilters(options: {
     workflowPath: options.workflow,
     jobName: options.job,
     rawFilters: options.rawFilters,
+    cleaning: parseMetricCleaningOptions({
+      weekends: options.weekends,
+      outlierMode: options.outlierMode,
+    }),
   };
+}
+
+type CliOutlier = {
+  value: number;
+  timestamp: string;
+  lowerBound: number;
+  upperBound: number;
+  item?: {
+    runId?: string;
+    workflowName?: string;
+    jobName?: string;
+    stepName?: string;
+  };
+};
+
+function formatOutlierLine(outlier: CliOutlier): string {
+  const item = outlier.item;
+  const identity = item
+    ? [item.workflowName, item.jobName, item.stepName, item.runId ? `run ${item.runId}` : undefined]
+        .filter(Boolean)
+        .join(' | ')
+    : 'unknown item';
+  return `    - ${identity}: ${outlier.value.toFixed(2)} (${outlier.timestamp}, bounds ${outlier.lowerBound.toFixed(2)} - ${outlier.upperBound.toFixed(2)})`;
+}
+
+function printOutliers(screen: ReturnType<SmmCommand['getScreen']>, outliers?: CliOutlier[]): void {
+  if (!outliers || outliers.length === 0) {
+    return;
+  }
+
+  screen.printLine(`Outliers: ${outliers.length}`);
+  for (const outlier of outliers.slice(0, 10)) {
+    screen.printLine(formatOutlierLine(outlier));
+  }
+  if (outliers.length > 10) {
+    screen.printLine(`    ...and ${outliers.length - 10} more`);
+  }
 }
 
 export function createPipelinesCommands(program: SmmCommand): void {
@@ -124,6 +171,16 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--end-date <date>', 'End date (inclusive) in YYYY-MM-DD')
     .option('--output <format>', 'Output format (text|json)', 'text')
     .option('--raw-filters <filters>', 'Raw Provider filters string')
+    .option(
+      '--weekends <mode>',
+      'Weekend handling for averages: include, exclude, or weekends_only',
+      'include'
+    )
+    .option(
+      '--outlier-mode <mode>',
+      'Outlier handling for averages: include, flag, or exclude',
+      'include'
+    )
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
@@ -143,6 +200,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
           screen.printLine(
             `Average Duration: ${metrics.averageDurationMinutes.toFixed(2)} minutes`
           );
+          printOutliers(screen, metrics.outliers);
         }
       } catch (error) {
         logger.error('Failed to generate pipeline summary', error);
@@ -197,6 +255,16 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--workflow <name>', 'Filter by workflow name')
     .option('--raw-filters <filters>', 'Raw Provider filters string')
     .option('--output <format>', 'Output format (text|json)', 'text')
+    .option(
+      '--weekends <mode>',
+      'Weekend handling for averages: include, exclude, or weekends_only',
+      'include'
+    )
+    .option(
+      '--outlier-mode <mode>',
+      'Outlier handling for averages: include, flag, or exclude',
+      'include'
+    )
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
@@ -218,6 +286,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
             `Average Duration: ${metrics.averageDurationMinutes.toFixed(2)} minutes`
           );
           screen.printLine(`Total Runs: ${metrics.totalRuns}`);
+          printOutliers(screen, metrics.outliers);
         }
       } catch (error) {
         logger.error('Failed to analyze pipeline run durations', error);
@@ -272,6 +341,16 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--end-date <date>', 'End date (YYYY-MM-DD)')
     .option('--raw-filters <filters>', 'Raw Provider filters string')
     .option('--output <format>', 'Output format (text|json)', 'text')
+    .option(
+      '--weekends <mode>',
+      'Weekend handling for averages: include, exclude, or weekends_only',
+      'include'
+    )
+    .option(
+      '--outlier-mode <mode>',
+      'Outlier handling for averages: include, flag, or exclude',
+      'include'
+    )
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
@@ -292,6 +371,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
             screen.printLine(`Success rate: ${item.successRate}%`);
             screen.printLine(`Failure rate: ${item.failureRate}%`);
             screen.printLine(`Average Duration Minutes: ${item.averageDurationMinutes}`);
+            printOutliers(screen, item.outliers);
             screen.printLine(`Failure count: ${item.failureCount}`);
             screen.printLine('\n\n');
           });
@@ -310,6 +390,16 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--job <name>', 'Filter by job name')
     .option('--raw-filters <filters>', 'Raw Provider filters string')
     .option('--output <format>', 'Output format (text|json)', 'text')
+    .option(
+      '--weekends <mode>',
+      'Weekend handling for averages: include, exclude, or weekends_only',
+      'include'
+    )
+    .option(
+      '--outlier-mode <mode>',
+      'Outlier handling for averages: include, flag, or exclude',
+      'include'
+    )
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
@@ -330,6 +420,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
             screen.printLine(
               `Average Execution Time: ${item.averageDurationMinutes.toFixed(2)} minutes`
             );
+            printOutliers(screen, item.outliers);
           });
         }
       } catch (error) {
@@ -346,6 +437,16 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--job <name>', 'Filter by job name')
     .option('--raw-filters <filters>', 'Raw Provider filters string')
     .option('--output <format>', 'Output format (text|json)', 'text')
+    .option(
+      '--weekends <mode>',
+      'Weekend handling for averages: include, exclude, or weekends_only',
+      'include'
+    )
+    .option(
+      '--outlier-mode <mode>',
+      'Outlier handling for averages: include, flag, or exclude',
+      'include'
+    )
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
@@ -364,6 +465,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
               `Average Execution Time: ${item.averageDurationMinutes.toFixed(2)} minutes`
             );
             screen.printLine(`Analyzed across ${item.count} step executions\n`);
+            printOutliers(screen, item.outliers);
           });
         }
       } catch (error) {
@@ -383,6 +485,16 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--end-date <date>', 'End date (YYYY-MM-DD)')
     .option('--raw-filters <filters>', 'Raw Provider filters string')
     .option('--output <format>', 'Output format (text|json)', 'text')
+    .option(
+      '--weekends <mode>',
+      'Weekend handling for averages: include, exclude, or weekends_only',
+      'include'
+    )
+    .option(
+      '--outlier-mode <mode>',
+      'Outlier handling for averages: include, flag, or exclude',
+      'include'
+    )
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
@@ -402,6 +514,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
             );
             screen.printLine(`❌ Failed: ${item.failureCount}, failure rate: ${item.failureRate}%`);
             screen.printLine(`Average duration in minutes: ${item.averageDurationMinutes}`);
+            printOutliers(screen, item.outliers);
           });
         }
       } catch (error) {
@@ -478,6 +591,16 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--end-date <date>', 'End date (YYYY-MM-DD)')
     .option('--raw-filters <filters>', 'Raw Provider filters string')
     .option('--output <format>', 'Output format (text|json)', 'text')
+    .option(
+      '--weekends <mode>',
+      'Weekend handling for averages: include, exclude, or weekends_only',
+      'include'
+    )
+    .option(
+      '--outlier-mode <mode>',
+      'Outlier handling for averages: include, flag, or exclude',
+      'include'
+    )
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {

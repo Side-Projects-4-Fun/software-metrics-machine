@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SortableTable } from '@/components/ui/sortable-table';
+import { ClientPaginatedSortableTable } from '@/components/ui/client-paginated-sortable-table';
 import { JobByStatusData } from './types';
 import { useLinkBuilder } from '@/components/providers/LinkBuilderContext';
 import { TargetInfo } from '@/components/charts/TargetInfo';
@@ -49,11 +49,12 @@ export default function JobsByStatusCard({ data }: { data: JobByStatusData[] }) 
         <p className="text-xs text-gray-500 mt-1">Click to view pipeline runs with this status</p>
       </CardHeader>
       <CardContent>
-        <SortableTable
+        <ClientPaginatedSortableTable
           columns={columns}
           rows={Array.isArray(data) ? data : []}
           getRowKey={(job) => job.status || 'unknown'}
           defaultSort={{ key: 'count', direction: 'desc' }}
+          pageSize={10}
         />
       </CardContent>
     </Card>

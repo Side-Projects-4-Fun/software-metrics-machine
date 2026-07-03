@@ -723,6 +723,20 @@ describe('PipelinesController', () => {
       expect(result.in_progress).toBe(0);
       expect(result.queued).toBe(0);
     });
+
+    it('forwards weekends filtering to repository so total runs reflects excluded weekends', async () => {
+      const { controller, pipelinesRepo } = createController([]);
+
+      await controller.pipelineSummary({ weekends: 'weekends_only' });
+
+      expect(pipelinesRepo.loadPipelines).toHaveBeenCalledWith(
+        expect.objectContaining({
+          includeJobs: false,
+          weekends: 'weekends_only',
+          sort_by: { created_at: 'asc' },
+        })
+      );
+    });
   });
 
   describe('byStatus', () => {

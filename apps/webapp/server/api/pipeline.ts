@@ -1,5 +1,13 @@
 import { ApiParams, fetchAPI } from './client';
 
+type MetricOutlier = {
+  value: number;
+  timestamp: string;
+  lowerBound: number;
+  upperBound: number;
+  item: Record<string, unknown>;
+};
+
 export const pipelineAPI = {
   byStatus: (params?: ApiParams) =>
     fetchAPI<Array<{ status: string; count: number }>>(
@@ -24,6 +32,7 @@ export const pipelineAPI = {
       success_rate: number;
       failure_rate: number;
       rerun_count: number;
+      outliers?: MetricOutlier[];
     }>>('/pipelines/jobs-summary', params),
 
   jobsRerunsByDay: (params?: ApiParams) =>
@@ -49,6 +58,7 @@ export const pipelineAPI = {
       min_duration?: number;
       max_duration?: number;
       total_runs: number;
+      outliers?: MetricOutlier[];
     }>>(
       '/pipelines/runs-duration',
       params
@@ -73,25 +83,25 @@ export const pipelineAPI = {
     ),
   
   jobsAverageTime: (params?: ApiParams) =>
-    fetchAPI<Array<{ job_name: string; avg_time: number; count: number }>>(
+    fetchAPI<Array<{ job_name: string; avg_time: number; count: number; outliers?: MetricOutlier[] }>>(
       '/pipelines/jobs-average-time',
       params
     ),
 
   jobsAverageTimeByDay: (params?: ApiParams) =>
-    fetchAPI<Array<{ day: string; avg_time: number; count: number }>>(
+    fetchAPI<Array<{ day: string; avg_time: number; count: number; outliers?: MetricOutlier[] }>>(
       '/pipelines/jobs-average-time-by-day',
       params
     ),
 
   jobStepsAverageTime: (params?: ApiParams) =>
-    fetchAPI<Array<{ name: string; averageDurationMinutes: number; count: number }>>(
+    fetchAPI<Array<{ name: string; averageDurationMinutes: number; count: number; outliers?: MetricOutlier[] }>>(
       '/pipelines/jobs-steps-average-time',
       params
     ),
 
   jobStepsAverageTimeByDay: (params?: ApiParams) =>
-    fetchAPI<Array<{ day: string; steps: Array<{ name: string; averageDurationMinutes: number }> }>>(
+    fetchAPI<Array<{ day: string; steps: Array<{ name: string; averageDurationMinutes: number; outliers?: MetricOutlier[] }> }>>(
       '/pipelines/jobs-steps-average-time-by-day',
       params
     ),

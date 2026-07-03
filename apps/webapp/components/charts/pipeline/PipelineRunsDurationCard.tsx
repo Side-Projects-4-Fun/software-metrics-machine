@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import { Tab, Tabs } from '@mui/material';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SortableTable } from '@/components/ui/sortable-table';
+import { ClientPaginatedSortableTable } from '@/components/ui/client-paginated-sortable-table';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Scatter, ComposedChart } from 'recharts';
 import { ensureArray } from '@/server/utils/chartData';
 import { JobsDurationByWorkflowItem, RunsByDayData, RunsDurationData } from './types';
@@ -184,7 +184,7 @@ export default function PipelineRunsDurationCard({
               </ComposedChart>
             </ResponsiveContainer>
             <div className="mt-6 overflow-x-auto">
-              <SortableTable
+              <ClientPaginatedSortableTable
                 columns={[
                   {
                     key: 'workflow',
@@ -239,6 +239,7 @@ export default function PipelineRunsDurationCard({
                 rows={durationRangeData}
                 getRowKey={(item) => item.workflow}
                 defaultSort={{ key: 'avg', direction: 'desc' }}
+                pageSize={10}
               />
             </div>
           </>

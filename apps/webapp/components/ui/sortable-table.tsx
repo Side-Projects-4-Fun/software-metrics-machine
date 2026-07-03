@@ -11,7 +11,7 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 
 type SortDirection = 'asc' | 'desc';
 
-interface SortableColumn<T> {
+export interface SortableColumn<T> {
   /** Accessor key on the row object */
   key: string;
   /** Header label */
@@ -26,7 +26,7 @@ interface SortableColumn<T> {
   compare?: (a: T, b: T) => number;
 }
 
-interface SortableTableProps<T> {
+export interface SortableTableProps<T> {
   columns: SortableColumn<T>[];
   rows: T[];
   /** Returns a unique key for each row */

@@ -385,4 +385,101 @@ describe('PipelinesRepository loadPipelines', () => {
 
     expect(loadedRuns.map((run) => run.id)).toEqual(['run-1', 'run-2']);
   });
+
+  it('should filter runs by ISO week boundaries', async () => {
+    const runs = [
+      new PipelineGitHubRunBuilder()
+        .id('run-w01')
+        .path('.github/workflows/ci.yml')
+        .createdAt('2026-01-04T10:00:00Z')
+        .updatedAt('2026-01-04T10:30:00Z')
+        .build(),
+      new PipelineGitHubRunBuilder()
+        .id('run-w02')
+        .path('.github/workflows/ci.yml')
+        .createdAt('2026-01-06T10:00:00Z')
+        .updatedAt('2026-01-06T10:30:00Z')
+        .build(),
+      new PipelineGitHubRunBuilder()
+        .id('run-w03')
+        .path('.github/workflows/ci.yml')
+        .createdAt('2026-01-13T10:00:00Z')
+        .updatedAt('2026-01-13T10:30:00Z')
+        .build(),
+    ];
+
+    await pipelineRunRepository.saveAll(runs);
+    await pipelineJobsRepository.saveAll([]);
+
+    const repository = createRepository();
+
+    const loadedRuns = await repository.loadPipelines({
+      includeJobs: false,
+      startDate: '2026-W02',
+      endDate: '2026-W02',
+      sort_by: { created_at: 'asc' },
+    });
+
+    expect(loadedRuns.map((run) => run.id)).toEqual(['run-w02']);
+  });
+
+  it('should exclude weekend runs when weekends filter is set to exclude', async () => {
+    const runs = [
+      new PipelineGitHubRunBuilder()
+        .id('run-weekend')
+        .path('.github/workflows/ci.yml')
+        .createdAt('2026-06-06T10:00:00Z')
+        .updatedAt('2026-06-06T10:30:00Z')
+        .build(),
+      new PipelineGitHubRunBuilder()
+        .id('run-weekday')
+        .path('.github/workflows/ci.yml')
+        .createdAt('2026-06-08T10:00:00Z')
+        .updatedAt('2026-06-08T10:30:00Z')
+        .build(),
+    ];
+
+    await pipelineRunRepository.saveAll(runs);
+    await pipelineJobsRepository.saveAll([]);
+
+    const repository = createRepository();
+
+    const loadedRuns = await repository.loadPipelines({
+      includeJobs: false,
+      weekends: 'exclude',
+      sort_by: { created_at: 'asc' },
+    });
+
+    expect(loadedRuns.map((run) => run.id)).toEqual(['run-weekday']);
+  });
+
+  it('should keep only weekend runs when weekends filter is set to weekends_only', async () => {
+    const runs = [
+      new PipelineGitHubRunBuilder()
+        .id('run-weekend')
+        .path('.github/workflows/ci.yml')
+        .createdAt('2026-06-06T10:00:00Z')
+        .updatedAt('2026-06-06T10:30:00Z')
+        .build(),
+      new PipelineGitHubRunBuilder()
+        .id('run-weekday')
+        .path('.github/workflows/ci.yml')
+        .createdAt('2026-06-08T10:00:00Z')
+        .updatedAt('2026-06-08T10:30:00Z')
+        .build(),
+    ];
+
+    await pipelineRunRepository.saveAll(runs);
+    await pipelineJobsRepository.saveAll([]);
+
+    const repository = createRepository();
+
+    const loadedRuns = await repository.loadPipelines({
+      includeJobs: false,
+      weekends: 'weekends_only',
+      sort_by: { created_at: 'asc' },
+    });
+
+    expect(loadedRuns.map((run) => run.id)).toEqual(['run-weekend']);
+  });
 });

@@ -1,3 +1,5 @@
+import type { MetricCleaningOptions, MetricOutlier } from '../metric-samples';
+
 /**
  * PR-related domain types for analytics
  */
@@ -61,7 +63,18 @@ export interface PRFilters {
   labels?: string | string[];
   state?: PRStatus;
   rawFilters?: string;
+  cleaning?: MetricCleaningOptions;
 }
+
+export interface PRAverageOutlierItem {
+  id: number;
+  number: number;
+  title: string;
+  author: string;
+  url: string;
+}
+
+export type PRAverageOutlier = MetricOutlier<PRAverageOutlierItem>;
 
 export interface PRMetrics {
   averageOpenDays: number;
@@ -74,6 +87,10 @@ export interface PRMetrics {
   leadTime: number;
   commentSummary: CommentAuthor[];
   labelSummary: LabelSummary[];
+  outliers?: {
+    openDays: PRAverageOutlier[];
+    comments: PRAverageOutlier[];
+  };
 }
 
 export interface PRSummaryPullRequest {
@@ -148,6 +165,7 @@ export interface FirstCommentMetric {
   author: string;
   avg_hours: number;
   prs_with_comments: number;
+  outliers?: PRAverageOutlier[];
 }
 
 export interface MostCommentedPRData {
@@ -162,10 +180,15 @@ export interface PRsByTimeframe {
   count: number;
   averageOpenDays: number;
   averageComments: number;
+  outliers?: {
+    openDays: PRAverageOutlier[];
+    comments: PRAverageOutlier[];
+  };
 }
 
 export interface LabelSummary {
   label: string;
   count: number;
   averageOpenDays: number;
+  outliers?: PRAverageOutlier[];
 }

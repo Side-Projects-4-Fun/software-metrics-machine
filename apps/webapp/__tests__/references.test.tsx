@@ -31,6 +31,21 @@ describe('ReferencesPage', () => {
     expect(
       screen.getByText(/All academic papers, industry reports, and books/)
     ).toBeInTheDocument();
+    expect(screen.getByText('How Outliers Work In SMM')).toBeInTheDocument();
+  });
+
+  it('details which pipeline and pull request data are used for outliers', () => {
+    render(<ReferencesPage />);
+
+    expect(screen.getByText('Pipeline Data Used')).toBeInTheDocument();
+    expect(screen.getByText(/Run duration per workflow/)).toBeInTheDocument();
+    expect(screen.getByText(/Job average time per job/)).toBeInTheDocument();
+    expect(screen.getByText(/Step average time by day and step/)).toBeInTheDocument();
+
+    expect(screen.getByText('Pull Request Data Used')).toBeInTheDocument();
+    expect(screen.getByText(/Average review time per author/)).toBeInTheDocument();
+    expect(screen.getByText(/Average open days per period/)).toBeInTheDocument();
+    expect(screen.getByText(/Time to first comment per author/)).toBeInTheDocument();
   });
 
   it('displays metric and source counts', () => {
@@ -53,6 +68,8 @@ describe('ReferencesPage', () => {
     expect(screen.getByText('Pipelines')).toBeInTheDocument();
     expect(screen.getByText('Pull Requests')).toBeInTheDocument();
     expect(screen.getByText('SonarQube')).toBeInTheDocument();
+    expect(screen.getByText('Outlier Detection')).toBeInTheDocument();
+    expect(screen.getByText(/SMM flags outliers using the interquartile range \(IQR\) method\./)).toBeInTheDocument();
   });
 
   it('renders metric cards with targets and descriptions', () => {
@@ -146,6 +163,7 @@ describe('ReferencesPage', () => {
       'Sonarqube Coverage',
       'Sonarqube Complexity',
       'Sonarqube Measurements',
+      'Metric Outliers',
     ];
 
     for (const metric of expectedMetrics) {

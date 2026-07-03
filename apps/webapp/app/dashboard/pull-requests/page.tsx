@@ -11,6 +11,8 @@ import PRStatisticsCard from '@/components/charts/pull-requests/PRStatisticsCard
 import MostCommentedPRsCard from '@/components/charts/pull-requests/MostCommentedPRsCard';
 import CommentsByAuthorCard from '@/components/charts/pull-requests/CommentsByAuthorCard';
 import FirstCommentTimeCard from '@/components/charts/pull-requests/FirstCommentTimeCard';
+import OutliersCard, { MetricOutlierRow } from '@/components/charts/OutliersCard';
+import { toOutlierRows } from '@/components/charts/outliers-utils';
 import {
   AvgCommentsData,
   AvgOpenByData,
@@ -50,6 +52,7 @@ export default async function PullRequestsPage({
   let topThemes: Array<{ text: string; value: number }> = [];
   let commentsByAuthor: CommentsByAuthorData[] = [];
   let firstCommentTime: FirstCommentTimeData[] = [];
+  let outliers: MetricOutlierRow[] = [];
 
   try {
     const apiParams = buildPullRequestApiParams(filters);
@@ -108,6 +111,18 @@ export default async function PullRequestsPage({
     firstCommentTime = ensureArray<FirstCommentTimeData>(
       unwrapResult(firstCommentTimeData as FirstCommentTimeData[] | ResultWrapper<FirstCommentTimeData[]>)
     );
+    outliers = [
+      ...avgReviewTime.flatMap((item) =>
+        toOutlierRows(`Average review time: ${item.author}`, item.outliers)
+      ),
+      ...avgOpenBy.flatMap((item) =>
+        toOutlierRows(`Average open days: ${item.period}`, item.outliers)
+      ),
+      ...toOutlierRows('Average comments per PR', avgComments?.outliers),
+      ...firstCommentTime.flatMap((item) =>
+        toOutlierRows(`Time to first comment: ${item.author}`, item.outliers)
+      ),
+    ];
   } catch (error) {
     console.error('Error fetching PR data:', error);
     // Set empty arrays on error
@@ -115,6 +130,7 @@ export default async function PullRequestsPage({
 
   return (
     <div className="space-y-6">
+      <OutliersCard rows={outliers} />
       <div className="grid grid-cols-1 gap-6">
         <AverageReviewTimeCard data={avgReviewTime} />
       </div>

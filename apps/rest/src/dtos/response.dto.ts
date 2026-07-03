@@ -112,16 +112,18 @@ export interface PRByAuthorResponse {
 }
 
 export interface PRAverageReviewTimeResponse {
-  result: Array<{ author: string; avg_days: number }>;
+  result: Array<{ author: string; avg_days: number; outliers?: unknown[] }>;
 }
 
 export type PRAverageOpenByResponse = Array<{
   period: string;
   avg_days: number;
+  outliers?: unknown[];
 }>;
 
 export interface PRAverageCommentsResponse {
   avg_comments: number;
+  outliers?: unknown[];
 }
 
 export interface PRCommentsByAuthorResponse {
@@ -133,6 +135,7 @@ export interface PRFirstCommentTimeResponse {
     author: string;
     avg_hours: number;
     prs_with_comments: number;
+    outliers?: unknown[];
   }>;
 }
 
@@ -187,6 +190,7 @@ export interface PipelineJobsSummaryResponse {
     success_rate: number;
     failure_rate: number;
     rerun_count: number;
+    outliers?: unknown[];
   }>;
 }
 
@@ -196,6 +200,7 @@ export interface PipelineRunsDurationResponse extends Array<
       aggregation: string;
       duration: number;
       total_runs: number;
+      outliers?: unknown[];
     }
   | {
       workflow: string;
@@ -203,6 +208,7 @@ export interface PipelineRunsDurationResponse extends Array<
       min_duration: number;
       max_duration: number;
       total_runs: number;
+      outliers?: unknown[];
     }
 > {}
 
@@ -222,11 +228,19 @@ export interface PipelineJobsRerunsResponse {
 }
 
 export interface PipelineStepsAverageTimeResponse {
-  result: Array<{ name: string; averageDurationMinutes: number; count: number }>;
+  result: Array<{
+    name: string;
+    averageDurationMinutes: number;
+    count: number;
+    outliers?: unknown[];
+  }>;
 }
 
 export interface PipelineStepsAverageTimeByDayResponse {
-  result: Array<{ day: string; steps: Array<{ name: string; averageDurationMinutes: number }> }>;
+  result: Array<{
+    day: string;
+    steps: Array<{ name: string; averageDurationMinutes: number; outliers?: unknown[] }>;
+  }>;
 }
 
 export interface PipelineJobsAverageTimeResponse {
@@ -235,6 +249,7 @@ export interface PipelineJobsAverageTimeResponse {
     workflow_name?: string;
     avg_time: number;
     count: number;
+    outliers?: unknown[];
   }>;
 }
 
@@ -243,6 +258,7 @@ export interface PipelineJobsAverageTimeByDayResponse {
     day: string;
     avg_time: number;
     count: number;
+    outliers?: unknown[];
   }>;
 }
 

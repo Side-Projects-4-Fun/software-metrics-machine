@@ -1,6 +1,14 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { PipelinesRepository, PipelinesService, PipelineFiltersRepository } from '@smmachine/core';
+import {
+  averageMetricSamples,
+  cleanMetricSamples,
+  parseMetricCleaningOptions,
+  PipelinesRepository,
+  PipelinesService,
+  PipelineFiltersRepository,
+  type MetricSample,
+} from '@smmachine/core';
 import type { DeploymentFrequencyRow } from '../dtos/response.dto';
 import type {
   PipelineSummaryResponse,
@@ -39,6 +47,8 @@ interface PipelineFiltersQuery {
   job_name?: string;
   job_conclusion?: string;
   event?: string;
+  weekends?: string;
+  outlier_mode?: string;
 }
 
 interface RunLike {
@@ -64,6 +74,12 @@ type LoadRunsOptions = {
   sort_by?: {
     created_at?: 'asc' | 'desc';
   };
+};
+
+type PipelineOutlierItem = {
+  runId: string;
+  workflowName?: string;
+  jobName?: string;
 };
 
 /**
@@ -144,6 +160,7 @@ export class PipelinesController {
         success_rate: item.successRate,
         failure_rate: item.failureRate,
         rerun_count: item.rerunCount,
+        outliers: item.outliers,
       })),
     };
   }
@@ -162,7 +179,7 @@ export class PipelinesController {
   ): Promise<PipelineRunsDurationResponse> {
     const runs = await this.loadRunsWithFilters({ ...(query || {}), includeJobs: true });
 
-    const grouped = new Map<string, number[]>();
+    const grouped = new Map<string, Array<MetricSample<PipelineOutlierItem>>>();
 
     for (const run of runs) {
       const duration = this.pipelinesService.getRunDurationMinutes(run);
@@ -171,18 +188,32 @@ export class PipelinesController {
       }
       const workflow = run.path || 'unknown';
       const existing = grouped.get(workflow) || [];
-      existing.push(duration);
+      existing.push({
+        value: duration,
+        timestamp: this.pipelinesService.getRunMetricDate(run) || run.createdAt || '',
+        item: { runId: String((run as { id?: string }).id || ''), workflowName: workflow },
+      });
       grouped.set(workflow, existing);
     }
 
     const normalizedAggregation = (aggregation || '').toLowerCase();
+    const cleaning = parseMetricCleaningOptions({
+      weekends: query?.weekends,
+      outlierMode: query?.outlier_mode,
+    });
 
     return Array.from(grouped.entries())
-      .map(([workflow, durations]) => {
-        const n = durations.length;
-        const avgDuration = n > 0 ? durations.reduce((a, b) => a + b, 0) / n : 0;
+      .map(([workflow, samples]) => {
+        const cleaned = cleanMetricSamples(samples, cleaning);
+        const durations = cleaned.samples.map((sample) => sample.value);
+        const n = cleaned.samples.length;
+        const avgDuration = averageMetricSamples(cleaned.samples);
         const minDuration = n > 0 ? Math.min(...durations) : 0;
         const maxDuration = n > 0 ? Math.max(...durations) : 0;
+        const outliers =
+          cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
+            ? cleaned.outliers
+            : undefined;
 
         if (
           normalizedAggregation === 'avg' ||
@@ -199,6 +230,7 @@ export class PipelinesController {
                   ? minDuration
                   : maxDuration,
             total_runs: n,
+            outliers,
           };
         }
 
@@ -208,6 +240,7 @@ export class PipelinesController {
           min_duration: minDuration,
           max_duration: maxDuration,
           total_runs: n,
+          outliers,
         };
       })
       .sort((a, b) => b.total_runs - a.total_runs);
@@ -323,7 +356,10 @@ export class PipelinesController {
       includeJobs: true,
     });
 
-    const grouped = new Map<string, PipelineDurationsMetrics>();
+    const grouped = new Map<
+      string,
+      PipelineDurationsMetrics & { samples: Array<MetricSample<PipelineOutlierItem>> }
+    >();
 
     for (const run of runs) {
       const jobs = run.jobs || [];
@@ -337,26 +373,45 @@ export class PipelinesController {
           continue;
         }
 
-        const existing: PipelineDurationsMetrics = grouped.get(name) || {
+        const existing = grouped.get(name) || {
           durations: [],
+          samples: [],
           workflowName: job.workflow_name,
         };
         existing.durations.push(duration);
+        existing.samples.push({
+          value: duration,
+          timestamp:
+            job.completedAt || job.startedAt || this.pipelinesService.getRunMetricDate(run) || '',
+          item: {
+            runId: String((run as { id?: string }).id || ''),
+            workflowName: run.path,
+            jobName: name,
+          },
+        });
         grouped.set(name, existing);
       }
     }
 
     const maxRows = top ? Number(top) : 20;
+    const cleaning = parseMetricCleaningOptions({
+      weekends: query?.weekends,
+      outlierMode: query?.outlier_mode,
+    });
     const result = Array.from(grouped.entries())
-      .map(([jobNameValue, data]) => ({
-        job_name: jobNameValue,
-        workflow_name: data.workflowName,
-        avg_time:
-          data.durations.length > 0
-            ? data.durations.reduce((a, b) => a + b, 0) / data.durations.length
-            : 0,
-        count: data.durations.length,
-      }))
+      .map(([jobNameValue, data]) => {
+        const cleaned = cleanMetricSamples(data.samples, cleaning);
+        return {
+          job_name: jobNameValue,
+          workflow_name: data.workflowName,
+          avg_time: averageMetricSamples(cleaned.samples),
+          count: cleaned.samples.length,
+          outliers:
+            cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
+              ? cleaned.outliers
+              : undefined,
+        };
+      })
       .sort((a, b) => b.count - a.count)
       .slice(0, Number.isFinite(maxRows) ? maxRows : 20);
 
@@ -374,7 +429,7 @@ export class PipelinesController {
       includeJobs: true,
     });
 
-    const grouped = new Map<string, number[]>();
+    const grouped = new Map<string, Array<MetricSample<PipelineOutlierItem>>>();
 
     for (const run of runs) {
       const jobs = run.jobs || [];
@@ -397,17 +452,35 @@ export class PipelinesController {
         if (!grouped.has(day)) {
           grouped.set(day, []);
         }
-        grouped.get(day)!.push(duration);
+        grouped.get(day)!.push({
+          value: duration,
+          timestamp: job.completedAt || job.startedAt || runDate,
+          item: {
+            runId: String((run as { id?: string }).id || ''),
+            workflowName: run.path,
+            jobName: name,
+          },
+        });
       }
     }
 
+    const cleaning = parseMetricCleaningOptions({
+      weekends: query?.weekends,
+      outlierMode: query?.outlier_mode,
+    });
     const result = Array.from(grouped.entries())
-      .map(([day, durations]) => ({
-        day,
-        avg_time:
-          durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : 0,
-        count: durations.length,
-      }))
+      .map(([day, samples]) => {
+        const cleaned = cleanMetricSamples(samples, cleaning);
+        return {
+          day,
+          avg_time: averageMetricSamples(cleaned.samples),
+          count: cleaned.samples.length,
+          outliers:
+            cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
+              ? cleaned.outliers
+              : undefined,
+        };
+      })
       .sort((a, b) => a.day.localeCompare(b.day));
 
     return { result };
@@ -467,6 +540,7 @@ export class PipelinesController {
     targetBranch?: string;
     jobName?: string;
     event?: string;
+    cleaning?: ReturnType<typeof parseMetricCleaningOptions>;
   } {
     return {
       startDate: query.start_date,
@@ -477,6 +551,10 @@ export class PipelinesController {
       targetBranch: query.branch,
       jobName: query.job_name,
       event: query.event,
+      cleaning: parseMetricCleaningOptions({
+        weekends: query.weekends,
+        outlierMode: query.outlier_mode,
+      }),
     };
   }
 
@@ -484,6 +562,7 @@ export class PipelinesController {
     filters: {
       start_date?: string;
       end_date?: string;
+      weekends?: string;
       workflow_path?: string;
       status?: string;
       conclusion?: string;
@@ -500,6 +579,10 @@ export class PipelinesController {
       includeJobs: filters.includeJobs,
       startDate: filters.start_date,
       endDate: filters.end_date,
+      weekends:
+        filters.weekends === 'exclude' || filters.weekends === 'weekends_only'
+          ? filters.weekends
+          : 'include',
       workflowPath: filters.workflow_path,
       status: filters.status,
       conclusion: filters.conclusion,

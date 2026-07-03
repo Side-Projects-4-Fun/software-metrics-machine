@@ -6,6 +6,7 @@ import {
   WorkflowJsonResponse,
 } from '../providers/github/github-response-types';
 import { PipelineJob, PipelineRun, PipelineStep } from '../domain';
+import { shouldIncludeTimestampForWeekendsMode, type WeekendsMode } from '../domain/metric-samples';
 import { TimeZoneProvider } from '../infrastructure/timezone-provider';
 import { CommonRepository, RawFilter } from './common-repository';
 
@@ -13,6 +14,7 @@ export type LoadPipelinesOptions = {
   includeJobs?: boolean;
   startDate?: string;
   endDate?: string;
+  weekends?: WeekendsMode;
   workflowPath?: string;
   status?: string;
   conclusion?: string;
@@ -195,7 +197,7 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
     );
     const selectedBranches = this.parseCsvList(options.targetBranch);
     const selectedEvents = this.parseCsvList(options.event);
-    const start = options.startDate ? this.toTimestamp(options.startDate) : 0;
+    const start = options.startDate ? this.toDateBoundaryTimestamp(options.startDate, 'start') : 0;
     const end = options.endDate ? this.toDateBoundaryTimestamp(options.endDate, 'end') : 0;
 
     const filteredRuns = runs.filter((run) => {
@@ -203,6 +205,15 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
         const runTimestamp = this.toTimestamp(this.getRunMetricDate(run));
         if (start && runTimestamp < start) return false;
         if (end && runTimestamp > end) return false;
+      }
+      if (
+        !shouldIncludeTimestampForWeekendsMode(
+          this.getRunMetricDate(run),
+          options.weekends,
+          (dateString) => this.isWeekday(dateString)
+        )
+      ) {
+        return false;
       }
       if (options.workflowPath && run.path !== options.workflowPath) {
         return false;
@@ -234,6 +245,17 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
     }
 
     return filteredRuns;
+  }
+
+  private isWeekday(dateString?: string): boolean {
+    if (!dateString) {
+      return true;
+    }
+
+    const dateKey = this.tz.getDateKey(dateString);
+    const [year, month, day] = dateKey.split('-').map(Number);
+    const timezoneDay = new Date(Date.UTC(year, month - 1, day, 12, 0, 0)).getUTCDay();
+    return timezoneDay >= 1 && timezoneDay <= 5;
   }
 
   private filterRunsByJobs(
@@ -338,7 +360,52 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
       return d.getTime();
     }
 
+    const isoWeekMatch = value.match(/^(\d{4})-W(\d{2})$/);
+    if (isoWeekMatch) {
+      const year = Number(isoWeekMatch[1]);
+      const week = Number(isoWeekMatch[2]);
+      const weekBoundary = this.getIsoWeekBoundaryDate(year, week, boundary);
+      if (weekBoundary) {
+        return weekBoundary.getTime();
+      }
+    }
+
     return this.toTimestamp(value);
+  }
+
+  private getIsoWeekBoundaryDate(
+    year: number,
+    week: number,
+    boundary: 'start' | 'end'
+  ): Date | undefined {
+    const weekStart = this.getIsoWeekStartDate(year, week);
+    if (!weekStart) {
+      return undefined;
+    }
+
+    const boundaryDate = new Date(weekStart);
+    if (boundary === 'end') {
+      boundaryDate.setUTCDate(boundaryDate.getUTCDate() + 6);
+      return this.tz.getEndOfDayBoundary(boundaryDate.toISOString().slice(0, 10));
+    }
+
+    return this.tz.getStartOfDayBoundary(boundaryDate.toISOString().slice(0, 10));
+  }
+
+  private getIsoWeekStartDate(year: number, week: number): Date | undefined {
+    if (!Number.isInteger(year) || !Number.isInteger(week) || week < 1 || week > 53) {
+      return undefined;
+    }
+
+    const january4th = new Date(Date.UTC(year, 0, 4, 12, 0, 0));
+    const january4thDayOfWeek = january4th.getUTCDay() || 7;
+    const week1Monday = new Date(january4th);
+    week1Monday.setUTCDate(january4th.getUTCDate() - (january4thDayOfWeek - 1));
+
+    const targetMonday = new Date(week1Monday);
+    targetMonday.setUTCDate(week1Monday.getUTCDate() + (week - 1) * 7);
+
+    return targetMonday;
   }
 
   private sortRunsByMetricDate(runs: PipelineRun[], direction: 'asc' | 'desc'): PipelineRun[] {

@@ -1,6 +1,8 @@
 import { Logger } from '@smmachine/utils';
 import {
   JobMetrics,
+  PipelineAverageOutlier,
+  PipelineAverageOutlierItem,
   PipelineFilters,
   PipelineJob,
   PipelineMetrics,
@@ -9,6 +11,12 @@ import {
 import { IPipelinesRepository } from '../../aggregates/pipelines-repository';
 import { Configuration } from '../..';
 import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
+import {
+  averageMetricSamples,
+  cleanMetricSamples,
+  MetricCleaningOptions,
+  MetricSample,
+} from '../metric-samples';
 
 type PipelineDateFields = {
   createdAt?: string;
@@ -56,11 +64,25 @@ export interface IPipelinesService {
   ): Promise<Array<{ day: string; rerun_count: number }>>;
   getJobStepsAverageTime(
     filters?: PipelineFilters
-  ): Promise<Array<{ name: string; averageDurationMinutes: number; count: number }>>;
+  ): Promise<
+    Array<{
+      name: string;
+      averageDurationMinutes: number;
+      count: number;
+      outliers?: PipelineAverageOutlier[];
+    }>
+  >;
   getJobStepsAverageTimeByDay(
     filters?: PipelineFilters
   ): Promise<
-    Array<{ day: string; steps: Array<{ name: string; averageDurationMinutes: number }> }>
+    Array<{
+      day: string;
+      steps: Array<{
+        name: string;
+        averageDurationMinutes: number;
+        outliers?: PipelineAverageOutlier[];
+      }>;
+    }>
   >;
 }
 
@@ -100,8 +122,8 @@ export class PipelinesService implements IPipelinesService {
     endDate?: string,
     options?: PipelineRunFilterOptions
   ): T[] {
-    const start = startDate ? this.toTimestamp(startDate) : 0;
-    const end = endDate ? this.toDateBoundaryTimestamp(endDate) : 0;
+    const start = startDate ? this.toDateBoundaryTimestamp(startDate, 'start') : 0;
+    const end = endDate ? this.toDateBoundaryTimestamp(endDate, 'end') : 0;
     const filteredRuns =
       start || end
         ? runs.filter((run) => {
@@ -172,9 +194,8 @@ export class PipelinesService implements IPipelinesService {
       completedRuns.length > 0 ? (successful.length / completedRuns.length) * 100 : 0;
 
     // Calculate average duration
-    const durations = this.extractDurations(runs);
-    const averageDuration =
-      durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : 0;
+    const cleanedDurations = this.cleanPipelineSamples(this.extractDurationSamples(runs), filters?.cleaning);
+    const averageDuration = averageMetricSamples(cleanedDurations.samples);
 
     this.logger.info(
       `Pipeline Metrics: ${runs.length} total, ${successful.length} successful, ${successRate.toFixed(2)}% success rate`
@@ -186,6 +207,7 @@ export class PipelinesService implements IPipelinesService {
       failedRuns: failed.length,
       successRate: Math.round(successRate * 100) / 100,
       averageDurationMinutes: Math.round(averageDuration * 100) / 100,
+      outliers: this.shouldExposeOutliers(filters?.cleaning) ? cleanedDurations.outliers : undefined,
     };
   }
 
@@ -399,7 +421,7 @@ export class PipelinesService implements IPipelinesService {
 
     for (const metrics of jobMetricsMap.values()) {
       // Extract durations for this job
-      const durations: number[] = [];
+      const durationSamples: Array<MetricSample<PipelineAverageOutlierItem>> = [];
       for (const run of runs) {
         if (run.path !== metrics.workflowName) {
           continue;
@@ -407,14 +429,18 @@ export class PipelinesService implements IPipelinesService {
 
         const job = (run.jobs || []).find((j) => j.name === metrics.jobName);
         if (job && job.startedAt && job.completedAt) {
-          durations.push(this.calculateJobDuration(job));
+          durationSamples.push(this.toJobSample(run, job, this.calculateJobDuration(job)));
         }
       }
+      const cleanedDurations = this.cleanPipelineSamples(durationSamples, filters?.cleaning);
 
       metrics.averageDurationMinutes =
-        durations.length > 0
-          ? Math.round((durations.reduce((a, b) => a + b, 0) / durations.length) * 100) / 100
+        cleanedDurations.samples.length > 0
+          ? Math.round(averageMetricSamples(cleanedDurations.samples) * 100) / 100
           : 0;
+      metrics.outliers = this.shouldExposeOutliers(filters?.cleaning)
+        ? cleanedDurations.outliers
+        : undefined;
 
       metrics.successRate = Math.round((metrics.successCount / metrics.totalRuns) * 10000) / 100;
       metrics.failureRate = Math.round((metrics.failureCount / metrics.totalRuns) * 10000) / 100;
@@ -458,11 +484,18 @@ export class PipelinesService implements IPipelinesService {
    */
   async getJobStepsAverageTime(
     filters?: PipelineFilters
-  ): Promise<Array<{ name: string; averageDurationMinutes: number; count: number }>> {
+  ): Promise<
+    Array<{
+      name: string;
+      averageDurationMinutes: number;
+      count: number;
+      outliers?: PipelineAverageOutlier[];
+    }>
+  > {
     const runs = await this.filterRuns(filters);
 
     // Group durations by step name
-    const stepDurations = new Map<string, number[]>();
+    const stepDurations = new Map<string, Array<MetricSample<PipelineAverageOutlierItem>>>();
 
     for (const run of runs) {
       for (const job of run.jobs || []) {
@@ -476,19 +509,26 @@ export class PipelinesService implements IPipelinesService {
           if (!stepDurations.has(step.name)) {
             stepDurations.set(step.name, []);
           }
-          stepDurations.get(step.name)!.push(durationMinutes);
+          stepDurations.get(step.name)!.push(this.toStepSample(run, job, step.name, durationMinutes));
         }
       }
     }
 
-    const result: Array<{ name: string; averageDurationMinutes: number; count: number }> = [];
+    const result: Array<{
+      name: string;
+      averageDurationMinutes: number;
+      count: number;
+      outliers?: PipelineAverageOutlier[];
+    }> = [];
 
-    for (const [name, durations] of stepDurations.entries()) {
-      const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
+    for (const [name, samples] of stepDurations.entries()) {
+      const cleaned = this.cleanPipelineSamples(samples, filters?.cleaning);
+      const avg = averageMetricSamples(cleaned.samples);
       result.push({
         name,
         averageDurationMinutes: Math.round(avg * 100) / 100,
-        count: durations.length,
+        count: cleaned.samples.length,
+        outliers: this.shouldExposeOutliers(filters?.cleaning) ? cleaned.outliers : undefined,
       });
     }
 
@@ -501,12 +541,19 @@ export class PipelinesService implements IPipelinesService {
   async getJobStepsAverageTimeByDay(
     filters?: PipelineFilters
   ): Promise<
-    Array<{ day: string; steps: Array<{ name: string; averageDurationMinutes: number }> }>
+    Array<{
+      day: string;
+      steps: Array<{
+        name: string;
+        averageDurationMinutes: number;
+        outliers?: PipelineAverageOutlier[];
+      }>;
+    }>
   > {
     const runs = await this.filterRuns(filters);
 
     // day -> stepName -> durations
-    const dayStepDurations = new Map<string, Map<string, number[]>>();
+    const dayStepDurations = new Map<string, Map<string, Array<MetricSample<PipelineAverageOutlierItem>>>>();
 
     for (const run of runs) {
       const runDate = run.completedAt || run.createdAt;
@@ -528,23 +575,29 @@ export class PipelinesService implements IPipelinesService {
           if (!stepMap.has(step.name)) {
             stepMap.set(step.name, []);
           }
-          stepMap.get(step.name)!.push(durationMinutes);
+          stepMap.get(step.name)!.push(this.toStepSample(run, job, step.name, durationMinutes));
         }
       }
     }
 
     const result: Array<{
       day: string;
-      steps: Array<{ name: string; averageDurationMinutes: number }>;
+      steps: Array<{
+        name: string;
+        averageDurationMinutes: number;
+        outliers?: PipelineAverageOutlier[];
+      }>;
     }> = [];
 
     for (const [day, stepMap] of dayStepDurations.entries()) {
       const steps = [];
-      for (const [name, durations] of stepMap.entries()) {
-        const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
+      for (const [name, samples] of stepMap.entries()) {
+        const cleaned = this.cleanPipelineSamples(samples, filters?.cleaning);
+        const avg = averageMetricSamples(cleaned.samples);
         steps.push({
           name,
           averageDurationMinutes: Math.round(avg * 100) / 100,
+          outliers: this.shouldExposeOutliers(filters?.cleaning) ? cleaned.outliers : undefined,
         });
       }
       result.push({ day, steps });
@@ -583,10 +636,11 @@ export class PipelinesService implements IPipelinesService {
       return this.loadCachedWorkflowsWithJobs();
     }
 
-    return this.pipelineRepository.loadPipelines({
+    const runs = await this.pipelineRepository.loadPipelines({
       includeJobs: true,
       startDate: filters.startDate,
       endDate: filters.endDate,
+      weekends: filters.cleaning?.weekends,
       targetBranch: filters.targetBranch,
       event: filters.event,
       workflowPath: filters.workflowPath,
@@ -596,6 +650,8 @@ export class PipelinesService implements IPipelinesService {
       jobConclusion: filters.jobConclusion,
       rawFilters: filters.rawFilters,
     });
+
+    return runs;
   }
 
   private toTimestamp(value?: string): number {
@@ -606,13 +662,60 @@ export class PipelinesService implements IPipelinesService {
     return Number.isFinite(parsed) ? parsed : 0;
   }
 
-  private toDateBoundaryTimestamp(value: string): number {
+  private toDateBoundaryTimestamp(value: string, boundary: 'start' | 'end'): number {
     const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
     if (isDateOnly) {
-      return this.tz.getEndOfDayBoundary(value).getTime();
+      const dayBoundary =
+        boundary === 'end' ? this.tz.getEndOfDayBoundary(value) : this.tz.getStartOfDayBoundary(value);
+      return dayBoundary.getTime();
+    }
+
+    const isoWeekMatch = value.match(/^(\d{4})-W(\d{2})$/);
+    if (isoWeekMatch) {
+      const year = Number(isoWeekMatch[1]);
+      const week = Number(isoWeekMatch[2]);
+      const weekBoundary = this.getIsoWeekBoundaryDate(year, week, boundary);
+      if (weekBoundary) {
+        return weekBoundary.getTime();
+      }
     }
 
     return this.toTimestamp(value);
+  }
+
+  private getIsoWeekBoundaryDate(
+    year: number,
+    week: number,
+    boundary: 'start' | 'end'
+  ): Date | undefined {
+    const weekStart = this.getIsoWeekStartDate(year, week);
+    if (!weekStart) {
+      return undefined;
+    }
+
+    const boundaryDate = new Date(weekStart);
+    if (boundary === 'end') {
+      boundaryDate.setUTCDate(boundaryDate.getUTCDate() + 6);
+      return this.tz.getEndOfDayBoundary(boundaryDate.toISOString().slice(0, 10));
+    }
+
+    return this.tz.getStartOfDayBoundary(boundaryDate.toISOString().slice(0, 10));
+  }
+
+  private getIsoWeekStartDate(year: number, week: number): Date | undefined {
+    if (!Number.isInteger(year) || !Number.isInteger(week) || week < 1 || week > 53) {
+      return undefined;
+    }
+
+    const january4th = new Date(Date.UTC(year, 0, 4, 12, 0, 0));
+    const january4thDayOfWeek = january4th.getUTCDay() || 7;
+    const week1Monday = new Date(january4th);
+    week1Monday.setUTCDate(january4th.getUTCDate() - (january4thDayOfWeek - 1));
+
+    const targetMonday = new Date(week1Monday);
+    targetMonday.setUTCDate(week1Monday.getUTCDate() + (week - 1) * 7);
+
+    return targetMonday;
   }
 
   private sortRunsByMetricDate<T extends PipelineDateFields>(
@@ -627,23 +730,79 @@ export class PipelinesService implements IPipelinesService {
     );
   }
 
-  private extractDurations(runs: PipelineRun[]): number[] {
-    const durations: number[] = [];
+  private extractDurationSamples(runs: PipelineRun[]): Array<MetricSample<PipelineAverageOutlierItem>> {
+    const samples: Array<MetricSample<PipelineAverageOutlierItem>> = [];
 
     for (const run of runs) {
       const duration = this.getRunDurationMinutes(run);
       if (duration !== null) {
-        durations.push(duration);
+        samples.push(this.toRunSample(run, duration));
       }
     }
 
-    return durations;
+    return samples;
   }
 
   private calculateJobDuration(job: PipelineJob): number {
     const started = new Date(job.startedAt).getTime();
     const completed = new Date(job.completedAt!).getTime();
     return (completed - started) / (1000 * 60); // Convert to minutes
+  }
+
+  private toRunSample(run: PipelineRun, value: number): MetricSample<PipelineAverageOutlierItem> {
+    return {
+      value,
+      timestamp: this.getRunMetricDate(run) || run.createdAt,
+      item: {
+        runId: String(run.id),
+        workflowName: run.path,
+      },
+    };
+  }
+
+  private toJobSample(
+    run: PipelineRun,
+    job: PipelineJob,
+    value: number
+  ): MetricSample<PipelineAverageOutlierItem> {
+    return {
+      value,
+      timestamp: job.completedAt || job.startedAt || this.getRunMetricDate(run) || run.createdAt,
+      item: {
+        runId: String(run.id),
+        workflowName: run.path,
+        jobName: job.name,
+      },
+    };
+  }
+
+  private toStepSample(
+    run: PipelineRun,
+    job: PipelineJob,
+    stepName: string,
+    value: number
+  ): MetricSample<PipelineAverageOutlierItem> {
+    return {
+      value,
+      timestamp: job.completedAt || job.startedAt || this.getRunMetricDate(run) || run.createdAt,
+      item: {
+        runId: String(run.id),
+        workflowName: run.path,
+        jobName: job.name,
+        stepName,
+      },
+    };
+  }
+
+  private cleanPipelineSamples(
+    samples: Array<MetricSample<PipelineAverageOutlierItem>>,
+    options?: MetricCleaningOptions
+  ) {
+    return cleanMetricSamples(samples, options);
+  }
+
+  private shouldExposeOutliers(options?: MetricCleaningOptions): boolean {
+    return options?.outlierMode === 'flag' || options?.outlierMode === 'exclude';
   }
 
   private getIntervalKey(date: Date, interval: 'day' | 'week' | 'month'): string {

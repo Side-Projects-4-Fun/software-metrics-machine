@@ -720,6 +720,41 @@ describe('PRsService', () => {
   });
 
   describe('getMetrics', () => {
+    it('should exclude weekend PRs before calculating metrics when weekends filter is set to exclude', async () => {
+      const saturdayPr = new PullRequestBuilder()
+        .withId(1)
+        .withTitle('Saturday PR')
+        .withCreatedAt('2026-06-06T10:00:00Z')
+        .build();
+      const mondayPr = new PullRequestBuilder()
+        .withId(2)
+        .withTitle('Monday PR')
+        .withCreatedAt('2026-06-08T10:00:00Z')
+        .build();
+
+      prsService = new PRsService(
+        new ReadPullRequestsRepositoryBuilder().withPullRequests([saturdayPr, mondayPr]).build(),
+        new TimeZoneProvider('UTC'),
+        logger
+      );
+
+      const includeMetrics = await prsService.getMetrics({
+        cleaning: { weekends: 'include' },
+      });
+      const excludeMetrics = await prsService.getMetrics({
+        cleaning: { weekends: 'exclude' },
+      });
+      const weekendsOnlyMetrics = await prsService.getMetrics({
+        cleaning: { weekends: 'weekends_only' },
+      });
+
+      expect(includeMetrics.totalPRs).toBe(2);
+      expect(excludeMetrics.totalPRs).toBe(1);
+      expect(excludeMetrics.openPRs).toBe(1);
+      expect(weekendsOnlyMetrics.totalPRs).toBe(1);
+      expect(weekendsOnlyMetrics.openPRs).toBe(1);
+    });
+
     it('should classify open, closed-not-merged, and merged PRs and apply the totalComments fallback', async () => {
       const openPr = { ...new PullRequestBuilder().withId(1).withTitle('Open PR').build() };
       const closedNotMergedPr = new PullRequestBuilder()
@@ -1835,6 +1870,60 @@ describe('PipelinesService', () => {
     expect(metrics.totalRuns).toBeGreaterThanOrEqual(0);
   });
 
+  it('should exclude weekend runs when weekends filter is set to exclude', async () => {
+    const weekendAndWeekdayRuns: import('../src/domain-types').PipelineRun[] = [
+      {
+        id: 'run-saturday',
+        number: 1,
+        name: 'Saturday run',
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: '2026-06-06T10:00:00Z',
+        updatedAt: '2026-06-06T10:10:00Z',
+        branch: 'main',
+        path: '.github/workflows/ci.yml',
+      },
+      {
+        id: 'run-monday',
+        number: 2,
+        name: 'Monday run',
+        status: 'completed',
+        conclusion: 'success',
+        createdAt: '2026-06-08T10:00:00Z',
+        updatedAt: '2026-06-08T10:10:00Z',
+        branch: 'main',
+        path: '.github/workflows/ci.yml',
+      },
+    ];
+
+    mockPipelineRepo = new PipelinesRepositoryBuilder()
+      .withPipelineRuns(weekendAndWeekdayRuns)
+      .build();
+
+    pipelinesService = new PipelinesService(
+      mockPipelineRepo,
+      undefined,
+      logger,
+      new TimeZoneProvider('UTC')
+    );
+
+    const includeMetrics = await pipelinesService.getMetrics({
+      cleaning: { weekends: 'include' },
+    });
+    const excludeMetrics = await pipelinesService.getMetrics({
+      cleaning: { weekends: 'exclude' },
+    });
+    const weekendsOnlyMetrics = await pipelinesService.getMetrics({
+      cleaning: { weekends: 'weekends_only' },
+    });
+
+    expect(includeMetrics.totalRuns).toBe(2);
+    expect(excludeMetrics.totalRuns).toBe(1);
+    expect(excludeMetrics.successfulRuns).toBe(1);
+    expect(weekendsOnlyMetrics.totalRuns).toBe(1);
+    expect(weekendsOnlyMetrics.successfulRuns).toBe(1);
+  });
+
   it('should aggregate deployment frequency for configured workflow and job targets', async () => {
     const deployRuns: import('../src/domain-types').PipelineRun[] = [
       {
@@ -2155,6 +2244,22 @@ describe('PipelinesService', () => {
       const filtered = pipelinesService.filterRunsByDateRange(sameDay, undefined, '2025-01-10');
 
       expect(filtered).toEqual(sameDay);
+    });
+
+    it('should interpret week-only ranges using ISO week boundaries', () => {
+      const weeklyRuns = [
+        { createdAt: '2026-01-04T10:00:00Z' },
+        { createdAt: '2026-01-06T10:00:00Z' },
+        { createdAt: '2026-01-13T10:00:00Z' },
+      ];
+
+      const filtered = pipelinesService.filterRunsByDateRange(
+        weeklyRuns,
+        '2026-W02',
+        '2026-W02'
+      );
+
+      expect(filtered).toEqual([{ createdAt: '2026-01-06T10:00:00Z' }]);
     });
 
     it('should treat a full ISO datetime endDate literally rather than as end-of-day', () => {
