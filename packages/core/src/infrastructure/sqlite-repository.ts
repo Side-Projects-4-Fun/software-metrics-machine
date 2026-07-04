@@ -710,11 +710,11 @@ export class SqliteRepository<T> implements IRepository<T> {
   }
 
   private isWorkflowRunsNamespace(): boolean {
-    return path.basename(this.namespace) === 'workflows.json';
+    return path.basename(this.namespace) === 'pipeline-runs';
   }
 
   private isWorkflowJobsNamespace(): boolean {
-    return path.basename(this.namespace) === 'jobs.json';
+    return path.basename(this.namespace) === 'pipeline-jobs';
   }
 
   private isCommitsNamespace(): boolean {

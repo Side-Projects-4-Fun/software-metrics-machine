@@ -55,4 +55,30 @@ export class RepositoryFactory {
       ? relativePath
       : filePath;
   }
+
+  static getPipelineRunsRepositoryPath(config: Configuration): string {
+    const storageType = config.internal?.storageType ?? 'json';
+    const fileName = storageType === 'sqlite' ? 'pipeline-runs' : 'workflows.json';
+    return path.join(config.getPathFromGitProvider(), fileName);
+  }
+
+  static getPipelineJobsRepositoryPath(config: Configuration): string {
+    const storageType = config.internal?.storageType ?? 'json';
+    const fileName = storageType === 'sqlite' ? 'pipeline-jobs' : 'jobs.json';
+    return path.join(config.getPathFromGitProvider(), fileName);
+  }
+
+  static getPipelineRunsSqliteNamespace(config: Configuration): string {
+    return RepositoryFactory.getSqliteNamespace(
+      RepositoryFactory.getPipelineRunsRepositoryPath(config),
+      config
+    );
+  }
+
+  static getPipelineJobsSqliteNamespace(config: Configuration): string {
+    return RepositoryFactory.getSqliteNamespace(
+      RepositoryFactory.getPipelineJobsRepositoryPath(config),
+      config
+    );
+  }
 }

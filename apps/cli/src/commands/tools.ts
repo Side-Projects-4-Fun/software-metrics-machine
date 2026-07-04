@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import { DatabaseSync } from 'node:sqlite';
 import {
   CodemaatFactory,
   Configuration,
@@ -12,6 +13,7 @@ type JsonObject = Record<string, unknown>;
 type MigrationStore = {
   label: string;
   filePath: string;
+  sqliteNamespace?: string;
   mode: 'array' | 'singleton';
 };
 
@@ -134,7 +136,8 @@ export function createToolsCommands(program: SmmCommand): void {
               continue;
             }
 
-            const namespace = RepositoryFactory.getSqliteNamespace(store.filePath, config);
+            const namespace =
+              store.sqliteNamespace || RepositoryFactory.getSqliteNamespace(store.filePath, config);
             const target = new SqliteRepository<unknown>(sqliteDbPath, namespace, logger);
 
             if (store.mode === 'array') {
@@ -156,6 +159,8 @@ export function createToolsCommands(program: SmmCommand): void {
 
             migratedStores += 1;
           }
+
+          removeLegacyPipelineSqliteNamespaces(config, sqliteDbPath);
 
           const codemaatRepository = CodemaatFactory.createWriteRepositoryForStorage(
             config,
@@ -214,11 +219,13 @@ function getJsonToSqliteMigrationStores(config: Configuration): MigrationStore[]
     {
       label: 'workflow runs',
       filePath: `${providerPath}/workflows.json`,
+      sqliteNamespace: RepositoryFactory.getPipelineRunsSqliteNamespace(config),
       mode: 'array',
     },
     {
       label: 'workflow jobs',
       filePath: `${providerPath}/jobs.json`,
+      sqliteNamespace: RepositoryFactory.getPipelineJobsSqliteNamespace(config),
       mode: 'array',
     },
     {
@@ -257,4 +264,33 @@ function getJsonToSqliteMigrationStores(config: Configuration): MigrationStore[]
       mode: 'singleton',
     },
   ];
+}
+
+function removeLegacyPipelineSqliteNamespaces(config: Configuration, sqliteDbPath: string): void {
+  const db = new DatabaseSync(sqliteDbPath);
+  try {
+    if (tableExists(db, 'workflow_runs')) {
+      db.prepare('DELETE FROM workflow_runs WHERE namespace = ?').run(
+        RepositoryFactory.getSqliteNamespace(
+          `${config.getPathFromGitProvider()}/workflows.json`,
+          config
+        )
+      );
+    }
+    if (tableExists(db, 'workflow_jobs')) {
+      db.prepare('DELETE FROM workflow_jobs WHERE namespace = ?').run(
+        RepositoryFactory.getSqliteNamespace(`${config.getPathFromGitProvider()}/jobs.json`, config)
+      );
+    }
+  } finally {
+    db.close();
+  }
+}
+
+function tableExists(db: DatabaseSync, tableName: string): boolean {
+  return Boolean(
+    db
+      .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1")
+      .get(tableName)
+  );
 }

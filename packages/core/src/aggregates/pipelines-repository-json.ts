@@ -34,27 +34,19 @@ export interface IPipelinesRepository {
   loadPipelines(options?: LoadPipelinesOptions): Promise<PipelineRun[]>;
 }
 
-export class PipelinesRepository extends CommonRepository implements IPipelinesRepository {
-  private tz: TimeZoneProvider;
+export abstract class BasePipelinesRepository extends CommonRepository implements IPipelinesRepository {
+  protected tz: TimeZoneProvider;
 
   constructor(
-    private pipelineRunJsonRepository: IRepository<WorkflowJsonResponse>,
-    private pipelineJobsJsonRepository: IRepository<WorkflowJobJsonResponse>,
-    private logger: Logger,
+    protected logger: Logger,
     timeZoneProvider: TimeZoneProvider
   ) {
     super();
     this.tz = timeZoneProvider;
   }
 
-  private async loadPipelineRuns(): Promise<PipelineRun[]> {
-    const runs = await this.pipelineRunJsonRepository.loadAll();
-    const pipelineRuns = runs.map(this.mapPipelinesToDomain);
-
-    this.logger.info(`Loaded ${pipelineRuns.length} pipeline runs from JSON repository`);
-
-    return pipelineRuns;
-  }
+  protected abstract loadPipelineRuns(): Promise<PipelineRun[]>;
+  abstract loadPipelineJobs(): Promise<PipelineJob[]>;
 
   async loadPipelines(
     options: LoadPipelinesOptions = { includeJobs: true }
@@ -74,7 +66,7 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
       return this.applyRawFilters(pipelineRuns, rawFilters);
     }
 
-    const jobs = await this.pipelineJobsJsonRepository.loadAll();
+    const jobs = await this.loadPipelineJobs();
     if (jobs.length === 0 || pipelineRuns.length === 0) {
       if (selectedJobNames.length > 0 || targetJobConclusion) {
         return [];
@@ -89,7 +81,7 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
     }
 
     for (const job of jobs) {
-      const run = runsById.get(String(job.run_id));
+      const run = runsById.get(String(job.runId));
       if (!run) {
         continue;
       }
@@ -98,7 +90,7 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
         run.jobs = [];
       }
 
-      run.jobs.push(this.mapPipelineJobsToDomain(job));
+      run.jobs.push(job);
     }
 
     const jobFilteredRuns = this.filterRunsByJobs(
@@ -125,12 +117,7 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
     return options.includeJobs === false ? rawFilteredRuns.map(this.withoutJobs) : rawFilteredRuns;
   }
 
-  async loadPipelineJobs(): Promise<PipelineJob[]> {
-    const jobs = await this.pipelineJobsJsonRepository.loadAll();
-    return jobs.map(this.mapPipelineJobsToDomain);
-  }
-
-  private mapPipelinesToDomain(run: WorkflowJsonResponse): PipelineRun {
+  protected mapPipelinesToDomain(run: WorkflowJsonResponse): PipelineRun {
     return {
       ...run,
       createdAt: run.created_at,
@@ -144,7 +131,7 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
     };
   }
 
-  private mapPipelineJobsToDomain = (job: WorkflowJobJsonResponse): PipelineJob => {
+  protected mapPipelineJobsToDomain = (job: WorkflowJobJsonResponse): PipelineJob => {
     return {
       completedAt: job.completed_at,
       conclusion: job.conclusion,
@@ -158,7 +145,7 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
     };
   };
 
-  private mapPipelineJobsStepToDomain = (step: WorkflowJobStepJsonResponse): PipelineStep => {
+  protected mapPipelineJobsStepToDomain = (step: WorkflowJobStepJsonResponse): PipelineStep => {
     return {
       name: step.name,
       status: step.status,
@@ -420,5 +407,30 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
   private calculateDurationInSeconds(startedAt: string, completedAt: string): number {
     if (!startedAt || !completedAt) return 0;
     return (new Date(completedAt).getTime() - new Date(startedAt).getTime()) / 1000;
+  }
+}
+
+export class PipelinesRepository extends BasePipelinesRepository {
+  constructor(
+    private pipelineRunJsonRepository: IRepository<WorkflowJsonResponse>,
+    private pipelineJobsJsonRepository: IRepository<WorkflowJobJsonResponse>,
+    logger: Logger,
+    timeZoneProvider: TimeZoneProvider
+  ) {
+    super(logger, timeZoneProvider);
+  }
+
+  protected async loadPipelineRuns(): Promise<PipelineRun[]> {
+    const runs = await this.pipelineRunJsonRepository.loadAll();
+    const pipelineRuns = runs.map(this.mapPipelinesToDomain);
+
+    this.logger.info(`Loaded ${pipelineRuns.length} pipeline runs from JSON repository`);
+
+    return pipelineRuns;
+  }
+
+  async loadPipelineJobs(): Promise<PipelineJob[]> {
+    const jobs = await this.pipelineJobsJsonRepository.loadAll();
+    return jobs.map(this.mapPipelineJobsToDomain);
   }
 }

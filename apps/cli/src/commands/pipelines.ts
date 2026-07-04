@@ -4,7 +4,7 @@ import {
   PipelinesService,
   type PipelineFilters,
 } from '@smmachine/core';
-import PipelineFactory from '@smmachine/core/aggregates/pipeline-factory';
+import PipelineFactory from '@smmachine/core/factories/pipeline-factory';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 
 function createPipelineDependencies(command: SmmCommand) {

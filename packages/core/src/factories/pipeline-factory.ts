@@ -1,4 +1,6 @@
 import { PipelinesRepository } from '../aggregates/pipelines-repository-json';
+import type { IPipelinesRepository } from '../aggregates/pipelines-repository-json';
+import { PipelinesSqliteRepository } from '../aggregates/pipelines-repository-sqlite';
 import { Configuration, RepositoryFactory } from '../infrastructure';
 import {
   WorkflowJobJsonResponse,
@@ -22,7 +24,7 @@ export default class PipelineFactory {
     logger: Logger,
     timeZoneProvider: TimeZoneProvider
   ): {
-    pipelineRepository: PipelinesRepository;
+    pipelineRepository: IPipelinesRepository;
     pipelineFiltersRepository: PipelineFiltersRepository;
     workflowRepository: PipelinesFetchRepository;
     workflowJobRepository: PipelinesJobFetchRepository;
@@ -53,12 +55,12 @@ export default class PipelineFactory {
         );
 
     const pipelineRunJsonRepository = RepositoryFactory.create<WorkflowJsonResponse>(
-      `${config.getPathFromGitProvider()}/workflows.json`,
+      RepositoryFactory.getPipelineRunsRepositoryPath(config),
       logger,
       config
     );
     const pipelineJobsJsonRepository = RepositoryFactory.create<WorkflowJobJsonResponse>(
-      `${config.getPathFromGitProvider()}/jobs.json`,
+      RepositoryFactory.getPipelineJobsRepositoryPath(config),
       logger,
       config
     );
@@ -68,12 +70,15 @@ export default class PipelineFactory {
       config
     );
 
-    const pipelineRepository = new PipelinesRepository(
-      pipelineRunJsonRepository,
-      pipelineJobsJsonRepository,
-      logger,
-      timeZoneProvider
-    );
+    const pipelineRepository =
+      config.internal?.storageType === 'sqlite'
+        ? new PipelinesSqliteRepository(config, logger, timeZoneProvider)
+        : new PipelinesRepository(
+            pipelineRunJsonRepository,
+            pipelineJobsJsonRepository,
+            logger,
+            timeZoneProvider
+          );
     const pipelineFiltersRepository = new PipelineFiltersRepository(
       pipelineRunJsonRepository,
       pipelineJobsJsonRepository,

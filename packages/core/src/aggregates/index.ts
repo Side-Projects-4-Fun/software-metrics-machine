@@ -9,6 +9,7 @@ export {
 } from './pull-request-filters-repository-json';
 export { PullRequestFactory } from './pull-request-factory';
 export { PipelinesRepository, type IPipelinesRepository } from './pipelines-repository-json';
+export { PipelinesSqliteRepository } from './pipelines-repository-sqlite';
 export {
   PipelineFiltersRepository,
   type PipelineFilterOptions,

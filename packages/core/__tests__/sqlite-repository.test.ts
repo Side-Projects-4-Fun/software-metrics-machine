@@ -134,7 +134,7 @@ describe('SQLite pipeline tables', () => {
     const dbPath = createDatabasePath();
     const repository = new SqliteRepository<WorkflowJsonResponse>(
       dbPath,
-      'github/workflows.json',
+      'github/pipeline-runs',
       logger
     );
     const runs = [
@@ -165,7 +165,7 @@ describe('SQLite pipeline tables', () => {
          FROM workflow_runs
          WHERE namespace = ?`
       )
-      .get('github/workflows.json') as Record<string, unknown>;
+      .get('github/pipeline-runs') as Record<string, unknown>;
     db.close();
 
     expect(row).toMatchObject({
@@ -182,7 +182,7 @@ describe('SQLite pipeline tables', () => {
     const dbPath = createDatabasePath();
     const repository = new SqliteRepository<WorkflowJobJsonResponse>(
       dbPath,
-      'github/jobs.json',
+      'github/pipeline-jobs',
       logger
     );
     const jobs = [
@@ -208,7 +208,7 @@ describe('SQLite pipeline tables', () => {
          FROM workflow_jobs
          WHERE namespace = ?`
       )
-      .get('github/jobs.json') as Record<string, unknown>;
+      .get('github/pipeline-jobs') as Record<string, unknown>;
     db.close();
 
     expect(row).toMatchObject({
@@ -428,7 +428,7 @@ describe('RepositoryFactory', () => {
     });
 
     const repository = RepositoryFactory.create<TestRecord>(
-      '/tmp/smm/github_owner_repo/github/workflows.json',
+      '/tmp/smm/github_owner_repo/github/pipeline-runs',
       logger,
       config
     );
@@ -468,10 +468,22 @@ describe('RepositoryFactory', () => {
 
     expect(
       RepositoryFactory.getSqliteNamespace(
-        '/tmp/smm/github_owner_repo/github/workflows.json',
+        '/tmp/smm/github_owner_repo/github/prs.json',
         config
       )
-    ).toBe('github/workflows.json');
+    ).toBe('github/prs.json');
+  });
+
+  it('uses one semantic SQLite namespace for pipeline tables', () => {
+    const config = new Configuration({
+      storeData: '/tmp/smm',
+      gitProvider: 'github',
+      githubRepository: 'owner/repo',
+      internal: { storageType: 'sqlite' },
+    });
+
+    expect(RepositoryFactory.getPipelineRunsSqliteNamespace(config)).toBe('github/pipeline-runs');
+    expect(RepositoryFactory.getPipelineJobsSqliteNamespace(config)).toBe('github/pipeline-jobs');
   });
 
   it('uses the default Git provider in project paths when gitProvider is unset', () => {
