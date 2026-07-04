@@ -26,7 +26,7 @@ export interface IIssuesRepository {
  * - Accessing issue comments
  */
 export class IssuesRepository implements IIssuesRepository {
-  private cache: IRepository<Issue>;
+  private issuesJsonRepository: IRepository<Issue>;
   private timeZoneProvider: TimeZoneProvider;
 
   constructor(
@@ -37,7 +37,11 @@ export class IssuesRepository implements IIssuesRepository {
     private config: Configuration = new Configuration()
   ) {
     this.timeZoneProvider = timeZoneProvider;
-    this.cache = RepositoryFactory.create<Issue>(`${cacheDir}/issues.json`, logger, this.config);
+    this.issuesJsonRepository = RepositoryFactory.create<Issue>(
+      `${cacheDir}/issues.json`,
+      logger,
+      this.config
+    );
   }
 
   /**
@@ -50,7 +54,7 @@ export class IssuesRepository implements IIssuesRepository {
     forceRefresh?: boolean;
     incrementalUpdate?: boolean;
   }): Promise<Issue[]> {
-    const fromCache = await this.cache.loadAll();
+    const fromCache = await this.issuesJsonRepository.loadAll();
 
     if (options?.incrementalUpdate && fromCache.length > 0) {
       const latestDate = this.findLatestDate(fromCache.map((i) => i.createdAt));
@@ -61,7 +65,7 @@ export class IssuesRepository implements IIssuesRepository {
         status: options?.status,
       });
       const merged = this.mergeIssuesById(fromCache, freshIssues);
-      await this.cache.saveAll(merged);
+      await this.issuesJsonRepository.saveAll(merged);
       return this.applyFilters(merged, options);
     }
 
@@ -80,7 +84,7 @@ export class IssuesRepository implements IIssuesRepository {
         status: options?.status,
       });
       const merged = this.mergeIssuesById(fromCache, freshIssues);
-      await this.cache.saveAll(merged);
+      await this.issuesJsonRepository.saveAll(merged);
       return this.applyFilters(merged, options);
     }
 
@@ -96,7 +100,7 @@ export class IssuesRepository implements IIssuesRepository {
       status: options?.status,
     });
 
-    await this.cache.saveAll(freshIssues);
+    await this.issuesJsonRepository.saveAll(freshIssues);
 
     return this.applyFilters(freshIssues, options);
   }

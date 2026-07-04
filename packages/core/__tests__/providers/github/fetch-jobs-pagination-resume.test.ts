@@ -9,7 +9,7 @@ import {
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
 } from '../../../src/providers/github/github-response-types';
-import { PipelinesJobFetchRepository } from '../../../src/providers/github/pipelines-job-fetch-repository';
+import { PipelinesJobFetchRepository } from '../../../src/providers/github/pipelines-job-fetch-repository-json';
 import { IGithubWorkflowJobClient } from '../../../src/providers/github/workflow-types';
 import { MockLoggerBuilder } from '../../mock-logger-builder';
 

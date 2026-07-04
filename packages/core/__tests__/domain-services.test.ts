@@ -11,8 +11,8 @@ import {
   PipelinesRepositoryBuilder,
 } from '../src/test/builders';
 import { IRepository } from '../src';
-import { IReadPullRequestsRepository } from '../src/aggregates/pull-requests-repository';
-import { IPipelinesRepository } from '../src/aggregates/pipelines-repository';
+import { IReadPullRequestsRepository } from '../src/aggregates/pull-requests-repository-json';
+import { IPipelinesRepository } from '../src/aggregates/pipelines-repository-json';
 import { Commit } from '../src/domain-types';
 import { MockLoggerBuilder } from './mock-logger-builder';
 import { TimeZoneProvider } from '../src/infrastructure/timezone-provider';

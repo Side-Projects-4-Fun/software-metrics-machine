@@ -20,13 +20,13 @@ export type PipelineFilterOptionsQuery = {
 
 export class PipelineFiltersRepository {
   constructor(
-    private pipelineRunFileSystemRepository: IRepository<WorkflowJsonResponse>,
-    private pipelineJobsFileSystemRepository: IRepository<WorkflowJobJsonResponse>,
-    private pipelineFiltersFileSystemRepository: IRepository<PipelineFilterOptions>
+    private pipelineRunJsonRepository: IRepository<WorkflowJsonResponse>,
+    private pipelineJobsJsonRepository: IRepository<WorkflowJobJsonResponse>,
+    private pipelineFiltersJsonRepository: IRepository<PipelineFilterOptions>
   ) {}
 
   async loadOptions(query: PipelineFilterOptionsQuery = {}): Promise<PipelineFilterOptions> {
-    const cachedOptions = await this.pipelineFiltersFileSystemRepository.load();
+    const cachedOptions = await this.pipelineFiltersJsonRepository.load();
     const options = cachedOptions || (await this.refreshOptions());
 
     if (!query.workflowPath) {
@@ -41,8 +41,8 @@ export class PipelineFiltersRepository {
 
   async refreshOptions(): Promise<PipelineFilterOptions> {
     const [runs, jobs] = await Promise.all([
-      this.pipelineRunFileSystemRepository.loadAll(),
-      this.pipelineJobsFileSystemRepository.loadAll(),
+      this.pipelineRunJsonRepository.loadAll(),
+      this.pipelineJobsJsonRepository.loadAll(),
     ]);
 
     const workflowByPath = new Map<string, string>();
@@ -105,7 +105,7 @@ export class PipelineFiltersRepository {
       ),
     };
 
-    await this.pipelineFiltersFileSystemRepository.save(options);
+    await this.pipelineFiltersJsonRepository.save(options);
     return options;
   }
 

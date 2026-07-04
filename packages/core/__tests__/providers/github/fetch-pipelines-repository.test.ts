@@ -3,7 +3,7 @@ import { PipelineGitHubRunBuilder } from '../../../src';
 import { InMemoryRepository } from '../../../src/test/in-memory-repository';
 import { IGithubWorkflowClient } from '../../../src';
 import { WorkflowJsonResponse } from '../../../src/providers/github/github-response-types';
-import { PipelinesFetchRepository } from '../../../src/providers/github/pipelines-fetch-repository';
+import { PipelinesFetchRepository } from '../../../src/providers/github/pipelines-fetch-repository-json';
 import { MockLoggerBuilder } from '../../mock-logger-builder';
 
 describe('PipelinesRepository', () => {

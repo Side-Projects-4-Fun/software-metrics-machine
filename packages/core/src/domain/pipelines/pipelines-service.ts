@@ -8,7 +8,7 @@ import {
   PipelineMetrics,
   PipelineRun,
 } from './pipeline-types';
-import { IPipelinesRepository } from '../../aggregates/pipelines-repository';
+import { IPipelinesRepository } from '../../aggregates/pipelines-repository-json';
 import { Configuration } from '../..';
 import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
 import {

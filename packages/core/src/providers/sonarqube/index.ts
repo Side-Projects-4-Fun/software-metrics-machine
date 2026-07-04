@@ -11,7 +11,7 @@ export {
 export {
   SonarqubeFetchMetricsRepository,
   type IQualityMetricsRepository,
-} from './sonarqube-fetch-metrics-repository';
+} from './sonarqube-fetch-metrics-repository-json';
 export {
   SonarqubeLocalAnalysis,
   type SonarqubeLocalAnalysisOptions,

@@ -18,16 +18,16 @@ export class PullRequestsRepository
   implements IReadPullRequestsRepository
 {
   constructor(
-    private cache: IRepository<PullRequestJsonResponse>,
-    private pullRequestCommentsStoreFile: IRepository<PullRequestCommentJsonResponse>,
+    private pullRequestsJsonRepository: IRepository<PullRequestJsonResponse>,
+    private pullRequestCommentsJsonRepository: IRepository<PullRequestCommentJsonResponse>,
     private timeZoneProvider: TimeZoneProvider
   ) {
     super();
   }
 
   async loadPrsWithFilters(filters?: PRFilters): Promise<PRDetails[]> {
-    const fromCache = await this.cache.loadAll();
-    const allComments = await this.pullRequestCommentsStoreFile.loadAll();
+    const fromCache = await this.pullRequestsJsonRepository.loadAll();
+    const allComments = await this.pullRequestCommentsJsonRepository.loadAll();
 
     let rawPrs = fromCache;
 

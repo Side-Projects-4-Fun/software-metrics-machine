@@ -23,11 +23,11 @@ export interface IQualityMetricsRepository {
 }
 
 export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepository {
-  private cache: IRepository<TimestampedStore<SonarqubeComponentMeasure>>;
-  private cacheComponentTree: IRepository<
+  private measuresJsonRepository: IRepository<TimestampedStore<SonarqubeComponentMeasure>>;
+  private componentTreeJsonRepository: IRepository<
     TimestampedStore<SonarqubeComponentTreeMeasure[]>
   >;
-  private cacheHistorical: IRepository<TimestampedStore<CodeMetric[]>>;
+  private historicalMeasuresJsonRepository: IRepository<TimestampedStore<CodeMetric[]>>;
 
   constructor(
     private sonarqubeClient: ISonarqubeMeasuresClient,
@@ -35,15 +35,17 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
     private logger: Logger,
   ) {
     const cacheDir = this.configuration.getSonarqubePath();
-    this.cache = RepositoryFactory.create<TimestampedStore<SonarqubeComponentMeasure>>(
+    this.measuresJsonRepository = RepositoryFactory.create<
+      TimestampedStore<SonarqubeComponentMeasure>
+    >(
       `${cacheDir}/measures.json`,
       logger,
       this.configuration
     );
-    this.cacheComponentTree = RepositoryFactory.create<
+    this.componentTreeJsonRepository = RepositoryFactory.create<
       TimestampedStore<SonarqubeComponentTreeMeasure[]>
     >(`${cacheDir}/component-tree.json`, logger, this.configuration);
-    this.cacheHistorical = RepositoryFactory.create<TimestampedStore<CodeMetric[]>>(
+    this.historicalMeasuresJsonRepository = RepositoryFactory.create<TimestampedStore<CodeMetric[]>>(
       `${cacheDir}/historical-measures.json`,
       logger,
       this.configuration
@@ -59,7 +61,7 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
       metrics: options?.metrics,
     });
 
-    await this.appendTimestampedEntry(this.cache, metrics);
+    await this.appendTimestampedEntry(this.measuresJsonRepository, metrics);
 
     return metrics;
   }
@@ -77,7 +79,7 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
         depth: options?.depth,
         metrics: options?.metrics,
       });
-      await this.appendTimestampedEntry(this.cacheComponentTree, componentTree);
+      await this.appendTimestampedEntry(this.componentTreeJsonRepository, componentTree);
 
       return componentTree;
     } catch (error) {
@@ -101,7 +103,7 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
     try {
       this.logger.debug(`Fetching historical measures: ${JSON.stringify(options)}`);
 
-      const fromDisk = await this.cacheHistorical.load();
+      const fromDisk = await this.historicalMeasuresJsonRepository.load();
       const cachedData = extractLatestData(fromDisk);
       const cached: CodeMetric[] = Array.isArray(cachedData) ? cachedData : [];
 
@@ -115,7 +117,7 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
             endDate: options?.endDate,
           });
           const merged = this.mergeHistoricalMeasures(cached, fresh);
-          await this.appendTimestampedEntry(this.cacheHistorical, merged);
+          await this.appendTimestampedEntry(this.historicalMeasuresJsonRepository, merged);
           return merged;
         }
       }
@@ -132,13 +134,13 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
             endDate: options?.endDate,
           });
           const merged = this.mergeHistoricalMeasures(cached, fresh);
-          await this.appendTimestampedEntry(this.cacheHistorical, merged);
+          await this.appendTimestampedEntry(this.historicalMeasuresJsonRepository, merged);
           return merged;
         }
       }
 
       const historical = await this.sonarqubeClient.fetchHistoricalMeasures(options);
-      await this.appendTimestampedEntry(this.cacheHistorical, historical);
+      await this.appendTimestampedEntry(this.historicalMeasuresJsonRepository, historical);
       return historical;
     } catch (error) {
       this.logger.error(

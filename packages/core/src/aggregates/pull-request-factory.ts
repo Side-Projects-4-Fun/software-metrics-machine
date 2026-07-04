@@ -1,6 +1,6 @@
 import { Configuration, IRepository, RepositoryFactory } from '../infrastructure';
 import { TimeZoneProvider } from '../infrastructure/timezone-provider';
-import { PullRequestsRepository } from './pull-requests-repository';
+import { PullRequestsRepository } from './pull-requests-repository-json';
 import {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
@@ -8,7 +8,7 @@ import {
 import {
   PullRequestFilterOptions,
   PullRequestFiltersRepository,
-} from './pull-request-filters-repository';
+} from './pull-request-filters-repository-json';
 import { Logger } from '@smmachine/utils';
 
 export class PullRequestFactory {
@@ -19,8 +19,8 @@ export class PullRequestFactory {
   ): PullRequestsRepository {
     const repositories = this.createRepositories(config, logger);
     return new PullRequestsRepository(
-      repositories.cache,
-      repositories.pullRequestCommentsStoreFile,
+      repositories.pullRequestsJsonRepository,
+      repositories.pullRequestCommentsJsonRepository,
       timeZoneProvider
     );
   }
@@ -28,9 +28,9 @@ export class PullRequestFactory {
   static createFilters(config: Configuration, logger: Logger): PullRequestFiltersRepository {
     const repositories = this.createRepositories(config, logger);
     return new PullRequestFiltersRepository(
-      repositories.cache,
-      repositories.pullRequestCommentsStoreFile,
-      repositories.pullRequestFiltersStoreFile
+      repositories.pullRequestsJsonRepository,
+      repositories.pullRequestCommentsJsonRepository,
+      repositories.pullRequestFiltersJsonRepository
     );
   }
 
@@ -38,30 +38,30 @@ export class PullRequestFactory {
     config: Configuration,
     logger: Logger
   ): {
-    cache: IRepository<PullRequestJsonResponse>;
-    pullRequestCommentsStoreFile: IRepository<PullRequestCommentJsonResponse>;
-    pullRequestFiltersStoreFile: IRepository<PullRequestFilterOptions>;
+    pullRequestsJsonRepository: IRepository<PullRequestJsonResponse>;
+    pullRequestCommentsJsonRepository: IRepository<PullRequestCommentJsonResponse>;
+    pullRequestFiltersJsonRepository: IRepository<PullRequestFilterOptions>;
   } {
-    const cache = RepositoryFactory.create<PullRequestJsonResponse>(
+    const pullRequestsJsonRepository = RepositoryFactory.create<PullRequestJsonResponse>(
       `${config.getPathFromGitProvider()}/prs.json`,
       logger,
       config
     );
-    const pullRequestCommentsStoreFile = RepositoryFactory.create<PullRequestCommentJsonResponse>(
+    const pullRequestCommentsJsonRepository = RepositoryFactory.create<PullRequestCommentJsonResponse>(
       `${config.getPathFromGitProvider()}/pr-comments.json`,
       logger,
       config
     );
-    const pullRequestFiltersStoreFile = RepositoryFactory.create<PullRequestFilterOptions>(
+    const pullRequestFiltersJsonRepository = RepositoryFactory.create<PullRequestFilterOptions>(
       `${config.getPathFromGitProvider()}/pull-request-filter-options.json`,
       logger,
       config
     );
 
     return {
-      cache,
-      pullRequestCommentsStoreFile,
-      pullRequestFiltersStoreFile,
+      pullRequestsJsonRepository,
+      pullRequestCommentsJsonRepository,
+      pullRequestFiltersJsonRepository,
     };
   }
 }

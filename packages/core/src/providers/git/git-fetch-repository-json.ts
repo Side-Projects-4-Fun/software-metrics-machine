@@ -5,7 +5,7 @@ import { Commit } from 'src/domain-types';
 export class GitFetchRepository {
   constructor(
     private commitTraverser: ICommitTraverser,
-    private commitCache: IRepository<Commit>,
+    private commitsJsonRepository: IRepository<Commit>,
     private logger: Logger
   ) {}
 
@@ -15,7 +15,7 @@ export class GitFetchRepository {
     forceRefresh?: boolean;
     maxBuffer?: number;
   }): Promise<Commit[]> {
-    const fromCache = await this.commitCache.loadAll();
+    const fromCache = await this.commitsJsonRepository.loadAll();
 
     if (!options?.forceRefresh && fromCache.length > 0) {
       this.logger.info(`Using cached commits: ${fromCache.length} records`);
@@ -29,7 +29,7 @@ export class GitFetchRepository {
       maxBuffer: options?.maxBuffer,
     });
 
-    await this.commitCache.saveAll(result.commits);
+    await this.commitsJsonRepository.saveAll(result.commits);
 
     return result.commits;
   }

@@ -3,7 +3,7 @@ import type { IReadPullRequestsRepository } from '../index';
 import type {
   IPipelinesRepository,
   LoadPipelinesOptions,
-} from '../aggregates/pipelines-repository';
+} from '../aggregates/pipelines-repository-json';
 import type { IRepository } from '../index';
 import type { PRDetails, PRFilters } from '../index';
 import {

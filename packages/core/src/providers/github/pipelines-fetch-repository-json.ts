@@ -5,7 +5,7 @@ import { Configuration, IRepository } from '../../infrastructure';
 import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
 import { type IGithubWorkflowClient } from '../index';
 import { WorkflowJsonResponse } from './github-response-types';
-import { PipelineFiltersRepository } from '../../aggregates/pipeline-filters-repository';
+import { PipelineFiltersRepository } from '../../aggregates/pipeline-filters-repository-json';
 import { buildCreatedFilter } from './github-date-utils';
 
 interface WorkflowsProgress {
@@ -22,7 +22,7 @@ export class PipelinesFetchRepository {
   constructor(
     private configuration: Configuration,
     private githubWorkflowClient: IGithubWorkflowClient,
-    private pipelineRunFileSystemRepository: IRepository<WorkflowJsonResponse>,
+    private pipelineRunJsonRepository: IRepository<WorkflowJsonResponse>,
     private pipelineFiltersRepository: PipelineFiltersRepository | undefined,
     private logger: Logger
   ) {
@@ -37,7 +37,7 @@ export class PipelinesFetchRepository {
     byDay?: boolean;
     incrementalUpdate?: boolean;
   }): Promise<WorkflowJsonResponse[]> {
-    const fromCache = await this.pipelineRunFileSystemRepository.loadAll();
+    const fromCache = await this.pipelineRunJsonRepository.loadAll();
 
     if (options?.incrementalUpdate && fromCache.length > 0) {
       const latestDate = this.findLatestDate(fromCache.map((r) => r.created_at));
@@ -54,7 +54,7 @@ export class PipelinesFetchRepository {
       }
 
       const merged = this.mergeById(fromCache, freshRuns);
-      await this.pipelineRunFileSystemRepository.saveAll(merged);
+      await this.pipelineRunJsonRepository.saveAll(merged);
       await this.refreshDashboardFilterOptions();
       return merged;
     }
@@ -82,7 +82,7 @@ export class PipelinesFetchRepository {
         });
       }
       const merged = this.mergeById(fromCache, workflows);
-      await this.pipelineRunFileSystemRepository.saveAll(merged);
+      await this.pipelineRunJsonRepository.saveAll(merged);
       await this.refreshDashboardFilterOptions();
       return merged;
     }
@@ -110,7 +110,7 @@ export class PipelinesFetchRepository {
       });
     }
     // Persist fetched workflows/jobs so metrics commands can run from local data.
-    await this.pipelineRunFileSystemRepository.saveAll(workflows);
+    await this.pipelineRunJsonRepository.saveAll(workflows);
     await this.refreshDashboardFilterOptions();
 
     return workflows;

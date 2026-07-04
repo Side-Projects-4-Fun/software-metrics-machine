@@ -28,7 +28,7 @@ export class PairingService implements IPairingIndexService {
   private tz: TimeZoneProvider;
 
   constructor(
-    private commitRepository: IRepository<Commit>,
+    private commitsJsonRepository: IRepository<Commit>,
     timeZoneProvider: TimeZoneProvider,
     private logger: Logger
   ) {
@@ -73,7 +73,7 @@ export class PairingService implements IPairingIndexService {
     }
 
     // Load all commits
-    const allCommits = await this.commitRepository.loadAll();
+    const allCommits = await this.commitsJsonRepository.loadAll();
 
     // Filter by date range
     let filteredCommits = allCommits;

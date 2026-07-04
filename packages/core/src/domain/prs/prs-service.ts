@@ -11,7 +11,7 @@ import {
   PRSummaryResponse,
   PRAverageOutlierItem,
 } from './pr-types';
-import { IReadPullRequestsRepository } from '../../aggregates/pull-requests-repository';
+import { IReadPullRequestsRepository } from '../../aggregates/pull-requests-repository-json';
 import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
 import { stopWords } from './stop-words';
 import {

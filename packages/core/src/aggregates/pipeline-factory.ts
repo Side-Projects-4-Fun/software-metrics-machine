@@ -1,18 +1,18 @@
-import { PipelinesRepository } from './pipelines-repository';
+import { PipelinesRepository } from './pipelines-repository-json';
 import { Configuration, RepositoryFactory } from '../infrastructure';
 import {
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
 } from '../providers/github/github-response-types';
-import { PipelinesFetchRepository } from '../providers/github/pipelines-fetch-repository';
+import { PipelinesFetchRepository } from '../providers/github/pipelines-fetch-repository-json';
 import {
   GithubWorkflowClient,
   GithubWorkflowJobClient,
   GitlabPipelineClient,
   GitHubRateLimitManager,
 } from '../providers';
-import { PipelinesJobFetchRepository } from '../providers/github/pipelines-job-fetch-repository';
-import { PipelineFiltersRepository, PipelineFilterOptions } from './pipeline-filters-repository';
+import { PipelinesJobFetchRepository } from '../providers/github/pipelines-job-fetch-repository-json';
+import { PipelineFiltersRepository, PipelineFilterOptions } from './pipeline-filters-repository-json';
 import { Logger } from '@smmachine/utils';
 import { TimeZoneProvider } from '../infrastructure/timezone-provider';
 
@@ -52,46 +52,46 @@ export default class PipelineFactory {
           logger
         );
 
-    const pipelineRunFileSystemRepository = RepositoryFactory.create<WorkflowJsonResponse>(
+    const pipelineRunJsonRepository = RepositoryFactory.create<WorkflowJsonResponse>(
       `${config.getPathFromGitProvider()}/workflows.json`,
       logger,
       config
     );
-    const pipelineJobsFileSystemRepository = RepositoryFactory.create<WorkflowJobJsonResponse>(
+    const pipelineJobsJsonRepository = RepositoryFactory.create<WorkflowJobJsonResponse>(
       `${config.getPathFromGitProvider()}/jobs.json`,
       logger,
       config
     );
-    const pipelineFiltersFileSystemRepository = RepositoryFactory.create<PipelineFilterOptions>(
+    const pipelineFiltersJsonRepository = RepositoryFactory.create<PipelineFilterOptions>(
       `${config.getPathFromGitProvider()}/pipeline-filter-options.json`,
       logger,
       config
     );
 
     const pipelineRepository = new PipelinesRepository(
-      pipelineRunFileSystemRepository,
-      pipelineJobsFileSystemRepository,
+      pipelineRunJsonRepository,
+      pipelineJobsJsonRepository,
       logger,
       timeZoneProvider
     );
     const pipelineFiltersRepository = new PipelineFiltersRepository(
-      pipelineRunFileSystemRepository,
-      pipelineJobsFileSystemRepository,
-      pipelineFiltersFileSystemRepository
+      pipelineRunJsonRepository,
+      pipelineJobsJsonRepository,
+      pipelineFiltersJsonRepository
     );
 
     const workflowRepository = new PipelinesFetchRepository(
       config,
       workflowClient,
-      pipelineRunFileSystemRepository,
+      pipelineRunJsonRepository,
       pipelineFiltersRepository,
       logger
     );
     const workflowJobRepository = new PipelinesJobFetchRepository(
       config,
       workflowJobClient,
-      pipelineRunFileSystemRepository,
-      pipelineJobsFileSystemRepository,
+      pipelineRunJsonRepository,
+      pipelineJobsJsonRepository,
       pipelineFiltersRepository,
       logger
     );

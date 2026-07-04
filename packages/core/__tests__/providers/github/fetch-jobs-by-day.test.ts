@@ -6,7 +6,7 @@ import {
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
 } from '../../../src/providers/github/github-response-types';
-import { PipelinesJobFetchRepository } from '../../../src/providers/github/pipelines-job-fetch-repository';
+import { PipelinesJobFetchRepository } from '../../../src/providers/github/pipelines-job-fetch-repository-json';
 import { MockLoggerBuilder } from '../../mock-logger-builder';
 
 describe('Fetch jobs pipeline repository - By day', () => {

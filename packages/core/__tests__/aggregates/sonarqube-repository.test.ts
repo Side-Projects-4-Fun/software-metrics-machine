@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SonarqubeRepository } from '../../src/aggregates/sonarqube-repository';
+import { SonarqubeRepository } from '../../src/aggregates/sonarqube-repository-json';
 import { InMemoryRepository } from '../../src/test/in-memory-repository';
 import type {
   CodeMetric,

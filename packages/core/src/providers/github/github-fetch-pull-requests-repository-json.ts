@@ -6,7 +6,7 @@ import { Configuration } from '../../';
 import {
   PullRequestFilterOptions,
   PullRequestFiltersRepository,
-} from '../../aggregates/pull-request-filters-repository';
+} from '../../aggregates/pull-request-filters-repository-json';
 
 export interface IPullRequestsRepository {
   fetchPRs(options?: {
@@ -24,8 +24,8 @@ export interface IPullRequestsRepository {
 }
 
 export class GitHubPullRequestsFetchRepository implements IPullRequestsRepository {
-  private pullRequestStoreFile: IRepository<PullRequestJsonResponse>;
-  private pullRequestCommentsStoreFile: IRepository<PullRequestCommentJsonResponse>;
+  private pullRequestsJsonRepository: IRepository<PullRequestJsonResponse>;
+  private pullRequestCommentsJsonRepository: IRepository<PullRequestCommentJsonResponse>;
   private pullRequestFiltersRepository: PullRequestFiltersRepository;
 
   constructor(
@@ -34,25 +34,25 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
     private logger: Logger,
   ) {
     const providerDir = config.getPathFromGitProvider();
-    this.pullRequestStoreFile = RepositoryFactory.create<PullRequestJsonResponse>(
+    this.pullRequestsJsonRepository = RepositoryFactory.create<PullRequestJsonResponse>(
       `${providerDir}/prs.json`,
       logger,
       config
     );
-    this.pullRequestCommentsStoreFile = RepositoryFactory.create<PullRequestCommentJsonResponse>(
+    this.pullRequestCommentsJsonRepository = RepositoryFactory.create<PullRequestCommentJsonResponse>(
       `${providerDir}/pr-comments.json`,
       logger,
       config
     );
-    const pullRequestFiltersStoreFile = RepositoryFactory.create<PullRequestFilterOptions>(
+    const pullRequestFiltersJsonRepository = RepositoryFactory.create<PullRequestFilterOptions>(
       `${providerDir}/pull-request-filter-options.json`,
       logger,
       config
     );
     this.pullRequestFiltersRepository = new PullRequestFiltersRepository(
-      this.pullRequestStoreFile,
-      this.pullRequestCommentsStoreFile,
-      pullRequestFiltersStoreFile
+      this.pullRequestsJsonRepository,
+      this.pullRequestCommentsJsonRepository,
+      pullRequestFiltersJsonRepository
     );
   }
 
@@ -66,7 +66,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
     incrementalUpdate?: boolean;
     rawFilters?: string;
   }): Promise<PullRequestJsonResponse[]> {
-    const fromCache = await this.pullRequestStoreFile.loadAll();
+    const fromCache = await this.pullRequestsJsonRepository.loadAll();
 
     if (options?.incrementalUpdate && fromCache.length > 0) {
       const latestDate = this.findLatestDate(fromCache.map((pr) => pr.updated_at));
@@ -77,7 +77,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
         rawFilters: options?.rawFilters,
       });
       const merged = this.mergePRs(fromCache, freshPRs);
-      await this.pullRequestStoreFile.saveAll(merged);
+      await this.pullRequestsJsonRepository.saveAll(merged);
       await this.refreshFilterOptions();
       return merged;
     }
@@ -97,7 +97,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
         rawFilters: options?.rawFilters,
       });
       const merged = this.mergePRs(fromCache, freshPRs);
-      await this.pullRequestStoreFile.saveAll(merged);
+      await this.pullRequestsJsonRepository.saveAll(merged);
       await this.refreshFilterOptions();
       return merged;
     }
@@ -115,7 +115,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
     });
 
     // Persist fetched data to disk so subsequent commands can reuse cached data.
-    await this.pullRequestStoreFile.saveAll(freshPRs);
+    await this.pullRequestsJsonRepository.saveAll(freshPRs);
     await this.refreshFilterOptions();
 
     return freshPRs;
@@ -145,7 +145,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
     prNumber: number,
     options?: { forceRefresh?: boolean; incrementalUpdate?: boolean }
   ): Promise<PullRequestCommentJsonResponse[]> {
-    const fromCache = await this.pullRequestCommentsStoreFile.loadAll();
+    const fromCache = await this.pullRequestCommentsJsonRepository.loadAll();
     const cachedCommentsForPR = fromCache.filter((comment) =>
       comment.pull_request_url.includes(`/pulls/${prNumber}`)
     );
@@ -164,7 +164,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
         (comment) => !comment.pull_request_url.includes(`/pulls/${prNumber}`)
       );
       const updatedComments = otherComments.concat(merged);
-      await this.pullRequestCommentsStoreFile.saveAll(updatedComments);
+      await this.pullRequestCommentsJsonRepository.saveAll(updatedComments);
       return merged;
     }
 
@@ -182,7 +182,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
       .filter((comment) => !comment.pull_request_url.includes(`/pulls/${prNumber}`))
       .concat(freshComments);
 
-    await this.pullRequestCommentsStoreFile.saveAll(updatedComments);
+    await this.pullRequestCommentsJsonRepository.saveAll(updatedComments);
 
     return freshComments;
   }

@@ -10,11 +10,11 @@ export class PairingFactory {
     logger: Logger,
     timeZoneProvider: TimeZoneProvider
   ): PairingService {
-    const commitRepository = RepositoryFactory.create<Commit>(
+    const commitsJsonRepository = RepositoryFactory.create<Commit>(
       `${configuration.getGitPath()}/commits.json`,
       logger,
       configuration
     );
-    return new PairingService(commitRepository, timeZoneProvider, logger);
+    return new PairingService(commitsJsonRepository, timeZoneProvider, logger);
   }
 }

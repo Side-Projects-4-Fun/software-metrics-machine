@@ -15,14 +15,14 @@ export type PullRequestFilterOptionsResult = PullRequestFilterOptions & {
 
 export class PullRequestFiltersRepository {
   constructor(
-    private pullRequestFileSystemRepository: IRepository<PullRequestJsonResponse>,
-    private pullRequestCommentsFileSystemRepository: IRepository<PullRequestCommentJsonResponse>,
-    private pullRequestFiltersFileSystemRepository: IRepository<PullRequestFilterOptions>
+    private pullRequestsJsonRepository: IRepository<PullRequestJsonResponse>,
+    private pullRequestCommentsJsonRepository: IRepository<PullRequestCommentJsonResponse>,
+    private pullRequestFiltersJsonRepository: IRepository<PullRequestFilterOptions>
   ) {}
 
   async loadOptions(): Promise<PullRequestFilterOptionsResult> {
     const cachedOptions =
-      (await this.pullRequestFiltersFileSystemRepository.load()) || (await this.refreshOptions());
+      (await this.pullRequestFiltersJsonRepository.load()) || (await this.refreshOptions());
     return {
       ...cachedOptions,
       commenters: await this.loadCommenterOptions(),
@@ -30,7 +30,7 @@ export class PullRequestFiltersRepository {
   }
 
   async refreshOptions(): Promise<PullRequestFilterOptions> {
-    const prs = await this.pullRequestFileSystemRepository.loadAll();
+    const prs = await this.pullRequestsJsonRepository.loadAll();
     const authors = new Set<string>();
     const labels = new Set<string>();
 
@@ -47,12 +47,12 @@ export class PullRequestFiltersRepository {
       labels: this.sortedValues(labels),
     };
 
-    await this.pullRequestFiltersFileSystemRepository.save(options);
+    await this.pullRequestFiltersJsonRepository.save(options);
     return options;
   }
 
   private async loadCommenterOptions(): Promise<string[]> {
-    const comments = await this.pullRequestCommentsFileSystemRepository.loadAll();
+    const comments = await this.pullRequestCommentsJsonRepository.loadAll();
     const commenters = new Set<string>();
 
     for (const comment of comments) {

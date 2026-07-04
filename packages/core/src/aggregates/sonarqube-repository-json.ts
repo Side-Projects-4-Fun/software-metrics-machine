@@ -35,15 +35,15 @@ export type SonarqubeComponentTreeFilters = {
 
 export class SonarqubeRepository {
   constructor(
-    private measurementRepository: IRepository<TimestampedStore<SonarqubeComponentMeasure>>,
-    private componentTreeRepository: IRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>,
-    private historicalMeasuresRepository?: IRepository<TimestampedStore<CodeMetric[]>>
+    private measuresJsonRepository: IRepository<TimestampedStore<SonarqubeComponentMeasure>>,
+    private componentTreeJsonRepository: IRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>,
+    private historicalMeasuresJsonRepository?: IRepository<TimestampedStore<CodeMetric[]>>
   ) {}
 
   async loadAll(
     options?: SonarqubeMeasureFilters | string[]
   ): Promise<SonarqubeComponentMeasure | null> {
-    const store = await this.measurementRepository.load();
+    const store = await this.measuresJsonRepository.load();
     return this.filterComponentMeasure(extractLatestData(store), options);
   }
 
@@ -61,7 +61,7 @@ export class SonarqubeRepository {
   }
 
   async loadAllMeasurementEntries(): Promise<TimestampedEntry<SonarqubeMeasure[]>[]> {
-    const store = await this.measurementRepository.load();
+    const store = await this.measuresJsonRepository.load();
     if (!store) return [];
 
     const entries = Array.isArray(store.entries) ? store.entries : [];
@@ -77,14 +77,14 @@ export class SonarqubeRepository {
   async loadComponentTree(
     options?: SonarqubeComponentTreeFilters
   ): Promise<SonarqubeComponentTreeMeasure[]> {
-    const store = await this.componentTreeRepository.load();
+    const store = await this.componentTreeJsonRepository.load();
     return this.filterComponentTree(extractLatestData(store) || [], options);
   }
 
   async loadAllComponentTreeEntries(
     options?: SonarqubeComponentTreeFilters
   ): Promise<TimestampedEntry<SonarqubeComponentTreeMeasure[]>[]> {
-    const store = await this.componentTreeRepository.load();
+    const store = await this.componentTreeJsonRepository.load();
     if (!store) return [];
 
     const entries = Array.isArray(store.entries) ? store.entries : [];
@@ -97,7 +97,7 @@ export class SonarqubeRepository {
   async loadHistoricalMeasures(
     options?: SonarqubeMeasureFilters | string[]
   ): Promise<CodeMetric[]> {
-    const store = await this.historicalMeasuresRepository?.load();
+    const store = await this.historicalMeasuresJsonRepository?.load();
     return this.filterHistoricalMeasures(extractLatestData(store ?? null) || [], options);
   }
 
@@ -108,7 +108,7 @@ export class SonarqubeRepository {
   async loadAllHistoricalMeasureEntries(
     options?: SonarqubeMeasureFilters | string[]
   ): Promise<TimestampedEntry<CodeMetric[]>[]> {
-    const store = await this.historicalMeasuresRepository?.load();
+    const store = await this.historicalMeasuresJsonRepository?.load();
     if (!store) return [];
 
     const entries = Array.isArray(store.entries) ? store.entries : [];

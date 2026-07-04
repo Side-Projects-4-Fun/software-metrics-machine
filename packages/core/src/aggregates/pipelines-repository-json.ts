@@ -38,8 +38,8 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
   private tz: TimeZoneProvider;
 
   constructor(
-    private pipelineRunFileSystemRepository: IRepository<WorkflowJsonResponse>,
-    private pipelineJobsFileSystemRepository: IRepository<WorkflowJobJsonResponse>,
+    private pipelineRunJsonRepository: IRepository<WorkflowJsonResponse>,
+    private pipelineJobsJsonRepository: IRepository<WorkflowJobJsonResponse>,
     private logger: Logger,
     timeZoneProvider: TimeZoneProvider
   ) {
@@ -48,10 +48,10 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
   }
 
   private async loadPipelineRuns(): Promise<PipelineRun[]> {
-    const runs = await this.pipelineRunFileSystemRepository.loadAll();
+    const runs = await this.pipelineRunJsonRepository.loadAll();
     const pipelineRuns = runs.map(this.mapPipelinesToDomain);
 
-    this.logger.info(`Loaded ${pipelineRuns.length} pipeline runs from file system repository`);
+    this.logger.info(`Loaded ${pipelineRuns.length} pipeline runs from JSON repository`);
 
     return pipelineRuns;
   }
@@ -74,7 +74,7 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
       return this.applyRawFilters(pipelineRuns, rawFilters);
     }
 
-    const jobs = await this.pipelineJobsFileSystemRepository.loadAll();
+    const jobs = await this.pipelineJobsJsonRepository.loadAll();
     if (jobs.length === 0 || pipelineRuns.length === 0) {
       if (selectedJobNames.length > 0 || targetJobConclusion) {
         return [];
@@ -126,7 +126,7 @@ export class PipelinesRepository extends CommonRepository implements IPipelinesR
   }
 
   async loadPipelineJobs(): Promise<PipelineJob[]> {
-    const jobs = await this.pipelineJobsFileSystemRepository.loadAll();
+    const jobs = await this.pipelineJobsJsonRepository.loadAll();
     return jobs.map(this.mapPipelineJobsToDomain);
   }
 

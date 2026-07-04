@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { PullRequestsRepository } from '../../src/aggregates/pull-requests-repository';
+import { PullRequestsRepository } from '../../src/aggregates/pull-requests-repository-json';
 import {
   PullRequestJsonResponseBuilder,
   PullRequestCommentJsonResponseBuilder,

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { type ICommitTraverser, Commit } from '../../../src';
 import { InMemoryRepository } from '../../../src/test/in-memory-repository';
-import { GitFetchRepository } from '../../../src/providers/git/git-fetch-repository';
+import { GitFetchRepository } from '../../../src/providers/git/git-fetch-repository-json';
 import { MockLoggerBuilder } from '../../mock-logger-builder';
 
 describe('GitFetchRepository', () => {
