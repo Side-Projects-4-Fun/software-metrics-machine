@@ -47,11 +47,15 @@ export class SqliteRepository<T> implements IRepository<T> {
     const db = this.openDatabase();
     try {
       this.ensureSchema(db);
-      db.prepare(
-        `INSERT OR REPLACE INTO repository_records
-          (namespace, record_key, payload, position, updated_at)
-         VALUES (?, ?, ?, ?, ?)`
-      ).run(this.namespace, '__singleton__', this.serialize(item), 0, new Date().toISOString());
+      if (this.isAnySonarqubeNamespace()) {
+        this.saveSonarqubeEntries(db, item, this.getSonarqubeTableName());
+      } else {
+        db.prepare(
+          `INSERT OR REPLACE INTO repository_records
+            (namespace, record_key, payload, position, updated_at)
+           VALUES (?, ?, ?, ?, ?)`
+        ).run(this.namespace, '__singleton__', this.serialize(item), 0, new Date().toISOString());
+      }
     } finally {
       db.close();
     }
@@ -92,6 +96,9 @@ export class SqliteRepository<T> implements IRepository<T> {
     const db = this.openDatabase();
     try {
       this.ensureSchema(db);
+      if (this.isAnySonarqubeNamespace()) {
+        return this.loadSonarqubeEntries(db, this.getSonarqubeTableName());
+      }
       const row = db
         .prepare(
           `SELECT payload
@@ -138,6 +145,8 @@ export class SqliteRepository<T> implements IRepository<T> {
         db.prepare('DELETE FROM pull_requests WHERE namespace = ?').run(this.namespace);
       } else if (this.isPullRequestCommentsNamespace()) {
         db.prepare('DELETE FROM pull_request_comments WHERE namespace = ?').run(this.namespace);
+      } else if (this.isAnySonarqubeNamespace()) {
+        db.prepare(`DELETE FROM ${this.getSonarqubeTableName()} WHERE namespace = ?`).run(this.namespace);
       } else {
         db.prepare('DELETE FROM repository_records WHERE namespace = ?').run(this.namespace);
       }
@@ -331,6 +340,42 @@ export class SqliteRepository<T> implements IRepository<T> {
         ON pull_request_comments(namespace, created_at);
       CREATE INDEX IF NOT EXISTS idx_pull_request_comments_updated_at
         ON pull_request_comments(namespace, updated_at);
+
+      CREATE TABLE IF NOT EXISTS sonarqube_measures (
+        namespace TEXT NOT NULL,
+        entry_index INTEGER NOT NULL,
+        fetched_at TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        stored_at TEXT NOT NULL,
+        PRIMARY KEY (namespace, entry_index)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_sonarqube_measures_fetched_at
+        ON sonarqube_measures(namespace, fetched_at);
+
+      CREATE TABLE IF NOT EXISTS sonarqube_component_tree (
+        namespace TEXT NOT NULL,
+        entry_index INTEGER NOT NULL,
+        fetched_at TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        stored_at TEXT NOT NULL,
+        PRIMARY KEY (namespace, entry_index)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_sonarqube_component_tree_fetched_at
+        ON sonarqube_component_tree(namespace, fetched_at);
+
+      CREATE TABLE IF NOT EXISTS sonarqube_historical_measures (
+        namespace TEXT NOT NULL,
+        entry_index INTEGER NOT NULL,
+        fetched_at TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        stored_at TEXT NOT NULL,
+        PRIMARY KEY (namespace, entry_index)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_sonarqube_historical_measures_fetched_at
+        ON sonarqube_historical_measures(namespace, fetched_at);
     `);
   }
 
@@ -516,6 +561,50 @@ export class SqliteRepository<T> implements IRepository<T> {
     });
   }
 
+  private saveSonarqubeEntries(db: DatabaseSync, item: T, tableName: string): void {
+    db.prepare(`DELETE FROM ${tableName} WHERE namespace = ?`).run(this.namespace);
+    const store = this.asRecord(item);
+    const entries = store.entries as Array<Record<string, unknown>> | undefined;
+    if (!entries || entries.length === 0) {
+      return;
+    }
+
+    const insert = db.prepare(
+      `INSERT INTO ${tableName}
+        (namespace, entry_index, fetched_at, payload, stored_at)
+       VALUES (?, ?, ?, ?, ?)`
+    );
+    const storedAt = new Date().toISOString();
+
+    entries.forEach((entry, index) => {
+      insert.run(
+        this.namespace,
+        index,
+        this.toNullableString(entry.fetchedAt) ?? '',
+        this.serialize(entry as unknown as T),
+        storedAt
+      );
+    });
+  }
+
+  private loadSonarqubeEntries(db: DatabaseSync, tableName: string): T | null {
+    const rows = db
+      .prepare(
+        `SELECT payload
+         FROM ${tableName}
+         WHERE namespace = ?
+         ORDER BY entry_index ASC`
+      )
+      .all(this.namespace) as { payload: string }[];
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    const entries = rows.map((row) => this.deserialize(row.payload));
+    return { entries } as unknown as T;
+  }
+
   private loadRows(db: DatabaseSync): PayloadRow[] {
     if (this.isWorkflowRunsNamespace()) {
       return db
@@ -576,6 +665,18 @@ export class SqliteRepository<T> implements IRepository<T> {
         .all(this.namespace) as PayloadRow[];
     }
 
+    if (this.isAnySonarqubeNamespace()) {
+      const tableName = this.getSonarqubeTableName();
+      return db
+        .prepare(
+          `SELECT payload
+           FROM ${tableName}
+           WHERE namespace = ?
+           ORDER BY entry_index ASC`
+        )
+        .all(this.namespace) as PayloadRow[];
+    }
+
     return db
       .prepare(
         `SELECT payload
@@ -602,6 +703,9 @@ export class SqliteRepository<T> implements IRepository<T> {
     if (this.isPullRequestCommentsNamespace()) {
       return 'pull_request_comments';
     }
+    if (this.isAnySonarqubeNamespace()) {
+      return this.getSonarqubeTableName();
+    }
     return 'repository_records';
   }
 
@@ -623,6 +727,32 @@ export class SqliteRepository<T> implements IRepository<T> {
 
   private isPullRequestCommentsNamespace(): boolean {
     return path.basename(this.namespace) === 'pr-comments.json';
+  }
+
+  private isSonarqubeMeasuresNamespace(): boolean {
+    return path.basename(this.namespace) === 'measures.json';
+  }
+
+  private isSonarqubeComponentTreeNamespace(): boolean {
+    return path.basename(this.namespace) === 'component-tree.json';
+  }
+
+  private isSonarqubeHistoricalMeasuresNamespace(): boolean {
+    return path.basename(this.namespace) === 'historical-measures.json';
+  }
+
+  private isAnySonarqubeNamespace(): boolean {
+    return (
+      this.isSonarqubeMeasuresNamespace() ||
+      this.isSonarqubeComponentTreeNamespace() ||
+      this.isSonarqubeHistoricalMeasuresNamespace()
+    );
+  }
+
+  private getSonarqubeTableName(): string {
+    if (this.isSonarqubeMeasuresNamespace()) return 'sonarqube_measures';
+    if (this.isSonarqubeComponentTreeNamespace()) return 'sonarqube_component_tree';
+    return 'sonarqube_historical_measures';
   }
 
   private getRecordKey(item: T, index: number): string {

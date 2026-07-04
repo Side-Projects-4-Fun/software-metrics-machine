@@ -203,6 +203,7 @@ function getJsonToSqliteMigrationConfigurations(command: SmmCommand): Configurat
 function getJsonToSqliteMigrationStores(config: Configuration): MigrationStore[] {
   const providerPath = config.getPathFromGitProvider();
   const gitPath = config.getGitPath();
+  const sonarqubePath = config.getSonarqubePath();
 
   return [
     {
@@ -238,6 +239,21 @@ function getJsonToSqliteMigrationStores(config: Configuration): MigrationStore[]
     {
       label: 'pull request filter options',
       filePath: `${providerPath}/pull-request-filter-options.json`,
+      mode: 'singleton',
+    },
+    {
+      label: 'sonarqube measures',
+      filePath: `${sonarqubePath}/measures.json`,
+      mode: 'singleton',
+    },
+    {
+      label: 'sonarqube component tree',
+      filePath: `${sonarqubePath}/component-tree.json`,
+      mode: 'singleton',
+    },
+    {
+      label: 'sonarqube historical measures',
+      filePath: `${sonarqubePath}/historical-measures.json`,
       mode: 'singleton',
     },
   ];
