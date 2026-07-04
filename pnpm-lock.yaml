@@ -275,6 +275,9 @@ importers:
       rxjs:
         specifier: 'catalog:'
         version: 7.8.2
+      sqlite:
+        specifier: ^5.1.1
+        version: 5.1.1
       swagger-ui-express:
         specifier: 'catalog:'
         version: 5.0.1(express@4.22.1)
@@ -6815,6 +6818,9 @@ packages:
 
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
+
+  sqlite@5.1.1:
+    resolution: {integrity: sha512-oBkezXa2hnkfuJwUo44Hl9hS3er+YFtueifoajrgidvqsJRQFpc5fKoAkAor1O5ZnLoa28GBScfHXs8j0K358Q==}
 
   stable-hash@0.0.5:
     resolution: {integrity: sha512-+L3ccpzibovGXFK+Ap/f8LOS0ahMrHTf3xu7mMLSpEGU0EO9ucaysSylKo9eRDFNhWve/y275iPmIZ4z39a9iA==}
@@ -14406,6 +14412,8 @@ snapshots:
   source-map@0.7.6: {}
 
   sprintf-js@1.0.3: {}
+
+  sqlite@5.1.1: {}
 
   stable-hash@0.0.5: {}
 

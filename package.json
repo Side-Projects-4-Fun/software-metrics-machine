@@ -81,6 +81,7 @@
     "reflect-metadata": "catalog:",
     "rimraf": "^6.1.3",
     "rxjs": "catalog:",
+    "sqlite": "^5.1.1",
     "swagger-ui-express": "catalog:",
     "tailwind-merge": "catalog:"
   },

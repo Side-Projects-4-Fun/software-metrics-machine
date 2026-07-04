@@ -1,6 +1,18 @@
 import * as fs from 'fs';
+import {
+  Configuration,
+  JsonFileSystemRepository,
+  RepositoryFactory,
+  SqliteRepository,
+} from '@smmachine/core';
 import type { SmmCommand } from './smm-command';
 type JsonObject = Record<string, unknown>;
+
+type MigrationStore = {
+  label: string;
+  filePath: string;
+  mode: 'array' | 'singleton';
+};
 
 /**
  * Tools Command Group
@@ -79,4 +91,90 @@ export function createToolsCommands(program: SmmCommand): void {
         process.exit(1);
       }
     });
+
+  toolsGroup
+    .subcommand('migrate')
+    .description('Migrate persisted metric data between storage backends')
+    .requiredOption('--from <storage>', 'Source storage backend')
+    .requiredOption('--to <storage>', 'Target storage backend')
+    .actionWithSmm(async (options, command) => {
+      const logger = command.getLogger('ToolsMigrateCommand');
+      try {
+        if (options.from !== 'json' || options.to !== 'sqlite') {
+          throw new Error('Only --from=json --to=sqlite is supported at this time.');
+        }
+
+        const config = command.getConfiguration();
+        const stores = getPipelineMigrationStores(config);
+        const sqliteDbPath = RepositoryFactory.getSqliteDatabasePath(config);
+
+        screen.printLine('🔄 Migrating pipeline storage from JSON to SQLite...');
+        screen.printLine(`   SQLite database: ${sqliteDbPath}`);
+
+        let migratedStores = 0;
+        let migratedRecords = 0;
+
+        for (const store of stores) {
+          const source = new JsonFileSystemRepository<unknown>(store.filePath, logger);
+          if (!(await source.exists())) {
+            screen.printLine(`  ⚠️  Skipped ${store.label}: ${store.filePath} does not exist`);
+            continue;
+          }
+
+          const namespace = RepositoryFactory.getSqliteNamespace(store.filePath, config);
+          const target = new SqliteRepository<unknown>(sqliteDbPath, namespace, logger);
+
+          if (store.mode === 'array') {
+            const items = await source.loadAll();
+            await target.saveAll(items);
+            migratedRecords += items.length;
+            screen.printLine(`  ✅ Migrated ${store.label}: ${items.length} records`);
+          } else {
+            const item = await source.load();
+            if (item === null) {
+              screen.printLine(`  ⚠️  Skipped ${store.label}: empty source`);
+              continue;
+            }
+
+            await target.save(item);
+            migratedRecords += 1;
+            screen.printLine(`  ✅ Migrated ${store.label}: 1 record`);
+          }
+
+          migratedStores += 1;
+        }
+
+        screen.printLine(
+          `\n✅ Migration complete: ${migratedRecords} records across ${migratedStores} pipeline stores`
+        );
+      } catch (error) {
+        logger.error('Failed to migrate storage', error);
+        screen.printLine(
+          `❌ Migration failed: ${error instanceof Error ? error.message : String(error)}`
+        );
+        process.exit(1);
+      }
+    });
+}
+
+function getPipelineMigrationStores(config: Configuration): MigrationStore[] {
+  const providerPath = config.getPathFromGitProvider();
+
+  return [
+    {
+      label: 'workflow runs',
+      filePath: `${providerPath}/workflows.json`,
+      mode: 'array',
+    },
+    {
+      label: 'workflow jobs',
+      filePath: `${providerPath}/jobs.json`,
+      mode: 'array',
+    },
+    {
+      label: 'pipeline filter options',
+      filePath: `${providerPath}/pipeline-filter-options.json`,
+      mode: 'singleton',
+    },
+  ];
 }

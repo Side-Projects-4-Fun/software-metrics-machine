@@ -1,7 +1,9 @@
 import { Logger } from '@smmachine/utils';
+import * as path from 'path';
 import { IRepository } from './repository';
 import { JsonFileSystemRepository } from './repository';
 import { Configuration } from './configuration';
+import { SqliteRepository } from './sqlite-repository';
 
 /**
  * Factory for creating IRepository<T> instances based on the configured storage type.
@@ -28,13 +30,28 @@ export class RepositoryFactory {
       case 'json':
         return new JsonFileSystemRepository<T>(filePath, logger);
       case 'sqlite':
-        throw new Error(
-          'SQLite storage is configured, but the SQLite repository implementation is not available yet. Supported storage types: json'
+        return new SqliteRepository<T>(
+          RepositoryFactory.getSqliteDatabasePath(config),
+          RepositoryFactory.getSqliteNamespace(filePath, config),
+          logger
         );
       default:
         throw new Error(
-          `Unknown storage type: ${storageType}. Supported types: json`
+          `Unknown storage type: ${storageType}. Supported types: json, sqlite`
         );
     }
+  }
+
+  static getSqliteDatabasePath(config: Configuration): string {
+    return path.join(config.storeData || './outputs', 'smm.sqlite');
+  }
+
+  static getSqliteNamespace(filePath: string, config: Configuration): string {
+    const baseDirectory = config.getBaseDirectory();
+    const relativePath = path.relative(baseDirectory, filePath);
+
+    return relativePath && !relativePath.startsWith('..') && !path.isAbsolute(relativePath)
+      ? relativePath
+      : filePath;
   }
 }

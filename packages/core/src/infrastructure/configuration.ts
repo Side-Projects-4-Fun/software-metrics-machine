@@ -13,7 +13,7 @@ export interface InternalConfiguration {
   /**
    * Storage backend type for repository persistence.
    * - 'json' (default): JSON files on disk
-   * - 'sqlite': SQLite database (coming soon)
+   * - 'sqlite': SQLite database
    */
   storageType: StorageType;
 }

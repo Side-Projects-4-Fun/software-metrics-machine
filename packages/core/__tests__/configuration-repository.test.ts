@@ -9,6 +9,7 @@ import { Logger } from '@smmachine/utils';
 import { afterEach, beforeEach, describe, it, expect } from 'vitest';
 import { ConfigurationRepository } from '../src/infrastructure/configuration-repository';
 import { RepositoryFactory } from '../src/infrastructure/repository-factory';
+import { SqliteRepository } from '../src/infrastructure/sqlite-repository';
 import type { ISmmProjectConfig } from '../src/infrastructure/configuration';
 
 describe('ConfigurationRepository', () => {
@@ -673,13 +674,13 @@ describe('ConfigurationRepository', () => {
       const repo = new ConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo');
 
       expect(repo.getActiveConfiguration().internal.storageType).toBe('sqlite');
-      expect(() =>
+      expect(
         RepositoryFactory.create(
           join(tempDir, 'github_org_repo', 'prs.json'),
           new Logger('RepositoryFactoryTest'),
           repo.getActiveConfiguration()
         )
-      ).toThrow(/SQLite storage is configured/);
+      ).toBeInstanceOf(SqliteRepository);
     });
 
     it('should let project internal storage configuration override root internal storage', () => {
