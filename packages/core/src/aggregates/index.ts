@@ -16,6 +16,10 @@ export {
 export { GitHubPullRequestsFetchRepository } from '../providers/github/github-fetch-pull-requests-repository-json';
 export {
   CodeMaatMetricsRepository as CodeMetricsRepository,
+  CodeMaatMetricsCsvRepository,
+  CodeMaatMetricsSqliteRepository,
+  type CodeMaatChurnOptions,
+  type CodeMaatEntityFilterOptions,
   type ICodeMetricsRepository,
 } from './codemaat-metrics-repository';
 export { IssuesRepository, type IIssuesRepository, type IssueFilters } from './issues-repository-json';

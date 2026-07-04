@@ -1,7 +1,7 @@
-import { CodeChurnResult, CodeMaatMetricsRepository, FileCoupling } from 'src/providers/codemaat';
+import { CodeChurnResult, FileCoupling, ICodeMetricsRepository } from 'src/providers/codemaat';
 
 export class CodemaatService {
-  constructor(private metricsRepository: CodeMaatMetricsRepository) {}
+  constructor(private metricsRepository: ICodeMetricsRepository) {}
 
   async getCodeChurn(options?: { startDate?: string; endDate?: string }): Promise<CodeChurnResult> {
     return this.metricsRepository.getCodeChurn(options);

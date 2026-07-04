@@ -1,8 +1,7 @@
-import { execFileSync } from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
 import { Logger } from '@smmachine/utils';
 import { Configuration } from '../../infrastructure';
+import { CodemaatFetchCsvRepository } from './codemaat-fetch-repository-csv';
+import { CodemaatFetchSqliteRepository } from './codemaat-fetch-repository-sqlite';
 
 export interface CodemaatFetchOptions {
   repositoryPath?: string;
@@ -17,70 +16,37 @@ export interface CodemaatFetchResult {
   repository: string;
   outputDirectory: string;
   stdout: string;
+  persistedRecords?: number;
 }
 
-export class CodemaatFetchRepository {
-  constructor(
-    private configuration: Configuration,
-    private logger: Logger
-  ) {}
+export type CodeMaatPersistenceResult = {
+  persisted: boolean;
+  records: number;
+};
+
+export interface ICodeMaatFetchRepository {
+  fetch(options: CodemaatFetchOptions): CodemaatFetchResult;
+  persistFetchedMetrics(): Promise<CodeMaatPersistenceResult>;
+}
+
+export class CodemaatFetchRepository implements ICodeMaatFetchRepository {
+  private readonly delegate: ICodeMaatFetchRepository;
+
+  constructor(configuration: Configuration, logger: Logger) {
+    this.delegate =
+      configuration.internal?.storageType === 'sqlite'
+        ? new CodemaatFetchSqliteRepository(configuration, logger)
+        : new CodemaatFetchCsvRepository(configuration, logger);
+  }
 
   fetch(options: CodemaatFetchOptions): CodemaatFetchResult {
-    if (!options.startDate) {
-      throw new Error('startDate is required for CodeMaat fetch.');
-    }
-
-    const repositoryPath = options.repositoryPath || this.configuration.gitRepositoryLocation;
-    if (!repositoryPath) {
-      throw new Error('Git repository path is not configured.');
-    }
-
-    const outputDirectory = options.outputDirectory || this.configuration.getCodeMaatPath();
-    fs.mkdirSync(outputDirectory, { recursive: true });
-
-    const scriptPath = this.resolveScriptPath(options.scriptPath);
-    const scriptDirectory = path.dirname(scriptPath);
-
-    this.logger.info(`Running CodeMaat fetch script at ${scriptPath}`);
-
-    const stdout = execFileSync(
-      'sh',
-      [
-        scriptPath,
-        repositoryPath,
-        outputDirectory,
-        options.startDate,
-        options.subfolder || '',
-        options.force ? 'true' : 'false',
-      ],
-      {
-        cwd: scriptDirectory,
-        encoding: 'utf-8',
-        stdio: ['ignore', 'pipe', 'pipe'],
-      }
-    );
-
-    return {
-      repository: repositoryPath,
-      outputDirectory,
-      stdout,
-    };
+    return this.delegate.fetch(options);
   }
 
-  private resolveScriptPath(explicitScriptPath?: string): string {
-    if (explicitScriptPath && fs.existsSync(explicitScriptPath)) {
-      return explicitScriptPath;
-    }
-
-    const scriptPath = path.resolve(__dirname, '../apps/cli/fetch-codemaat.sh');
-    if (fs.existsSync(scriptPath)) {
-      return scriptPath;
-    }
-
-    if (explicitScriptPath) {
-      throw new Error(`Configured scriptPath does not exist: ${explicitScriptPath}`);
-    }
-
-    throw new Error(`Could not locate fetch-codemaat.sh at expected path: ${scriptPath}`);
+  persistFetchedMetrics(): Promise<CodeMaatPersistenceResult> {
+    return this.delegate.persistFetchedMetrics();
   }
 }
+
+export { CodemaatFetchCsvRepository } from './codemaat-fetch-repository-csv';
+export { CodemaatFetchSqliteRepository } from './codemaat-fetch-repository-sqlite';

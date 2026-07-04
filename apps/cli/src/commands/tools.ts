@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import {
+  CodemaatFactory,
   Configuration,
   JsonFileSystemRepository,
   RepositoryFactory,
@@ -155,6 +156,20 @@ export function createToolsCommands(program: SmmCommand): void {
 
             migratedStores += 1;
           }
+
+          const codemaatRepository = CodemaatFactory.createWriteRepositoryForStorage(
+            config,
+            logger,
+            options.to
+          );
+          const codemaatPersistence = await codemaatRepository.persistFetchedMetrics();
+          migratedRecords += codemaatPersistence.records;
+          if (codemaatPersistence.records > 0) {
+            migratedStores += 1;
+          }
+          screen.printLine(
+            `  ✅ Migrated CodeMaat metrics: ${codemaatPersistence.records} records`
+          );
         }
 
         screen.printLine(
