@@ -11,6 +11,7 @@ import {
   RepositoryFactory,
   SqliteRepository,
 } from '../src/infrastructure';
+import { Commit } from '../src/domain-types';
 import {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
@@ -217,6 +218,71 @@ describe('SQLite pipeline tables', () => {
       status: 'completed',
       conclusion: 'success',
       completed_at: '2026-01-01T00:04:00Z',
+    });
+  });
+});
+
+describe('SQLite commit table', () => {
+  let tempDir: string | undefined;
+  const logger = new Logger('SqliteCommitTest', 'CRITICAL');
+
+  afterEach(() => {
+    if (tempDir) {
+      rmSync(tempDir, { recursive: true, force: true });
+      tempDir = undefined;
+    }
+  });
+
+  function createDatabasePath(): string {
+    tempDir = mkdtempSync(join(tmpdir(), 'smm-sqlite-commits-'));
+    return join(tempDir, 'smm.sqlite');
+  }
+
+  it('stores commits in the normalized commits table', async () => {
+    const dbPath = createDatabasePath();
+    const repository = new SqliteRepository<Commit>(dbPath, 'git/commits.json', logger);
+    const commits = [
+      {
+        hash: 'abc123',
+        author: 'Ada Lovelace',
+        email: 'ada@example.com',
+        msg: 'Add SQLite support',
+        subject: 'Add SQLite support',
+        timestamp: '2026-01-01T00:00:00Z',
+        coAuthors: ['Grace Hopper'],
+        files: [
+          {
+            path: 'src/index.ts',
+            additions: 10,
+            deletions: 2,
+            status: 'modified',
+          },
+        ],
+      },
+    ] satisfies Commit[];
+
+    await repository.saveAll(commits);
+
+    expect(await repository.loadAll()).toEqual(commits);
+
+    const db = new DatabaseSync(dbPath);
+    const row = db
+      .prepare(
+        `SELECT hash, author, email, subject, timestamp, co_authors_json, files_json
+         FROM commits
+         WHERE namespace = ?`
+      )
+      .get('git/commits.json') as Record<string, unknown>;
+    db.close();
+
+    expect(row).toMatchObject({
+      hash: 'abc123',
+      author: 'Ada Lovelace',
+      email: 'ada@example.com',
+      subject: 'Add SQLite support',
+      timestamp: '2026-01-01T00:00:00Z',
+      co_authors_json: JSON.stringify(['Grace Hopper']),
+      files_json: JSON.stringify(commits[0].files),
     });
   });
 });

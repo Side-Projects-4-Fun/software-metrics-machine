@@ -202,8 +202,14 @@ function getJsonToSqliteMigrationConfigurations(command: SmmCommand): Configurat
 
 function getJsonToSqliteMigrationStores(config: Configuration): MigrationStore[] {
   const providerPath = config.getPathFromGitProvider();
+  const gitPath = config.getGitPath();
 
   return [
+    {
+      label: 'commits',
+      filePath: `${gitPath}/commits.json`,
+      mode: 'array',
+    },
     {
       label: 'workflow runs',
       filePath: `${providerPath}/workflows.json`,

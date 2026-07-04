@@ -68,6 +68,8 @@ export class SqliteRepository<T> implements IRepository<T> {
           this.saveWorkflowRuns(db, items);
         } else if (this.isWorkflowJobsNamespace()) {
           this.saveWorkflowJobs(db, items);
+        } else if (this.isCommitsNamespace()) {
+          this.saveCommits(db, items);
         } else if (this.isPullRequestsNamespace()) {
           this.savePullRequests(db, items);
         } else if (this.isPullRequestCommentsNamespace()) {
@@ -129,6 +131,9 @@ export class SqliteRepository<T> implements IRepository<T> {
         db.prepare('DELETE FROM workflow_runs WHERE namespace = ?').run(this.namespace);
       } else if (this.isWorkflowJobsNamespace()) {
         db.prepare('DELETE FROM workflow_jobs WHERE namespace = ?').run(this.namespace);
+      } else if (this.isCommitsNamespace()) {
+        db.prepare('DELETE FROM commits WHERE namespace = ?').run(this.namespace);
+        db.prepare('DELETE FROM repository_records WHERE namespace = ?').run(this.namespace);
       } else if (this.isPullRequestsNamespace()) {
         db.prepare('DELETE FROM pull_requests WHERE namespace = ?').run(this.namespace);
       } else if (this.isPullRequestCommentsNamespace()) {
@@ -150,6 +155,13 @@ export class SqliteRepository<T> implements IRepository<T> {
       const row = db
         .prepare(`SELECT 1 FROM ${tableName} WHERE namespace = ? LIMIT 1`)
         .get(this.namespace);
+      if (!row && this.isCommitsNamespace()) {
+        return Boolean(
+          db
+            .prepare('SELECT 1 FROM repository_records WHERE namespace = ? LIMIT 1')
+            .get(this.namespace)
+        );
+      }
       return Boolean(row);
     } finally {
       db.close();
@@ -232,6 +244,31 @@ export class SqliteRepository<T> implements IRepository<T> {
         ON workflow_jobs(namespace, conclusion);
       CREATE INDEX IF NOT EXISTS idx_workflow_jobs_completed_at
         ON workflow_jobs(namespace, completed_at);
+
+      CREATE TABLE IF NOT EXISTS commits (
+        namespace TEXT NOT NULL,
+        hash TEXT NOT NULL,
+        author TEXT,
+        email TEXT,
+        msg TEXT,
+        subject TEXT,
+        timestamp TEXT,
+        co_authors_json TEXT,
+        files_json TEXT,
+        payload TEXT NOT NULL,
+        position INTEGER NOT NULL,
+        stored_at TEXT NOT NULL,
+        PRIMARY KEY (namespace, hash)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_commits_namespace_position
+        ON commits(namespace, position);
+      CREATE INDEX IF NOT EXISTS idx_commits_author
+        ON commits(namespace, author);
+      CREATE INDEX IF NOT EXISTS idx_commits_email
+        ON commits(namespace, email);
+      CREATE INDEX IF NOT EXISTS idx_commits_timestamp
+        ON commits(namespace, timestamp);
 
       CREATE TABLE IF NOT EXISTS pull_requests (
         namespace TEXT NOT NULL,
@@ -377,6 +414,38 @@ export class SqliteRepository<T> implements IRepository<T> {
     });
   }
 
+  private saveCommits(db: DatabaseSync, items: T[]): void {
+    db.prepare('DELETE FROM commits WHERE namespace = ?').run(this.namespace);
+    db.prepare('DELETE FROM repository_records WHERE namespace = ?').run(this.namespace);
+    const insert = db.prepare(
+      `INSERT INTO commits
+        (
+          namespace, hash, author, email, msg, subject, timestamp,
+          co_authors_json, files_json, payload, position, stored_at
+        )
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    );
+    const storedAt = new Date().toISOString();
+
+    items.forEach((item, index) => {
+      const commit = this.asRecord(item);
+      insert.run(
+        this.namespace,
+        this.toRequiredString(commit.hash, String(index)),
+        this.toNullableString(commit.author),
+        this.toNullableString(commit.email),
+        this.toNullableString(commit.msg),
+        this.toNullableString(commit.subject),
+        this.toNullableTimestamp(commit.timestamp),
+        this.toNullableJsonString(commit.coAuthors),
+        this.toNullableJsonString(commit.files),
+        this.serialize(item),
+        index,
+        storedAt
+      );
+    });
+  }
+
   private savePullRequests(db: DatabaseSync, items: T[]): void {
     db.prepare('DELETE FROM pull_requests WHERE namespace = ?').run(this.namespace);
     const insert = db.prepare(
@@ -470,6 +539,21 @@ export class SqliteRepository<T> implements IRepository<T> {
         .all(this.namespace) as PayloadRow[];
     }
 
+    if (this.isCommitsNamespace()) {
+      const rows = db
+        .prepare(
+          `SELECT payload
+           FROM commits
+           WHERE namespace = ?
+           ORDER BY position ASC, hash ASC`
+        )
+        .all(this.namespace) as PayloadRow[];
+
+      if (rows.length > 0) {
+        return rows;
+      }
+    }
+
     if (this.isPullRequestsNamespace()) {
       return db
         .prepare(
@@ -509,6 +593,9 @@ export class SqliteRepository<T> implements IRepository<T> {
     if (this.isWorkflowJobsNamespace()) {
       return 'workflow_jobs';
     }
+    if (this.isCommitsNamespace()) {
+      return 'commits';
+    }
     if (this.isPullRequestsNamespace()) {
       return 'pull_requests';
     }
@@ -524,6 +611,10 @@ export class SqliteRepository<T> implements IRepository<T> {
 
   private isWorkflowJobsNamespace(): boolean {
     return path.basename(this.namespace) === 'jobs.json';
+  }
+
+  private isCommitsNamespace(): boolean {
+    return path.basename(this.namespace) === 'commits.json';
   }
 
   private isPullRequestsNamespace(): boolean {
@@ -570,6 +661,22 @@ export class SqliteRepository<T> implements IRepository<T> {
   private toRequiredString(value: unknown, fallback: string): string {
     const normalized = this.toNullableString(value);
     return normalized && normalized.length > 0 ? normalized : fallback;
+  }
+
+  private toNullableTimestamp(value: unknown): string | null {
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+
+    return this.toNullableString(value);
+  }
+
+  private toNullableJsonString(value: unknown): string | null {
+    if (value === undefined || value === null) {
+      return null;
+    }
+
+    return JSON.stringify(value);
   }
 
   private toNullableNumber(value: unknown): number | null {
