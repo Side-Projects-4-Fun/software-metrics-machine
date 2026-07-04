@@ -1,4 +1,4 @@
-import { PipelinesRepository } from './pipelines-repository-json';
+import { PipelinesRepository } from '../aggregates/pipelines-repository-json';
 import { Configuration, RepositoryFactory } from '../infrastructure';
 import {
   WorkflowJobJsonResponse,
@@ -12,7 +12,7 @@ import {
   GitHubRateLimitManager,
 } from '../providers';
 import { PipelinesJobFetchRepository } from '../providers/github/pipelines-job-fetch-repository-json';
-import { PipelineFiltersRepository, PipelineFilterOptions } from './pipeline-filters-repository-json';
+import { PipelineFiltersRepository, PipelineFilterOptions } from '../aggregates/pipeline-filters-repository-json';
 import { Logger } from '@smmachine/utils';
 import { TimeZoneProvider } from '../infrastructure/timezone-provider';
 

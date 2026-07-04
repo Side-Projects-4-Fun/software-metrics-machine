@@ -2,7 +2,7 @@ import { Logger } from '@smmachine/utils';
 import * as fs from 'fs/promises';
 import { Dirent } from 'fs';
 import * as path from 'path';
-import { GitFactory } from '../../aggregates/git-factory';
+import { GitFactory } from '../../factories/git-factory';
 import { Commit } from '../../domain-types';
 import { Configuration } from '../../infrastructure/configuration';
 import { RepositoryFactory } from '../../infrastructure/repository-factory';

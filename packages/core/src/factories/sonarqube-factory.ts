@@ -1,6 +1,6 @@
 import { SonarqubeComponentMeasure } from 'src';
 import { Configuration, RepositoryFactory } from '../infrastructure';
-import { SonarqubeRepository } from './sonarqube-repository-json';
+import { SonarqubeRepository } from '../aggregates/sonarqube-repository-json';
 import {
   CodeMetric,
   SonarqubeComponentTreeMeasure,

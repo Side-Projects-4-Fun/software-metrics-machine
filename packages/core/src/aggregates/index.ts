@@ -27,8 +27,8 @@ export {
   SonarqubeFetchMetricsRepository,
   type IQualityMetricsRepository,
 } from '../providers/sonarqube/sonarqube-fetch-metrics-repository-json';
-export { SonarqubeFactory } from './sonarqube-factory';
-export { SonarqubeRepository } from './sonarqube-repository-json';
-export { GitFactory } from './git-factory';
-export { CodemaatFactory } from './codemaat-factory';
-export { PairingFactory } from './pairing-factory';
+export { SonarqubeFactory } from '../factories/sonarqube-factory';
+export { SonarqubeRepository } from '../aggregates/sonarqube-repository-json';
+export { GitFactory } from '../factories/git-factory';
+export { CodemaatFactory } from '../factories/codemaat-factory';
+export { PairingFactory } from '../factories/pairing-factory';
