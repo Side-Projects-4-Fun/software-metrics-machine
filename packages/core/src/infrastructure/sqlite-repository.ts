@@ -58,6 +58,10 @@ export class SqliteRepository<T> implements IRepository<T> {
           this.saveWorkflowRuns(db, items);
         } else if (this.isWorkflowJobsNamespace()) {
           this.saveWorkflowJobs(db, items);
+        } else if (this.isPullRequestsNamespace()) {
+          this.savePullRequests(db, items);
+        } else if (this.isPullRequestCommentsNamespace()) {
+          this.savePullRequestComments(db, items);
         } else {
           this.saveGenericRecords(db, items);
         }
@@ -115,6 +119,10 @@ export class SqliteRepository<T> implements IRepository<T> {
         db.prepare('DELETE FROM workflow_runs WHERE namespace = ?').run(this.namespace);
       } else if (this.isWorkflowJobsNamespace()) {
         db.prepare('DELETE FROM workflow_jobs WHERE namespace = ?').run(this.namespace);
+      } else if (this.isPullRequestsNamespace()) {
+        db.prepare('DELETE FROM pull_requests WHERE namespace = ?').run(this.namespace);
+      } else if (this.isPullRequestCommentsNamespace()) {
+        db.prepare('DELETE FROM pull_request_comments WHERE namespace = ?').run(this.namespace);
       } else {
         db.prepare('DELETE FROM repository_records WHERE namespace = ?').run(this.namespace);
       }
@@ -214,6 +222,68 @@ export class SqliteRepository<T> implements IRepository<T> {
         ON workflow_jobs(namespace, conclusion);
       CREATE INDEX IF NOT EXISTS idx_workflow_jobs_completed_at
         ON workflow_jobs(namespace, completed_at);
+
+      CREATE TABLE IF NOT EXISTS pull_requests (
+        namespace TEXT NOT NULL,
+        id TEXT NOT NULL,
+        number INTEGER,
+        state TEXT,
+        title TEXT,
+        author_login TEXT,
+        author_id TEXT,
+        created_at TEXT,
+        updated_at TEXT,
+        closed_at TEXT,
+        merged_at TEXT,
+        html_url TEXT,
+        payload TEXT NOT NULL,
+        position INTEGER NOT NULL,
+        stored_at TEXT NOT NULL,
+        PRIMARY KEY (namespace, id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_pull_requests_namespace_position
+        ON pull_requests(namespace, position);
+      CREATE INDEX IF NOT EXISTS idx_pull_requests_number
+        ON pull_requests(namespace, number);
+      CREATE INDEX IF NOT EXISTS idx_pull_requests_state
+        ON pull_requests(namespace, state);
+      CREATE INDEX IF NOT EXISTS idx_pull_requests_author_login
+        ON pull_requests(namespace, author_login);
+      CREATE INDEX IF NOT EXISTS idx_pull_requests_created_at
+        ON pull_requests(namespace, created_at);
+      CREATE INDEX IF NOT EXISTS idx_pull_requests_updated_at
+        ON pull_requests(namespace, updated_at);
+      CREATE INDEX IF NOT EXISTS idx_pull_requests_merged_at
+        ON pull_requests(namespace, merged_at);
+
+      CREATE TABLE IF NOT EXISTS pull_request_comments (
+        namespace TEXT NOT NULL,
+        id TEXT NOT NULL,
+        pull_request_number INTEGER,
+        pull_request_url TEXT,
+        author_login TEXT,
+        author_id TEXT,
+        path TEXT,
+        created_at TEXT,
+        updated_at TEXT,
+        html_url TEXT,
+        payload TEXT NOT NULL,
+        position INTEGER NOT NULL,
+        stored_at TEXT NOT NULL,
+        PRIMARY KEY (namespace, id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_pull_request_comments_namespace_position
+        ON pull_request_comments(namespace, position);
+      CREATE INDEX IF NOT EXISTS idx_pull_request_comments_pr_number
+        ON pull_request_comments(namespace, pull_request_number);
+      CREATE INDEX IF NOT EXISTS idx_pull_request_comments_author_login
+        ON pull_request_comments(namespace, author_login);
+      CREATE INDEX IF NOT EXISTS idx_pull_request_comments_created_at
+        ON pull_request_comments(namespace, created_at);
+      CREATE INDEX IF NOT EXISTS idx_pull_request_comments_updated_at
+        ON pull_request_comments(namespace, updated_at);
     `);
   }
 
@@ -297,6 +367,76 @@ export class SqliteRepository<T> implements IRepository<T> {
     });
   }
 
+  private savePullRequests(db: DatabaseSync, items: T[]): void {
+    db.prepare('DELETE FROM pull_requests WHERE namespace = ?').run(this.namespace);
+    const insert = db.prepare(
+      `INSERT INTO pull_requests
+        (
+          namespace, id, number, state, title, author_login, author_id,
+          created_at, updated_at, closed_at, merged_at, html_url,
+          payload, position, stored_at
+        )
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    );
+    const storedAt = new Date().toISOString();
+
+    items.forEach((item, index) => {
+      const pr = this.asRecord(item);
+      const user = this.asNestedRecord(pr.user);
+      insert.run(
+        this.namespace,
+        this.getRequiredRecordId(pr, index),
+        this.toNullableNumber(pr.number),
+        this.toNullableString(pr.state),
+        this.toNullableString(pr.title),
+        this.toNullableString(user.login),
+        this.toNullableString(user.id),
+        this.toNullableString(pr.created_at),
+        this.toNullableString(pr.updated_at),
+        this.toNullableString(pr.closed_at),
+        this.toNullableString(pr.merged_at),
+        this.toNullableString(pr.html_url),
+        this.serialize(item),
+        index,
+        storedAt
+      );
+    });
+  }
+
+  private savePullRequestComments(db: DatabaseSync, items: T[]): void {
+    db.prepare('DELETE FROM pull_request_comments WHERE namespace = ?').run(this.namespace);
+    const insert = db.prepare(
+      `INSERT INTO pull_request_comments
+        (
+          namespace, id, pull_request_number, pull_request_url, author_login,
+          author_id, path, created_at, updated_at, html_url,
+          payload, position, stored_at
+        )
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    );
+    const storedAt = new Date().toISOString();
+
+    items.forEach((item, index) => {
+      const comment = this.asRecord(item);
+      const user = this.asNestedRecord(comment.user);
+      insert.run(
+        this.namespace,
+        this.getRequiredRecordId(comment, index),
+        this.extractPullRequestNumber(comment.pull_request_url),
+        this.toNullableString(comment.pull_request_url),
+        this.toNullableString(user.login),
+        this.toNullableString(user.id),
+        this.toNullableString(comment.path),
+        this.toNullableString(comment.created_at),
+        this.toNullableString(comment.updated_at),
+        this.toNullableString(comment.html_url),
+        this.serialize(item),
+        index,
+        storedAt
+      );
+    });
+  }
+
   private loadRows(db: DatabaseSync): PayloadRow[] {
     if (this.isWorkflowRunsNamespace()) {
       return db
@@ -320,6 +460,28 @@ export class SqliteRepository<T> implements IRepository<T> {
         .all(this.namespace) as PayloadRow[];
     }
 
+    if (this.isPullRequestsNamespace()) {
+      return db
+        .prepare(
+          `SELECT payload
+           FROM pull_requests
+           WHERE namespace = ?
+           ORDER BY position ASC, id ASC`
+        )
+        .all(this.namespace) as PayloadRow[];
+    }
+
+    if (this.isPullRequestCommentsNamespace()) {
+      return db
+        .prepare(
+          `SELECT payload
+           FROM pull_request_comments
+           WHERE namespace = ?
+           ORDER BY position ASC, id ASC`
+        )
+        .all(this.namespace) as PayloadRow[];
+    }
+
     return db
       .prepare(
         `SELECT payload
@@ -337,6 +499,12 @@ export class SqliteRepository<T> implements IRepository<T> {
     if (this.isWorkflowJobsNamespace()) {
       return 'workflow_jobs';
     }
+    if (this.isPullRequestsNamespace()) {
+      return 'pull_requests';
+    }
+    if (this.isPullRequestCommentsNamespace()) {
+      return 'pull_request_comments';
+    }
     return 'repository_records';
   }
 
@@ -346,6 +514,14 @@ export class SqliteRepository<T> implements IRepository<T> {
 
   private isWorkflowJobsNamespace(): boolean {
     return path.basename(this.namespace) === 'jobs.json';
+  }
+
+  private isPullRequestsNamespace(): boolean {
+    return path.basename(this.namespace) === 'prs.json';
+  }
+
+  private isPullRequestCommentsNamespace(): boolean {
+    return path.basename(this.namespace) === 'pr-comments.json';
   }
 
   private getRecordKey(item: T, index: number): string {
@@ -358,6 +534,20 @@ export class SqliteRepository<T> implements IRepository<T> {
 
   private asRecord(item: T): RecordLike {
     return item && typeof item === 'object' ? (item as RecordLike) : {};
+  }
+
+  private asNestedRecord(item: unknown): RecordLike {
+    return item && typeof item === 'object' ? (item as RecordLike) : {};
+  }
+
+  private extractPullRequestNumber(value: unknown): number | null {
+    const text = this.toNullableString(value);
+    if (!text) {
+      return null;
+    }
+
+    const match = text.match(/\/pulls\/(\d+)(?:$|[/?#])/);
+    return match ? this.toNullableNumber(match[1]) : null;
   }
 
   private toNullableString(value: unknown): string | null {

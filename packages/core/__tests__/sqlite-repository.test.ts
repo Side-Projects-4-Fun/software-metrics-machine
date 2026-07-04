@@ -12,6 +12,8 @@ import {
   SqliteRepository,
 } from '../src/infrastructure';
 import {
+  PullRequestCommentJsonResponse,
+  PullRequestJsonResponse,
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
 } from '../src/providers/github/github-response-types';
@@ -205,6 +207,135 @@ describe('SQLite pipeline tables', () => {
       status: 'completed',
       conclusion: 'success',
       completed_at: '2026-01-01T00:04:00Z',
+    });
+  });
+});
+
+describe('SQLite pull request tables', () => {
+  let tempDir: string | undefined;
+  const logger = new Logger('SqlitePullRequestTest', 'CRITICAL');
+
+  afterEach(() => {
+    if (tempDir) {
+      rmSync(tempDir, { recursive: true, force: true });
+      tempDir = undefined;
+    }
+  });
+
+  function createDatabasePath(): string {
+    tempDir = mkdtempSync(join(tmpdir(), 'smm-sqlite-prs-'));
+    return join(tempDir, 'smm.sqlite');
+  }
+
+  it('stores pull requests in the normalized pull_requests table', async () => {
+    const dbPath = createDatabasePath();
+    const repository = new SqliteRepository<PullRequestJsonResponse>(
+      dbPath,
+      'github/prs.json',
+      logger
+    );
+    const prs = [
+      {
+        id: 'pr-1',
+        number: '42',
+        state: 'closed',
+        title: 'Add sqlite',
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-02T00:00:00Z',
+        closed_at: '2026-01-03T00:00:00Z',
+        merged_at: '2026-01-03T00:00:00Z',
+        html_url: 'https://github.example/pull/42',
+        labels: [],
+        user: {
+          login: 'octocat',
+          id: 1,
+        },
+      } as PullRequestJsonResponse,
+    ];
+
+    await repository.saveAll(prs);
+
+    expect(await repository.loadAll()).toEqual(prs);
+
+    const db = new DatabaseSync(dbPath);
+    const row = db
+      .prepare(
+        `SELECT id, number, state, title, author_login, author_id, created_at, merged_at
+         FROM pull_requests
+         WHERE namespace = ?`
+      )
+      .get('github/prs.json') as Record<string, unknown>;
+    db.close();
+
+    expect(row).toMatchObject({
+      id: 'pr-1',
+      number: 42,
+      state: 'closed',
+      title: 'Add sqlite',
+      author_login: 'octocat',
+      author_id: '1',
+      created_at: '2026-01-01T00:00:00Z',
+      merged_at: '2026-01-03T00:00:00Z',
+    });
+  });
+
+  it('stores pull request comments in the normalized pull_request_comments table', async () => {
+    const dbPath = createDatabasePath();
+    const repository = new SqliteRepository<PullRequestCommentJsonResponse>(
+      dbPath,
+      'github/pr-comments.json',
+      logger
+    );
+    const comments = [
+      {
+        id: 100,
+        pull_request_url: 'https://api.github.example/repos/owner/repo/pulls/42',
+        path: 'src/index.ts',
+        body: 'Looks good',
+        created_at: '2026-01-01T00:10:00Z',
+        updated_at: '2026-01-01T00:11:00Z',
+        html_url: 'https://github.example/pull/42#discussion_r100',
+        user: {
+          login: 'reviewer',
+          id: 2,
+        },
+        reactions: {
+          url: '',
+          total_count: 0,
+          '+1': 0,
+          '-1': 0,
+          laugh: 0,
+          hooray: 0,
+          confused: 0,
+          heart: 0,
+          rocket: 0,
+          eyes: 0,
+        },
+      } as PullRequestCommentJsonResponse,
+    ];
+
+    await repository.saveAll(comments);
+
+    expect(await repository.loadAll()).toEqual(comments);
+
+    const db = new DatabaseSync(dbPath);
+    const row = db
+      .prepare(
+        `SELECT id, pull_request_number, pull_request_url, author_login, author_id, path, created_at
+         FROM pull_request_comments
+         WHERE namespace = ?`
+      )
+      .get('github/pr-comments.json') as Record<string, unknown>;
+    db.close();
+
+    expect(row).toMatchObject({
+      id: '100',
+      pull_request_number: 42,
+      pull_request_url: 'https://api.github.example/repos/owner/repo/pulls/42',
+      author_login: 'reviewer',
+      author_id: '2',
+      path: 'src/index.ts',
+      created_at: '2026-01-01T00:10:00Z',
     });
   });
 });

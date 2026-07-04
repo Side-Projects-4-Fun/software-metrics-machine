@@ -105,10 +105,10 @@ export function createToolsCommands(program: SmmCommand): void {
         }
 
         const config = command.getConfiguration();
-        const stores = getPipelineMigrationStores(config);
+        const stores = getJsonToSqliteMigrationStores(config);
         const sqliteDbPath = RepositoryFactory.getSqliteDatabasePath(config);
 
-        screen.printLine('🔄 Migrating pipeline storage from JSON to SQLite...');
+        screen.printLine('🔄 Migrating storage from JSON to SQLite...');
         screen.printLine(`   SQLite database: ${sqliteDbPath}`);
 
         let migratedStores = 0;
@@ -145,7 +145,7 @@ export function createToolsCommands(program: SmmCommand): void {
         }
 
         screen.printLine(
-          `\n✅ Migration complete: ${migratedRecords} records across ${migratedStores} pipeline stores`
+          `\n✅ Migration complete: ${migratedRecords} records across ${migratedStores} stores`
         );
       } catch (error) {
         logger.error('Failed to migrate storage', error);
@@ -157,7 +157,7 @@ export function createToolsCommands(program: SmmCommand): void {
     });
 }
 
-function getPipelineMigrationStores(config: Configuration): MigrationStore[] {
+function getJsonToSqliteMigrationStores(config: Configuration): MigrationStore[] {
   const providerPath = config.getPathFromGitProvider();
 
   return [
@@ -174,6 +174,21 @@ function getPipelineMigrationStores(config: Configuration): MigrationStore[] {
     {
       label: 'pipeline filter options',
       filePath: `${providerPath}/pipeline-filter-options.json`,
+      mode: 'singleton',
+    },
+    {
+      label: 'pull requests',
+      filePath: `${providerPath}/prs.json`,
+      mode: 'array',
+    },
+    {
+      label: 'pull request comments',
+      filePath: `${providerPath}/pr-comments.json`,
+      mode: 'array',
+    },
+    {
+      label: 'pull request filter options',
+      filePath: `${providerPath}/pull-request-filter-options.json`,
       mode: 'singleton',
     },
   ];
