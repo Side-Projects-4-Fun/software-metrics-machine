@@ -1,5 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -100,6 +100,16 @@ describe('repository implementations', () => {
       await expect(repository.exists()).resolves.toBe(false);
       await expect(repository.loadAll()).resolves.toEqual([]);
     });
+  });
+
+  it('initializes an empty SQLite database file', async () => {
+    const dbPath = join(createTempDir(), 'project', 'smm.sqlite');
+    const repository = new SqliteRepository<TestRecord>(dbPath, 'records.json', logger);
+
+    await repository.initialize();
+
+    expect(existsSync(dbPath)).toBe(true);
+    await expect(repository.exists()).resolves.toBe(false);
   });
 });
 
@@ -358,5 +368,56 @@ describe('RepositoryFactory', () => {
     );
 
     expect(repository).toBeInstanceOf(SqliteRepository);
+  });
+
+  it('stores SQLite databases inside each project base directory', () => {
+    const firstProject = new Configuration({
+      storeData: '/tmp/smm',
+      gitProvider: 'github',
+      githubRepository: 'owner/repo-a',
+      internal: { storageType: 'sqlite' },
+    });
+    const secondProject = new Configuration({
+      storeData: '/tmp/smm',
+      gitProvider: 'github',
+      githubRepository: 'owner/repo-b',
+      internal: { storageType: 'sqlite' },
+    });
+
+    expect(RepositoryFactory.getSqliteDatabasePath(firstProject)).toBe(
+      '/tmp/smm/github_owner_repo-a/smm.sqlite'
+    );
+    expect(RepositoryFactory.getSqliteDatabasePath(secondProject)).toBe(
+      '/tmp/smm/github_owner_repo-b/smm.sqlite'
+    );
+  });
+
+  it('keeps SQLite namespaces relative to the project base directory', () => {
+    const config = new Configuration({
+      storeData: '/tmp/smm',
+      gitProvider: 'github',
+      githubRepository: 'owner/repo',
+      internal: { storageType: 'sqlite' },
+    });
+
+    expect(
+      RepositoryFactory.getSqliteNamespace(
+        '/tmp/smm/github_owner_repo/github/workflows.json',
+        config
+      )
+    ).toBe('github/workflows.json');
+  });
+
+  it('uses the default Git provider in project paths when gitProvider is unset', () => {
+    const config = new Configuration({
+      storeData: '/tmp/smm',
+      githubRepository: 'owner/repo',
+      internal: { storageType: 'sqlite' },
+    });
+
+    expect(config.getPathFromGitProvider()).toBe('/tmp/smm/github_owner_repo/github');
+    expect(RepositoryFactory.getSqliteDatabasePath(config)).toBe(
+      '/tmp/smm/github_owner_repo/smm.sqlite'
+    );
   });
 });

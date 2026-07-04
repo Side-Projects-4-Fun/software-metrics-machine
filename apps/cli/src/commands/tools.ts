@@ -104,44 +104,57 @@ export function createToolsCommands(program: SmmCommand): void {
           throw new Error('Only --from=json --to=sqlite is supported at this time.');
         }
 
-        const config = command.getConfiguration();
-        const stores = getJsonToSqliteMigrationStores(config);
-        const sqliteDbPath = RepositoryFactory.getSqliteDatabasePath(config);
+        const configs = getJsonToSqliteMigrationConfigurations(command);
 
         screen.printLine('🔄 Migrating storage from JSON to SQLite...');
-        screen.printLine(`   SQLite database: ${sqliteDbPath}`);
+        screen.printLine(`   Projects: ${configs.length}`);
 
         let migratedStores = 0;
         let migratedRecords = 0;
 
-        for (const store of stores) {
-          const source = new JsonFileSystemRepository<unknown>(store.filePath, logger);
-          if (!(await source.exists())) {
-            screen.printLine(`  ⚠️  Skipped ${store.label}: ${store.filePath} does not exist`);
-            continue;
-          }
+        for (const config of configs) {
+          const stores = getJsonToSqliteMigrationStores(config);
+          const sqliteDbPath = RepositoryFactory.getSqliteDatabasePath(config);
+          const projectLabel = config.githubRepository || config.getBaseDirectory();
 
-          const namespace = RepositoryFactory.getSqliteNamespace(store.filePath, config);
-          const target = new SqliteRepository<unknown>(sqliteDbPath, namespace, logger);
+          screen.printLine(`\n📦 Project: ${projectLabel}`);
+          screen.printLine(`   SQLite database: ${sqliteDbPath}`);
 
-          if (store.mode === 'array') {
-            const items = await source.loadAll();
-            await target.saveAll(items);
-            migratedRecords += items.length;
-            screen.printLine(`  ✅ Migrated ${store.label}: ${items.length} records`);
-          } else {
-            const item = await source.load();
-            if (item === null) {
-              screen.printLine(`  ⚠️  Skipped ${store.label}: empty source`);
+          await new SqliteRepository<unknown>(
+            sqliteDbPath,
+            '__migration_metadata__',
+            logger
+          ).initialize();
+
+          for (const store of stores) {
+            const source = new JsonFileSystemRepository<unknown>(store.filePath, logger);
+            if (!(await source.exists())) {
+              screen.printLine(`  ⚠️  Skipped ${store.label}: ${store.filePath} does not exist`);
               continue;
             }
 
-            await target.save(item);
-            migratedRecords += 1;
-            screen.printLine(`  ✅ Migrated ${store.label}: 1 record`);
-          }
+            const namespace = RepositoryFactory.getSqliteNamespace(store.filePath, config);
+            const target = new SqliteRepository<unknown>(sqliteDbPath, namespace, logger);
 
-          migratedStores += 1;
+            if (store.mode === 'array') {
+              const items = await source.loadAll();
+              await target.saveAll(items);
+              migratedRecords += items.length;
+              screen.printLine(`  ✅ Migrated ${store.label}: ${items.length} records`);
+            } else {
+              const item = await source.load();
+              if (item === null) {
+                screen.printLine(`  ⚠️  Skipped ${store.label}: empty source`);
+                continue;
+              }
+
+              await target.save(item);
+              migratedRecords += 1;
+              screen.printLine(`  ✅ Migrated ${store.label}: 1 record`);
+            }
+
+            migratedStores += 1;
+          }
         }
 
         screen.printLine(
@@ -155,6 +168,21 @@ export function createToolsCommands(program: SmmCommand): void {
         process.exit(1);
       }
     });
+}
+
+function getJsonToSqliteMigrationConfigurations(command: SmmCommand): Configuration[] {
+  if (command.getSelectedProject()) {
+    return [command.getConfiguration()];
+  }
+
+  const configurationRepository = command.getConfigurationRepository();
+  const projects = configurationRepository.getAllProjects();
+
+  if (projects.length === 0) {
+    return [configurationRepository.getActiveConfiguration()];
+  }
+
+  return projects.map((project) => configurationRepository.fromProjectConfig(project));
 }
 
 function getJsonToSqliteMigrationStores(config: Configuration): MigrationStore[] {

@@ -259,7 +259,8 @@ export class Configuration implements IConfiguration {
   }
 
   getPathFromGitProvider(): string {
-    return path.join(this.getBaseDirectory(), this.gitProvider!);
+    const gitProvider = this.gitProvider || 'github';
+    return path.join(this.getBaseDirectory(), gitProvider);
   }
 
   getGitPath(): string {

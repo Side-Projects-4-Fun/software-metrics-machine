@@ -15,7 +15,8 @@ export class RepositoryFactory {
   /**
    * Create a repository instance for the given configuration.
    *
-   * @param filePath - Path to the storage location (file path for json, db path for sqlite)
+   * @param filePath - Path to the storage location. For sqlite, this path becomes the
+   * namespace inside the project database.
    * @param logger - Logger instance
    * @param config - Configuration containing internal.storageType
    * @returns An IRepository<T> implementation
@@ -43,7 +44,7 @@ export class RepositoryFactory {
   }
 
   static getSqliteDatabasePath(config: Configuration): string {
-    return path.join(config.storeData || './outputs', 'smm.sqlite');
+    return path.join(config.getBaseDirectory(), 'smm.sqlite');
   }
 
   static getSqliteNamespace(filePath: string, config: Configuration): string {

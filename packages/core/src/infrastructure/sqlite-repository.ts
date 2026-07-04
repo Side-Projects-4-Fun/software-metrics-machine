@@ -32,6 +32,16 @@ export class SqliteRepository<T> implements IRepository<T> {
     return JSON.parse(data) as T;
   }
 
+  async initialize(): Promise<void> {
+    await this.ensureDirectoryExists();
+    const db = this.openDatabase();
+    try {
+      this.ensureSchema(db);
+    } finally {
+      db.close();
+    }
+  }
+
   async save(item: T): Promise<void> {
     await this.ensureDirectoryExists();
     const db = this.openDatabase();
