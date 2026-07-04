@@ -5,7 +5,7 @@ import { Configuration, IRepository } from '../../infrastructure';
 import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
 import { WorkflowJobJsonResponse, WorkflowJsonResponse } from './github-response-types';
 import { IGithubWorkflowJobClient } from './workflow-types';
-import { PipelineFiltersRepository } from '../../aggregates/pipeline-filters-repository-json';
+import { PipelineFiltersRepository } from '../../domain/pipelines/repositories/pipeline-filters-repository-json';
 
 interface JobsProgress {
   processedRunIds: string[];

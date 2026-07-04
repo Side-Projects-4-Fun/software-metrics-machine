@@ -6,7 +6,7 @@ import { Configuration } from '../../';
 import {
   PullRequestFilterOptions,
   PullRequestFiltersRepository,
-} from '../../aggregates/pull-request-filters-repository-json';
+} from '../../domain/prs/repositories/pull-request-filters-repository-json';
 
 export interface IPullRequestsRepository {
   fetchPRs(options?: {

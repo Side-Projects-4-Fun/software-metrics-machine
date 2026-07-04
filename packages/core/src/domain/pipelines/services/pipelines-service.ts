@@ -7,16 +7,16 @@ import {
   PipelineJob,
   PipelineMetrics,
   PipelineRun,
-} from './pipeline-types';
-import { IPipelinesRepository } from '../../aggregates/pipelines-repository-json';
-import { Configuration } from '../..';
-import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
+} from '../pipeline-types';
+import { IPipelinesRepository } from '../repositories/pipelines-repository-json';
+import { Configuration } from '../../..';
+import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import {
   averageMetricSamples,
   cleanMetricSamples,
   MetricCleaningOptions,
   MetricSample,
-} from '../metric-samples';
+} from '../../metric-samples';
 
 type PipelineDateFields = {
   createdAt?: string;
