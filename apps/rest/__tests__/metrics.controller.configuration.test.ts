@@ -11,7 +11,7 @@ describe('MetricsController - Configuration and Cross-Cutting Behavior', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await app?.close();
   });
 
   it('should return complete metrics report', async () => {

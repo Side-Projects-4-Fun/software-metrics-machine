@@ -14,7 +14,7 @@ describe('MetricsController - Code Metrics', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await app?.close();
   });
 
   it('should return code metrics', async () => {

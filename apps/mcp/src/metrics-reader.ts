@@ -1,5 +1,5 @@
 import {
-  CodeMetricsRepository,
+  ICodeMetricsRepository,
   Configuration,
   IssuesRepository,
   JiraIssuesClient,
@@ -16,6 +16,7 @@ import {
   TimeZoneProvider,
   ConfigurationRepository,
   PipelineFactory,
+  CodemaatFactory,
 } from '@smmachine/core';
 import { Logger, type LogLevel } from '@smmachine/utils';
 
@@ -95,7 +96,7 @@ export class McpMetricsReader {
   }
 
   async getCodeMetrics(filters: MetricFilters): Promise<unknown> {
-    const codeRepository = new CodeMetricsRepository(
+    const codeRepository = CodemaatFactory.create(
       this.configuration,
       createLogger(this.configuration, 'CodeMetricsRepository')
     );

@@ -18,7 +18,7 @@ describe('Sonarqube', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await app?.close();
   });
 
   it('should return quality metrics', async () => {
@@ -94,7 +94,7 @@ describe('Sonarqube controller', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await app?.close();
   });
 
   beforeEach(() => {

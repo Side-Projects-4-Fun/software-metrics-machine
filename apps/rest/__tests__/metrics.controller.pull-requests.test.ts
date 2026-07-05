@@ -14,7 +14,7 @@ describe('MetricsController - Pull Request Metrics', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await app?.close();
   });
 
   it('should return pull request metrics', async () => {

@@ -14,7 +14,7 @@ describe('Jira', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await app?.close();
   });
 
   it('should return issue metrics', async () => {

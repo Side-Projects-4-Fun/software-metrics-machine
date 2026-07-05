@@ -3,7 +3,6 @@ import { INestApplication, ValidationPipe, BadRequestException } from '@nestjs/c
 import { MetricsController } from '../../src/metrics.controller';
 import { HttpExceptionFilter, AllExceptionsFilter } from '../../src/filters/http-exception.filter';
 import {
-  CodeMetricsRepository,
   IssuesRepository,
   PairingIndexService,
   PipelinesService,
@@ -98,7 +97,7 @@ export async function createMetricsTestApp(): Promise<{
         useValue: services.pipelinesService,
       },
       {
-        provide: CodeMetricsRepository,
+        provide: 'ICodeMetricsRepository',
         useValue: services.codeMetricsRepository,
       },
       {
