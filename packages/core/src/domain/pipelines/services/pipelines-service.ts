@@ -8,7 +8,6 @@ import {
   PipelineMetrics,
   PipelineRun,
 } from '../pipeline-types';
-import { IPipelinesRepository } from '../repositories/pipelines-repository-json';
 import { Configuration } from '../../..';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import {
@@ -17,6 +16,7 @@ import {
   MetricCleaningOptions,
   MetricSample,
 } from '../../metric-samples';
+import { PipelinesRepository } from '../repositories/pipeline-repository';
 
 type PipelineDateFields = {
   createdAt?: string;
@@ -108,7 +108,7 @@ export class PipelinesService implements IPipelinesService {
   private tz: TimeZoneProvider;
 
   constructor(
-    private pipelineRepository: IPipelinesRepository,
+    private pipelineRepository: PipelinesRepository,
     private configuration: Configuration | undefined,
     private logger: Logger,
     timeZoneProvider: TimeZoneProvider
@@ -289,7 +289,7 @@ export class PipelinesService implements IPipelinesService {
         status: 'completed',
       });
 
-      const jobsOnly = deployments.map((run) => run.jobs!).flat();
+      const jobsOnly = deployments.flatMap((run) => run.jobs || []);
       deploymentJobCount += jobsOnly.length;
 
       for (const job of jobsOnly) {

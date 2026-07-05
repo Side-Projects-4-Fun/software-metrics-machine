@@ -5,7 +5,7 @@ import { Configuration, IRepository } from '../../infrastructure';
 import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
 import { type IGithubWorkflowClient } from '../index';
 import { WorkflowJsonResponse } from './github-response-types';
-import { PipelineFiltersRepository } from '../../domain/pipelines/repositories/pipeline-filters-repository-json';
+import { PipelineFiltersRepository } from '../../domain/pipelines/repositories/pipeline-filters-repository';
 import { buildCreatedFilter } from './github-date-utils';
 
 interface WorkflowsProgress {

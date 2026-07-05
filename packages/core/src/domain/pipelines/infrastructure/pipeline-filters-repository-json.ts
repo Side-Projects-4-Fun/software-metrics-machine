@@ -1,24 +1,11 @@
+import { PipelineFilterOptions, PipelineFilterOptionsQuery, PipelineFiltersRepository } from '..';
 import { IRepository } from '../../../infrastructure';
 import {
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
 } from '../../../providers/github/github-response-types';
 
-export type PipelineFilterOptions = {
-  workflows: Array<{ name: string; path: string }>;
-  statuses: string[];
-  conclusions: string[];
-  branches: string[];
-  events: string[];
-  jobs: Array<{ name: string; id: string }>;
-  jobsByWorkflowPath: Record<string, Array<{ name: string; id: string }>>;
-};
-
-export type PipelineFilterOptionsQuery = {
-  workflowPath?: string;
-};
-
-export class PipelineFiltersRepository {
+export class PipelineFiltersRepositoryJson implements PipelineFiltersRepository {
   constructor(
     private pipelineRunJsonRepository: IRepository<WorkflowJsonResponse>,
     private pipelineJobsJsonRepository: IRepository<WorkflowJobJsonResponse>,
@@ -29,7 +16,7 @@ export class PipelineFiltersRepository {
     const cachedOptions = await this.pipelineFiltersJsonRepository.load();
     const options = cachedOptions || (await this.refreshOptions());
 
-    if (!query.workflowPath) {
+    if (!query?.workflowPath) {
       return options;
     }
 

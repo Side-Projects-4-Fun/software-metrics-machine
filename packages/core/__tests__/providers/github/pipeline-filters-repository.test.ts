@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   PipelineFilterOptions,
-  PipelineFiltersRepository,
   PipelineGitHubJobBuilder,
   PipelineGitHubRunBuilder,
 } from '../../../src';
+import { PipelineFiltersRepositoryJson } from '../../../src/domain/pipelines/infrastructure/pipeline-filters-repository-json';
 import { InMemoryRepository } from '../../../src/test/in-memory-repository';
 import {
   WorkflowJobJsonResponse,
@@ -23,7 +23,7 @@ describe('PipelineFiltersRepository', () => {
     await pipelineRunRepository.saveAll(runs);
     await pipelineJobsRepository.saveAll(jobs);
 
-    return new PipelineFiltersRepository(
+    return new PipelineFiltersRepositoryJson(
       pipelineRunRepository,
       pipelineJobsRepository,
       pipelineFiltersRepository

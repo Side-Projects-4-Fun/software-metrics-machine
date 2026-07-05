@@ -14,7 +14,6 @@ import {
   PullRequestsRepository,
   PullRequestFiltersRepository,
   PipelinesRepository,
-  PipelineFiltersRepository,
   CodeMetricsRepository,
   IssuesRepository,
   JiraIssuesClient,
@@ -31,8 +30,8 @@ import {
   PairingFactory,
   BigOService,
   ArchitectureService,
+  PipelineFactory
 } from '@smmachine/core';
-import PipelineFactory from '@smmachine/core/domain/pipelines/factories/pipeline-factory';
 import { PairingService } from '@smmachine/core/domain/code/pairing/pairing-service';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 import { Logger } from '@smmachine/utils';
@@ -191,7 +190,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
       inject: [Configuration],
     },
     {
-      provide: PipelinesRepository,
+      provide: 'PipelinesRepository',
       useFactory: (config: Configuration, timeZoneProvider: TimeZoneProvider) => {
         return PipelineFactory.create(
           config,
@@ -202,7 +201,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
       inject: [Configuration, TimeZoneProvider],
     },
     {
-      provide: PipelineFiltersRepository,
+      provide: 'PipelineFiltersRepository',
       useFactory: (config: Configuration, timeZoneProvider: TimeZoneProvider) => {
         return PipelineFactory.create(
           config,
@@ -226,7 +225,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
           timeZoneProvider
         );
       },
-      inject: [PipelinesRepository, Configuration, TimeZoneProvider],
+      inject: ['PipelinesRepository', Configuration, TimeZoneProvider],
     },
     {
       provide: CodeMetricsRepository,

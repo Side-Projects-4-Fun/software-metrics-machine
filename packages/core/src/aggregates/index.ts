@@ -1,4 +1,4 @@
-export { CommonRepository, type RawFilter } from './common-repository';
+export { ParseRawFiltersRepository as CommonRepository, type RawFilter } from '../infrastructure/parse-raw-filters-repository';
 export {
   PullRequestsRepository,
   type IReadPullRequestsRepository,
@@ -7,12 +7,11 @@ export {
   PullRequestFiltersRepository,
   type PullRequestFilterOptions,
 } from './pull-request-filters-repository-json';
-export { PipelinesRepository, type IPipelinesRepository } from './pipelines-repository-json';
-export { PipelinesSqliteRepository } from './pipelines-repository-sqlite';
+export { PipelinesSqliteRepository } from '../domain/pipelines/infrastructure/pipelines-repository-sqlite';
 export {
   PipelineFiltersRepository,
   type PipelineFilterOptions,
-} from './pipeline-filters-repository-json';
+} from '../domain/pipelines/repositories/pipeline-filters-repository';
 export { GitHubPullRequestsFetchRepository } from '../providers/github/github-fetch-pull-requests-repository-json';
 export {
   CodeMaatMetricsRepository as CodeMetricsRepository,

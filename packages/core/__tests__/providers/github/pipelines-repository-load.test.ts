@@ -7,11 +7,12 @@ import {
   PipelineFactory,
   PipelineGitHubJobBuilder,
   PipelineGitHubRunBuilder,
+  PipelinesService,
   PipelinesSqliteRepository,
   RepositoryFactory,
   SqliteRepository,
 } from '../../../src';
-import { PipelinesRepository } from '../../../src';
+import { PipelinesRepositoryJson } from '../../../src/domain/pipelines/infrastructure/pipelines-repository-json';
 import { InMemoryRepository } from '../../../src/test/in-memory-repository';
 import {
   WorkflowJobJsonResponse,
@@ -27,7 +28,7 @@ describe('PipelinesRepository loadPipelines', () => {
   const timeZoneProvider = new TimeZoneProvider('UTC');
 
   const createRepository = () => {
-    return new PipelinesRepository(
+    return new PipelinesRepositoryJson(
       pipelineRunRepository,
       pipelineJobsRepository,
       logger,
@@ -593,6 +594,65 @@ describe('PipelinesSqliteRepository loadPipelines', () => {
         name: 'build',
         runId: 'run-1',
         durationSeconds: 120,
+      }),
+    ]);
+  });
+
+  it('loads deployment jobs for frequency calculations from SQLite', async () => {
+    const config = createConfiguration();
+    config.deploymentFrequencyTargets = [
+      { pipeline: '.github/workflows/deploy.yml', job: 'deploy-production' },
+    ];
+    const runs = [
+      new PipelineGitHubRunBuilder()
+        .id('run-1')
+        .number('1')
+        .name('Deploy')
+        .status('completed')
+        .conclusion('success')
+        .createdAt('2026-05-10T00:00:00Z')
+        .updatedAt('2026-05-10T00:15:00Z')
+        .startedAt('2026-05-10T00:00:00Z')
+        .branch('main')
+        .path('.github/workflows/deploy.yml')
+        .build(),
+    ];
+    const jobs = [
+      new PipelineGitHubJobBuilder()
+        .id('job-1')
+        .runId('run-1')
+        .name('deploy-production')
+        .status('completed')
+        .conclusion('success')
+        .startedAt('2026-05-10T00:05:00Z')
+        .completedAt('2026-05-10T00:15:00Z')
+        .build(),
+    ];
+
+    await new SqliteRepository<WorkflowJsonResponse>(
+      RepositoryFactory.getSqliteDatabasePath(config),
+      RepositoryFactory.getPipelineRunsSqliteNamespace(config),
+      logger
+    ).saveAll(runs);
+    await new SqliteRepository<WorkflowJobJsonResponse>(
+      RepositoryFactory.getSqliteDatabasePath(config),
+      RepositoryFactory.getPipelineJobsSqliteNamespace(config),
+      logger
+    ).saveAll(jobs);
+
+    const repository = new PipelinesSqliteRepository(config, logger, timeZoneProvider);
+    const service = new PipelinesService(repository, config, logger, timeZoneProvider);
+
+    const frequency = await service.getDeploymentFrequencyWithAllIntervals();
+
+    expect(frequency).toEqual([
+      expect.objectContaining({
+        pipeline: '.github/workflows/deploy.yml',
+        job: 'deploy-production',
+        days: '2026-05-10',
+        daily_counts: 1,
+        weekly_counts: 1,
+        monthly_counts: 1,
       }),
     ]);
   });

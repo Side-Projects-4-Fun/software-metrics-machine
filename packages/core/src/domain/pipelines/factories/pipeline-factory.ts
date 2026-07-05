@@ -1,6 +1,4 @@
-import { PipelinesRepository } from '../repositories/pipelines-repository-json';
-import type { IPipelinesRepository } from '../repositories/pipelines-repository-json';
-import { PipelinesSqliteRepository } from '../repositories/pipelines-repository-sqlite';
+import { PipelinesSqliteRepository } from '../infrastructure/pipelines-repository-sqlite';
 import { Configuration, RepositoryFactory } from '../../../infrastructure';
 import {
   WorkflowJobJsonResponse,
@@ -17,9 +15,12 @@ import { PipelinesJobFetchRepository } from '../../../providers/github/pipelines
 import {
   PipelineFiltersRepository,
   PipelineFilterOptions,
-} from '../repositories/pipeline-filters-repository-json';
+} from '../repositories/pipeline-filters-repository';
 import { Logger } from '@smmachine/utils';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
+import { PipelinesRepository } from '../repositories/pipeline-repository';
+import { PipelinesRepositoryJson } from '..';
+import { PipelineFiltersRepositoryJson } from '../infrastructure/pipeline-filters-repository-json';
 
 export default class PipelineFactory {
   static create(
@@ -27,7 +28,7 @@ export default class PipelineFactory {
     logger: Logger,
     timeZoneProvider: TimeZoneProvider
   ): {
-    pipelineRepository: IPipelinesRepository;
+    pipelineRepository: PipelinesRepository;
     pipelineFiltersRepository: PipelineFiltersRepository;
     workflowRepository: PipelinesFetchRepository;
     workflowJobRepository: PipelinesJobFetchRepository;
@@ -76,13 +77,13 @@ export default class PipelineFactory {
     const pipelineRepository =
       config.internal?.storageType === 'sqlite'
         ? new PipelinesSqliteRepository(config, logger, timeZoneProvider)
-        : new PipelinesRepository(
+        : new PipelinesRepositoryJson(
             pipelineRunJsonRepository,
             pipelineJobsJsonRepository,
             logger,
             timeZoneProvider
           );
-    const pipelineFiltersRepository = new PipelineFiltersRepository(
+    const pipelineFiltersRepository = new PipelineFiltersRepositoryJson(
       pipelineRunJsonRepository,
       pipelineJobsJsonRepository,
       pipelineFiltersJsonRepository

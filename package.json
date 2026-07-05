@@ -92,6 +92,7 @@
     "@typescript-eslint/parser": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "axios": "catalog:",
+    "babel-plugin-react-compiler": "^1.0.0",
     "chalk": "catalog:",
     "concurrently": "catalog:",
     "dependency-cruiser": "^17.4.3",

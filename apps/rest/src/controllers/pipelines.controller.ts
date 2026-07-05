@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Inject, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   averageMetricSamples,
@@ -90,8 +90,10 @@ type PipelineOutlierItem = {
 @Controller()
 export class PipelinesController {
   constructor(
+    @Inject('PipelinesRepository')
     private readonly pipelinesRepo: PipelinesRepository,
     private readonly pipelinesService: PipelinesService,
+    @Inject('PipelineFiltersRepository')
     private readonly pipelineFiltersRepository: PipelineFiltersRepository
   ) {}
 

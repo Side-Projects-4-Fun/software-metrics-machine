@@ -2,7 +2,7 @@ import { IRepository } from '../../../infrastructure';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import { PRDetails, PRFilters } from '../pr-types';
 import { shouldIncludeTimestampForWeekendsMode } from '../../metric-samples';
-import { CommonRepository, RawFilter } from '../../../aggregates/common-repository';
+import { ParseRawFiltersRepository, RawFilter } from '../../../infrastructure/parse-raw-filters-repository';
 import {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
@@ -14,7 +14,7 @@ export interface IReadPullRequestsRepository {
 }
 
 export class PullRequestsRepository
-  extends CommonRepository
+  extends ParseRawFiltersRepository
   implements IReadPullRequestsRepository
 {
   constructor(

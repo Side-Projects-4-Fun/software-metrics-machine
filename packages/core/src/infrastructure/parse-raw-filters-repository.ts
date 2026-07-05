@@ -3,7 +3,7 @@ export type RawFilter = {
   values: string[];
 };
 
-export abstract class CommonRepository {
+export abstract class ParseRawFiltersRepository {
   protected parseRawFilters(rawFilters?: string): RawFilter[] {
     if (!rawFilters) {
       return [];
