@@ -2,8 +2,11 @@ export {
   PairingService as PairingIndexService,
   type IPairingIndexService,
 } from './pairing/pairing-service';
-export { SonarQubeService, type QualityFilters } from './sonarqube/sonarqube-service';
-export { CodemaatService } from './codemaat/codemaat-service';
+export * from './pairing/pairing-factory'
+
+export * from './sonarqube/sonarqube-service';
+export * from './sonarqube/sonarqube-factory';
+
 export {
   BigOService,
   type BigOFileAnalysis,
@@ -11,4 +14,4 @@ export {
   type BigOLineClassification,
 } from './big-o/big-o-service';
 
-export { SonarqubeFactory } from './sonarqube/sonarqube-factory';
+export * from './codemaat/index';

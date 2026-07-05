@@ -33,7 +33,7 @@ export type SonarqubeComponentTreeFilters = {
   remove_folders?: boolean;
 };
 
-export class SonarqubeRepository {
+export class SonarqubeRepositoryJson {
   constructor(
     private measuresJsonRepository: IRepository<TimestampedStore<SonarqubeComponentMeasure>>,
     private componentTreeJsonRepository: IRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>,

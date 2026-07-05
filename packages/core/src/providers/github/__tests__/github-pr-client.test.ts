@@ -7,7 +7,7 @@ import {
   GithubPrsClient,
   GitHubPullRequestsFetchRepository,
   type IGithubPrsClient,
-} from '../../..';
+} from '..';
 import { PullRequestJsonResponseBuilder } from '../../../test/builders';
 import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
 

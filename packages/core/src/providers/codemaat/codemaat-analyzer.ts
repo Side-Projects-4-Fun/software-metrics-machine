@@ -1,6 +1,6 @@
 import { Configuration } from '../../infrastructure';
-import { CodeMaatMetricsCsvRepository } from '../../aggregates/codemaat-metrics-repository-csv';
 import type { Logger } from '@smmachine/utils';
+import { CodeMaatMetricsCsvRepository } from '../../domain/code/codemaat/infrastructure/codemaat-metrics-repository-csv';
 
 /**
  * Thin wrapper around CodeMaatMetricsCsvRepository that accepts a plain

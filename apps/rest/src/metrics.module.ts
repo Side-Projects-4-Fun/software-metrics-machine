@@ -14,7 +14,6 @@ import {
   PullRequestsRepository,
   PullRequestFiltersRepository,
   PipelinesRepository,
-  CodeMetricsRepository,
   IssuesRepository,
   JiraIssuesClient,
   SonarqubeMeasuresClient,
@@ -30,7 +29,8 @@ import {
   PairingFactory,
   BigOService,
   ArchitectureService,
-  PipelineFactory
+  PipelineFactory,
+  CodemaatFactory,
 } from '@smmachine/core';
 import { PairingService } from '@smmachine/core/domain/code/pairing/pairing-service';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
@@ -228,9 +228,9 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
       inject: ['PipelinesRepository', Configuration, TimeZoneProvider],
     },
     {
-      provide: CodeMetricsRepository,
+      provide: 'ICodeMetricsRepository',
       useFactory: (config: Configuration) => {
-        return new CodeMetricsRepository(config, createLogger(config, 'CodeMetricsRepository'));
+        return CodemaatFactory.create(config, createLogger(config, 'CodeMetricsRepository'));
       },
       inject: [Configuration],
     },

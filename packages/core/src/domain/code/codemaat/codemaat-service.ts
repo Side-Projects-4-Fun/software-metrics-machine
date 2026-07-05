@@ -1,4 +1,5 @@
-import { CodeChurnResult, FileCoupling, ICodeMetricsRepository } from 'src/providers/codemaat';
+import type { ICodeMetricsRepository } from './repositories/codemaat-metrics-repository';
+import type { CodeChurnResult, FileCoupling } from '../../../providers/codemaat/types';
 
 export class CodemaatService {
   constructor(private metricsRepository: ICodeMetricsRepository) {}

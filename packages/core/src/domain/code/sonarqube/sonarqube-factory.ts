@@ -6,7 +6,7 @@ import {
   RepositoryFactory,
   SqliteRepository,
 } from '../../../infrastructure';
-import { SonarqubeRepository } from '../../../aggregates';
+import { SonarqubeRepository } from '../../..';
 import { CodeMetric, SonarqubeComponentTreeMeasure, TimestampedStore } from '../../../providers';
 import { Logger } from '@smmachine/utils';
 

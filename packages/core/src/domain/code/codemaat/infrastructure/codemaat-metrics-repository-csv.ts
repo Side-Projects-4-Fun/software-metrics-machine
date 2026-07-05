@@ -1,20 +1,20 @@
 import * as fs from 'fs';
 import { Logger } from '@smmachine/utils';
-import {
+import type {
   CodeChurn,
   CodeChurnResult,
   CodemaatAnalysisResult,
   FileCoupling,
-} from '../providers/codemaat';
-import { Configuration } from 'src';
+} from '../../../../providers/codemaat/types';
+import { Configuration } from '../../../../infrastructure/configuration';
 import path from 'path';
-import { matchesPathPattern, normalizePatternList } from '../domain/code/pattern-filters';
+import { matchesPathPattern, normalizePatternList } from '../../../../domain/code/pattern-filters';
 import type {
   CodeChurnValueResult,
   CodeMaatChurnOptions,
   CodeMaatEntityFilterOptions,
   ICodeMetricsRepository,
-} from './codemaat-metrics-repository';
+} from '../../../../domain/code/codemaat/repositories/codemaat-metrics-repository';
 
 /**
  * Combines Git and CodeMaat providers with code metrics domain logic

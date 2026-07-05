@@ -5,16 +5,8 @@ export {
   type PipelineFilterOptions,
 } from '../domain/pipelines/repositories/pipeline-filters-repository';
 export { GitHubPullRequestsFetchRepository } from '../providers/github/github-fetch-pull-requests-repository-json';
-export {
-  CodeMaatMetricsRepository as CodeMetricsRepository,
-  CodeMaatMetricsCsvRepository,
-  CodeMaatMetricsSqliteRepository,
-  type CodeMaatChurnOptions,
-  type CodeMaatEntityFilterOptions,
-  type ICodeMetricsRepository,
-} from './codemaat-metrics-repository';
 export { SonarqubeFactory } from '../domain/code';
-export { SonarqubeRepository } from '../providers/sonarqube/repositories/sonarqube-repository-json';
+export { SonarqubeRepositoryJson as SonarqubeRepository } from '../providers/sonarqube/repositories/sonarqube-repository-json';
 export { GitFactory } from '../domain/code/git/git-factory';
 export { CodemaatFactory } from '../domain/code/codemaat/codemaat-factory';
 export { PairingFactory } from '../domain/code/pairing/pairing-factory';

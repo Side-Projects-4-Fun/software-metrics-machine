@@ -1,15 +1,15 @@
 import { DatabaseSync } from 'node:sqlite';
 import { Logger } from '@smmachine/utils';
-import { Configuration } from 'src';
-import { CodeChurn, CodeChurnResult, FileCoupling } from '../providers/codemaat/types';
-import { RepositoryFactory } from '../infrastructure/repository-factory';
-import { normalizePatternList } from '../domain/code/pattern-filters';
+import { Configuration } from '../../../../infrastructure/configuration';
+import type { CodeChurnResult, FileCoupling } from '../../../../providers/codemaat/types';
+import { RepositoryFactory } from '../../../../infrastructure/repository-factory';
+import { normalizePatternList } from '../../../../domain/code/pattern-filters';
 import { CodeMaatMetricsCsvRepository } from './codemaat-metrics-repository-csv';
 import type {
   CodeChurnValueResult,
   CodeMaatChurnOptions,
   CodeMaatEntityFilterOptions,
-} from './codemaat-metrics-repository';
+} from '../../../../domain/code/codemaat/repositories/codemaat-metrics-repository';
 
 export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepository {
   private readonly sqliteDbPath: string;

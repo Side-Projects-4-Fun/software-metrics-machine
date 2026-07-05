@@ -1,4 +1,4 @@
-import { IssuesRepository } from '@smmachine/core/aggregates/issues-repository-json';
+import { IssuesRepository } from '@smmachine/core/domain/issues/issues-repository-json';
 import { Configuration } from '@smmachine/core/infrastructure/configuration';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 import { JiraIssuesClient } from '@smmachine/core/providers/jira/jira-client';

@@ -1,6 +1,6 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Inject, Query } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
-import { BigOService, CodeMaatMetricsRepository } from '@smmachine/core';
+import { BigOService, ICodeMetricsRepository } from '@smmachine/core';
 import { PairingService } from '@smmachine/core/domain/code/pairing/pairing-service';
 import type {
   BigOFileAnalysis,
@@ -23,7 +23,8 @@ import type {
 export class CodeController {
   constructor(
     private readonly pairingService: PairingService,
-    private readonly codemaat: CodeMaatMetricsRepository,
+    @Inject('ICodeMetricsRepository')
+    private readonly codemaat: ICodeMetricsRepository,
     private readonly bigOService: BigOService
   ) {}
 

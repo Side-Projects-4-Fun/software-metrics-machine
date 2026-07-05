@@ -1,7 +1,7 @@
-import { Controller, Get, Query, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { Controller, Get, Query, HttpException, HttpStatus, Logger, Inject } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiResponse, ApiOkResponse } from '@nestjs/swagger';
 import {
-  CodeMetricsRepository,
+  ICodeMetricsRepository,
   IssuesRepository,
   PairingIndexService,
   PipelinesService,
@@ -42,7 +42,8 @@ export class MetricsController {
   constructor(
     private prsService: PRsService,
     private pipelinesService: PipelinesService,
-    private codeMetricsRepository: CodeMetricsRepository,
+    @Inject('ICodeMetricsRepository')
+    private codeMetricsRepository: ICodeMetricsRepository,
     private issuesRepository: IssuesRepository,
     private sonarqubeService: SonarQubeService,
     private pairingService: PairingIndexService

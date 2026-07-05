@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SonarqubeRepository } from '../../../providers/sonarqube/repositories/sonarqube-repository-json';
+import { SonarqubeRepositoryJson } from '../../../providers/sonarqube/repositories/sonarqube-repository-json';
 import { InMemoryRepository } from '../../../test/in-memory-repository';
 import type {
   CodeMetric,
@@ -41,7 +41,7 @@ describe('SonarqubeRepository', () => {
       ],
     });
 
-    const repository = new SonarqubeRepository(
+    const repository = new SonarqubeRepositoryJson(
       new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
       componentTreeRepository
     );
@@ -62,7 +62,7 @@ describe('SonarqubeRepository', () => {
 
   describe('loadAll', () => {
     it('returns null when there is no data in the measurement repository', async () => {
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -87,7 +87,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: measure }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         measurementRepository,
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -112,7 +112,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: measure }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         measurementRepository,
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -140,7 +140,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: measure }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         measurementRepository,
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -164,7 +164,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: measure }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         measurementRepository,
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -178,7 +178,7 @@ describe('SonarqubeRepository', () => {
 
   describe('loadMeasurements', () => {
     it('returns an empty array when there is no data', async () => {
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -204,7 +204,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: measure }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         measurementRepository,
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -219,7 +219,7 @@ describe('SonarqubeRepository', () => {
 
   describe('loadAllMeasurementEntries', () => {
     it('returns an empty array when there is no store', async () => {
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -235,7 +235,7 @@ describe('SonarqubeRepository', () => {
         entries: 'not-an-array',
       } as unknown as TimestampedStore<SonarqubeComponentMeasure>);
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         measurementRepository,
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -265,7 +265,7 @@ describe('SonarqubeRepository', () => {
         ],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         measurementRepository,
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -285,7 +285,7 @@ describe('SonarqubeRepository', () => {
 
   describe('loadComponentTree', () => {
     it('returns an empty array when there is no data in the component tree repository', async () => {
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -309,7 +309,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: components }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -337,7 +337,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: [file, folder] }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -365,7 +365,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: [file, root] }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -387,7 +387,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: [folder] }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -423,7 +423,7 @@ describe('SonarqubeRepository', () => {
         ],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -461,7 +461,7 @@ describe('SonarqubeRepository', () => {
         ],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -497,7 +497,7 @@ describe('SonarqubeRepository', () => {
         ],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -532,7 +532,7 @@ describe('SonarqubeRepository', () => {
         ],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -557,7 +557,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: [noKeyOrName] }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -570,7 +570,7 @@ describe('SonarqubeRepository', () => {
 
   describe('loadAllComponentTreeEntries', () => {
     it('returns an empty array when there is no store', async () => {
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -591,7 +591,7 @@ describe('SonarqubeRepository', () => {
         ],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -624,7 +624,7 @@ describe('SonarqubeRepository', () => {
         ],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -652,7 +652,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: [component] }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -680,7 +680,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: [matching, nonMatching] }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -708,7 +708,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: [matching, nonMatching] }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -736,7 +736,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: [matching, nonMatching] }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -759,7 +759,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: [component] }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -782,7 +782,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: [component] }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         componentTreeRepository
       );
@@ -795,7 +795,7 @@ describe('SonarqubeRepository', () => {
 
   describe('loadHistoricalMeasures', () => {
     it('resolves to an empty array when no historical measures repository was passed to the constructor', async () => {
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -804,7 +804,7 @@ describe('SonarqubeRepository', () => {
     });
 
     it('resolves to an empty array when the historical measures repository has no data', async () => {
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>(),
         new InMemoryRepository<TimestampedStore<CodeMetric[]>>()
@@ -835,7 +835,7 @@ describe('SonarqubeRepository', () => {
         ],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>(),
         historicalRepository
@@ -860,7 +860,7 @@ describe('SonarqubeRepository', () => {
         ],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>(),
         historicalRepository
@@ -874,7 +874,7 @@ describe('SonarqubeRepository', () => {
 
   describe('loadAllHistoricalMeasureEntries', () => {
     it('resolves to an empty array when no historical measures repository was passed to the constructor', async () => {
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -893,7 +893,7 @@ describe('SonarqubeRepository', () => {
         ],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>(),
         historicalRepository
@@ -927,7 +927,7 @@ describe('SonarqubeRepository', () => {
         ],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>(),
         historicalRepository
@@ -961,7 +961,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: measure }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         measurementRepository,
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -993,7 +993,7 @@ describe('SonarqubeRepository', () => {
         entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: measure }],
       });
 
-      const repository = new SonarqubeRepository(
+      const repository = new SonarqubeRepositoryJson(
         measurementRepository,
         new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>()
       );
@@ -1032,7 +1032,7 @@ describe('SonarqubeRepository', () => {
       ],
     });
 
-    const repository = new SonarqubeRepository(
+    const repository = new SonarqubeRepositoryJson(
       new InMemoryRepository<TimestampedStore<SonarqubeComponentMeasure>>(),
       new InMemoryRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>(),
       historicalRepository

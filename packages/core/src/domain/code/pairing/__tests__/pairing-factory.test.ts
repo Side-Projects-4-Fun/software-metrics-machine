@@ -3,8 +3,8 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { Configuration } from '../../../infrastructure';
-import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
+import { Configuration } from '../../../../infrastructure';
+import { TimeZoneProvider } from '../../../../infrastructure/timezone-provider';
 import { PairingFactory } from '../../..';
 
 describe('PairingFactory', () => {
