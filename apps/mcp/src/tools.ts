@@ -1,4 +1,4 @@
-import { ConfigurationRepository } from '@smmachine/core/infrastructure/configuration-repository';
+import { ConfigurationRepository } from '@smmachine/core';
 import { Logger } from '@smmachine/utils';
 import { createMcpMetricsReader } from './metrics-reader';
 import type { JsonObject, McpToolDefinition, McpToolResult } from './mcp-types';

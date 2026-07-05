@@ -13,7 +13,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsc --noEmit && tsup",
     "dev": "tsx src/index.ts",
     "test": "vitest run",
     "test:ci": "vitest run",
