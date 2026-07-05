@@ -1,5 +1,5 @@
 import { Commit, PullRequest, CodeChange } from '../domain-types';
-import type { IReadPullRequestsRepository, PipelineJob, PipelineRun } from '../index';
+import type { IReadPullRequestsRepository, PipelineJob, PipelineRun, PipelineStep } from '../index';
 import type { IRepository } from '../index';
 import type { PRDetails, PRFilters } from '../index';
 import {
@@ -38,8 +38,18 @@ export class CommitBuilder {
     return this;
   }
 
-  withTimestamp(timestamp: string): CommitBuilder {
+  withTimestamp(timestamp: string | Date): CommitBuilder {
     this.commit.timestamp = timestamp;
+    return this;
+  }
+
+  withSubject(subject: string): CommitBuilder {
+    this.commit.subject = subject;
+    return this;
+  }
+
+  withCoAuthors(coAuthors: string[]): CommitBuilder {
+    this.commit.coAuthors = coAuthors;
     return this;
   }
 
@@ -70,7 +80,7 @@ export class PullRequestBuilder {
     comments: 0,
   };
 
-  withId(id: number): PullRequestBuilder {
+  withId(id: number | undefined): PullRequestBuilder {
     this.pr.id = id;
     return this;
   }
@@ -80,13 +90,18 @@ export class PullRequestBuilder {
     return this;
   }
 
-  withTitle(title: string): PullRequestBuilder {
+  withTitle(title: string | undefined): PullRequestBuilder {
     this.pr.title = title;
     return this;
   }
 
-  withAuthor(author: string): PullRequestBuilder {
-    this.pr.author = { login: author, id: 1 };
+  withAuthor(author: string, id: number = 1): PullRequestBuilder {
+    this.pr.author = { login: author, id };
+    return this;
+  }
+
+  withoutAuthor(): PullRequestBuilder {
+    this.pr.author = undefined;
     return this;
   }
 
@@ -97,6 +112,11 @@ export class PullRequestBuilder {
 
   withCreatedAt(createdAt: string): PullRequestBuilder {
     this.pr.createdAt = createdAt;
+    return this;
+  }
+
+  withUpdatedAt(updatedAt: string): PullRequestBuilder {
+    this.pr.updatedAt = updatedAt;
     return this;
   }
 
@@ -112,14 +132,25 @@ export class PullRequestBuilder {
     return this;
   }
 
-  withComments(comments: number): PullRequestBuilder {
+  withComments(comments: number | undefined): PullRequestBuilder {
     this.pr.totalComments = comments;
     this.pr.comments = [];
     return this;
   }
 
-  withLabels(labels: Array<{ name: string }>): PullRequestBuilder {
+  withCommentDetails(comments: any[]): PullRequestBuilder {
+    this.pr.comments = comments;
+    this.pr.totalComments = comments.length;
+    return this;
+  }
+
+  withLabels(labels: Array<{ name?: string }> | undefined): PullRequestBuilder {
     this.pr.labels = labels;
+    return this;
+  }
+
+  withUrl(url: string | undefined): PullRequestBuilder {
+    this.pr.url = url;
     return this;
   }
 
@@ -192,13 +223,28 @@ export class PipelineRunBuilder {
     return this;
   }
 
-  withCompletedAt(completedAt: string): PipelineRunBuilder {
+  withCompletedAt(completedAt: string | undefined): PipelineRunBuilder {
     this.run.completedAt = completedAt;
+    return this;
+  }
+
+  withUpdatedAt(updatedAt: string): PipelineRunBuilder {
+    this.run.updatedAt = updatedAt;
+    return this;
+  }
+
+  withRunAttempt(runAttempt: number | undefined): PipelineRunBuilder {
+    this.run.runAttempt = runAttempt;
     return this;
   }
 
   withPath(path: string): PipelineRunBuilder {
     this.run.path = path;
+    return this;
+  }
+
+  withJobs(jobs: PipelineJob[] | undefined): PipelineRunBuilder {
+    this.run.jobs = jobs;
     return this;
   }
 
@@ -211,6 +257,97 @@ export class PipelineRunBuilder {
 
   build(): any {
     return { ...this.run };
+  }
+}
+
+/**
+ * Builder for creating mock PipelineJob objects
+ */
+export class PipelineJobBuilder {
+  private job: any = {
+    id: 'job-1',
+    name: 'test',
+    status: 'completed',
+    conclusion: 'success',
+    startedAt: '2025-01-01T08:00:00Z',
+    completedAt: '2025-01-01T08:05:00Z',
+  };
+
+  withId(id: string): PipelineJobBuilder {
+    this.job.id = id;
+    return this;
+  }
+
+  withName(name: string): PipelineJobBuilder {
+    this.job.name = name;
+    return this;
+  }
+
+  withStatus(status: string): PipelineJobBuilder {
+    this.job.status = status;
+    return this;
+  }
+
+  withConclusion(conclusion: string | undefined): PipelineJobBuilder {
+    this.job.conclusion = conclusion;
+    return this;
+  }
+
+  withStartedAt(startedAt: string | undefined): PipelineJobBuilder {
+    this.job.startedAt = startedAt;
+    return this;
+  }
+
+  withCompletedAt(completedAt: string | undefined): PipelineJobBuilder {
+    this.job.completedAt = completedAt;
+    return this;
+  }
+
+  withSteps(steps: PipelineStep[] | undefined): PipelineJobBuilder {
+    this.job.steps = steps;
+    return this;
+  }
+
+  build(): PipelineJob {
+    return { ...this.job };
+  }
+}
+
+/**
+ * Builder for creating mock PipelineStep objects
+ */
+export class PipelineStepBuilder {
+  private step: any = {
+    name: 'checkout',
+    status: 'completed',
+    conclusion: 'success',
+    number: 1,
+    startedAt: '2025-01-01T08:00:00Z',
+    completedAt: '2025-01-01T08:05:00Z',
+  };
+
+  withName(name: string | undefined): PipelineStepBuilder {
+    this.step.name = name;
+    return this;
+  }
+
+  withNumber(number: number): PipelineStepBuilder {
+    this.step.number = number;
+    return this;
+  }
+
+  withStartedAt(startedAt: string | undefined): PipelineStepBuilder {
+    this.step.startedAt = startedAt;
+    return this;
+  }
+
+  withCompletedAt(completedAt: string | undefined): PipelineStepBuilder {
+    this.step.completedAt = completedAt;
+    return this;
+  }
+
+  build(): PipelineStep {
+    return { ...this.step };
   }
 }
 
