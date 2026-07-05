@@ -23,6 +23,7 @@
     "prepack": "pnpm run build:deps && pnpm run build",
     "test": "vitest --watch=false",
     "test:ci": "vitest run ./__tests__",
+    "test:e2e": "pnpm run build && bash e2e/run.sh",
     "clean": "rm -rf dist",
     "lint": "eslint ."
   },
@@ -41,6 +42,7 @@
     "eslint": "catalog:",
     "eslint-config-prettier": "catalog:",
     "eslint-plugin-prettier": "catalog:",
+    "msw": "catalog:",
     "ts-node": "catalog:",
     "tsconfig-paths": "catalog:",
     "tsx": "catalog:",

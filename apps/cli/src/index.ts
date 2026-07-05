@@ -119,11 +119,13 @@ export async function main() {
   }
 }
 
-main().catch((error) => {
-  const logger = new Logger('smm-cli', process.env.DEBUG ? 'DEBUG' : undefined);
-  logger.error(`Fatal error: ${error instanceof Error ? error.message : String(error)}`);
-  if (process.env.DEBUG && error instanceof Error) {
-    console.error(error.stack);
-  }
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((error) => {
+    const logger = new Logger('smm-cli', process.env.DEBUG ? 'DEBUG' : undefined);
+    logger.error(`Fatal error: ${error instanceof Error ? error.message : String(error)}`);
+    if (process.env.DEBUG && error instanceof Error) {
+      console.error(error.stack);
+    }
+    process.exit(1);
+  });
+}

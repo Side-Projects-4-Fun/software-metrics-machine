@@ -87,6 +87,13 @@ jobs:
       - name: Run tests
         run: pnpm run test
 
+      - name: Install bashunit
+        working-directory: apps/cli/lib
+        run: curl -s https://bashunit.com/install.sh | bash
+
+      - name: Run CLI bashunit e2e tests
+        run: cd apps/cli && pnpm run test:e2e
+
   check-distribution:
     name: Check Distribution
     runs-on: ubuntu-latest

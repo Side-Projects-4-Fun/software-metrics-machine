@@ -37,8 +37,10 @@
     "dev": "turbo run dev --filter=./apps/*",
     "build:packages": "turbo run build --filter=@smmachine/utils --filter=@smmachine/core",
     "test": "turbo run test",
+    "test:cli:e2e": "cd apps/cli && pnpm run test:e2e",
     "typecheck": "turbo run type-check",
     "cli": "cd ./apps/cli && pnpm run dev",
+    "cli:e2e": "cd ./apps/cli && pnpm run test:e2e",
     "prepack": "pnpm run build:npm"
   },
   "keywords": [

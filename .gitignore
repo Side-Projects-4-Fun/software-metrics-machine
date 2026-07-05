@@ -271,3 +271,5 @@ sonarqube_data/
 
 ./docs/plans/
 .pnpm-store/
+
+apps/cli/lib
