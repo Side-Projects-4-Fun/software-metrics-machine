@@ -1,12 +1,14 @@
 import { Configuration } from 'src/infrastructure';
 import { Logger } from '@smmachine/utils';
 import type { StorageType } from 'src/infrastructure/configuration';
-import type { ICodeMetricsRepository } from '../aggregates/codemaat-metrics-repository';
-import { CodeMaatMetricsCsvRepository } from '../aggregates/codemaat-metrics-repository-csv';
-import { CodeMaatMetricsSqliteRepository } from '../aggregates/codemaat-metrics-repository-sqlite';
-import type { ICodeMaatFetchRepository } from '../providers/codemaat/codemaat-fetch-repository';
-import { CodemaatFetchCsvRepository } from '../providers/codemaat/codemaat-fetch-repository-csv';
-import { CodemaatFetchSqliteRepository } from '../providers/codemaat/codemaat-fetch-repository-sqlite';
+import {
+  CodemaatFetchCsvRepository,
+  CodemaatFetchSqliteRepository,
+  CodeMaatMetricsCsvRepository,
+  CodeMaatMetricsSqliteRepository,
+  ICodeMaatFetchRepository,
+  ICodeMetricsRepository,
+} from '../../../providers';
 
 export class CodemaatFactory {
   static create(configuration: Configuration, logger: Logger): ICodeMetricsRepository {

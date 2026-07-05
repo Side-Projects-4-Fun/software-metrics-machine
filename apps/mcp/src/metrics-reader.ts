@@ -13,10 +13,10 @@ import {
   type CodeMaatEntityFilterOptions,
   type PipelineFilters,
   type PRFilters,
+  TimeZoneProvider,
+  ConfigurationRepository,
+  PipelineFactory,
 } from '@smmachine/core';
-import PipelineFactory from '@smmachine/core/factories/pipeline-factory';
-import { ConfigurationRepository } from '@smmachine/core/infrastructure/configuration-repository';
-import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 import { Logger, type LogLevel } from '@smmachine/utils';
 
 type MetricsReaderOptions = {

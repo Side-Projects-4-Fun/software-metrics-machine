@@ -2,10 +2,9 @@ import { Logger } from '@smmachine/utils';
 import * as fs from 'fs/promises';
 import { Dirent } from 'fs';
 import * as path from 'path';
-import { GitFactory } from '../../factories/git-factory';
 import { Commit } from '../../domain-types';
-import { Configuration } from '../../infrastructure/configuration';
-import { RepositoryFactory } from '../../infrastructure/repository-factory';
+import { Configuration } from '../../infrastructure';
+import { RepositoryFactory } from '../../infrastructure';
 import {
   createPathMatchers,
   matchesAnyPathPattern,
@@ -20,6 +19,7 @@ import {
   ArchitectureViewLevel,
   GenerateArchitectureOptions,
 } from './types';
+import { GitFactory } from '../code/git/git-factory';
 
 type ViewFilterOptions = {
   ignorePatterns?: string | string[];
@@ -600,7 +600,11 @@ export class ArchitectureService {
             continue;
           }
 
-          const resolved = this.resolveFileImport(sourceFile.relativePath, importPath, pkg.sourceFiles);
+          const resolved = this.resolveFileImport(
+            sourceFile.relativePath,
+            importPath,
+            pkg.sourceFiles
+          );
           if (!resolved) {
             continue;
           }
@@ -815,6 +819,9 @@ export class ArchitectureService {
   }
 
   private toId(value: string): string {
-    return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    return value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
   }
 }

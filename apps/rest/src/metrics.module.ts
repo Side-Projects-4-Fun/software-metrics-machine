@@ -32,8 +32,8 @@ import {
   BigOService,
   ArchitectureService,
 } from '@smmachine/core';
-import PipelineFactory from '@smmachine/core/factories/pipeline-factory';
-import { PairingService } from '@smmachine/core/domain/code/pairing-service';
+import PipelineFactory from '@smmachine/core/domain/pipelines/factories/pipeline-factory';
+import { PairingService } from '@smmachine/core/domain/code/pairing/pairing-service';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 import { Logger } from '@smmachine/utils';
 

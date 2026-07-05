@@ -21,11 +21,9 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit"
   },
-  "dependencies": {
-    "@smmachine/core": "workspace:*",
-    "@smmachine/utils": "workspace:*"
-  },
   "devDependencies": {
+    "@smmachine/core": "workspace:*",
+    "@smmachine/utils": "workspace:*",
     "@types/node": "catalog:",
     "@typescript-eslint/eslint-plugin": "catalog:",
     "@typescript-eslint/parser": "catalog:",

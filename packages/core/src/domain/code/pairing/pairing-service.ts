@@ -1,12 +1,11 @@
 import { Logger } from '@smmachine/utils';
-import { IRepository } from '../../infrastructure/repository';
-import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
+import { IRepository, TimeZoneProvider } from '../../../infrastructure';
 import {
   Commit,
   PairingIndexResult,
   PairedCommitSummary,
   PairingAuthorsStat,
-} from '../../domain-types';
+} from '../../../domain-types';
 
 export interface IPairingIndexService {
   getPairingIndex(options?: {

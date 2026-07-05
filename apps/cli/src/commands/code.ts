@@ -1,9 +1,11 @@
 import type { SmmCommand } from './smm-command';
-import { GitFactory } from '@smmachine/core/aggregates/git-factory';
-import { CodemaatService } from '@smmachine/core/domain/code/codemaat-service';
-import { BigOService } from '@smmachine/core';
-import { CodemaatFactory } from '@smmachine/core/aggregates/codemaat-factory';
-import { PairingFactory } from '@smmachine/core/aggregates/pairing-factory';
+import {
+  BigOService,
+  CodemaatFactory,
+  CodemaatService,
+  GitFactory,
+  PairingFactory,
+} from '@smmachine/core';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 import type { CodeChurn } from '@smmachine/core/providers/codemaat/types';
 import path from 'path';

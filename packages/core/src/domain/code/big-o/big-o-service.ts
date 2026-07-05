@@ -1,12 +1,12 @@
 import { promises as fs, readFileSync } from 'fs';
 import * as path from 'path';
-import type { Configuration } from '../../infrastructure/configuration';
+import type { Configuration } from '../../../infrastructure';
 import {
   createPathMatchers,
   isGlobPattern,
   matchesAnyPathPattern,
   matchesIncludePatterns,
-} from './pattern-filters';
+} from '../pattern-filters';
 
 export type BigOClassification = 'O(1)' | 'O(log n)' | 'O(n)' | 'O(n log n)' | 'O(n^2)' | 'O(n^3+)';
 
@@ -81,12 +81,14 @@ const CLASSIFICATION_WEIGHT: Record<BigOClassification, number> = {
 export class BigOService {
   constructor(private readonly configuration: Configuration) {}
 
-  async listFiles(options: {
-    search?: string;
-    ignorePatterns?: string | string[];
-    includePatterns?: string | string[];
-    limit?: number;
-  } = {}): Promise<BigOFileSummary[]> {
+  async listFiles(
+    options: {
+      search?: string;
+      ignorePatterns?: string | string[];
+      includePatterns?: string | string[];
+      limit?: number;
+    } = {}
+  ): Promise<BigOFileSummary[]> {
     const repository = this.getRepositoryLocation();
     const files = await this.walk(repository);
     const matcher = this.createSearchMatcher(options.search);
@@ -197,7 +199,10 @@ export class BigOService {
       };
     }
 
-    if (this.isLoop(trimmed) || /\.(map|filter|reduce|forEach|some|every|find)\s*\(/.test(trimmed)) {
+    if (
+      this.isLoop(trimmed) ||
+      /\.(map|filter|reduce|forEach|some|every|find)\s*\(/.test(trimmed)
+    ) {
       const nestedDepth = Math.max(1, loopDepth + 1);
       const classification = this.classificationForLoopDepth(nestedDepth);
       return {
@@ -224,10 +229,7 @@ export class BigOService {
       null
     );
     const classification = topSignal?.classification ?? 'O(1)';
-    const score = Math.min(
-      100,
-      Math.round((topSignal?.weight ?? 1) * 12 + signals.length * 2)
-    );
+    const score = Math.min(100, Math.round((topSignal?.weight ?? 1) * 12 + signals.length * 2));
 
     return {
       filePath: relativePath,

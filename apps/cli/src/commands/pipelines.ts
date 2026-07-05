@@ -3,8 +3,8 @@ import {
   parseMetricCleaningOptions,
   PipelinesService,
   type PipelineFilters,
+  PipelineFactory,
 } from '@smmachine/core';
-import PipelineFactory from '@smmachine/core/factories/pipeline-factory';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 
 function createPipelineDependencies(command: SmmCommand) {

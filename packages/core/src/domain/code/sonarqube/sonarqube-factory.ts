@@ -5,13 +5,9 @@ import {
   JsonFileSystemRepository,
   RepositoryFactory,
   SqliteRepository,
-} from '../infrastructure';
-import { SonarqubeRepository } from '../aggregates/sonarqube-repository-json';
-import {
-  CodeMetric,
-  SonarqubeComponentTreeMeasure,
-  TimestampedStore,
-} from '../providers/sonarqube/types';
+} from '../../../infrastructure';
+import { SonarqubeRepository } from '../../../aggregates';
+import { CodeMetric, SonarqubeComponentTreeMeasure, TimestampedStore } from '../../../providers';
 import { Logger } from '@smmachine/utils';
 
 export class SonarqubeFactory {

@@ -7,7 +7,6 @@ export {
   PullRequestFiltersRepository,
   type PullRequestFilterOptions,
 } from './pull-request-filters-repository-json';
-export { PullRequestFactory } from './pull-request-factory';
 export { PipelinesRepository, type IPipelinesRepository } from './pipelines-repository-json';
 export { PipelinesSqliteRepository } from './pipelines-repository-sqlite';
 export {
@@ -23,13 +22,17 @@ export {
   type CodeMaatEntityFilterOptions,
   type ICodeMetricsRepository,
 } from './codemaat-metrics-repository';
-export { IssuesRepository, type IIssuesRepository, type IssueFilters } from './issues-repository-json';
+export {
+  IssuesRepository,
+  type IIssuesRepository,
+  type IssueFilters,
+} from './issues-repository-json';
 export {
   SonarqubeFetchMetricsRepository,
   type IQualityMetricsRepository,
 } from '../providers/sonarqube/sonarqube-fetch-metrics-repository-json';
-export { SonarqubeFactory } from '../factories/sonarqube-factory';
+export { SonarqubeFactory } from '../domain/code';
 export { SonarqubeRepository } from '../aggregates/sonarqube-repository-json';
-export { GitFactory } from '../factories/git-factory';
-export { CodemaatFactory } from '../factories/codemaat-factory';
-export { PairingFactory } from '../factories/pairing-factory';
+export { GitFactory } from '../domain/code/git/git-factory';
+export { CodemaatFactory } from '../domain/code/codemaat/codemaat-factory';
+export { PairingFactory } from '../domain/code/pairing/pairing-factory';

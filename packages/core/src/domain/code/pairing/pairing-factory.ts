@@ -1,13 +1,13 @@
-import { Commit } from '../domain-types';
-import { PairingService } from '../domain/code/pairing-service';
+import { Commit } from '../../../domain-types';
+import { PairingService } from './pairing-service';
 import {
   Configuration,
   IRepository,
   JsonFileSystemRepository,
   RepositoryFactory,
   SqliteRepository,
-} from '../infrastructure';
-import { TimeZoneProvider } from '../infrastructure/timezone-provider';
+  TimeZoneProvider,
+} from '../../../infrastructure';
 import { Logger } from '@smmachine/utils';
 
 export class PairingFactory {

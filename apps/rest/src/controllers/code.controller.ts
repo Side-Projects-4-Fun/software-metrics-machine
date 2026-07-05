@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { BigOService, CodeMaatMetricsRepository } from '@smmachine/core';
-import { PairingService } from '@smmachine/core/domain/code/pairing-service';
+import { PairingService } from '@smmachine/core/domain/code/pairing/pairing-service';
 import type {
   BigOFileAnalysis,
   BigOFileSummary,
@@ -12,7 +12,7 @@ import type {
   CodeEntityEffortResponse,
   CodeEntityOwnershipResponse,
   CodeAuthorsResponse,
-} from '../dtos/response.dto';
+} from '../dtos';
 
 /**
  * Code Metrics REST Controller

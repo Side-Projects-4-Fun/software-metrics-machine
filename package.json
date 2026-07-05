@@ -31,7 +31,7 @@
     "watch": "turbo run watch",
     "docs": "cd docs/vitepress && pnpm run docs:dev",
     "docs:build": "cd docs/vitepress && pnpm run docs:build",
-    "clean:full": "rm -rf node_modules && (cd apps/cli && rm -rf node_modules) && (cd apps/rest && rm -rf node_modules) && (cd apps/webapp && rm -rf node_modules) && (cd packages/core && rm -rf node_modules) && (cd packages/utils && rm -rf node_modules)",
+    "clean:full": "rm -rf node_modules && (cd apps/mcp && rm -rf node_modules) && (cd apps/cli && rm -rf node_modules) && (cd apps/rest && rm -rf node_modules) && (cd apps/webapp && rm -rf node_modules) && (cd packages/core && rm -rf node_modules) && (cd packages/utils && rm -rf node_modules)",
     "build:npm": "turbo run clean && pnpm --filter @smmachine/utils build && pnpm --filter @smmachine/core build && pnpm --filter @smmachine/rest build && pnpm --filter @smmachine/webapp build && pnpm --filter @smmachine/mcp build && pnpm exec tsup",
     "dev": "turbo run dev --filter=./apps/*",
     "build:packages": "turbo run build --filter=@smmachine/utils --filter=@smmachine/core",

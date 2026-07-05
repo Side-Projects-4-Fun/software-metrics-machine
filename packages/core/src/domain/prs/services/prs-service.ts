@@ -10,9 +10,9 @@ import {
   PRSummaryPullRequest,
   PRSummaryResponse,
   PRAverageOutlierItem,
-} from './pr-types';
-import { IReadPullRequestsRepository } from './repositories/pull-requests-repository-json';
-import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
+} from '../pr-types';
+import { IReadPullRequestsRepository } from '../repositories';
+import { TimeZoneProvider } from '../../../infrastructure';
 import { stopWords } from './stop-words';
 import {
   averageMetricSamples,
@@ -20,7 +20,7 @@ import {
   MetricCleaningOptions,
   MetricOutlier,
   MetricSample,
-} from '../metric-samples';
+} from '../../metric-samples';
 
 export interface IPRsService {
   getMetrics(filters?: PRFilters): Promise<PRMetrics>;
@@ -51,13 +51,21 @@ export interface IPRsService {
     filters?: PRFilters,
     top?: number
   ): Promise<
-    Array<{ author: string; avg_days: number; outliers?: Array<MetricOutlier<PRAverageOutlierItem>> }>
+    Array<{
+      author: string;
+      avg_days: number;
+      outliers?: Array<MetricOutlier<PRAverageOutlierItem>>;
+    }>
   >;
   getAverageOpenBy(
     filters?: PRFilters,
     aggregateBy?: string
   ): Promise<
-    Array<{ period: string; avg_days: number; outliers?: Array<MetricOutlier<PRAverageOutlierItem>> }>
+    Array<{
+      period: string;
+      avg_days: number;
+      outliers?: Array<MetricOutlier<PRAverageOutlierItem>>;
+    }>
   >;
 }
 
@@ -233,7 +241,9 @@ export class PRsService implements IPRsService {
         label,
         count: labelPRs.length,
         averageOpenDays: Math.round(averageOpenDays * 100) / 100,
-        outliers: this.shouldExposeOutliers(filters?.cleaning) ? cleanedOpenDays.outliers : undefined,
+        outliers: this.shouldExposeOutliers(filters?.cleaning)
+          ? cleanedOpenDays.outliers
+          : undefined,
       });
     }
 
@@ -367,7 +377,11 @@ export class PRsService implements IPRsService {
     filters?: PRFilters,
     top?: number
   ): Promise<
-    Array<{ author: string; avg_days: number; outliers?: Array<MetricOutlier<PRAverageOutlierItem>> }>
+    Array<{
+      author: string;
+      avg_days: number;
+      outliers?: Array<MetricOutlier<PRAverageOutlierItem>>;
+    }>
   > {
     const prs = await this.filterPRs(filters);
     const merged = prs.filter((pr) => Boolean(pr.mergedAt) || Boolean(pr.closedAt));
@@ -401,7 +415,11 @@ export class PRsService implements IPRsService {
     filters?: PRFilters,
     aggregateBy?: string
   ): Promise<
-    Array<{ period: string; avg_days: number; outliers?: Array<MetricOutlier<PRAverageOutlierItem>> }>
+    Array<{
+      period: string;
+      avg_days: number;
+      outliers?: Array<MetricOutlier<PRAverageOutlierItem>>;
+    }>
   > {
     const prs = await this.filterPRs(filters);
     const mode = this.normalizeAggregation(aggregateBy);
