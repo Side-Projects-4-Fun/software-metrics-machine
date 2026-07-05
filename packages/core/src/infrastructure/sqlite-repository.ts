@@ -219,6 +219,8 @@ export class SqliteRepository<T> implements IRepository<T> {
         ON workflow_runs(namespace, position);
       CREATE INDEX IF NOT EXISTS idx_workflow_runs_created_at
         ON workflow_runs(namespace, created_at);
+      CREATE INDEX IF NOT EXISTS idx_workflow_runs_metric_date
+        ON workflow_runs(namespace, COALESCE(NULLIF(updated_at, ''), created_at));
       CREATE INDEX IF NOT EXISTS idx_workflow_runs_path
         ON workflow_runs(namespace, path);
       CREATE INDEX IF NOT EXISTS idx_workflow_runs_status

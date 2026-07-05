@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 vi.mock(import('child_process'), async (importOriginal) => {
-  const actual = await importOriginal<typeof import('child_process')>();
+  const actual = await importOriginal();
   return {
     ...actual,
     execSync: vi.fn(),
@@ -9,8 +9,8 @@ vi.mock(import('child_process'), async (importOriginal) => {
 });
 
 import { execSync } from 'child_process';
-import { CommitTraverser } from '../../../src';
-import { MockLoggerBuilder } from '../../mock-logger-builder';
+import { CommitTraverser } from '../../..';
+import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
 
 const mockExecSync = vi.mocked(execSync);
 const logger = new MockLoggerBuilder().build();

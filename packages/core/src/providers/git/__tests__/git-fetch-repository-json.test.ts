@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { type ICommitTraverser, Commit } from '../../../src';
-import { InMemoryRepository } from '../../../src/test/in-memory-repository';
-import { GitFetchRepository } from '../../../src/providers/git/git-fetch-repository-json';
-import { MockLoggerBuilder } from '../../mock-logger-builder';
+import { type ICommitTraverser } from '../../..';
+import { Commit } from '../../../domain-types';
+import { InMemoryRepository } from '../../../test/in-memory-repository';
+import { GitFetchRepository } from '../git-fetch-repository-json';
+import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
 
 describe('GitFetchRepository', () => {
   const logger = new MockLoggerBuilder().build();

@@ -22,6 +22,13 @@ type PayloadRow = {
   payload: string;
 };
 
+type SqlValue = string | number;
+
+type PayloadQuery = {
+  sql: string;
+  params: SqlValue[];
+};
+
 export class PipelinesSqliteRepository extends ParseRawFiltersRepository implements PipelinesRepository {
   private readonly sqliteDbPath: string;
   private readonly workflowRunsNamespace: string;
@@ -41,7 +48,7 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
   async loadPipelines(
     options: LoadPipelinesOptions = { includeJobs: true }
   ): Promise<PipelineRun[]> {
-    const rows = await this.loadPayloadRows('workflow_runs', this.workflowRunsNamespace);
+    const rows = await this.loadPayloadRows('workflow_runs', this.workflowRunsNamespace, options);
     const pipelineRunsFromDomain = rows
       .map((row) => this.deserialize<WorkflowJsonResponse>(row.payload))
       .map(this.mapToDomain.mapPipelinesToDomain);
@@ -133,17 +140,98 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
         return [];
       }
 
-      return db
-        .prepare(
-          `SELECT payload
-           FROM ${tableName}
-           WHERE namespace = ?
-           ORDER BY position ASC, id ASC`
-        )
-        .all(namespace) as PayloadRow[];
+      const query = this.buildPayloadQuery(tableName, namespace, options);
+      return db.prepare(query.sql).all(...query.params) as PayloadRow[];
     } finally {
       db.close();
     }
+  }
+
+  private buildPayloadQuery(
+    tableName: 'workflow_runs' | 'workflow_jobs',
+    namespace: string,
+    options?: LoadPipelinesOptions
+  ): PayloadQuery {
+    const whereClauses = ['namespace = ?'];
+    const params: SqlValue[] = [namespace];
+
+    if (tableName === 'workflow_runs' && options) {
+      this.addWorkflowRunFilters(whereClauses, params, options);
+    }
+
+    return {
+      sql: `SELECT payload
+            FROM ${tableName}
+            WHERE ${whereClauses.join(' AND ')}
+            ORDER BY ${this.getPayloadRowsOrderBy(tableName, options)}`,
+      params,
+    };
+  }
+
+  private addWorkflowRunFilters(
+    whereClauses: string[],
+    params: SqlValue[],
+    options: LoadPipelinesOptions
+  ): void {
+    const selectedStatuses = this.parseCsvList(options.status).map((item) => item.toLowerCase());
+    const selectedConclusions = this.parseCsvList(options.conclusion).map((item) =>
+      item.toLowerCase()
+    );
+    const selectedBranches = this.parseCsvList(options.targetBranch);
+    const selectedEvents = this.parseCsvList(options.event);
+    const start = options.startDate ? this.toDateBoundaryTimestamp(options.startDate, 'start') : 0;
+    const end = options.endDate ? this.toDateBoundaryTimestamp(options.endDate, 'end') : 0;
+    const metricDateExpression = this.getRunMetricDateSqlExpression();
+
+    if (start) {
+      whereClauses.push(`${metricDateExpression} >= ?`);
+      params.push(new Date(start).toISOString());
+    }
+
+    if (end) {
+      whereClauses.push(`${metricDateExpression} <= ?`);
+      params.push(new Date(end).toISOString());
+    }
+
+    if (options.workflowPath) {
+      whereClauses.push('path = ?');
+      params.push(options.workflowPath);
+    }
+
+    this.addInFilter(whereClauses, params, 'LOWER(status)', selectedStatuses);
+    this.addInFilter(whereClauses, params, 'LOWER(conclusion)', selectedConclusions);
+    this.addInFilter(whereClauses, params, 'head_branch', selectedBranches);
+    this.addInFilter(whereClauses, params, 'event', selectedEvents);
+  }
+
+  private addInFilter(
+    whereClauses: string[],
+    params: SqlValue[],
+    columnExpression: string,
+    values: string[]
+  ): void {
+    if (values.length === 0) {
+      return;
+    }
+
+    whereClauses.push(`${columnExpression} IN (${values.map(() => '?').join(', ')})`);
+    params.push(...values);
+  }
+
+  private getPayloadRowsOrderBy(
+    tableName: 'workflow_runs' | 'workflow_jobs',
+    options?: LoadPipelinesOptions
+  ): string {
+    if (tableName === 'workflow_runs' && options?.sort_by?.created_at) {
+      const direction = options.sort_by.created_at.toUpperCase();
+      return `${this.getRunMetricDateSqlExpression()} ${direction}, position ASC, id ASC`;
+    }
+
+    return 'position ASC, id ASC';
+  }
+
+  private getRunMetricDateSqlExpression(): string {
+    return "COALESCE(NULLIF(updated_at, ''), created_at)";
   }
 
   private tableExists(db: DatabaseSync, tableName: string): boolean {
