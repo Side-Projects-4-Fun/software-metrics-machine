@@ -28,6 +28,11 @@ export class CommitBuilder {
     return this;
   }
 
+  withEmail(email: string): CommitBuilder {
+    this.commit.email = email;
+    return this;
+  }
+
   withMessage(msg: string): CommitBuilder {
     this.commit.msg = msg;
     return this;
@@ -570,6 +575,11 @@ export class PullRequestCommentJsonResponseBuilder {
     return this;
   }
 
+  withPath(path: string): this {
+    this.data.path = path;
+    return this;
+  }
+
   withAuthor(login: string, id: number = 1): this {
     this.data.user = { ...this.data.user!, login, id };
     return this;
@@ -577,6 +587,16 @@ export class PullRequestCommentJsonResponseBuilder {
 
   withCreatedAt(date: string): this {
     this.data.created_at = date;
+    return this;
+  }
+
+  withUpdatedAt(date: string): this {
+    this.data.updated_at = date;
+    return this;
+  }
+
+  withHtmlUrl(url: string): this {
+    this.data.html_url = url;
     return this;
   }
 
