@@ -4,7 +4,7 @@ import {
   matchesAnyPathPattern,
   matchesIncludePatterns,
   normalizePatternList,
-} from '../src/domain/code/pattern-filters';
+} from '../pattern-filters';
 
 describe('pattern filters', () => {
   it('normalizes comma-separated patterns by default', () => {

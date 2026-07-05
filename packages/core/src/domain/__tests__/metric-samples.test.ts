@@ -3,7 +3,7 @@ import {
   averageMetricSamples,
   cleanMetricSamples,
   parseMetricCleaningOptions,
-} from '../src/domain/metric-samples';
+} from '../metric-samples';
 
 describe('metric sample cleaning', () => {
   it('excludes weekend samples before computing averages when requested', () => {
