@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   Configuration,
+  PipelineFactory,
   PipelineGitHubJobBuilder,
   PipelineGitHubRunBuilder,
   PipelinesSqliteRepository,
@@ -11,7 +12,6 @@ import {
   SqliteRepository,
 } from '../../../src';
 import { PipelinesRepository } from '../../../src';
-import PipelineFactory from '../../../src/factories/pipeline-factory';
 import { InMemoryRepository } from '../../../src/test/in-memory-repository';
 import {
   WorkflowJobJsonResponse,

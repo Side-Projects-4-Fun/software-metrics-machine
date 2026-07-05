@@ -5,13 +5,11 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   CodeMaatMetricsCsvRepository,
   CodeMaatMetricsSqliteRepository,
-} from '../../src/aggregates/codemaat-metrics-repository';
-import { CodemaatFactory } from '../../src/aggregates/codemaat-factory';
-import {
   CodemaatFetchCsvRepository,
   CodemaatFetchSqliteRepository,
-} from '../../src/providers/codemaat/codemaat-fetch-repository';
-import { Configuration } from '../../src/infrastructure/configuration';
+  Configuration,
+  CodemaatFactory,
+} from '../../src';
 import { MockLoggerBuilder } from '../mock-logger-builder';
 
 describe('CodeMaatMetricsRepository', () => {
@@ -160,9 +158,7 @@ describe('CodeMaatMetricsRepository', () => {
     try {
       writeFileSync(
         path.join(codemaatDir, 'abs-churn.csv'),
-        ['date,added,deleted,commits', '2026-01-04,10,1,1', '2026-01-05,20,2,2'].join(
-          '\n'
-        )
+        ['date,added,deleted,commits', '2026-01-04,10,1,1', '2026-01-05,20,2,2'].join('\n')
       );
       writeFileSync(
         path.join(codemaatDir, 'coupling.csv'),

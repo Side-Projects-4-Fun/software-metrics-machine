@@ -2,8 +2,8 @@ import { mkdirSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
-import { Configuration } from '../src/infrastructure/configuration';
-import { BigOService } from '../src/domain/code/big-o-service';
+import { Configuration } from '../src';
+import { BigOService } from '../src';
 
 describe('BigOService', () => {
   function createRepository(files: Record<string, string>) {

@@ -3,9 +3,9 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { PairingFactory } from '../../src/aggregates/pairing-factory';
 import { Configuration } from '../../src/infrastructure';
 import { TimeZoneProvider } from '../../src/infrastructure/timezone-provider';
+import { PairingFactory } from '../../src';
 
 describe('PairingFactory', () => {
   const logger = new Logger('PairingFactoryTest', 'CRITICAL');
@@ -31,11 +31,7 @@ describe('PairingFactory', () => {
   }
 
   it('creates a pairing service backed by JSON storage when storage type is json', async () => {
-    const service = PairingFactory.create(
-      createConfiguration('json'),
-      logger,
-      timeZoneProvider
-    );
+    const service = PairingFactory.create(createConfiguration('json'), logger, timeZoneProvider);
 
     await expect(service.getPairingIndex()).resolves.toMatchObject({
       pairingIndexPercentage: 0,
@@ -45,11 +41,7 @@ describe('PairingFactory', () => {
   });
 
   it('creates a pairing service backed by SQLite storage when storage type is sqlite', async () => {
-    const service = PairingFactory.create(
-      createConfiguration('sqlite'),
-      logger,
-      timeZoneProvider
-    );
+    const service = PairingFactory.create(createConfiguration('sqlite'), logger, timeZoneProvider);
 
     await expect(service.getPairingIndex()).resolves.toMatchObject({
       pairingIndexPercentage: 0,
