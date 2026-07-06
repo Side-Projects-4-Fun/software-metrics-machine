@@ -115,9 +115,9 @@ jobs:
         run: pnpm install
 
       - name: Install bashunit
-        working-directory: apps/cli/lib
+        working-directory: apps/cli
         run: |
-          mkdir lib
+          mkdir -p lib
           curl -s https://bashunit.com/install.sh | bash
 
       - name: Run CLI bashunit e2e tests
