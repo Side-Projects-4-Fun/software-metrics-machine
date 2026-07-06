@@ -87,9 +87,38 @@ jobs:
       - name: Run tests
         run: pnpm run test
 
+  cli-acceptance:
+    name: CLI Acceptance
+    runs-on: ubuntu-latest
+    needs: [build-typescript, test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set Environment Variables
+        uses: tw3lveparsecs/github-actions-setvars@v0.2
+        with:
+          envFilePath: ./envvars.for.actions
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Install bashunit
         working-directory: apps/cli/lib
-        run: curl -s https://bashunit.com/install.sh | bash
+        run: |
+          mkdir lib
+          curl -s https://bashunit.com/install.sh | bash
 
       - name: Run CLI bashunit e2e tests
         run: cd apps/cli && pnpm run test:e2e
