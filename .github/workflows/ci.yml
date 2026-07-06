@@ -24,7 +24,7 @@ jobs:
           envFilePath: ./envvars.for.actions
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
 
@@ -71,7 +71,7 @@ jobs:
           envFilePath: ./envvars.for.actions
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
 
@@ -101,7 +101,7 @@ jobs:
           envFilePath: ./envvars.for.actions
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
 
@@ -137,7 +137,7 @@ jobs:
           envFilePath: ./envvars.for.actions
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
 
