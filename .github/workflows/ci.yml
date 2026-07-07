@@ -169,7 +169,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SMM_STORE_DATA_AT: /home/runner/work/software-metrics-machine/software-metrics-machine/docs/project-example
-        run: ./scripts/simulate-and-test-publish.sh true
+        run: ./scripts/simulate-and-test-publish.sh build
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
