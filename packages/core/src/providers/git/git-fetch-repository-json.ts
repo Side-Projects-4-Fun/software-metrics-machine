@@ -12,6 +12,7 @@ export class GitFetchRepository {
   async fetchCommits(options?: {
     startDate?: string;
     endDate?: string;
+    selectedAuthors?: string[];
     forceRefresh?: boolean;
     maxBuffer?: number;
   }): Promise<Commit[]> {
@@ -26,6 +27,7 @@ export class GitFetchRepository {
     const result = await this.commitTraverser.traverseCommits({
       startDate: options?.startDate,
       endDate: options?.endDate,
+      selectedAuthors: options?.selectedAuthors,
       maxBuffer: options?.maxBuffer,
     });
 

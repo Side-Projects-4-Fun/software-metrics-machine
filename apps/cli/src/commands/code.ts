@@ -209,6 +209,7 @@ export function createCodeCommands(program: SmmCommand): void {
         const result = await factory.fetchCommits({
           startDate: options.startDate,
           endDate: options.endDate,
+          selectedAuthors: parseAuthors(options.authors),
           forceRefresh: options.force,
           maxBuffer: Number(options.buffer),
         });
@@ -505,4 +506,13 @@ export function createCodeCommands(program: SmmCommand): void {
         process.exit(1);
       }
     });
+}
+
+function parseAuthors(authors?: string): string[] | undefined {
+  const parsed = authors
+    ?.split(',')
+    .map((author) => author.trim())
+    .filter(Boolean);
+
+  return parsed && parsed.length > 0 ? parsed : undefined;
 }

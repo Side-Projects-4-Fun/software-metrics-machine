@@ -48,6 +48,22 @@ describe('GitFetchRepository', () => {
     });
   });
 
+  it('should pass selected authors to traverser when force refreshing', async () => {
+    const { traverseCommits, commitTraverser, commitCache } = createMocks();
+
+    const repository = new GitFetchRepository(commitTraverser, commitCache, logger);
+    await repository.fetchCommits({
+      selectedAuthors: ['Alice', 'Bob'],
+      forceRefresh: true,
+    });
+
+    expect(traverseCommits).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selectedAuthors: ['Alice', 'Bob'],
+      })
+    );
+  });
+
   it('should return cached commits without traversing when cache exists', async () => {
     const cachedCommits: Commit[] = [
       {
