@@ -6,15 +6,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 DOCKER_IMAGE="smm-publish-test:local"
 BUILD_FORCE="false"
-MODE="all"
+MODE="publish"
 
 usage() {
 	echo "Usage: bash scripts/simulate-and-test-publish.sh [build] [cli-e2e|all]"
 	echo
 	echo "Examples:"
+	echo "  bash scripts/simulate-and-test-publish.sh build"
 	echo "  bash scripts/simulate-and-test-publish.sh build cli-e2e"
 	echo "  bash scripts/simulate-and-test-publish.sh cli-e2e build"
 	echo "  bash scripts/simulate-and-test-publish.sh cli-e2e"
+	echo "  bash scripts/simulate-and-test-publish.sh all"
 }
 
 for arg in "$@"; do
@@ -125,14 +127,16 @@ run_cli_e2e_tests() {
 	  -e DEBUG=true \
 		-e NODE_PATH=/usr/local/lib/node_modules \
 		-e SMM_STORE_DATA_AT=/app --rm \
-		-v "$REPO_ROOT/apps/cli/lib/bashunit:/lib/bashunit" \
+		-v "$REPO_ROOT/apps/cli/lib:/cli/lib" \
 		-v "$REPO_ROOT/tmp:/tmp" \
-		-v "$REPO_ROOT/apps/cli/e2e:/e2e" \
+		-v "$REPO_ROOT/apps/cli/e2e:/cli/e2e" \
 		"$DOCKER_IMAGE" \
-		bash -c "/e2e/run.sh"
+		bash -c "/cli/e2e/run.sh"
 }
 
-run_cli_e2e_tests
+if [ "$MODE" = "cli-e2e" ] || [ "$MODE" = "all" ]; then
+	run_cli_e2e_tests
+fi
 
 if [ "$MODE" = "cli-e2e" ]; then
 	exit 0
