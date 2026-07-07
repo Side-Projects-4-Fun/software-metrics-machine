@@ -1,7 +1,11 @@
 #!/usr/bin/env node
+import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
-import { http, HttpResponse } from 'msw';
-import { setupServer } from 'msw/node';
+
+const require = createRequire(import.meta.url);
+const importResolved = async (specifier) => import(pathToFileURL(require.resolve(specifier)).href);
+const { http, HttpResponse } = await importResolved('msw');
+const { setupServer } = await importResolved('msw/node');
 
 const [, , ...cliArgs] = process.argv;
 
@@ -63,6 +67,41 @@ const pullRequests = [
   },
 ];
 
+const pullRequestComments = [
+  {
+    id: 42001,
+    url: 'https://api.github.com/repos/acme/widgets/pulls/comments/42001',
+    pull_request_review_id: 420,
+    pull_request_url: 'https://api.github.com/repos/acme/widgets/pulls/42',
+    body: 'Please add coverage for the checkout metric.',
+    path: 'src/checkout.ts',
+    created_at: '2026-01-02T05:04:05Z',
+    updated_at: '2026-01-02T05:05:05Z',
+    html_url: 'https://github.example/acme/widgets/pull/42#discussion_r42001',
+    user: {
+      login: 'reviewer',
+      id: 2,
+      node_id: 'MDQ6VXNlcjI=',
+      avatar_url: 'https://github.example/images/reviewer.png',
+      gravatar_id: '',
+      url: 'https://github.example/users/reviewer',
+      html_url: 'https://github.example/reviewer',
+      followers_url: 'https://github.example/reviewer/followers',
+      following_url: 'https://github.example/reviewer/following{/other_user}',
+      gists_url: 'https://github.example/reviewer/gists{/gist_id}',
+      starred_url: 'https://github.example/reviewer/starred{/owner}{/repo}',
+      subscriptions_url: 'https://github.example/reviewer/subscriptions',
+      organizations_url: 'https://github.example/reviewer/orgs',
+      repos_url: 'https://github.example/reviewer/repos',
+      events_url: 'https://github.example/reviewer/events{/privacy}',
+      received_events_url: 'https://github.example/reviewer/received_events',
+      type: 'User',
+      user_view_type: 'public',
+      site_admin: false,
+    },
+  },
+];
+
 const server = setupServer(
   http.get('https://api.github.com/repos/acme/widgets/pulls', ({ request }) => {
     const url = new URL(request.url);
@@ -72,6 +111,15 @@ const server = setupServer(
     }
 
     return HttpResponse.json(url.searchParams.get('page') === '1' ? pullRequests : []);
+  }),
+  http.get('https://api.github.com/repos/acme/widgets/pulls/:number/comments', ({ request }) => {
+    const url = new URL(request.url);
+
+    if (process.env.DEBUG) {
+      console.log(`GET ${url.pathname}${url.search}`);
+    }
+
+    return HttpResponse.json(url.searchParams.get('page') === '1' ? pullRequestComments : []);
   })
 );
 

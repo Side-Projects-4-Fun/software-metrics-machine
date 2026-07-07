@@ -2,9 +2,15 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+echo "root dir: $ROOT_DIR"
 TEST_DIR="${ROOT_DIR}/e2e/commands"
+echo "test dir: $TEST_DIR"
 
-export SMM_CLI_BIN="${SMM_CLI_BIN:-${ROOT_DIR}/dist/index.cjs}"
+if command -v smm >/dev/null 2>&1; then
+  export SMM_CLI_BIN="$(command -v smm)"
+else
+  export SMM_CLI_BIN="${SMM_CLI_BIN:-${ROOT_DIR}/dist/index.cjs}"
+fi
 
 if [[ ! -x "${SMM_CLI_BIN}" ]]; then
   echo "CLI binary not found or not executable: ${SMM_CLI_BIN}" >&2

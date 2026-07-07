@@ -5,7 +5,40 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 DOCKER_IMAGE="smm-publish-test:local"
-BUILD_FORCE="${1:-false}"
+BUILD_FORCE="false"
+MODE="all"
+
+usage() {
+	echo "Usage: bash scripts/simulate-and-test-publish.sh [build] [cli-e2e|all]"
+	echo
+	echo "Examples:"
+	echo "  bash scripts/simulate-and-test-publish.sh build cli-e2e"
+	echo "  bash scripts/simulate-and-test-publish.sh cli-e2e build"
+	echo "  bash scripts/simulate-and-test-publish.sh cli-e2e"
+}
+
+for arg in "$@"; do
+	case "$arg" in
+		build|true)
+			BUILD_FORCE="true"
+			;;
+		false)
+			BUILD_FORCE="false"
+			;;
+		cli-e2e|all)
+			MODE="$arg"
+			;;
+		-h|--help)
+			usage
+			exit 0
+			;;
+		*)
+			echo "Error: unknown argument '$arg'."
+			usage
+			exit 1
+			;;
+	esac
+done
 
 if ! command -v pnpm >/dev/null 2>&1; then
 	echo "Error: pnpm is required but was not found in PATH."
@@ -22,34 +55,7 @@ touch "$MARKER_FILE"
 trap 'rm -f "$MARKER_FILE"' EXIT
 
 
-if [ "$BUILD_FORCE" = "true" ]; then
-	echo "Packing @smmachine..."
-	(
-		cd "$REPO_ROOT"
-		pnpm pack
-	)
-
-	PACKED_FILE="$(find "$REPO_ROOT" -maxdepth 1 -type f -name "smmachine-*.tgz" -newer "$MARKER_FILE" -print | tail -n 1)"
-
-	if [ -z "$PACKED_FILE" ] || [ ! -f "$PACKED_FILE" ]; then
-		echo "Error: could not locate generated package tarball in $REPO_ROOT ($PACKED_FILE)"
-		exit 1
-	fi
-
-	PACKED_FILE_RELATIVE="${PACKED_FILE#$REPO_ROOT/}"
-
-	echo "Building Docker image to test tarball install: $PACKED_FILE - docker build context: $REPO_ROOT - docker image: $DOCKER_IMAGE"
-	docker build \
-		--no-cache \
-		--build-arg "PACKED_FILE=$PACKED_FILE_RELATIVE" \
-		-f "$SCRIPT_DIR/Dockerfile.publish-test" \
-		-t "$DOCKER_IMAGE" \
-		"$REPO_ROOT"
-
-	echo "Done. Package install simulation completed via Docker build."
-
-	rm -f "$PACKED_FILE"
-
+prepare_react_fixture() {
 	# clone react, if not already present, to have a real-world codebase to test against
 	if [ ! -d "$REPO_ROOT/tmp/react" ]; then
 		mkdir -p "$REPO_ROOT/tmp"
@@ -80,7 +86,59 @@ if [ "$BUILD_FORCE" = "true" ]; then
 EOF
 )
 	echo "$template" > "$REPO_ROOT/tmp/smm_config.json"
+}
+
+if [ "$BUILD_FORCE" = "true" ]; then
+	echo "Packing @smmachine..."
+	(
+		cd "$REPO_ROOT"
+		pnpm pack
+	)
+
+	PACKED_FILE="$(find "$REPO_ROOT" -maxdepth 1 -type f -name "smmachine-*.tgz" -newer "$MARKER_FILE" -print | tail -n 1)"
+
+	if [ -z "$PACKED_FILE" ] || [ ! -f "$PACKED_FILE" ]; then
+		echo "Error: could not locate generated package tarball in $REPO_ROOT ($PACKED_FILE)"
+		exit 1
+	fi
+
+	PACKED_FILE_RELATIVE="${PACKED_FILE#$REPO_ROOT/}"
+
+	echo "Building Docker image to test tarball install: $PACKED_FILE - docker build context: $REPO_ROOT - docker image: $DOCKER_IMAGE"
+	docker build \
+		--no-cache \
+		--build-arg "PACKED_FILE=$PACKED_FILE_RELATIVE" \
+		-f "$SCRIPT_DIR/Dockerfile.publish-test" \
+		-t "$DOCKER_IMAGE" \
+		"$REPO_ROOT"
+
+	echo "Done. Package install simulation completed via Docker build."
+
+	rm -f "$PACKED_FILE"
 fi
+
+run_cli_e2e_tests() {
+	mkdir -p "$REPO_ROOT/tmp"
+
+	echo "Running CLI bashunit e2e tests in Docker image: $DOCKER_IMAGE"
+	docker run \
+	  -e DEBUG=true \
+		-e NODE_PATH=/usr/local/lib/node_modules \
+		-e SMM_STORE_DATA_AT=/app --rm \
+		-v "$REPO_ROOT/apps/cli/lib/bashunit:/lib/bashunit" \
+		-v "$REPO_ROOT/tmp:/tmp" \
+		-v "$REPO_ROOT/apps/cli/e2e:/e2e" \
+		"$DOCKER_IMAGE" \
+		bash -c "/e2e/run.sh"
+}
+
+run_cli_e2e_tests
+
+if [ "$MODE" = "cli-e2e" ]; then
+	exit 0
+fi
+
+prepare_react_fixture
 
 docker run -v "$REPO_ROOT/tmp:/app" -e DEBUG=true \
 	-e SMM_STORE_DATA_AT=/app --rm $DOCKER_IMAGE \

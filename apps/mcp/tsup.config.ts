@@ -6,12 +6,14 @@ export default defineConfig({
     bin: 'src/bin.ts',
   },
   format: ['cjs'],
-  target: 'node20',
+  target: 'node25',
   platform: 'node',
   outDir: 'dist',
   sourcemap: true,
   clean: true,
   dts: true,
+  external: ['node:sqlite'],
+  removeNodeProtocol: false,
   noExternal: ['@smmachine/core', '@smmachine/utils'],
   outExtension() {
     return {

@@ -15,3 +15,5 @@ export {
 } from './big-o/big-o-service';
 
 export * from './codemaat/index';
+
+export * from './git/git-factory';

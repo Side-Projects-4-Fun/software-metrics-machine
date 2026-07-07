@@ -1,0 +1,14 @@
+.git
+.turbo
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+docs/vitepress/node_modules
+dist
+apps/*/dist
+packages/*/dist
+apps/cli/lib/bashunit
+tmp
+docker
+.next
+apps/webapp/.next
