@@ -1,0 +1,4 @@
+interface:
+  display_name: "Update VitePress Docs"
+  short_description: "Keep CLI and dashboard docs aligned."
+  default_prompt: "Use $update-vitepress-docs to update SMM VitePress docs while keeping CLI examples and dashboard views aligned."
