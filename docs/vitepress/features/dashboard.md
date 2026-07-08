@@ -20,6 +20,7 @@ The dashboard is split into these tabs:
 - **Pipelines**: workflow run duration, job duration, job status, reruns, and job step analysis.
 - **Pull Requests**: review time, comment activity, PR throughput, themes, and PR statistics.
 - **Source Code**: churn, effort, ownership, coupling, pairing, paired commits, and Big O classification.
+- **Architecture**: C4-style diagrams, elements, and relationships from generated architecture snapshots.
 - **SonarQube**: quality ratings, measurements, component metrics, and historical trends.
 
 The current tab keeps the active query-string filters when you move between dashboard sections.

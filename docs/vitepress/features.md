@@ -46,6 +46,7 @@ Main command groups:
 - `smm prs`
 - `smm pipelines`
 - `smm code`
+- `smm architecture`
 - `smm jira`
 - `smm sonarqube`
 - `smm dashboard`
@@ -73,6 +74,7 @@ Each feature has its own page:
 - [Insights](./features/insights.md)
 - [Dashboard](./features/dashboard.md)
 - [Source Code](./features/code.md)
+- [Architecture](./features/architecture.md)
 - [Pull Requests](./features/prs.md)
 - [Pipelines](./features/pipelines.md)
 - [Configuration](./features/configuration.md)

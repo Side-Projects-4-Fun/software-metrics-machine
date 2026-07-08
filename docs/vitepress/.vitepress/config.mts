@@ -77,6 +77,7 @@ export default withMermaid(
             { text: 'Pull requests', link: '/features/prs' },
             { text: 'Pipelines', link: '/features/pipelines' },
             { text: 'Source code', link: '/features/code' },
+            { text: 'Architecture', link: '/features/architecture' },
             { text: 'SonarQube', link: '/sonarqube' },
             { text: 'REST API', link: '/rest-api' },
             { text: 'MCP server', link: '/mcp' },
