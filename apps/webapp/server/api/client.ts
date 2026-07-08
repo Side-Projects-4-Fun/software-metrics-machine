@@ -9,6 +9,22 @@ export interface ApiParams {
   [key: string]: string | number | undefined;
 }
 
+type WebappSettings = {
+  fetchCache?: boolean;
+};
+
+function parseWebappSettings(value?: string): WebappSettings {
+  if (!value) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(decodeURIComponent(value)) as WebappSettings;
+  } catch {
+    return {};
+  }
+}
+
 export async function fetchAPI<T>(endpoint: string, params?: ApiParams): Promise<T> {
   const { smmRestBaseUrl } = getServerEnv();
   const apiBaseUrl = `${smmRestBaseUrl}/api/v1`;
@@ -29,11 +45,17 @@ export async function fetchAPI<T>(endpoint: string, params?: ApiParams): Promise
     });
   }
 
+  const webappSettings = parseWebappSettings(cookieStore.get('smm_webapp_settings')?.value);
+  const fetchCacheMode =
+    webappSettings.fetchCache === true
+      ? 'force-cache'
+      : 'no-store';
+
   const response = await fetch(url.toString(), {
     headers: {
       'Content-Type': 'application/json',
     },
-    cache: 'no-store',
+    cache: fetchCacheMode,
   });
 
   if (!response.ok) {

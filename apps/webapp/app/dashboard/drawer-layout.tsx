@@ -14,6 +14,7 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import Print from '@mui/icons-material/Print';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import SettingsIcon from '@mui/icons-material/Settings';
 import Link from 'next/link';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -172,6 +173,16 @@ export default function DrawerLayout({
               sx={{ ml: 1 }}
             >
               <MenuBookIcon />
+            </IconButton>
+            <IconButton
+              color="inherit"
+              aria-label="open settings"
+              component={Link}
+              href="/dashboard/settings"
+              edge="end"
+              sx={{ ml: 1 }}
+            >
+              <SettingsIcon />
             </IconButton>
             <IconButton
               color="inherit"
