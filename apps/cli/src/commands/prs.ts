@@ -10,10 +10,10 @@ import {
   PRSummary,
   PRsService,
   PullRequestFactory,
-  PullRequestsRepository,
+  IReadPullRequestsRepository,
 } from '@smmachine/core';
 
-function createPRsOrchestratorRead(command: SmmCommand): PullRequestsRepository {
+function createPRsOrchestratorRead(command: SmmCommand): IReadPullRequestsRepository {
   const config = command.getConfiguration();
   return PullRequestFactory.create(
     config,

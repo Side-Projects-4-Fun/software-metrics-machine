@@ -1,6 +1,10 @@
 import { Configuration, IRepository, RepositoryFactory } from '../../../infrastructure';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
-import { PullRequestsRepository } from '../repositories/pull-requests-repository-json';
+import {
+  IReadPullRequestsRepository,
+  PullRequestsRepository,
+} from '../repositories/pull-requests-repository-json';
+import { PullRequestsSqliteRepository } from '../repositories/pull-requests-repository-sqlite';
 import {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
@@ -16,7 +20,11 @@ export class PullRequestFactory {
     config: Configuration,
     logger: Logger,
     timeZoneProvider: TimeZoneProvider
-  ): PullRequestsRepository {
+  ): IReadPullRequestsRepository {
+    if (config.internal?.storageType === 'sqlite') {
+      return new PullRequestsSqliteRepository(config, timeZoneProvider);
+    }
+
     const repositories = this.createRepositories(config, logger);
     return new PullRequestsRepository(
       repositories.pullRequestsJsonRepository,
