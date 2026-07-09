@@ -30,6 +30,7 @@ const CATEGORIES: MetricCategory[] = [
       { key: 'ownership', definition: METRIC_TARGETS['ownership'] },
       { key: 'code-coupling', definition: METRIC_TARGETS['code-coupling'] },
       { key: 'big-o-classification', definition: METRIC_TARGETS['big-o-classification'] },
+      { key: 'crap-score', definition: METRIC_TARGETS['crap-score'] },
     ],
   },
   {

@@ -1,16 +1,20 @@
 import { defaultFilters, parseDashboardFilters } from "@/components/filters/DashboardFilters";
-import { sourceCodeAPI } from '@/server/api';
-import { buildSourceCodeApiParams } from '@/server/utils/apiParams';
+import { sonarqubeAPI, sourceCodeAPI } from '@/server/api';
+import type { SonarqubeComponentMeasure } from '@/server/api/sonarqube';
+import { buildSonarqubeApiParams, buildSourceCodeApiParams } from '@/server/utils/apiParams';
 import { ensureArray } from '@/server/utils/chartData';
 import EntityChurnCard from '@/components/charts/source-code/EntityChurnCard';
 import EntityEffortCard from '@/components/charts/source-code/EntityEffortCard';
 import CodeChurnOverTimeCard from '@/components/charts/source-code/CodeChurnOverTimeCard';
 import EntityOwnershipCard from '@/components/charts/source-code/EntityOwnershipCard';
 import CodeCouplingCard from '@/components/charts/source-code/CodeCouplingCard';
+import CrapMetricCard from '@/components/charts/source-code/CrapMetricCard';
+import { calculateCrapScore } from '@/components/charts/source-code/crap-metric';
 import EntityEffortTreemap from '@/components/entity-effort-treemap';
 import {
   CodeChurnData,
   CouplingData,
+  CrapMetricData,
   EntityChurnData,
   EntityEffortData,
   EntityOwnershipData,
@@ -45,6 +49,37 @@ function unwrapResult<T>(data: T | ResultWrapper<T>): T {
   return data;
 }
 
+function metricValue(
+  measures: SonarqubeComponentMeasure['measures'] = [],
+  metric: string,
+): number {
+  const measure = measures.find(
+    (item) => item.key === metric || item.metric === metric || item.name === metric,
+  );
+  const numeric = Number(measure?.value ?? 0);
+
+  return Number.isFinite(numeric) ? numeric : 0;
+}
+
+function isFileComponent(component: SonarqubeComponentMeasure): boolean {
+  const componentType = component.type || component.qualifier;
+
+  return !componentType || componentType === 'FIL';
+}
+
+function toCrapMetricData(component: SonarqubeComponentMeasure): CrapMetricData {
+  const complexity = metricValue(component.measures, 'complexity');
+  const coverage = metricValue(component.measures, 'coverage');
+
+  return {
+    componentKey: component.key,
+    name: component.name || component.key,
+    complexity,
+    coverage,
+    crap: calculateCrapScore(complexity, coverage),
+  };
+}
+
 export default async function SourceCodePage({
   searchParams,
 }: {
@@ -59,6 +94,7 @@ export default async function SourceCodePage({
   let entityEffort: EntityEffortData[] = [];
   let codeChurn: CodeChurnData[] = [];
   let entityOwnership: EntityOwnershipData[] = [];
+  let crapMetrics: CrapMetricData[] = [];
   let bigOFiles: BigOFileSummaryResponse[] = [];
   let topPairings: Array<{ author: string; co_author: string; paired_commits: number }> = [];
   let latestPairedCommits: Array<{
@@ -71,7 +107,12 @@ export default async function SourceCodePage({
 
   try {
     const apiParams = buildSourceCodeApiParams(filters);
-    const [churn, couplingData, effort, churnOverTime, ownership, pairing, bigO] = await Promise.all([
+    const sonarqubeParams = {
+      ...buildSonarqubeApiParams(filters),
+      metrics: 'complexity,coverage',
+      remove_folders: 'true',
+    };
+    const [churn, couplingData, effort, churnOverTime, ownership, pairing, bigO, sonarqubeTree] = await Promise.all([
       sourceCodeAPI.entityChurn(apiParams),
       sourceCodeAPI.coupling(apiParams),
       sourceCodeAPI.entityEffort(apiParams),
@@ -79,6 +120,7 @@ export default async function SourceCodePage({
       sourceCodeAPI.entityOwnership(apiParams),
       sourceCodeAPI.pairingIndex(apiParams),
       sourceCodeAPI.bigOFiles({ ...apiParams, search: bigOSearch, limit: 200 }),
+      sonarqubeAPI.componentTree(sonarqubeParams),
     ]);
     // Handle both direct array responses and wrapped responses
     entityChurn = ensureArray<EntityChurnData>(unwrapResult(churn as EntityChurnData[] | ResultWrapper<EntityChurnData[]>));
@@ -87,6 +129,12 @@ export default async function SourceCodePage({
     codeChurn = ensureArray<CodeChurnData>(unwrapResult(churnOverTime as CodeChurnData[] | ResultWrapper<CodeChurnData[]>));
     entityOwnership = ensureArray<EntityOwnershipData>(unwrapResult(ownership as EntityOwnershipData[] | ResultWrapper<EntityOwnershipData[]>));
     bigOFiles = ensureArray<BigOFileSummaryResponse>(unwrapResult(bigO as BigOFileSummaryResponse[] | ResultWrapper<BigOFileSummaryResponse[]>));
+    crapMetrics = ensureArray<SonarqubeComponentMeasure>(
+      unwrapResult(sonarqubeTree as SonarqubeComponentMeasure[] | ResultWrapper<SonarqubeComponentMeasure[]>)
+    )
+      .filter(isFileComponent)
+      .map(toCrapMetricData)
+      .filter((item) => item.complexity > 0);
     const pairingData = unwrapResult(pairing as PairingIndexResponse | ResultWrapper<PairingIndexResponse>);
     topPairings = Array.isArray(pairingData?.top_pairs) ? pairingData.top_pairs.slice(0, 10) : [];
     latestPairedCommits = Array.isArray(pairingData?.latest_paired_commits)
@@ -100,6 +148,7 @@ export default async function SourceCodePage({
     entityEffort = [];
     codeChurn = [];
     entityOwnership = [];
+    crapMetrics = [];
     bigOFiles = [];
     topPairings = [];
     latestPairedCommits = [];
@@ -109,6 +158,10 @@ export default async function SourceCodePage({
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6">
         <BigOAnalysisCard files={bigOFiles} search={bigOSearch} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        <CrapMetricCard data={crapMetrics} topEntries={filters.topEntries} />
       </div>
 
       <div className="grid grid-cols-1 gap-6">

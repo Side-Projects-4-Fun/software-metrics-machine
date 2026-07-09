@@ -333,6 +333,25 @@ export const METRIC_TARGETS: Record<string, TargetDefinition> = {
       },
     ],
   },
+  'crap-score': {
+    target: '<= 30',
+    description:
+      'CRAP combines cyclomatic complexity and test coverage: complexity squared is penalized when coverage is low, so complex untested files rise to the top.',
+    sources: [
+      {
+        label: 'Alberto Savoia — The CRAP metric',
+        url: 'https://www.artima.com/weblogs/viewpost.jsp?thread=215899',
+      },
+      {
+        label: 'CRAP4J — Change Risk Analysis and Predictions',
+        url: 'https://www.crap4j.org/',
+      },
+      {
+        label: 'McCabe (1976) — IEEE TSE "A Complexity Measure"',
+        url: 'https://doi.org/10.1109/TSE.1976.233837',
+      },
+    ],
+  },
   'sonarqube-reliability': {
     target: 'A (Rating 1)',
     description:

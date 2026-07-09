@@ -29,3 +29,11 @@ export interface EntityOwnershipData {
   added: number;
   deleted: number;
 }
+
+export interface CrapMetricData {
+  componentKey: string;
+  name: string;
+  complexity: number;
+  coverage: number;
+  crap: number;
+}
