@@ -209,6 +209,7 @@ function getJsonToSqliteMigrationStores(config: Configuration): MigrationStore[]
   const providerPath = config.getPathFromGitProvider();
   const gitPath = config.getGitPath();
   const jiraPath = config.getJiraPath();
+  const architecturePath = config.getArchitecturePath();
   const sonarqubePath = config.getSonarqubePath();
 
   return [
@@ -253,6 +254,11 @@ function getJsonToSqliteMigrationStores(config: Configuration): MigrationStore[]
       label: 'jira issues',
       filePath: `${jiraPath}/issues.json`,
       mode: 'array',
+    },
+    {
+      label: 'architecture snapshots',
+      filePath: `${architecturePath}/snapshots.json`,
+      mode: 'singleton',
     },
     {
       label: 'sonarqube measures',

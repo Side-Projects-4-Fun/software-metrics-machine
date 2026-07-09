@@ -28,6 +28,7 @@ function test_tools_migrate_json_to_sqlite_persists_existing_json_stores() {
   local github_dir
   local git_dir
   local jira_dir
+  local architecture_dir
   local sqlite_db
 
   workspace="$(create_smm_e2e_workspace)"
@@ -35,9 +36,10 @@ function test_tools_migrate_json_to_sqlite_persists_existing_json_stores() {
   github_dir="${project_dir}/github"
   git_dir="${project_dir}/git"
   jira_dir="${project_dir}/jira"
+  architecture_dir="${project_dir}/architecture"
   sqlite_db="${project_dir}/smm.sqlite"
 
-  mkdir -p "${github_dir}" "${git_dir}" "${jira_dir}"
+  mkdir -p "${github_dir}" "${git_dir}" "${jira_dir}" "${architecture_dir}"
 
   cat >"${github_dir}/prs.json" <<'JSON'
 [
@@ -110,6 +112,19 @@ JSON
 ]
 JSON
 
+  cat >"${architecture_dir}/snapshots.json" <<'JSON'
+[
+  {
+    "snapshotId": "snap-1",
+    "project": "acme/widgets",
+    "generatedAt": "2026-01-15T10:00:00Z",
+    "commitCount": 42,
+    "availableViews": ["context", "container"],
+    "views": []
+  }
+]
+JSON
+
   export SMM_STORE_DATA_AT="${workspace}"
 
   run_smm tools migrate --from json --to sqlite
@@ -123,7 +138,8 @@ JSON
   assert_smm_output_contains "Migrated pull request filter options: 1 record"
   assert_smm_output_contains "Migrated commits: 1 records"
   assert_smm_output_contains "Migrated jira issues: 1 records"
-  assert_smm_output_contains "Migration complete: 6 records across 5 stores"
+  assert_smm_output_contains "Migrated architecture snapshots: 1 record"
+  assert_smm_output_contains "Migration complete: 7 records across 6 stores"
   assert_smm_file_exists "${sqlite_db}"
 
   assert_smm_equals "2" "$(sqlite_scalar "${sqlite_db}" "SELECT COUNT(*) FROM pull_requests WHERE namespace = ?" "github/prs.json")"
@@ -136,4 +152,6 @@ JSON
   assert_smm_equals "alice" "$(sqlite_scalar "${sqlite_db}" "SELECT json_extract(payload, '$.authors[0]') FROM repository_records WHERE namespace = ?" "github/pull-request-filter-options.json")"
   assert_smm_equals "1" "$(sqlite_scalar "${sqlite_db}" "SELECT COUNT(*) FROM repository_records WHERE namespace = ?" "jira/issues.json")"
   assert_smm_equals "KAN-123" "$(sqlite_scalar "${sqlite_db}" "SELECT json_extract(payload, '$.id') FROM repository_records WHERE namespace = ?" "jira/issues.json")"
+  assert_smm_equals "1" "$(sqlite_scalar "${sqlite_db}" "SELECT COUNT(*) FROM repository_records WHERE namespace = ? AND record_key = ?" "architecture/snapshots.json" "__singleton__")"
+  assert_smm_equals "snap-1" "$(sqlite_scalar "${sqlite_db}" "SELECT json_extract(payload, '$[0].snapshotId') FROM repository_records WHERE namespace = ?" "architecture/snapshots.json")"
 }
