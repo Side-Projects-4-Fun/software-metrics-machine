@@ -63,7 +63,7 @@ catalog:
   tsup: ^8.5.1
   tsx: ^4.23.0
   turbo: ^2.10.4
-  typescript: ^7.0.2
+  typescript: ^6.0.3
   vitepress: ^1.6.4
   vitepress-plugin-mermaid: ^2.0.17
   vitepress-plugin-tabs: ^0.7.3
