@@ -4,8 +4,7 @@ outline: deep
 
 # Getting started
 
-This section provides the needed configuration to get started with Metrics machine, it requires knowledge of env variables
-and python ecosystem tools.
+This section provides the required configuration to get started with Software Metrics Machine.
 
 ## The concepts behind Software Metrics Machine
 
@@ -20,7 +19,8 @@ The way this project works goes through three main steps:
 ### Environment requirements
 
 * Node.js 25+
-* java (for running source code analysis)
+* Java (for running source code analysis)
+* Python 3.10+ and Poetry (only if you run the legacy Python implementation directly)
 
 ### Via npm
 
@@ -102,7 +102,7 @@ pick a provider and start fetching data. Proceed to [your first analysis with Gi
 > Using docker is optional, it requires extra knowledge of docker commands and docker installation.
 >
 
-This project provides a docker image to run the commands without the need to instal the python environment locally. To build the
+This project provides a docker image to run the commands without the need to install the development environment locally. To build the
 docker image, run the following command in the root of the cloned repository:
 
 ```bash

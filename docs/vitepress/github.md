@@ -9,8 +9,8 @@ workflows (pipelines). It leverages the GitHub REST API to gather the necessary 
 tools to visualize and analyze the data.
 
 > [!IMPORTANT]
-> Before following the steps below, make sure you have followed the [Getting Started](./getting-started.md) guide to set up
-> the project and have Python, Poetry and Java installed.
+> Before following the steps below, make sure you have followed the [Getting Started](./getting-started.md) guide and completed
+> the environment requirements listed there.
 
 You should expect to have the dashboard and the CLI up and running in a few minutes after following the steps below. The
 steps that follows are organized as follows.
@@ -31,7 +31,7 @@ Follow these steps:
    - `workflow` (for accessing GitHub Actions workflows)
    - `pull requests` (for accessing pull request data)
 4. Generate the token and copy it. Make sure to store it securely, as you won't be able to see it again.
-5. Store it in the configuration file [smm_config.json](./getting-started.md#configuration-options) under the key `github_token`, or use the project-specific token environment variable documented in [Configuration](./features/configuration.md#project-specific-environment-variables).
+5. Store it in the configuration file `smm_config.json` under the key `github_token`, or use the project-specific token environment variable documented in [Configuration](./features/configuration.md#project-specific-environment-variables).
 
 ### Check token is working
 

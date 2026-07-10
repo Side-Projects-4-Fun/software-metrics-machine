@@ -2,7 +2,7 @@
 outline: deep
 ---
 
-# Your first analysis with Github and Github Actions
+# Your first analysis with GitHub and GitHub Actions
 
 This guide will walk you through the steps to perform your first analysis using Software Metrics Machine. By the end of
 this guide, you will have fetched data from a GitHub repository and visualized key metrics to gain insights into your
@@ -14,8 +14,8 @@ software development process.
 ## The project
 
 For this first analysis, we will be using a sample GitHub repository that contains a variety of pull requests and
-workflows. You can use your own repository if you prefer. We wil be using the [vuejs repositoy](https://github.com/vuejs/vue)
-as it is a heavy active open source project so that you can see most of the features of the tool.
+workflows. You can use your own repository if you prefer. We will be using the [vuejs repository](https://github.com/vuejs/vue)
+as it is a heavily active open source project so that you can see most of the features of the tool.
 
 ## Setting up the environment
 
@@ -28,7 +28,7 @@ git clone https://github.com/vuejs/vue
 Once done, note the path where you cloned the repository, as you will need it.
 
 > [!NOTE]
-> Closning the repository is used to fetch git history data with [codemaat](codemaat.md) tool, if you only want to fetch
+> Cloning the repository is used to fetch git history data with [codemaat](codemaat.md) tool, if you only want to fetch
 > data from GitHub API you can skip this step.
 
 ## SMM Configuration file
@@ -113,7 +113,7 @@ pull requests may take a while and could hit GitHub API rate limits.
 Pipelines are associated with jobs, to fetch the jobs associated with the fetched pipelines, run the following command:
 
 ```bash
-smm pipelines jobs-fetch --start-date 2025-01-01 --end-date 2025-12-10
+smm pipelines fetch-jobs --start-date 2025-01-01 --end-date 2025-12-10
 ```
 
 Like the pull request comments, the jobs fetched are based in the pipelines already fetched, so ensure you run the

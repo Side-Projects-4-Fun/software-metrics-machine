@@ -9,8 +9,8 @@ which is a tool to extract and analyze data from version control systems. It is 
 locally to be able to extract the data.
 
 > [!IMPORTANT]
-> Before following the steps below, make sure you have followed the [Getting Started](./getting-started.md) guide to set up
-> the project and have Python, Poetry and Java installed.
+> Before following the steps below, make sure you have followed the [Getting Started](./getting-started.md) guide and completed
+> the environment requirements listed there.
 
 ## Fetching data
 
