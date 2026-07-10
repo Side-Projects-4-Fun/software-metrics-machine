@@ -120,6 +120,8 @@ export function createToolsCommands(program: SmmCommand): void {
           const stores = getJsonToSqliteMigrationStores(config);
           const sqliteDbPath = RepositoryFactory.getSqliteDatabasePath(config);
           const projectLabel = config.githubRepository || config.getBaseDirectory();
+          let projectMigratedStores = 0;
+          let projectMigratedRecords = 0;
 
           screen.printLine(`\n📦 Project: ${projectLabel}`);
           screen.printLine(`   SQLite database: ${sqliteDbPath}`);
@@ -145,6 +147,7 @@ export function createToolsCommands(program: SmmCommand): void {
               const items = await source.loadAll();
               await target.saveAll(items);
               migratedRecords += items.length;
+              projectMigratedRecords += items.length;
               screen.printLine(`  ✅ Migrated ${store.label}: ${items.length} records`);
             } else {
               const item = await source.load();
@@ -155,10 +158,12 @@ export function createToolsCommands(program: SmmCommand): void {
 
               await target.save(item);
               migratedRecords += 1;
+              projectMigratedRecords += 1;
               screen.printLine(`  ✅ Migrated ${store.label}: 1 record`);
             }
 
             migratedStores += 1;
+            projectMigratedStores += 1;
           }
 
           removeLegacyPipelineSqliteNamespaces(config, sqliteDbPath);
@@ -170,12 +175,22 @@ export function createToolsCommands(program: SmmCommand): void {
           );
           const codemaatPersistence = await codemaatRepository.persistFetchedMetrics();
           migratedRecords += codemaatPersistence.records;
+          projectMigratedRecords += codemaatPersistence.records;
           if (codemaatPersistence.records > 0) {
             migratedStores += 1;
+            projectMigratedStores += 1;
           }
           screen.printLine(
             `  ✅ Migrated CodeMaat metrics: ${codemaatPersistence.records} records`
           );
+
+          appendMigrationMetadataRecord(sqliteDbPath, {
+            projectLabel,
+            from: options.from,
+            to: options.to,
+            migratedStores: projectMigratedStores,
+            migratedRecords: projectMigratedRecords,
+          });
         }
 
         const updatedProjects = persistStorageTypeMigration(command, configs, logger);
@@ -194,6 +209,45 @@ export function createToolsCommands(program: SmmCommand): void {
         process.exit(1);
       }
     });
+}
+
+function appendMigrationMetadataRecord(
+  sqliteDbPath: string,
+  metadata: {
+    projectLabel: string;
+    from: string;
+    to: string;
+    migratedStores: number;
+    migratedRecords: number;
+  }
+): void {
+  const db = new DatabaseSync(sqliteDbPath);
+  try {
+    const recordTimestamp = new Date().toISOString();
+    const recordKey = `${metadata.projectLabel}:${recordTimestamp}`;
+
+    db.prepare(
+      `INSERT OR REPLACE INTO repository_records
+        (namespace, record_key, payload, position, updated_at)
+       VALUES (?, ?, ?, ?, ?)`
+    ).run(
+      '__migration_metadata__',
+      recordKey,
+      JSON.stringify({
+        version: 1,
+        from: metadata.from,
+        to: metadata.to,
+        project: metadata.projectLabel,
+        migratedStores: metadata.migratedStores,
+        migratedRecords: metadata.migratedRecords,
+        migratedAt: recordTimestamp,
+      }),
+      Date.now(),
+      recordTimestamp
+    );
+  } finally {
+    db.close();
+  }
 }
 
 function persistStorageTypeMigration(
