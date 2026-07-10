@@ -269,6 +269,95 @@ describe('PipelinesSqliteRepository loadPipelines', () => {
     ]);
   });
 
+  it('loads only jobs for selected runs to avoid deserializing unrelated payloads', async () => {
+    const config = createConfiguration();
+    const runs = [
+      new PipelineGitHubRunBuilder()
+        .id('run-1')
+        .number('1')
+        .name('CI')
+        .status('completed')
+        .conclusion('success')
+        .createdAt('2026-05-10T00:00:00Z')
+        .updatedAt('2026-05-10T00:05:00Z')
+        .startedAt('2026-05-10T00:00:00Z')
+        .branch('main')
+        .path('.github/workflows/ci.yml')
+        .build(),
+      new PipelineGitHubRunBuilder()
+        .id('run-2')
+        .number('2')
+        .name('CD')
+        .status('completed')
+        .conclusion('success')
+        .createdAt('2026-05-11T00:00:00Z')
+        .updatedAt('2026-05-11T00:05:00Z')
+        .startedAt('2026-05-11T00:00:00Z')
+        .branch('main')
+        .path('.github/workflows/cd.yml')
+        .build(),
+    ];
+    const jobs = [
+      new PipelineGitHubJobBuilder()
+        .id('job-1')
+        .runId('run-1')
+        .name('build')
+        .status('completed')
+        .conclusion('success')
+        .startedAt('2026-05-10T00:01:00Z')
+        .completedAt('2026-05-10T00:03:00Z')
+        .build(),
+    ];
+
+    await new SqliteRepository<WorkflowJsonResponse>(
+      RepositoryFactory.getSqliteDatabasePath(config),
+      RepositoryFactory.getPipelineRunsSqliteNamespace(config),
+      logger
+    ).saveAll(runs);
+    await new SqliteRepository<WorkflowJobJsonResponse>(
+      RepositoryFactory.getSqliteDatabasePath(config),
+      RepositoryFactory.getPipelineJobsSqliteNamespace(config),
+      logger
+    ).saveAll(jobs);
+
+    const db = new DatabaseSync(RepositoryFactory.getSqliteDatabasePath(config));
+    try {
+      db.prepare(
+        `INSERT INTO workflow_jobs
+          (
+            namespace, id, run_id, name, status, conclusion, started_at,
+            completed_at, payload, position, stored_at
+          )
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(
+        RepositoryFactory.getPipelineJobsSqliteNamespace(config),
+        'poison-job',
+        'run-2',
+        'deploy',
+        'completed',
+        'failure',
+        '2026-05-11T00:01:00Z',
+        '2026-05-11T00:02:00Z',
+        '{not-valid-json',
+        100,
+        '2026-05-11T00:02:00Z'
+      );
+    } finally {
+      db.close();
+    }
+
+    const repository = new PipelinesSqliteRepository(config, logger, timeZoneProvider);
+    const loadedRuns = await repository.loadPipelines({
+      includeJobs: true,
+      workflowPath: '.github/workflows/ci.yml',
+    });
+
+    expect(loadedRuns).toHaveLength(1);
+    expect(loadedRuns[0].id).toBe('run-1');
+    expect(loadedRuns[0].jobs).toHaveLength(1);
+    expect(loadedRuns[0].jobs?.[0].id).toBe('job-1');
+  });
+
   it('creates the SQLite pipeline repository when storage type is sqlite', () => {
     const config = createConfiguration();
     config.githubToken = 'token';

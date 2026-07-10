@@ -29,6 +29,12 @@ type PayloadQuery = {
   params: SqlValue[];
 };
 
+type JobLoadOptions = {
+  selectedJobNames?: string[];
+  excludedJobNames?: string[];
+  targetJobConclusion?: string;
+};
+
 export class PipelinesSqliteRepository extends ParseRawFiltersRepository implements PipelinesRepository {
   private readonly sqliteDbPath: string;
   private readonly workflowRunsNamespace: string;
@@ -70,7 +76,11 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
       return this.applyRawFilters(pipelineRuns, rawFilters);
     }
 
-    const jobs = await this.loadPipelineJobs();
+    const jobs = await this.loadPipelineJobs({
+      selectedJobNames,
+      excludedJobNames,
+      targetJobConclusion,
+    }, options);
     if (jobs.length === 0 || pipelineRuns.length === 0) {
       if (selectedJobNames.length > 0 || targetJobConclusion) {
         return [];
@@ -121,17 +131,57 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
     return options.includeJobs === false ? rawFilteredRuns.map(this.withoutJobs) : rawFilteredRuns;
   }
 
-  async loadPipelineJobs(): Promise<PipelineJob[]> {
-    const rows = await this.loadPayloadRows('workflow_jobs', this.workflowJobsNamespace);
+  async loadPipelineJobs(
+    jobOptions: JobLoadOptions = {},
+    runOptions?: LoadPipelinesOptions
+  ): Promise<PipelineJob[]> {
+    const rows = await this.loadWorkflowJobRows(jobOptions, runOptions);
     return rows
       .map((row) => this.deserialize<WorkflowJobJsonResponse>(row.payload))
       .map(this.mapToDomain.mapPipelineJobsToDomain);
   }
 
+  private async loadWorkflowJobRows(
+    jobOptions: JobLoadOptions,
+    runOptions?: LoadPipelinesOptions
+  ): Promise<PayloadRow[]> {
+    await fs.mkdir(path.dirname(this.sqliteDbPath), { recursive: true });
+    const db = new DatabaseSync(this.sqliteDbPath);
+    try {
+      if (!this.tableExists(db, 'workflow_jobs') || !this.tableExists(db, 'workflow_runs')) {
+        return [];
+      }
+
+      const whereClauses = ['j.namespace = ?'];
+      const params: SqlValue[] = [this.workflowJobsNamespace];
+
+      if (runOptions) {
+        this.addWorkflowRunFilters(whereClauses, params, runOptions, 'r');
+      }
+
+      this.addWorkflowJobFilters(whereClauses, params, jobOptions, 'j');
+
+      return db
+        .prepare(
+          `SELECT j.payload
+           FROM workflow_jobs j
+           LEFT JOIN workflow_runs r
+             ON j.run_id = r.id
+            AND r.namespace = ?
+           WHERE ${whereClauses.join(' AND ')}
+           ORDER BY j.position ASC, j.id ASC`
+        )
+        .all(this.workflowRunsNamespace, ...params) as PayloadRow[];
+    } finally {
+      db.close();
+    }
+  }
+
   private async loadPayloadRows(
     tableName: 'workflow_runs' | 'workflow_jobs',
     namespace: string,
-    options?: LoadPipelinesOptions
+    options?: LoadPipelinesOptions,
+    jobOptions?: JobLoadOptions
   ): Promise<PayloadRow[]> {
     await fs.mkdir(path.dirname(this.sqliteDbPath), { recursive: true });
     const db = new DatabaseSync(this.sqliteDbPath);
@@ -140,7 +190,7 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
         return [];
       }
 
-      const query = this.buildPayloadQuery(tableName, namespace, options);
+      const query = this.buildPayloadQuery(tableName, namespace, options, jobOptions);
       return db.prepare(query.sql).all(...query.params) as PayloadRow[];
     } finally {
       db.close();
@@ -150,13 +200,16 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
   private buildPayloadQuery(
     tableName: 'workflow_runs' | 'workflow_jobs',
     namespace: string,
-    options?: LoadPipelinesOptions
+    options?: LoadPipelinesOptions,
+    jobOptions?: JobLoadOptions
   ): PayloadQuery {
     const whereClauses = ['namespace = ?'];
     const params: SqlValue[] = [namespace];
 
     if (tableName === 'workflow_runs' && options) {
       this.addWorkflowRunFilters(whereClauses, params, options);
+    } else if (tableName === 'workflow_jobs' && jobOptions) {
+      this.addWorkflowJobFilters(whereClauses, params, jobOptions);
     }
 
     return {
@@ -168,10 +221,36 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
     };
   }
 
+  private addWorkflowJobFilters(
+    whereClauses: string[],
+    params: SqlValue[],
+    jobOptions: JobLoadOptions,
+    tableAlias?: 'j'
+  ): void {
+    const nameColumn = this.column(tableAlias, 'name');
+    const conclusionColumn = this.column(tableAlias, 'conclusion');
+
+    this.addInFilter(whereClauses, params, `LOWER(${nameColumn})`, jobOptions.selectedJobNames || []);
+
+    const excludedJobNames = jobOptions.excludedJobNames || [];
+    if (excludedJobNames.length > 0) {
+      whereClauses.push(
+        `LOWER(${nameColumn}) NOT IN (${excludedJobNames.map(() => '?').join(', ')})`
+      );
+      params.push(...excludedJobNames);
+    }
+
+    if (jobOptions.targetJobConclusion) {
+      whereClauses.push(`LOWER(${conclusionColumn}) = ?`);
+      params.push(jobOptions.targetJobConclusion);
+    }
+  }
+
   private addWorkflowRunFilters(
     whereClauses: string[],
     params: SqlValue[],
-    options: LoadPipelinesOptions
+    options: LoadPipelinesOptions,
+    tableAlias?: 'r'
   ): void {
     const selectedStatuses = this.parseCsvList(options.status).map((item) => item.toLowerCase());
     const selectedConclusions = this.parseCsvList(options.conclusion).map((item) =>
@@ -181,7 +260,7 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
     const selectedEvents = this.parseCsvList(options.event);
     const start = options.startDate ? this.toDateBoundaryTimestamp(options.startDate, 'start') : 0;
     const end = options.endDate ? this.toDateBoundaryTimestamp(options.endDate, 'end') : 0;
-    const metricDateExpression = this.getRunMetricDateSqlExpression();
+    const metricDateExpression = this.getRunMetricDateSqlExpression(tableAlias);
 
     if (start) {
       whereClauses.push(`${metricDateExpression} >= ?`);
@@ -194,14 +273,19 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
     }
 
     if (options.workflowPath) {
-      whereClauses.push('path = ?');
+      whereClauses.push(`${this.column(tableAlias, 'path')} = ?`);
       params.push(options.workflowPath);
     }
 
-    this.addInFilter(whereClauses, params, 'LOWER(status)', selectedStatuses);
-    this.addInFilter(whereClauses, params, 'LOWER(conclusion)', selectedConclusions);
-    this.addInFilter(whereClauses, params, 'head_branch', selectedBranches);
-    this.addInFilter(whereClauses, params, 'event', selectedEvents);
+    this.addInFilter(whereClauses, params, `LOWER(${this.column(tableAlias, 'status')})`, selectedStatuses);
+    this.addInFilter(
+      whereClauses,
+      params,
+      `LOWER(${this.column(tableAlias, 'conclusion')})`,
+      selectedConclusions
+    );
+    this.addInFilter(whereClauses, params, this.column(tableAlias, 'head_branch'), selectedBranches);
+    this.addInFilter(whereClauses, params, this.column(tableAlias, 'event'), selectedEvents);
   }
 
   private addInFilter(
@@ -230,8 +314,18 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
     return 'position ASC, id ASC';
   }
 
-  private getRunMetricDateSqlExpression(): string {
-    return "COALESCE(NULLIF(updated_at, ''), created_at)";
+  private getRunMetricDateSqlExpression(tableAlias?: 'r'): string {
+    const updatedAt = this.column(tableAlias, 'updated_at');
+    const createdAt = this.column(tableAlias, 'created_at');
+    return `COALESCE(NULLIF(${updatedAt}, ''), ${createdAt})`;
+  }
+
+  private column(tableAlias: 'j' | 'r' | undefined, columnName: string): string {
+    if (!tableAlias) {
+      return columnName;
+    }
+
+    return `${tableAlias}.${columnName}`;
   }
 
   private tableExists(db: DatabaseSync, tableName: string): boolean {
