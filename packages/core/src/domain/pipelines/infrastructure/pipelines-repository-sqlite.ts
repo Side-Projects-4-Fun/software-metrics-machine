@@ -152,7 +152,7 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
         return [];
       }
 
-      const whereClauses = ['j.namespace = ?'];
+      const whereClauses = ['j.namespace = ?', 'r.id IS NOT NULL'];
       const params: SqlValue[] = [this.workflowJobsNamespace];
 
       if (runOptions) {

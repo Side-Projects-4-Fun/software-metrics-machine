@@ -155,7 +155,7 @@ JSON
   assert_smm_equals "1" "$(sqlite_scalar "${sqlite_db}" "SELECT COUNT(*) FROM repository_records WHERE namespace = ?" "jira/issues.json")"
   assert_smm_equals "KAN-123" "$(sqlite_scalar "${sqlite_db}" "SELECT json_extract(payload, '$.id') FROM repository_records WHERE namespace = ?" "jira/issues.json")"
   assert_smm_equals "1" "$(sqlite_scalar "${sqlite_db}" "SELECT COUNT(*) FROM repository_records WHERE namespace = ? AND record_key = ?" "architecture/snapshots.json" "__singleton__")"
-  assert_smm_equals "snap-1" "$(sqlite_scalar "${sqlite_db}" "SELECT json_extract(payload, '$[0].snapshotId') FROM repository_records WHERE namespace = ?" "architecture/snapshots.json")"
+  assert_smm_equals "snap-1" "$(sqlite_scalar "${sqlite_db}" "SELECT json_extract(payload, '\$[0].snapshotId') FROM repository_records WHERE namespace = ?" "architecture/snapshots.json")"
   assert_smm_equals "1" "$(sqlite_scalar "${sqlite_db}" "SELECT COUNT(*) FROM repository_records WHERE namespace = ?" "__migration_metadata__")"
   assert_smm_equals "acme/widgets" "$(sqlite_scalar "${sqlite_db}" "SELECT json_extract(payload, '$.project') FROM repository_records WHERE namespace = ?" "__migration_metadata__")"
 }
