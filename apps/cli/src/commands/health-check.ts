@@ -1,5 +1,7 @@
 import { Configuration } from '@smmachine/core/infrastructure/configuration';
+import { RepositoryFactory } from '@smmachine/core/infrastructure/repository-factory';
 import * as fs from 'fs/promises';
+import { DatabaseSync } from 'node:sqlite';
 import type { SmmCommand } from './smm-command';
 import type { Screen } from '../screen';
 
@@ -36,6 +38,11 @@ type DatasetDefinition = {
   filePath: string;
   dateFields: string[];
   requiredFields: string[];
+  sqliteSource: {
+    table: string;
+    payloadColumn: string;
+    namespace: string;
+  };
 };
 
 export function createHealthCheckCommand(program: SmmCommand): void {
@@ -84,7 +91,9 @@ async function buildHealthReport(
   const nowIso = new Date().toISOString();
   const definitions = getDatasetDefinitions(config, providerFilter);
 
-  const datasets = await Promise.all(definitions.map((def) => analyzeDataset(def, maxGapDays)));
+  const datasets = await Promise.all(
+    definitions.map((def) => analyzeDataset(def, config, maxGapDays))
+  );
 
   const summary = datasets.reduce(
     (acc, dataset) => {
@@ -115,6 +124,8 @@ function getDatasetDefinitions(config: Configuration, providerFilter: string): D
   const jiraDir = config.getJiraPath();
   const sonarDir = config.getSonarqubePath();
   const gitProviderId = (config.gitProvider || 'github').toLowerCase();
+  const sqliteNamespace = (filePath: string): string =>
+    RepositoryFactory.getSqliteNamespace(filePath, config);
 
   const allDefinitions: DatasetDefinition[] = [
     {
@@ -122,42 +133,77 @@ function getDatasetDefinitions(config: Configuration, providerFilter: string): D
       filePath: `${gitDir}/prs.json`,
       dateFields: ['updated_at', 'created_at'],
       requiredFields: ['id', 'created_at', 'updated_at', 'state'],
+      sqliteSource: {
+        table: 'pull_requests',
+        payloadColumn: 'payload',
+        namespace: sqliteNamespace(`${gitDir}/prs.json`),
+      },
     },
     {
       id: `${gitProviderId}.pr-comments`,
       filePath: `${gitDir}/pr-comments.json`,
       dateFields: ['updated_at', 'created_at'],
       requiredFields: ['id', 'pull_request_url', 'created_at', 'updated_at'],
+      sqliteSource: {
+        table: 'pull_request_comments',
+        payloadColumn: 'payload',
+        namespace: sqliteNamespace(`${gitDir}/pr-comments.json`),
+      },
     },
     {
       id: `${gitProviderId}.workflows`,
       filePath: `${gitDir}/workflows.json`,
       dateFields: ['updated_at', 'created_at', 'run_started_at'],
       requiredFields: ['id', 'created_at', 'updated_at', 'status'],
+      sqliteSource: {
+        table: 'workflow_runs',
+        payloadColumn: 'payload',
+        namespace: RepositoryFactory.getPipelineRunsSqliteNamespace(config),
+      },
     },
     {
       id: `${gitProviderId}.jobs`,
       filePath: `${gitDir}/jobs.json`,
       dateFields: ['completed_at', 'started_at', 'created_at'],
       requiredFields: ['id', 'run_id', 'created_at', 'status'],
+      sqliteSource: {
+        table: 'workflow_jobs',
+        payloadColumn: 'payload',
+        namespace: RepositoryFactory.getPipelineJobsSqliteNamespace(config),
+      },
     },
     {
       id: 'jira.issues',
       filePath: `${jiraDir}/issues.json`,
       dateFields: ['createdAt'],
       requiredFields: ['id', 'createdAt', 'status'],
+      sqliteSource: {
+        table: 'repository_records',
+        payloadColumn: 'payload',
+        namespace: sqliteNamespace(`${jiraDir}/issues.json`),
+      },
     },
     {
       id: 'sonarqube.historical-measures',
       filePath: `${sonarDir}/historical-measures.json`,
       dateFields: ['timestamp'],
       requiredFields: ['metric', 'timestamp'],
+      sqliteSource: {
+        table: 'sonarqube_historical_measures',
+        payloadColumn: 'payload',
+        namespace: sqliteNamespace(`${sonarDir}/historical-measures.json`),
+      },
     },
     {
       id: 'sonarqube.measures',
       filePath: `${sonarDir}/measures.json`,
       dateFields: [],
       requiredFields: [],
+      sqliteSource: {
+        table: 'sonarqube_measures',
+        payloadColumn: 'payload',
+        namespace: sqliteNamespace(`${sonarDir}/measures.json`),
+      },
     },
   ];
 
@@ -176,7 +222,20 @@ function getDatasetDefinitions(config: Configuration, providerFilter: string): D
   return allDefinitions.filter((def) => def.id.startsWith(`${normalized}.`));
 }
 
-async function analyzeDataset(def: DatasetDefinition, maxGapDays: number): Promise<DatasetCheck> {
+async function analyzeDataset(
+  def: DatasetDefinition,
+  config: Configuration,
+  maxGapDays: number
+): Promise<DatasetCheck> {
+  const storageType = config.internal?.storageType ?? 'json';
+  if (storageType === 'sqlite') {
+    return analyzeSqliteDataset(def, config, maxGapDays);
+  }
+
+  return analyzeJsonDataset(def, maxGapDays);
+}
+
+async function analyzeJsonDataset(def: DatasetDefinition, maxGapDays: number): Promise<DatasetCheck> {
   const base: DatasetCheck = {
     id: def.id,
     filePath: def.filePath,
@@ -252,6 +311,119 @@ async function analyzeDataset(def: DatasetDefinition, maxGapDays: number): Promi
   }
 
   return base;
+}
+
+async function analyzeSqliteDataset(
+  def: DatasetDefinition,
+  config: Configuration,
+  maxGapDays: number
+): Promise<DatasetCheck> {
+  const sqliteDbPath = RepositoryFactory.getSqliteDatabasePath(config);
+  const base: DatasetCheck = {
+    id: def.id,
+    filePath: def.filePath,
+    exists: false,
+    itemCount: 0,
+    invalidDateCount: 0,
+    potentialGapDays: 0,
+    potentialGapRanges: [],
+    missingRequiredFields: {},
+    notes: [],
+  };
+
+  let stat;
+  try {
+    stat = await fs.stat(sqliteDbPath);
+    base.exists = true;
+    base.lastFetchedAt = stat.mtime.toISOString();
+    base.staleDays = calculateStaleDays(stat.mtime);
+  } catch {
+    base.notes.push('SQLite database not found. Dataset has not been fetched yet.');
+    return base;
+  }
+
+  const records = loadSqlitePayloadRows(
+    sqliteDbPath,
+    def.sqliteSource.table,
+    def.sqliteSource.payloadColumn,
+    def.sqliteSource.namespace
+  );
+
+  base.itemCount = records.length;
+  if (records.length === 0) {
+    base.notes.push('Dataset not found in SQLite cache.');
+    return base;
+  }
+
+  if (def.id === 'sonarqube.measures') {
+    return base;
+  }
+
+  for (const field of def.requiredFields) {
+    base.missingRequiredFields[field] = countMissing(records, field);
+  }
+
+  const dateValues = collectDateValues(records, def.dateFields);
+  base.invalidDateCount = dateValues.invalidCount;
+
+  if (dateValues.validIsoDates.length > 0) {
+    const sorted = dateValues.validIsoDates.sort((a, b) => a.localeCompare(b));
+    base.coverageStart = sorted[0];
+    base.coverageEnd = sorted[sorted.length - 1];
+
+    const gaps = computePotentialGaps(sorted, maxGapDays);
+    base.potentialGapRanges = gaps;
+    base.potentialGapDays = gaps.reduce((sum, gap) => sum + gap.days, 0);
+  } else if (def.dateFields.length > 0) {
+    base.notes.push('No valid date values found in expected date fields.');
+  }
+
+  return base;
+}
+
+function loadSqlitePayloadRows(
+  sqliteDbPath: string,
+  tableName: string,
+  payloadColumn: string,
+  namespace: string
+): Array<Record<string, unknown>> {
+  const db = new DatabaseSync(sqliteDbPath);
+  try {
+    const hasTable = Boolean(
+      db
+        .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1")
+        .get(tableName)
+    );
+
+    if (!hasTable) {
+      return [];
+    }
+
+    const rows = db
+      .prepare(`SELECT ${payloadColumn} FROM ${tableName} WHERE namespace = ? ORDER BY rowid ASC`)
+      .all(namespace) as Array<{ [key: string]: unknown }>;
+
+    const records: Array<Record<string, unknown>> = [];
+    for (const row of rows) {
+      const payload = row[payloadColumn];
+      if (typeof payload !== 'string' || payload.trim().length === 0) {
+        continue;
+      }
+
+      try {
+        const parsed = JSON.parse(payload) as unknown;
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          records.push(parsed as Record<string, unknown>);
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    return records;
+  } finally {
+    db.close();
+  }
 }
 
 function countMissing(records: Array<Record<string, unknown>>, field: string): number {
