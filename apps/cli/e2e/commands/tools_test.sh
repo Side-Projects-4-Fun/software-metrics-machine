@@ -139,8 +139,10 @@ JSON
   assert_smm_output_contains "Migrated commits: 1 records"
   assert_smm_output_contains "Migrated jira issues: 1 records"
   assert_smm_output_contains "Migrated architecture snapshots: 1 record"
+  assert_smm_output_contains "Updated configuration storage_type to sqlite for 1 project(s)"
   assert_smm_output_contains "Migration complete: 7 records across 6 stores"
   assert_smm_file_exists "${sqlite_db}"
+  assert_smm_file_contains "${workspace}/smm_config.json" '"storage_type": "sqlite"'
 
   assert_smm_equals "2" "$(sqlite_scalar "${sqlite_db}" "SELECT COUNT(*) FROM pull_requests WHERE namespace = ?" "github/prs.json")"
   assert_smm_equals "alice" "$(sqlite_scalar "${sqlite_db}" "SELECT author_login FROM pull_requests WHERE namespace = ? AND number = 7" "github/prs.json")"

@@ -404,6 +404,7 @@ describe('ConfigurationRepository', () => {
       const repo = createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo-b');
       const config = repo.getActiveConfiguration();
       config.sonarLocalRunnerToken = 'local-token-b';
+      config.internal.storageType = 'sqlite';
 
       repo.save();
 
@@ -412,6 +413,7 @@ describe('ConfigurationRepository', () => {
       ) as Record<string, ISmmProjectConfig[]>;
       expect(saved.projects[0].sonar_local_runner_token).toBeUndefined();
       expect(saved.projects[1].sonar_local_runner_token).toBe('local-token-b');
+      expect(saved.projects[1].internal?.storage_type).toBe('sqlite');
     });
 
     it('should throw when project not found', () => {

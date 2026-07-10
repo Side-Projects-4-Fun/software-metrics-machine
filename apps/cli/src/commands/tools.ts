@@ -7,6 +7,7 @@ import {
   RepositoryFactory,
   SqliteRepository,
 } from '@smmachine/core';
+import { ConfigurationRepository } from '@smmachine/core/infrastructure/configuration-repository';
 import type { SmmCommand } from './smm-command';
 type JsonObject = Record<string, unknown>;
 
@@ -177,6 +178,11 @@ export function createToolsCommands(program: SmmCommand): void {
           );
         }
 
+        const updatedProjects = persistStorageTypeMigration(command, configs, logger);
+        screen.printLine(
+          `   Updated configuration storage_type to sqlite for ${updatedProjects} project(s)`
+        );
+
         screen.printLine(
           `\n✅ Migration complete: ${migratedRecords} records across ${migratedStores} stores`
         );
@@ -188,6 +194,51 @@ export function createToolsCommands(program: SmmCommand): void {
         process.exit(1);
       }
     });
+}
+
+function persistStorageTypeMigration(
+  command: SmmCommand,
+  configs: Configuration[],
+  logger: ReturnType<SmmCommand['getLogger']>
+): number {
+  const selectedProject = command.getSelectedProject();
+  if (selectedProject) {
+    const repository = command.getConfigurationRepository();
+    const active = repository.getActiveConfiguration();
+    active.internal = {
+      ...active.internal,
+      storageType: 'sqlite',
+    };
+    repository.save();
+    return 1;
+  }
+
+  const projectNames = Array.from(
+    new Set(configs.map((config) => config.githubRepository).filter((name): name is string => Boolean(name)))
+  );
+
+  if (projectNames.length === 0) {
+    const repository = command.getConfigurationRepository();
+    const active = repository.getActiveConfiguration();
+    active.internal = {
+      ...active.internal,
+      storageType: 'sqlite',
+    };
+    repository.save();
+    return 1;
+  }
+
+  for (const projectName of projectNames) {
+    const repository = new ConfigurationRepository(process.env, projectName, logger);
+    const active = repository.getActiveConfiguration();
+    active.internal = {
+      ...active.internal,
+      storageType: 'sqlite',
+    };
+    repository.save();
+  }
+
+  return projectNames.length;
 }
 
 function getJsonToSqliteMigrationConfigurations(command: SmmCommand): Configuration[] {

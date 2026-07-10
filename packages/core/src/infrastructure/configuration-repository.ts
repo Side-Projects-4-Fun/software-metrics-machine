@@ -240,10 +240,19 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
     const projectUpdate: Partial<ISmmProjectConfig> = {
       sonar_local_runner_token: this.configuration.sonarLocalRunnerToken,
+      internal: {
+        storage_type: this.configuration.internal?.storageType,
+      },
     };
 
     if (Array.isArray(rawConfig.projects) && rawConfig.projects[this.activeProjectIndex]) {
       Object.assign(rawConfig.projects[this.activeProjectIndex], projectUpdate);
+    } else {
+      const rootInternal = this.getJsonObject(rawConfig as JsonObject, 'internal') || {};
+      (rawConfig as JsonObject).internal = {
+        ...rootInternal,
+        storage_type: this.configuration.internal?.storageType,
+      };
     }
 
     fs.writeFileSync(this.configPath, JSON.stringify(rawConfig, null, 2), 'utf-8');
