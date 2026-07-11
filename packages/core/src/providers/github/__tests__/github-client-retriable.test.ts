@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import axios from 'axios';
 import { GithubClientRetriable } from '../github-client-retriable';
 import { GitHubRateLimitManager } from '../github-rate-limit-manager';
-import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 /**
  * Helper to run an operation with fake timers so retry backoffs complete

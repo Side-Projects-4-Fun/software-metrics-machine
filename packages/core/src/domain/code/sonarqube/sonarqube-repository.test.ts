@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SonarqubeRepositoryJson } from '../../../providers/sonarqube/repositories/sonarqube-repository-json';
-import { InMemoryRepository } from '../../../test/in-memory-repository';
+import { InMemoryRepository } from '../../../test/repositories/in-memory-repository';
 import type {
   CodeMetric,
   SonarqubeComponentMeasure,

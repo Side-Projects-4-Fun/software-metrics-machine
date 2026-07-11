@@ -4,7 +4,7 @@ import {
   PullRequestLabelJsonResponse,
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
-} from '../providers/github/github-response-types';
+} from '../../providers/github/github-response-types';
 
 /**
  * Builder for creating mock PullRequestJsonResponse objects (GitHub API response).

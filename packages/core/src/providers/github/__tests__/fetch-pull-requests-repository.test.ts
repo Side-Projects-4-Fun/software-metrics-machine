@@ -4,7 +4,7 @@ import * as path from 'path';
 import { describe, expect, it, vi } from 'vitest';
 import { GitHubPullRequestsFetchRepository, IGithubPrsClient } from '../../..';
 import { PullRequestCommentJsonResponse, PullRequestJsonResponse } from '../github-response-types';
-import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 function createPullRequest(
   overrides: Partial<PullRequestJsonResponse> = {}

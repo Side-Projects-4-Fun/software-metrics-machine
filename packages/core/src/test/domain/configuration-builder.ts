@@ -1,4 +1,4 @@
-import type { Configuration } from '../infrastructure/configuration';
+import type { Configuration } from '../../infrastructure/configuration';
 
 /**
  * Builder for creating test configuration objects.

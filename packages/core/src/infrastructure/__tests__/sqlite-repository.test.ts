@@ -6,13 +6,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Logger } from '@smmachine/utils';
 import { Configuration, IRepository, RepositoryFactory, SqliteRepository } from '..';
 import { Commit } from '../../domain-types';
-import { CommitBuilder } from '../../test/domain-builders';
+import { CommitBuilder } from '../../test/domain/domain-builders';
 import {
   PullRequestCommentJsonResponseBuilder,
   PullRequestJsonResponseBuilder,
   PipelineGitHubJobBuilder,
   PipelineGitHubRunBuilder,
-} from '../../test/github-builders';
+} from '../../test/github/github-builders';
 import {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,

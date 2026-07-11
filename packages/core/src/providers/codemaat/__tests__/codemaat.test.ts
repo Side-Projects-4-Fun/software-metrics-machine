@@ -1,5 +1,5 @@
 import { CodemaatAnalyzer } from '../../..';
-import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 describe('CodemaatAnalyzer', () => {
   let analyzer: CodemaatAnalyzer;

@@ -3,7 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { describe, expect, it, vi } from 'vitest';
 import { IssuesRepository } from '../../../domain/issues/issues-repository-json';
-import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import { Issue } from '../../../domain-types';
 import { IJiraIssuesClient } from '../../../providers';

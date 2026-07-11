@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { PipelineGitHubRunBuilder } from '../../../test/github-builders';
+import { PipelineGitHubRunBuilder } from '../../../test/github/github-builders';
 import { GithubWorkflowClient } from '../github-workflow-client';
 import { GitHubRateLimitManager } from '../github-rate-limit-manager';
-import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 describe('GithubWorkflowClient - Fetch workflows by day', () => {
   const token = 'test-token';

@@ -10,7 +10,7 @@
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { JiraIssuesClient } from '../jira-client';
-import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 const JIRA_URL = process.env.JIRA_URL || 'https://your-instance.atlassian.net';
 const JIRA_EMAIL = process.env.JIRA_EMAIL || 'user@example.com';

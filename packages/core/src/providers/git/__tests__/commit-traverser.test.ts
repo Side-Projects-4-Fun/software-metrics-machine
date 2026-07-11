@@ -10,7 +10,7 @@ vi.mock(import('child_process'), async (importOriginal) => {
 
 import { execSync } from 'child_process';
 import { CommitTraverser } from '../../..';
-import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 const mockExecSync = vi.mocked(execSync);
 const logger = new MockLoggerBuilder().build();

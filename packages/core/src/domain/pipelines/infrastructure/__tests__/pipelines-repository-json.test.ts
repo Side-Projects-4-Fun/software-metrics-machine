@@ -2,14 +2,14 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   PipelineGitHubJobBuilder,
   PipelineGitHubRunBuilder,
-} from '../../../../test/github-builders';
+} from '../../../../test/github/github-builders';
 import { PipelinesRepositoryJson } from '../pipelines-repository-json';
-import { InMemoryRepository } from '../../../../test/in-memory-repository';
+import { InMemoryRepository } from '../../../../test/repositories/in-memory-repository';
 import {
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
 } from '../../../../providers/github/github-response-types';
-import { MockLoggerBuilder } from '../../../../test/mock-logger-builder';
+import { MockLoggerBuilder } from '../../../../test/infrastructure/mock-logger-builder';
 import { TimeZoneProvider } from '../../../../infrastructure/timezone-provider';
 
 describe('PipelinesRepositoryJson loadPipelines', () => {

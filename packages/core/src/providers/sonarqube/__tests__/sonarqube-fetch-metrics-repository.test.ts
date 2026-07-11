@@ -9,7 +9,7 @@ import {
   type SonarqubeComponentMeasure,
   type SonarqubeComponentTreeMeasure,
 } from '../../..';
-import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 function createSonarqubeClient(
   overrides: Partial<ISonarqubeMeasuresClient> = {}

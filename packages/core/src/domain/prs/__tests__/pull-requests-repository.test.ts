@@ -3,7 +3,7 @@ import { PullRequestsRepository } from '../../../domain';
 import {
   PullRequestJsonResponseBuilder,
   PullRequestCommentJsonResponseBuilder,
-} from '../../../test/github-builders';
+} from '../../../test/github/github-builders';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 
 const timeZoneProvider = new TimeZoneProvider('UTC');

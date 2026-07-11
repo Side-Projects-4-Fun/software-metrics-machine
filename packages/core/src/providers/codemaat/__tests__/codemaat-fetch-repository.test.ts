@@ -4,7 +4,7 @@ import * as path from 'path';
 import { describe, expect, it } from 'vitest';
 import { Configuration } from '../../../infrastructure';
 import { CodemaatFetchRepository } from '../codemaat-fetch-repository';
-import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 describe('CodemaatFetchRepository', () => {
   const logger = new MockLoggerBuilder().build();

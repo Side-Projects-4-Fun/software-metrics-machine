@@ -1,7 +1,7 @@
 import { vi, describe, it, expect, beforeEach, afterEach, type MockInstance } from 'vitest';
 import axios from 'axios';
 import { JiraIssuesClient } from '../../..';
-import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 describe('JiraIssuesClient', () => {
   let client: JiraIssuesClient;

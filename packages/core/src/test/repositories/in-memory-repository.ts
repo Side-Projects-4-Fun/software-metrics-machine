@@ -1,4 +1,4 @@
-import type { IRepository } from '../index';
+import type { IRepository } from '../../index';
 
 export class InMemoryRepository<T> implements IRepository<T> {
   private items: T[] = [];

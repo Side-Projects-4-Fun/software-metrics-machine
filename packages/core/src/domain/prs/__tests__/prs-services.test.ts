@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { IReadPullRequestsRepository } from '..';
 import { PRsService } from '..';
-import { PullRequestBuilder } from '../../../test/domain-builders';
-import { ReadPullRequestsRepositoryBuilder } from '../../../test/repository-builders';
-import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
+import { PullRequestBuilder } from '../../../test/domain/domain-builders';
+import { ReadPullRequestsRepositoryBuilder } from '../../../test/repositories/repository-builders';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 
 const logger = new MockLoggerBuilder().build();

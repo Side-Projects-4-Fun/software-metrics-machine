@@ -16,7 +16,7 @@ import {
 import {
   PullRequestCommentJsonResponseBuilder,
   PullRequestJsonResponseBuilder,
-} from '../../../test/github-builders';
+} from '../../../test/github/github-builders';
 import { PullRequestFactory } from '../factories';
 import { PullRequestsSqliteRepository } from '../repositories';
 

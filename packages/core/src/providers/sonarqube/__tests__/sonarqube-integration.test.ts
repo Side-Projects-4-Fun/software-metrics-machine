@@ -10,7 +10,7 @@
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { SonarqubeMeasuresClient } from '../sonarqube-client';
-import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 const SONARQUBE_URL = process.env.SONARQUBE_URL || 'http://localhost:9000';
 const SONARQUBE_TOKEN = process.env.SONARQUBE_TOKEN || 'test-token';

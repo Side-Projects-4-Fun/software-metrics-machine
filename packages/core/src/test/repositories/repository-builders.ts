@@ -1,12 +1,12 @@
-import { shouldIncludeTimestampForWeekendsMode } from '../domain/metric-samples';
+import { shouldIncludeTimestampForWeekendsMode } from '../../domain/metric-samples';
 import type {
   IReadPullRequestsRepository,
   PipelineJob,
   PipelineRun,
   PRDetails,
   PRFilters,
-} from '../index';
-import type { IRepository } from '../index';
+} from '../../index';
+import type { IRepository } from '../../index';
 import {
   PipelinesRepository,
   LoadPipelinesOptions,

@@ -1,4 +1,4 @@
-import { Commit, CodeChange } from '../domain-types';
+import { Commit, CodeChange } from '../../domain-types';
 import type {
   PipelineJob,
   PipelineRun,
@@ -6,7 +6,7 @@ import type {
   PRComment,
   PRDetails,
   PRLabel,
-} from '../index';
+} from '../../index';
 
 /**
  * Builder for creating mock Commit objects

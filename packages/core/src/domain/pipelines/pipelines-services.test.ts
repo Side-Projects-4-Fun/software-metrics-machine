@@ -5,9 +5,9 @@ import {
   PipelineJobBuilder,
   PipelineRunBuilder,
   PipelineStepBuilder,
-} from '../../test/domain-builders';
-import { PipelinesRepositoryBuilder } from '../../test/repository-builders';
-import { MockLoggerBuilder } from '../../test/mock-logger-builder';
+} from '../../test/domain/domain-builders';
+import { PipelinesRepositoryBuilder } from '../../test/repositories/repository-builders';
+import { MockLoggerBuilder } from '../../test/infrastructure/mock-logger-builder';
 import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
 
 const logger = new MockLoggerBuilder().build();

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { GitHubRateLimitManager } from '../github-rate-limit-manager';
-import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 describe('GitHubRateLimitManager', () => {
   let manager: GitHubRateLimitManager;

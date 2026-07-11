@@ -10,12 +10,12 @@ import {
 import {
   PipelineGitHubRunBuilder,
   PipelineGitHubJobBuilder,
-} from '../../../../test/github-builders';
+} from '../../../../test/github/github-builders';
 import { afterEach, describe, expect, it } from 'vitest';
 import { PipelineFactory } from '../../factories';
 import { PipelinesService } from '../../services/pipelines-service';
 import { PipelinesSqliteRepository } from '../pipelines-repository-sqlite';
-import { MockLoggerBuilder } from '../../../../test/mock-logger-builder';
+import { MockLoggerBuilder } from '../../../../test/infrastructure/mock-logger-builder';
 
 describe('PipelinesSqliteRepository loadPipelines', () => {
   const logger = new MockLoggerBuilder().build();
