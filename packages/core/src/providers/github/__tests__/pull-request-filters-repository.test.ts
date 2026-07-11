@@ -1,14 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { PullRequestFilterOptions, PullRequestFiltersRepository } from '../../..';
-import {
-  PullRequestCommentJsonResponse,
-  PullRequestJsonResponse,
-} from '../github-response-types';
+import { PullRequestCommentJsonResponse, PullRequestJsonResponse } from '../github-response-types';
 import { InMemoryRepository } from '../../../test/in-memory-repository';
 import {
   PullRequestJsonResponseBuilder,
   PullRequestCommentJsonResponseBuilder,
-} from '../../../test/builders';
+} from '../../../test/github-builders';
 
 describe('PullRequestFiltersRepository', () => {
   it('loads distinct filter options from cached pull requests', async () => {

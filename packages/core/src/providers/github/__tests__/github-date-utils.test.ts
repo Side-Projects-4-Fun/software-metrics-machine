@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  toISODateString,
-  buildCreatedFilter,
-} from '../github-date-utils';
+import { toISODateString, buildCreatedFilter } from '../github-date-utils';
 
 describe('toISODateString', () => {
   it('should convert YYYY-MM-DD start date to ISO with T00:00:00Z', () => {

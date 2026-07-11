@@ -18,6 +18,8 @@ import type {
   SonarqubeComponentMeasure,
   BigOFileAnalysis as CoreBigOFileAnalysis,
   BigOFileSummary as CoreBigOFileSummary,
+  PRAverageOutlier,
+  PipelineAverageOutlier,
 } from '@smmachine/core';
 
 // Types defined in core but not re-exported through the public API,
@@ -112,18 +114,18 @@ export interface PRByAuthorResponse {
 }
 
 export interface PRAverageReviewTimeResponse {
-  result: Array<{ author: string; avg_days: number; outliers?: unknown[] }>;
+  result: Array<{ author: string; avg_days: number; outliers?: PRAverageOutlier[] }>;
 }
 
 export type PRAverageOpenByResponse = Array<{
   period: string;
   avg_days: number;
-  outliers?: unknown[];
+  outliers?: PRAverageOutlier[];
 }>;
 
 export interface PRAverageCommentsResponse {
   avg_comments: number;
-  outliers?: unknown[];
+  outliers?: PRAverageOutlier[];
 }
 
 export interface PRCommentsByAuthorResponse {
@@ -135,7 +137,7 @@ export interface PRFirstCommentTimeResponse {
     author: string;
     avg_hours: number;
     prs_with_comments: number;
-    outliers?: unknown[];
+    outliers?: PRAverageOutlier[];
   }>;
 }
 
@@ -190,7 +192,7 @@ export interface PipelineJobsSummaryResponse {
     success_rate: number;
     failure_rate: number;
     rerun_count: number;
-    outliers?: unknown[];
+    outliers?: PipelineAverageOutlier[];
   }>;
 }
 
@@ -200,7 +202,7 @@ export interface PipelineRunsDurationResponse extends Array<
       aggregation: string;
       duration: number;
       total_runs: number;
-      outliers?: unknown[];
+      outliers?: PipelineAverageOutlier[];
     }
   | {
       workflow: string;
@@ -208,7 +210,7 @@ export interface PipelineRunsDurationResponse extends Array<
       min_duration: number;
       max_duration: number;
       total_runs: number;
-      outliers?: unknown[];
+      outliers?: PipelineAverageOutlier[];
     }
 > {}
 
@@ -232,14 +234,18 @@ export interface PipelineStepsAverageTimeResponse {
     name: string;
     averageDurationMinutes: number;
     count: number;
-    outliers?: unknown[];
+    outliers?: PipelineAverageOutlier[];
   }>;
 }
 
 export interface PipelineStepsAverageTimeByDayResponse {
   result: Array<{
     day: string;
-    steps: Array<{ name: string; averageDurationMinutes: number; outliers?: unknown[] }>;
+    steps: Array<{
+      name: string;
+      averageDurationMinutes: number;
+      outliers?: PipelineAverageOutlier[];
+    }>;
   }>;
 }
 
@@ -249,7 +255,7 @@ export interface PipelineJobsAverageTimeResponse {
     workflow_name?: string;
     avg_time: number;
     count: number;
-    outliers?: unknown[];
+    outliers?: PipelineAverageOutlier[];
   }>;
 }
 
@@ -258,7 +264,7 @@ export interface PipelineJobsAverageTimeByDayResponse {
     day: string;
     avg_time: number;
     count: number;
-    outliers?: unknown[];
+    outliers?: PipelineAverageOutlier[];
   }>;
 }
 

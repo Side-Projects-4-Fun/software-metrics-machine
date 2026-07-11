@@ -1,6 +1,4 @@
-export {
-  ArchitectureService,
-} from './architecture-service';
+export { ArchitectureService } from './architecture-service';
 export type {
   ArchitectureNode,
   ArchitectureNodeKind,

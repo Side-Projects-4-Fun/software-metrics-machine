@@ -25,13 +25,7 @@ describe('Jira API Integration Tests', () => {
   let jiraClient: JiraIssuesClient;
 
   beforeAll(() => {
-    jiraClient = new JiraIssuesClient(
-      JIRA_URL,
-      JIRA_EMAIL,
-      JIRA_TOKEN,
-      JIRA_PROJECT,
-      logger
-    );
+    jiraClient = new JiraIssuesClient(JIRA_URL, JIRA_EMAIL, JIRA_TOKEN, JIRA_PROJECT, logger);
   });
 
   describe('JiraIssuesClient', () => {
@@ -127,13 +121,7 @@ describe('Jira API Integration Tests', () => {
     });
 
     it('should throw error on invalid project', async () => {
-      const client = new JiraIssuesClient(
-        JIRA_URL,
-        JIRA_EMAIL,
-        JIRA_TOKEN,
-        'INVALID',
-        logger
-      );
+      const client = new JiraIssuesClient(JIRA_URL, JIRA_EMAIL, JIRA_TOKEN, 'INVALID', logger);
 
       try {
         await client.fetchIssues();

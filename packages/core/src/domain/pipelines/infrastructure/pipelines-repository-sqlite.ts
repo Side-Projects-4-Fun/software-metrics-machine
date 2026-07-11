@@ -35,7 +35,10 @@ type JobLoadOptions = {
   targetJobConclusion?: string;
 };
 
-export class PipelinesSqliteRepository extends ParseRawFiltersRepository implements PipelinesRepository {
+export class PipelinesSqliteRepository
+  extends ParseRawFiltersRepository
+  implements PipelinesRepository
+{
   private readonly sqliteDbPath: string;
   private readonly workflowRunsNamespace: string;
   private readonly workflowJobsNamespace: string;
@@ -59,7 +62,9 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
       .map((row) => this.deserialize<WorkflowJsonResponse>(row.payload))
       .map(this.mapToDomain.mapPipelinesToDomain);
 
-    this.logger.info(`Loaded ${pipelineRunsFromDomain.length} pipeline runs from SQLite repository`);
+    this.logger.info(
+      `Loaded ${pipelineRunsFromDomain.length} pipeline runs from SQLite repository`
+    );
 
     const pipelineRuns = this.filterRuns(pipelineRunsFromDomain, options);
     const selectedJobNames = this.normalizeJobNames(options.jobNames, options.jobName);
@@ -76,11 +81,14 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
       return this.applyRawFilters(pipelineRuns, rawFilters);
     }
 
-    const jobs = await this.loadPipelineJobs({
-      selectedJobNames,
-      excludedJobNames,
-      targetJobConclusion,
-    }, options);
+    const jobs = await this.loadPipelineJobs(
+      {
+        selectedJobNames,
+        excludedJobNames,
+        targetJobConclusion,
+      },
+      options
+    );
     if (jobs.length === 0 || pipelineRuns.length === 0) {
       if (selectedJobNames.length > 0 || targetJobConclusion) {
         return [];
@@ -230,7 +238,12 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
     const nameColumn = this.column(tableAlias, 'name');
     const conclusionColumn = this.column(tableAlias, 'conclusion');
 
-    this.addInFilter(whereClauses, params, `LOWER(${nameColumn})`, jobOptions.selectedJobNames || []);
+    this.addInFilter(
+      whereClauses,
+      params,
+      `LOWER(${nameColumn})`,
+      jobOptions.selectedJobNames || []
+    );
 
     const excludedJobNames = jobOptions.excludedJobNames || [];
     if (excludedJobNames.length > 0) {
@@ -277,14 +290,24 @@ export class PipelinesSqliteRepository extends ParseRawFiltersRepository impleme
       params.push(options.workflowPath);
     }
 
-    this.addInFilter(whereClauses, params, `LOWER(${this.column(tableAlias, 'status')})`, selectedStatuses);
+    this.addInFilter(
+      whereClauses,
+      params,
+      `LOWER(${this.column(tableAlias, 'status')})`,
+      selectedStatuses
+    );
     this.addInFilter(
       whereClauses,
       params,
       `LOWER(${this.column(tableAlias, 'conclusion')})`,
       selectedConclusions
     );
-    this.addInFilter(whereClauses, params, this.column(tableAlias, 'head_branch'), selectedBranches);
+    this.addInFilter(
+      whereClauses,
+      params,
+      this.column(tableAlias, 'head_branch'),
+      selectedBranches
+    );
     this.addInFilter(whereClauses, params, this.column(tableAlias, 'event'), selectedEvents);
   }
 

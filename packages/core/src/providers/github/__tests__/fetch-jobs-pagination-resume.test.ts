@@ -3,12 +3,9 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { PipelineGitHubJobBuilder, PipelineGitHubRunBuilder } from '../../..';
+import { PipelineGitHubJobBuilder, PipelineGitHubRunBuilder } from '../../../test/github-builders';
 import { InMemoryRepository } from '../../../test/in-memory-repository';
-import {
-  WorkflowJobJsonResponse,
-  WorkflowJsonResponse,
-} from '../github-response-types';
+import { WorkflowJobJsonResponse, WorkflowJsonResponse } from '../github-response-types';
 import { PipelinesJobFetchRepository } from '../pipelines-job-fetch-repository-json';
 import { IGithubWorkflowJobClient } from '../workflow-types';
 import { MockLoggerBuilder } from '../../../test/mock-logger-builder';

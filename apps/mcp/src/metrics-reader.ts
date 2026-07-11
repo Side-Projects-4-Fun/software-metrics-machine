@@ -1,5 +1,4 @@
 import {
-  ICodeMetricsRepository,
   Configuration,
   IssuesRepository,
   JiraIssuesClient,

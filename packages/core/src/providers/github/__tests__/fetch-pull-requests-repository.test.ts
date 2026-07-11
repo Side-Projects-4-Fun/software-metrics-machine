@@ -3,10 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { describe, expect, it, vi } from 'vitest';
 import { GitHubPullRequestsFetchRepository, IGithubPrsClient } from '../../..';
-import {
-  PullRequestCommentJsonResponse,
-  PullRequestJsonResponse,
-} from '../github-response-types';
+import { PullRequestCommentJsonResponse, PullRequestJsonResponse } from '../github-response-types';
 import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
 
 function createPullRequest(
@@ -393,17 +390,26 @@ describe('GitHubPullRequestsFetchRepository', () => {
       );
 
       const staleFreshComment = {
-        ...createComment({ id: 1, pull_request_url: 'https://api.github.com/repos/org/repo/pulls/1' }),
+        ...createComment({
+          id: 1,
+          pull_request_url: 'https://api.github.com/repos/org/repo/pulls/1',
+        }),
         updated_at: '2026-05-09T00:00:00Z',
         body: 'should be excluded, older than cached latest',
       };
       const freshComment = {
-        ...createComment({ id: 2, pull_request_url: 'https://api.github.com/repos/org/repo/pulls/1' }),
+        ...createComment({
+          id: 2,
+          pull_request_url: 'https://api.github.com/repos/org/repo/pulls/1',
+        }),
         updated_at: '2026-05-12T00:00:00Z',
         body: 'new comment after cached latest',
       };
       const noDateComment = {
-        ...createComment({ id: 3, pull_request_url: 'https://api.github.com/repos/org/repo/pulls/1' }),
+        ...createComment({
+          id: 3,
+          pull_request_url: 'https://api.github.com/repos/org/repo/pulls/1',
+        }),
         updated_at: undefined as unknown as string,
         body: 'always included regardless of date',
       };

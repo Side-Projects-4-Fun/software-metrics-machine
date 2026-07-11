@@ -7,11 +7,17 @@ import {
 import { PipelineJob, PipelineRun } from '../pipeline-types';
 import { shouldIncludeTimestampForWeekendsMode } from '../../metric-samples';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
-import { ParseRawFiltersRepository, RawFilter } from '../../../infrastructure/parse-raw-filters-repository';
+import {
+  ParseRawFiltersRepository,
+  RawFilter,
+} from '../../../infrastructure/parse-raw-filters-repository';
 import { PipelinesRepository, LoadPipelinesOptions } from '../repositories/pipeline-repository';
 import { PipelineMapToDomainRepository } from '../../../providers/github/pipeline-map-to-domain-repository';
 
-export class PipelinesRepositoryJson extends ParseRawFiltersRepository implements PipelinesRepository {
+export class PipelinesRepositoryJson
+  extends ParseRawFiltersRepository
+  implements PipelinesRepository
+{
   private mapToDomain = new PipelineMapToDomainRepository();
 
   constructor(
@@ -28,7 +34,7 @@ export class PipelinesRepositoryJson extends ParseRawFiltersRepository implement
   ): Promise<PipelineRun[]> {
     const runs = await this.pipelineRunJsonRepository.loadAll();
     const pipelineRunsFromDomain = runs.map(this.mapToDomain.mapPipelinesToDomain);
-  
+
     this.logger.info(`Loaded ${pipelineRunsFromDomain.length} pipeline runs from JSON repository`);
 
     const pipelineRuns = this.filterRuns(pipelineRunsFromDomain, options);

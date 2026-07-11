@@ -1,15 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import {
-  PipelineFilterOptions,
-  PipelineGitHubJobBuilder,
-  PipelineGitHubRunBuilder,
-} from '../../..';
+import { PipelineFilterOptions } from '../../..';
+import { PipelineGitHubJobBuilder, PipelineGitHubRunBuilder } from '../../../test/github-builders';
 import { PipelineFiltersRepositoryJson } from '../../../domain/pipelines/infrastructure/pipeline-filters-repository-json';
 import { InMemoryRepository } from '../../../test/in-memory-repository';
-import {
-  WorkflowJobJsonResponse,
-  WorkflowJsonResponse,
-} from '../github-response-types';
+import { WorkflowJobJsonResponse, WorkflowJsonResponse } from '../github-response-types';
 
 describe('PipelineFiltersRepository', () => {
   const createRepository = async (

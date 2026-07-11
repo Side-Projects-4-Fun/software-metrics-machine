@@ -63,18 +63,13 @@ async function seedHistoricalCache(cacheDir: string, entries: CodeMetric[][]): P
     entries: entries.map((data) => ({ fetchedAt: new Date().toISOString(), data })),
   };
   await fs.mkdir(cacheDir, { recursive: true });
-  await fs.writeFile(
-    path.join(cacheDir, 'historical-measures.json'),
-    JSON.stringify(store)
-  );
+  await fs.writeFile(path.join(cacheDir, 'historical-measures.json'), JSON.stringify(store));
 }
 
 async function readHistoricalCache(cacheDir: string): Promise<{
   entries: Array<{ fetchedAt: string; data: CodeMetric[] }>;
 }> {
-  return JSON.parse(
-    await fs.readFile(path.join(cacheDir, 'historical-measures.json'), 'utf-8')
-  );
+  return JSON.parse(await fs.readFile(path.join(cacheDir, 'historical-measures.json'), 'utf-8'));
 }
 
 describe('SonarqubeFetchMetricsRepository', () => {
@@ -99,9 +94,7 @@ describe('SonarqubeFetchMetricsRepository', () => {
       expect(fetchComponentMeasures).toHaveBeenCalledWith({ metrics: ['coverage'] });
       expect(result).toEqual(measures);
 
-      const stored = JSON.parse(
-        await fs.readFile(path.join(cacheDir, 'measures.json'), 'utf-8')
-      );
+      const stored = JSON.parse(await fs.readFile(path.join(cacheDir, 'measures.json'), 'utf-8'));
       expect(stored.entries).toHaveLength(1);
       expect(stored.entries[0].data).toEqual(measures);
       expect(typeof stored.entries[0].fetchedAt).toBe('string');
@@ -223,9 +216,7 @@ describe('SonarqubeFetchMetricsRepository', () => {
       });
 
       expect(result).toHaveLength(2);
-      expect(result).toEqual(
-        expect.arrayContaining([cachedMetric, freshNew])
-      );
+      expect(result).toEqual(expect.arrayContaining([cachedMetric, freshNew]));
       // the cached entry's value is preserved, not overwritten by the duplicate fresh one
       expect(result.find((m) => m.timestamp === '2026-05-01T00:00:00.000Z')?.value).toBe('80.0');
 
@@ -331,7 +322,9 @@ describe('SonarqubeFetchMetricsRepository', () => {
       });
       await seedHistoricalCache(cacheDir, [[cachedMetric]]);
 
-      const fresh = [createCodeMetric({ key: 'coverage_2026-06-01', timestamp: '2026-06-01T00:00:00.000Z' })];
+      const fresh = [
+        createCodeMetric({ key: 'coverage_2026-06-01', timestamp: '2026-06-01T00:00:00.000Z' }),
+      ];
       const fetchHistoricalMeasures = vi.fn().mockResolvedValue(fresh);
       const sonarqubeClient = createSonarqubeClient({ fetchHistoricalMeasures });
       const configuration = { getSonarqubePath: () => cacheDir };

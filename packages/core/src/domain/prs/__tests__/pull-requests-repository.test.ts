@@ -3,7 +3,7 @@ import { PullRequestsRepository } from '../../../domain';
 import {
   PullRequestJsonResponseBuilder,
   PullRequestCommentJsonResponseBuilder,
-} from '../../../test/builders';
+} from '../../../test/github-builders';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 
 const timeZoneProvider = new TimeZoneProvider('UTC');
@@ -196,18 +196,20 @@ describe('PullRequestsRepository filters', () => {
   it('excludes weekend PRs when cleaning.weekends is set to exclude', async () => {
     const repository = new PullRequestsRepository(
       {
-        loadAll: vi.fn().mockResolvedValue([
-          new PullRequestJsonResponseBuilder()
-            .withId('1')
-            .withNumber('1')
-            .withCreatedAt('2026-06-06T10:00:00Z')
-            .build(),
-          new PullRequestJsonResponseBuilder()
-            .withId('2')
-            .withNumber('2')
-            .withCreatedAt('2026-06-08T10:00:00Z')
-            .build(),
-        ]),
+        loadAll: vi
+          .fn()
+          .mockResolvedValue([
+            new PullRequestJsonResponseBuilder()
+              .withId('1')
+              .withNumber('1')
+              .withCreatedAt('2026-06-06T10:00:00Z')
+              .build(),
+            new PullRequestJsonResponseBuilder()
+              .withId('2')
+              .withNumber('2')
+              .withCreatedAt('2026-06-08T10:00:00Z')
+              .build(),
+          ]),
       } as any,
       { loadAll: vi.fn().mockResolvedValue([]) } as any,
       timeZoneProvider
@@ -223,18 +225,20 @@ describe('PullRequestsRepository filters', () => {
   it('keeps only weekend PRs when cleaning.weekends is set to weekends_only', async () => {
     const repository = new PullRequestsRepository(
       {
-        loadAll: vi.fn().mockResolvedValue([
-          new PullRequestJsonResponseBuilder()
-            .withId('1')
-            .withNumber('1')
-            .withCreatedAt('2026-06-06T10:00:00Z')
-            .build(),
-          new PullRequestJsonResponseBuilder()
-            .withId('2')
-            .withNumber('2')
-            .withCreatedAt('2026-06-08T10:00:00Z')
-            .build(),
-        ]),
+        loadAll: vi
+          .fn()
+          .mockResolvedValue([
+            new PullRequestJsonResponseBuilder()
+              .withId('1')
+              .withNumber('1')
+              .withCreatedAt('2026-06-06T10:00:00Z')
+              .build(),
+            new PullRequestJsonResponseBuilder()
+              .withId('2')
+              .withNumber('2')
+              .withCreatedAt('2026-06-08T10:00:00Z')
+              .build(),
+          ]),
       } as any,
       { loadAll: vi.fn().mockResolvedValue([]) } as any,
       timeZoneProvider

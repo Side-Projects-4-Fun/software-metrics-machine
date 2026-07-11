@@ -1,17 +1,38 @@
 import { describe, expect, it, vi } from 'vitest';
 import { PullRequestsController } from '../src/controllers/pull-requests.controller';
+import type { PRsService } from '@smmachine/core';
 
-const createController = (prs: any[] = [], prsService: any = {}) => {
-  const pullRequestFiltersRepository = {
-    loadOptions: vi.fn().mockResolvedValue({ authors: [], labels: [] }),
+const createMockPRsService = (methods: Partial<PRsService> = {}): PRsService =>
+  ({
+    getSummary: vi.fn(),
+    getThroughTime: vi.fn(),
+    getByAuthor: vi.fn(),
+    getAverageReviewTime: vi.fn(),
+    getAverageOpenBy: vi.fn(),
+    getMetrics: vi.fn(),
+    getCommentsByAuthor: vi.fn(),
+    getFirstCommentTime: vi.fn(),
+    ...methods,
+  }) as PRsService;
+
+const createMockPullRequestFiltersRepository = () => ({
+  loadOptions: vi.fn().mockResolvedValue({ authors: [], labels: [] }),
+});
+
+const createController = (prsService?: Partial<PRsService>) => {
+  const mockPrsService = createMockPRsService(prsService);
+  const pullRequestFiltersRepository = createMockPullRequestFiltersRepository();
+
+  return {
+    controller: new PullRequestsController(mockPrsService, pullRequestFiltersRepository as any),
+    mockPrsService,
+    pullRequestFiltersRepository,
   };
-
-  return new PullRequestsController(prsService as any, pullRequestFiltersRepository as any);
 };
 
 describe('PullRequestsController', () => {
   it('should return labels with number of PRs associated', async () => {
-    const mockPrsService = {
+    const { controller } = createController({
       getSummary: vi.fn().mockResolvedValue({
         result: {
           labels: [
@@ -20,9 +41,7 @@ describe('PullRequestsController', () => {
           ],
         },
       }),
-    };
-
-    const controller = createController([], mockPrsService);
+    });
 
     const response = await controller.summary();
 
@@ -33,7 +52,7 @@ describe('PullRequestsController', () => {
   });
 
   it('aggregates PRs through time by day', async () => {
-    const mockPrsService = {
+    const { controller } = createController({
       getThroughTime: vi.fn().mockResolvedValue([
         { date: '2026-01-05', kind: 'Opened', count: 2 },
         { date: '2026-01-05', kind: 'Closed', count: 0 },
@@ -42,9 +61,7 @@ describe('PullRequestsController', () => {
         { date: '2026-01-12', kind: 'Opened', count: 0 },
         { date: '2026-01-12', kind: 'Closed', count: 1 },
       ]),
-    };
-
-    const controller = createController([], mockPrsService);
+    });
 
     const response = await controller.throughTime(undefined, undefined, 'day');
 
@@ -59,16 +76,14 @@ describe('PullRequestsController', () => {
   });
 
   it('aggregates PRs through time by month', async () => {
-    const mockPrsService = {
+    const { controller } = createController({
       getThroughTime: vi.fn().mockResolvedValue([
         { date: '2026-01', kind: 'Opened', count: 2 },
         { date: '2026-01', kind: 'Closed', count: 1 },
         { date: '2026-02', kind: 'Opened', count: 0 },
         { date: '2026-02', kind: 'Closed', count: 1 },
       ]),
-    };
-
-    const controller = createController([], mockPrsService);
+    });
 
     const response = await controller.throughTime(undefined, undefined, 'month');
 
@@ -81,10 +96,9 @@ describe('PullRequestsController', () => {
   });
 
   it('aggregates average open days by day', async () => {
-    const mockPrsService = {
+    const { controller, mockPrsService } = createController({
       getAverageOpenBy: vi.fn().mockResolvedValue([{ period: '2026-01-05', avg_days: 1.5 }]),
-    };
-    const controller = createController([], mockPrsService);
+    });
 
     const response = await controller.averageOpenBy(undefined, undefined, 'day');
 
@@ -97,10 +111,9 @@ describe('PullRequestsController', () => {
 
   describe('byAuthor', () => {
     it('uses the explicit top value when provided', async () => {
-      const mockPrsService = {
+      const { controller, mockPrsService } = createController({
         getByAuthor: vi.fn().mockResolvedValue([{ author: 'alice', count: 5 }]),
-      };
-      const controller = createController([], mockPrsService);
+      });
 
       const response = await controller.byAuthor(undefined, undefined, undefined, '3');
 
@@ -109,10 +122,9 @@ describe('PullRequestsController', () => {
     });
 
     it('defaults top to 10 when omitted', async () => {
-      const mockPrsService = {
+      const { controller, mockPrsService } = createController({
         getByAuthor: vi.fn().mockResolvedValue([]),
-      };
-      const controller = createController([], mockPrsService);
+      });
 
       await controller.byAuthor(undefined, undefined, undefined, undefined);
 
@@ -120,10 +132,9 @@ describe('PullRequestsController', () => {
     });
 
     it('falls back to 10 when top is non-numeric', async () => {
-      const mockPrsService = {
+      const { controller, mockPrsService } = createController({
         getByAuthor: vi.fn().mockResolvedValue([]),
-      };
-      const controller = createController([], mockPrsService);
+      });
 
       await controller.byAuthor(undefined, undefined, undefined, 'not-a-number');
 
@@ -133,10 +144,9 @@ describe('PullRequestsController', () => {
 
   describe('averageReviewTime', () => {
     it('uses the explicit top value when provided', async () => {
-      const mockPrsService = {
+      const { controller, mockPrsService } = createController({
         getAverageReviewTime: vi.fn().mockResolvedValue([{ author: 'bob', avg_days: 1.2 }]),
-      };
-      const controller = createController([], mockPrsService);
+      });
 
       const response = await controller.averageReviewTime(undefined, undefined, undefined, '4');
 
@@ -145,10 +155,9 @@ describe('PullRequestsController', () => {
     });
 
     it('defaults top to 10 when omitted', async () => {
-      const mockPrsService = {
+      const { controller, mockPrsService } = createController({
         getAverageReviewTime: vi.fn().mockResolvedValue([]),
-      };
-      const controller = createController([], mockPrsService);
+      });
 
       await controller.averageReviewTime(undefined, undefined, undefined, undefined);
 
@@ -156,10 +165,9 @@ describe('PullRequestsController', () => {
     });
 
     it('falls back to 10 when top is non-numeric', async () => {
-      const mockPrsService = {
+      const { controller, mockPrsService } = createController({
         getAverageReviewTime: vi.fn().mockResolvedValue([]),
-      };
-      const controller = createController([], mockPrsService);
+      });
 
       await controller.averageReviewTime(undefined, undefined, undefined, 'nope');
 
@@ -169,10 +177,9 @@ describe('PullRequestsController', () => {
 
   describe('averageComments', () => {
     it('returns avg_comments from service metrics', async () => {
-      const mockPrsService = {
+      const { controller, mockPrsService } = createController({
         getMetrics: vi.fn().mockResolvedValue({ averageComments: 3.5 }),
-      };
-      const controller = createController([], mockPrsService);
+      });
 
       const response = await controller.averageComments();
 
@@ -183,10 +190,9 @@ describe('PullRequestsController', () => {
 
   describe('commentsByAuthor', () => {
     it('uses the explicit top value when provided', async () => {
-      const mockPrsService = {
+      const { controller, mockPrsService } = createController({
         getCommentsByAuthor: vi.fn().mockResolvedValue([{ author: 'carol', count: 7 }]),
-      };
-      const controller = createController([], mockPrsService);
+      });
 
       const response = await controller.commentsByAuthor(undefined, undefined, undefined, '5');
 
@@ -195,10 +201,9 @@ describe('PullRequestsController', () => {
     });
 
     it('defaults top to 10 when omitted', async () => {
-      const mockPrsService = {
+      const { controller, mockPrsService } = createController({
         getCommentsByAuthor: vi.fn().mockResolvedValue([]),
-      };
-      const controller = createController([], mockPrsService);
+      });
 
       await controller.commentsByAuthor(undefined, undefined, undefined, undefined);
 
@@ -206,10 +211,9 @@ describe('PullRequestsController', () => {
     });
 
     it('falls back to 10 when top is non-numeric', async () => {
-      const mockPrsService = {
+      const { controller, mockPrsService } = createController({
         getCommentsByAuthor: vi.fn().mockResolvedValue([]),
-      };
-      const controller = createController([], mockPrsService);
+      });
 
       await controller.commentsByAuthor(undefined, undefined, undefined, 'bogus');
 
@@ -219,12 +223,11 @@ describe('PullRequestsController', () => {
 
   describe('firstCommentTime', () => {
     it('uses the explicit top value when provided', async () => {
-      const mockPrsService = {
+      const { controller, mockPrsService } = createController({
         getFirstCommentTime: vi
           .fn()
           .mockResolvedValue([{ author: 'dave', avg_hours: 2.5, prs_with_comments: 4 }]),
-      };
-      const controller = createController([], mockPrsService);
+      });
 
       const response = await controller.firstCommentTime(undefined, undefined, undefined, '6');
 
@@ -233,10 +236,9 @@ describe('PullRequestsController', () => {
     });
 
     it('defaults top to 10 when omitted', async () => {
-      const mockPrsService = {
+      const { controller, mockPrsService } = createController({
         getFirstCommentTime: vi.fn().mockResolvedValue([]),
-      };
-      const controller = createController([], mockPrsService);
+      });
 
       await controller.firstCommentTime(undefined, undefined, undefined, undefined);
 
@@ -244,10 +246,9 @@ describe('PullRequestsController', () => {
     });
 
     it('falls back to 10 when top is non-numeric', async () => {
-      const mockPrsService = {
+      const { controller, mockPrsService } = createController({
         getFirstCommentTime: vi.fn().mockResolvedValue([]),
-      };
-      const controller = createController([], mockPrsService);
+      });
 
       await controller.firstCommentTime(undefined, undefined, undefined, 'NaN-ish');
 
@@ -257,9 +258,11 @@ describe('PullRequestsController', () => {
 
   describe('filterOptions', () => {
     it('delegates to pullRequestFiltersRepository.loadOptions without wrapping', async () => {
-      const controller = createController([], {});
+      const { controller, pullRequestFiltersRepository } = createController();
 
       const response = await controller.filterOptions();
+
+      expect(pullRequestFiltersRepository.loadOptions).toHaveBeenCalled();
 
       expect(response).toEqual({ authors: [], labels: [] });
     });
@@ -267,10 +270,9 @@ describe('PullRequestsController', () => {
 
   describe('toFilters mapping', () => {
     it('maps query params to PRFilters, renaming status to state', async () => {
-      const mockPrsService = {
+      const { controller, mockPrsService } = createController({
         getByAuthor: vi.fn().mockResolvedValue([]),
-      };
-      const controller = createController([], mockPrsService);
+      });
 
       await controller.byAuthor(
         undefined,

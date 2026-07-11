@@ -2,7 +2,7 @@ export {
   PairingService as PairingIndexService,
   type IPairingIndexService,
 } from './pairing/pairing-service';
-export * from './pairing/pairing-factory'
+export * from './pairing/pairing-factory';
 
 export * from './sonarqube/sonarqube-service';
 export * from './sonarqube/sonarqube-factory';

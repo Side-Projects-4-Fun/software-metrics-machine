@@ -3,7 +3,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Logger } from '@smmachine/utils';
-import { Configuration, RepositoryFactory, SqliteRepository, TimeZoneProvider } from '../../../infrastructure';
+import {
+  Configuration,
+  RepositoryFactory,
+  SqliteRepository,
+  TimeZoneProvider,
+} from '../../../infrastructure';
 import {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
@@ -11,7 +16,7 @@ import {
 import {
   PullRequestCommentJsonResponseBuilder,
   PullRequestJsonResponseBuilder,
-} from '../../../test/builders';
+} from '../../../test/github-builders';
 import { PullRequestFactory } from '../factories';
 import { PullRequestsSqliteRepository } from '../repositories';
 

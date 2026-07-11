@@ -61,7 +61,10 @@ export function matchesAnyPathPattern(filePath: string, matchers: PatternMatcher
   return matchers.some((matcher) => matcher(filePath));
 }
 
-export function matchesIncludePatterns(filePath: string, includeMatchers: PatternMatcher[]): boolean {
+export function matchesIncludePatterns(
+  filePath: string,
+  includeMatchers: PatternMatcher[]
+): boolean {
   if (includeMatchers.length === 0) {
     return true;
   }

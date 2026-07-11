@@ -55,11 +55,12 @@ export class PullRequestFactory {
       logger,
       config
     );
-    const pullRequestCommentsJsonRepository = RepositoryFactory.create<PullRequestCommentJsonResponse>(
-      `${config.getPathFromGitProvider()}/pr-comments.json`,
-      logger,
-      config
-    );
+    const pullRequestCommentsJsonRepository =
+      RepositoryFactory.create<PullRequestCommentJsonResponse>(
+        `${config.getPathFromGitProvider()}/pr-comments.json`,
+        logger,
+        config
+      );
     const pullRequestFiltersJsonRepository = RepositoryFactory.create<PullRequestFilterOptions>(
       `${config.getPathFromGitProvider()}/pull-request-filter-options.json`,
       logger,

@@ -22,19 +22,19 @@ describe('SonarqubeRepository', () => {
               key: 'src/Button.ts',
               name: 'Button.ts',
               qualifier: 'FIL',
-              measures: []
+              measures: [],
             },
             {
               key: 'src/Button.test.ts',
               name: 'Button.test.ts',
               qualifier: 'FIL',
-              measures: []
+              measures: [],
             },
             {
               key: 'docs/readme.md',
               name: 'readme.md',
               qualifier: 'FIL',
-              measures: []
+              measures: [],
             },
           ],
         },
@@ -260,7 +260,11 @@ describe('SonarqubeRepository', () => {
           },
           {
             fetchedAt: '2024-02-01T00:00:00.000Z',
-            data: { id: '1', key: 'project-a', name: 'Project A' } as unknown as SonarqubeComponentMeasure,
+            data: {
+              id: '1',
+              key: 'project-a',
+              name: 'Project A',
+            } as unknown as SonarqubeComponentMeasure,
           },
         ],
       });
@@ -527,9 +531,7 @@ describe('SonarqubeRepository', () => {
         name: 'other.ts',
       } as unknown as SonarqubeComponentTreeMeasure;
       await componentTreeRepository.save({
-        entries: [
-          { fetchedAt: '2024-03-01T00:00:00.000Z', data: [withMeasures, withoutMeasures] },
-        ],
+        entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: [withMeasures, withoutMeasures] }],
       });
 
       const repository = new SonarqubeRepositoryJson(
@@ -629,9 +631,7 @@ describe('SonarqubeRepository', () => {
         componentTreeRepository
       );
 
-      expect(
-        await repository.loadAllComponentTreeEntries({ remove_folders: true })
-      ).toEqual([
+      expect(await repository.loadAllComponentTreeEntries({ remove_folders: true })).toEqual([
         { fetchedAt: '2024-01-01T00:00:00.000Z', data: [] },
         { fetchedAt: '2024-02-01T00:00:00.000Z', data: [file] },
       ]);
@@ -685,9 +685,9 @@ describe('SonarqubeRepository', () => {
         componentTreeRepository
       );
 
-      expect(
-        await repository.loadComponentTree({ include_files: ['*.test.ts'] })
-      ).toEqual([matching]);
+      expect(await repository.loadComponentTree({ include_files: ['*.test.ts'] })).toEqual([
+        matching,
+      ]);
     });
 
     it('matches a ** glob across path separators against the full normalized path', async () => {
@@ -713,9 +713,9 @@ describe('SonarqubeRepository', () => {
         componentTreeRepository
       );
 
-      expect(
-        await repository.loadComponentTree({ include_files: ['src/**/index.ts'] })
-      ).toEqual([matching]);
+      expect(await repository.loadComponentTree({ include_files: ['src/**/index.ts'] })).toEqual([
+        matching,
+      ]);
     });
 
     it('matches a ? glob against exactly one non-slash character', async () => {
@@ -741,9 +741,9 @@ describe('SonarqubeRepository', () => {
         componentTreeRepository
       );
 
-      expect(
-        await repository.loadComponentTree({ include_files: ['file?.ts'] })
-      ).toEqual([matching]);
+      expect(await repository.loadComponentTree({ include_files: ['file?.ts'] })).toEqual([
+        matching,
+      ]);
     });
 
     it('matches a pattern without a slash only against the basename', async () => {
@@ -764,9 +764,7 @@ describe('SonarqubeRepository', () => {
         componentTreeRepository
       );
 
-      expect(
-        await repository.loadComponentTree({ include_files: ['*.ts'] })
-      ).toEqual([component]);
+      expect(await repository.loadComponentTree({ include_files: ['*.ts'] })).toEqual([component]);
     });
 
     it('normalizes backslash separators to forward slashes before matching', async () => {
@@ -787,9 +785,9 @@ describe('SonarqubeRepository', () => {
         componentTreeRepository
       );
 
-      expect(
-        await repository.loadComponentTree({ include_files: ['src/**/index.ts'] })
-      ).toEqual([component]);
+      expect(await repository.loadComponentTree({ include_files: ['src/**/index.ts'] })).toEqual([
+        component,
+      ]);
     });
   });
 
@@ -830,9 +828,7 @@ describe('SonarqubeRepository', () => {
         formatter: 'NUMBER',
       };
       await historicalRepository.save({
-        entries: [
-          { fetchedAt: '2024-03-01T00:00:00.000Z', data: [coverageMetric, bugsMetric] },
-        ],
+        entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: [coverageMetric, bugsMetric] }],
       });
 
       const repository = new SonarqubeRepositoryJson(
@@ -855,9 +851,7 @@ describe('SonarqubeRepository', () => {
         formatter: 'PERCENT',
       } as unknown as CodeMetric;
       await historicalRepository.save({
-        entries: [
-          { fetchedAt: '2024-03-01T00:00:00.000Z', data: [metricWithoutMetricField] },
-        ],
+        entries: [{ fetchedAt: '2024-03-01T00:00:00.000Z', data: [metricWithoutMetricField] }],
       });
 
       const repository = new SonarqubeRepositoryJson(
@@ -933,9 +927,7 @@ describe('SonarqubeRepository', () => {
         historicalRepository
       );
 
-      expect(
-        await repository.loadAllHistoricalMeasureEntries({ measures: ['coverage'] })
-      ).toEqual([
+      expect(await repository.loadAllHistoricalMeasureEntries({ measures: ['coverage'] })).toEqual([
         { fetchedAt: '2024-01-01T00:00:00.000Z', data: [coverageMetric] },
         { fetchedAt: '2024-02-01T00:00:00.000Z', data: [coverageMetric] },
       ]);

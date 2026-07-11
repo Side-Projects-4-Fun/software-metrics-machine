@@ -21,7 +21,16 @@ export function readString(value: unknown, fieldName: string): string | undefine
 }
 
 export function parseMetricsToolArguments(argumentsValue: unknown): MetricsToolArguments {
-  const args = (argumentsValue || {}) as JsonObject;
+  // Type guard to ensure we have a valid JsonObject
+  if (
+    argumentsValue === null ||
+    typeof argumentsValue !== 'object' ||
+    Array.isArray(argumentsValue)
+  ) {
+    return {};
+  }
+
+  const args = argumentsValue as JsonObject;
 
   return {
     project: readString(args.project, 'project'),

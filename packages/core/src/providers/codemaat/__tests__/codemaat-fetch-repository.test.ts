@@ -54,9 +54,7 @@ describe('CodemaatFetchRepository', () => {
         startDate: '2026-01-01',
         outputDirectory: fs.mkdtempSync(path.join(os.tmpdir(), 'smm-codemaat-out-')),
       })
-    ).toThrow(
-      `Could not locate fetch-codemaat.sh at expected path: ${expectedDefaultScriptPath}`
-    );
+    ).toThrow(`Could not locate fetch-codemaat.sh at expected path: ${expectedDefaultScriptPath}`);
   });
 
   it('fetches successfully using a real script, creating the output directory and returning its stdout', () => {

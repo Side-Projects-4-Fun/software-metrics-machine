@@ -32,24 +32,18 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
   constructor(
     private sonarqubeClient: ISonarqubeMeasuresClient,
     private configuration: Configuration,
-    private logger: Logger,
+    private logger: Logger
   ) {
     const cacheDir = this.configuration.getSonarqubePath();
     this.measuresJsonRepository = RepositoryFactory.create<
       TimestampedStore<SonarqubeComponentMeasure>
-    >(
-      `${cacheDir}/measures.json`,
-      logger,
-      this.configuration
-    );
+    >(`${cacheDir}/measures.json`, logger, this.configuration);
     this.componentTreeJsonRepository = RepositoryFactory.create<
       TimestampedStore<SonarqubeComponentTreeMeasure[]>
     >(`${cacheDir}/component-tree.json`, logger, this.configuration);
-    this.historicalMeasuresJsonRepository = RepositoryFactory.create<TimestampedStore<CodeMetric[]>>(
-      `${cacheDir}/historical-measures.json`,
-      logger,
-      this.configuration
-    );
+    this.historicalMeasuresJsonRepository = RepositoryFactory.create<
+      TimestampedStore<CodeMetric[]>
+    >(`${cacheDir}/historical-measures.json`, logger, this.configuration);
   }
 
   /**
@@ -110,7 +104,9 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
       if (options?.incrementalUpdate) {
         if (cached.length > 0) {
           const latestDate = this.findLatestDateInMeasures(cached);
-          this.logger.info(`Incremental update: fetching historical measures after ${latestDate}...`);
+          this.logger.info(
+            `Incremental update: fetching historical measures after ${latestDate}...`
+          );
           const fresh = await this.sonarqubeClient.fetchHistoricalMeasures({
             metrics: options?.metrics,
             startDate: latestDate,

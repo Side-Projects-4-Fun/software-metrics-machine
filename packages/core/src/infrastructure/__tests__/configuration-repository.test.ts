@@ -408,17 +408,18 @@ describe('ConfigurationRepository', () => {
 
       repo.save();
 
-      const saved = JSON.parse(
-        readFileSync(join(tempDir, 'smm_config.json'), 'utf-8')
-      ) as Record<string, ISmmProjectConfig[]>;
+      const saved = JSON.parse(readFileSync(join(tempDir, 'smm_config.json'), 'utf-8')) as Record<
+        string,
+        ISmmProjectConfig[]
+      >;
       expect(saved.projects[0].sonar_local_runner_token).toBeUndefined();
       expect(saved.projects[1].sonar_local_runner_token).toBe('local-token-b');
       expect(saved.projects[1].internal?.storage_type).toBe('sqlite');
     });
 
     it('should throw when project not found', () => {
-      expect(
-        () => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'nonexistent/repo')
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'nonexistent/repo')
       ).toThrow('Project "nonexistent/repo" not found');
     });
   });
@@ -449,9 +450,9 @@ describe('ConfigurationRepository', () => {
     });
 
     it('should throw error when projects array is empty', () => {
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        'smm_config.json has empty projects array'
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow('smm_config.json has empty projects array');
     });
   });
 
@@ -475,25 +476,25 @@ describe('ConfigurationRepository', () => {
     it('should throw when config file contains invalid JSON', () => {
       tempDir = mkdtempSync(join(tmpdir(), 'smm-config-repo-invalidjson-'));
       writeFileSync(join(tempDir, 'smm_config.json'), '{ invalid json }', 'utf-8');
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        /is not valid JSON/
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(/is not valid JSON/);
     });
 
     it('should throw when root is an array instead of object', () => {
       tempDir = mkdtempSync(join(tmpdir(), 'smm-config-repo-rootarray-'));
       writeFileSync(join(tempDir, 'smm_config.json'), '[]', 'utf-8');
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        /must be a JSON object, got array/
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(/must be a JSON object, got array/);
     });
 
     it('should throw when root is a primitive', () => {
       tempDir = mkdtempSync(join(tmpdir(), 'smm-config-repo-rootprim-'));
       writeFileSync(join(tempDir, 'smm_config.json'), '"hello"', 'utf-8');
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        /must be a JSON object, got string/
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(/must be a JSON object, got string/);
     });
 
     it('should throw when projects is not an array', () => {
@@ -503,9 +504,9 @@ describe('ConfigurationRepository', () => {
         JSON.stringify({ projects: 'not-an-array' }),
         'utf-8'
       );
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        /"projects" must be an array, got string/
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(/"projects" must be an array, got string/);
     });
 
     it('should throw when a project entry is not an object', () => {
@@ -515,9 +516,9 @@ describe('ConfigurationRepository', () => {
         JSON.stringify({ projects: ['not-an-object'] }),
         'utf-8'
       );
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        /projects\[0\] must be a JSON object, got string/
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(/projects\[0\] must be a JSON object, got string/);
     });
 
     it('should throw when a project entry is null', () => {
@@ -527,17 +528,17 @@ describe('ConfigurationRepository', () => {
         JSON.stringify({ projects: [null] }),
         'utf-8'
       );
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        /projects\[0\] must be a JSON object, got object/
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(/projects\[0\] must be a JSON object, got object/);
     });
 
     it('should throw when a project entry is an array', () => {
       tempDir = mkdtempSync(join(tmpdir(), 'smm-config-repo-projarray-'));
       writeFileSync(join(tempDir, 'smm_config.json'), JSON.stringify({ projects: [[]] }), 'utf-8');
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        /projects\[0\] must be a JSON object, got array/
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(/projects\[0\] must be a JSON object, got array/);
     });
 
     it('should throw when string field has wrong type', () => {
@@ -547,9 +548,9 @@ describe('ConfigurationRepository', () => {
         JSON.stringify({ projects: [{ github_repository: 123 }] }),
         'utf-8'
       );
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        /projects\[0\]\.github_repository must be a string/
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(/projects\[0\]\.github_repository must be a string/);
     });
 
     it('should throw when store_logs is not a boolean', () => {
@@ -559,9 +560,9 @@ describe('ConfigurationRepository', () => {
         JSON.stringify({ projects: [{ store_logs: 'yes' }] }),
         'utf-8'
       );
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        /projects\[0\]\.store_logs must be a boolean/
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(/projects\[0\]\.store_logs must be a boolean/);
     });
 
     it('should throw when deployment_frequency_targets is not an array', () => {
@@ -571,9 +572,9 @@ describe('ConfigurationRepository', () => {
         JSON.stringify({ projects: [{ deployment_frequency_targets: 'not-array' }] }),
         'utf-8'
       );
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        /projects\[0\]\.deployment_frequency_targets must be an array/
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(/projects\[0\]\.deployment_frequency_targets must be an array/);
     });
 
     it('should throw when deployment_frequency_targets entry is not an object', () => {
@@ -583,9 +584,9 @@ describe('ConfigurationRepository', () => {
         JSON.stringify({ projects: [{ deployment_frequency_targets: ['bad'] }] }),
         'utf-8'
       );
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        /projects\[0\]\.deployment_frequency_targets\[0\] must be an object/
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(/projects\[0\]\.deployment_frequency_targets\[0\] must be an object/);
     });
 
     it('should throw when deployment_frequency_targets entry missing pipeline', () => {
@@ -595,9 +596,9 @@ describe('ConfigurationRepository', () => {
         JSON.stringify({ projects: [{ deployment_frequency_targets: [{ job: 'deploy' }] }] }),
         'utf-8'
       );
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        /projects\[0\]\.deployment_frequency_targets\[0\]\.pipeline must be a string/
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(/projects\[0\]\.deployment_frequency_targets\[0\]\.pipeline must be a string/);
     });
 
     it('should throw when deployment_frequency_targets entry missing job', () => {
@@ -607,9 +608,9 @@ describe('ConfigurationRepository', () => {
         JSON.stringify({ projects: [{ deployment_frequency_targets: [{ pipeline: 'ci' }] }] }),
         'utf-8'
       );
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        /projects\[0\]\.deployment_frequency_targets\[0\]\.job must be a string/
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(/projects\[0\]\.deployment_frequency_targets\[0\]\.job must be a string/);
     });
 
     it('should accept valid config with all fields', () => {
@@ -734,9 +735,9 @@ describe('ConfigurationRepository', () => {
         'utf-8'
       );
 
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
-        /internal\.storageType is not supported.*internal\.storage_type/
-      );
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(/internal\.storageType is not supported.*internal\.storage_type/);
     });
 
     it('should reject project internal storageType in JSON configuration', () => {
@@ -757,51 +758,104 @@ describe('ConfigurationRepository', () => {
         'utf-8'
       );
 
-      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')).toThrow(
+      expect(() =>
+        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
+      ).toThrow(
         /projects\[0\]\.internal\.storageType is not supported.*projects\[0\]\.internal\.storage_type/
       );
     });
   });
 });
 
-  describe('Configuration', () => {
-    let tempDir: string | undefined;
+describe('Configuration', () => {
+  let tempDir: string | undefined;
 
-    afterEach(() => {
-      if (tempDir) {
-        rmSync(tempDir, { recursive: true, force: true });
-        tempDir = undefined;
-      }
-    });
+  afterEach(() => {
+    if (tempDir) {
+      rmSync(tempDir, { recursive: true, force: true });
+      tempDir = undefined;
+    }
+  });
 
-    it('should create configuration from environment variables', () => {
-      const env = {
+  it('should create configuration from environment variables', () => {
+    const env = {
+      SMM_STORE_DATA_AT: '/tmp',
+      OWNER_REPO_GIT_PROVIDER: 'github',
+      OWNER_REPO_GITHUB_TOKEN: 'gh_test',
+      OWNER_REPO_LOGGING_LEVEL: 'DEBUG',
+      OWNER_REPO_GIT_REPOSITORY_PATH: '/tmp/repo',
+    };
+    const config = createConfigurationRepository(env, 'owner/repo').getActiveConfiguration();
+    expect(config.githubRepository).toBe('owner/repo');
+    expect(config.gitProvider).toBe('github');
+    expect(config.githubToken).toBe('gh_test');
+    expect(config.loggingLevel).toBe('DEBUG');
+    expect(config.storeData).toBe('/tmp');
+    expect(config.getLogPath()).toBe(join('/tmp', 'github_owner_repo', 'smm.log'));
+  });
+
+  it('should load store logs configuration', () => {
+    tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
+    writeFileSync(
+      join(tempDir, 'smm_config.json'),
+      JSON.stringify({
+        projects: [
+          {
+            github_repository: 'owner/repo',
+            git_repository_location: '/tmp/repo',
+            log_level: 'INFO',
+            store_logs: true,
+          },
+        ],
+      }),
+      'utf-8'
+    );
+
+    const config = createConfigurationRepository({
+      SMM_STORE_DATA_AT: tempDir,
+    }).getActiveConfiguration();
+
+    expect(config.storeLogs).toBe(true);
+    expect(config.getLogPath()).toBe(join(tempDir, 'github_owner_repo', 'smm.log'));
+  });
+
+  it('should use default values when env vars not set', () => {
+    const config = createConfigurationRepository({
+      SMM_STORE_DATA_AT: '/tmp',
+    }).getActiveConfiguration();
+    expect(config.loggingLevel).toBe('CRITICAL');
+    expect(config.storeData).toBe('/tmp');
+  });
+
+  it('should validate configuration', () => {
+    const config = createConfigurationRepository(
+      {
         SMM_STORE_DATA_AT: '/tmp',
-        OWNER_REPO_GIT_PROVIDER: 'github',
-        OWNER_REPO_GITHUB_TOKEN: 'gh_test',
-        OWNER_REPO_LOGGING_LEVEL: 'DEBUG',
         OWNER_REPO_GIT_REPOSITORY_PATH: '/tmp/repo',
-      };
-      const config = createConfigurationRepository(env, 'owner/repo').getActiveConfiguration();
-      expect(config.githubRepository).toBe('owner/repo');
-      expect(config.gitProvider).toBe('github');
-      expect(config.githubToken).toBe('gh_test');
-      expect(config.loggingLevel).toBe('DEBUG');
-      expect(config.storeData).toBe('/tmp');
-      expect(config.getLogPath()).toBe(join('/tmp', 'github_owner_repo', 'smm.log'));
-    });
+      },
+      'owner/repo'
+    ).getActiveConfiguration();
+    const validation = config.validate();
+    expect(validation.valid).toBe(true);
+    expect(validation.errors).toHaveLength(0);
+  });
 
-    it('should load store logs configuration', () => {
+  describe('multi-project support', () => {
+    it('should load first project by default when more than one project exists and no project is specified', () => {
       tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
       writeFileSync(
         join(tempDir, 'smm_config.json'),
         JSON.stringify({
           projects: [
             {
-              github_repository: 'owner/repo',
-              git_repository_location: '/tmp/repo',
-              log_level: 'INFO',
-              store_logs: true,
+              github_repository: 'org/repo-a',
+              git_repository_location: '/tmp/repo-a',
+              github_token: 'token-a',
+            },
+            {
+              github_repository: 'org/repo-b',
+              git_repository_location: '/tmp/repo-b',
+              github_token: 'token-b',
             },
           ],
         }),
@@ -811,216 +865,167 @@ describe('ConfigurationRepository', () => {
       const config = createConfigurationRepository({
         SMM_STORE_DATA_AT: tempDir,
       }).getActiveConfiguration();
-
-      expect(config.storeLogs).toBe(true);
-      expect(config.getLogPath()).toBe(join(tempDir, 'github_owner_repo', 'smm.log'));
+      expect(config.githubRepository).toBe('org/repo-a');
+      expect(config.gitRepositoryLocation).toBe('/tmp/repo-a');
+      expect(config.githubToken).toBe('token-a');
     });
 
-    it('should use default values when env vars not set', () => {
-      const config = createConfigurationRepository({
-        SMM_STORE_DATA_AT: '/tmp',
-      }).getActiveConfiguration();
-      expect(config.loggingLevel).toBe('CRITICAL');
-      expect(config.storeData).toBe('/tmp');
-    });
+    it('should use root github_token as default when selected project has no github_token', () => {
+      tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          github_token: 'default-token',
+          projects: [
+            {
+              github_repository: 'org/repo-a',
+              git_repository_location: '/tmp/repo-a',
+            },
+            {
+              github_repository: 'org/repo-b',
+              git_repository_location: '/tmp/repo-b',
+              github_token: 'project-token',
+            },
+          ],
+        }),
+        'utf-8'
+      );
 
-    it('should validate configuration', () => {
-      const config = createConfigurationRepository({
-        SMM_STORE_DATA_AT: '/tmp',
-        OWNER_REPO_GIT_REPOSITORY_PATH: '/tmp/repo',
-      }, 'owner/repo').getActiveConfiguration();
-      const validation = config.validate();
-      expect(validation.valid).toBe(true);
-      expect(validation.errors).toHaveLength(0);
-    });
-
-    describe('multi-project support', () => {
-      it('should load first project by default when more than one project exists and no project is specified', () => {
-        tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
-        writeFileSync(
-          join(tempDir, 'smm_config.json'),
-          JSON.stringify({
-            projects: [
-              {
-                github_repository: 'org/repo-a',
-                git_repository_location: '/tmp/repo-a',
-                github_token: 'token-a',
-              },
-              {
-                github_repository: 'org/repo-b',
-                git_repository_location: '/tmp/repo-b',
-                github_token: 'token-b',
-              },
-            ],
-          }),
-          'utf-8'
-        );
-
-        const config = createConfigurationRepository({
+      const config = createConfigurationRepository(
+        {
           SMM_STORE_DATA_AT: tempDir,
-        }).getActiveConfiguration();
-        expect(config.githubRepository).toBe('org/repo-a');
-        expect(config.gitRepositoryLocation).toBe('/tmp/repo-a');
-        expect(config.githubToken).toBe('token-a');
-      });
+          GITHUB_TOKEN: 'env-token',
+        },
+        'org/repo-a'
+      ).getActiveConfiguration();
 
-      it('should use root github_token as default when selected project has no github_token', () => {
-        tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
-        writeFileSync(
-          join(tempDir, 'smm_config.json'),
-          JSON.stringify({
-            github_token: 'default-token',
-            projects: [
-              {
-                github_repository: 'org/repo-a',
-                git_repository_location: '/tmp/repo-a',
-              },
-              {
-                github_repository: 'org/repo-b',
-                git_repository_location: '/tmp/repo-b',
-                github_token: 'project-token',
-              },
-            ],
-          }),
-          'utf-8'
-        );
+      expect(config.githubToken).toBe('default-token');
+    });
 
-        const config = createConfigurationRepository(
+    it('should prefer project github_token over root github_token', () => {
+      tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          github_token: 'default-token',
+          projects: [
+            {
+              github_repository: 'org/repo-a',
+              git_repository_location: '/tmp/repo-a',
+              github_token: 'project-token',
+            },
+          ],
+        }),
+        'utf-8'
+      );
+
+      const config = createConfigurationRepository(
+        { SMM_STORE_DATA_AT: tempDir },
+        'org/repo-a'
+      ).getActiveConfiguration();
+
+      expect(config.githubToken).toBe('project-token');
+    });
+
+    it('should select project by constructor projectName (github_repository)', () => {
+      tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          projects: [
+            {
+              github_repository: 'org/repo-a',
+              git_repository_location: '/tmp/repo-a',
+            },
+            {
+              github_repository: 'org/repo-b',
+              git_repository_location: '/tmp/repo-b',
+            },
+          ],
+        }),
+        'utf-8'
+      );
+
+      const config = createConfigurationRepository(
+        { SMM_STORE_DATA_AT: tempDir },
+        'org/repo-b'
+      ).getActiveConfiguration();
+      expect(config.githubRepository).toBe('org/repo-b');
+      expect(config.gitRepositoryLocation).toBe('/tmp/repo-b');
+    });
+
+    it('should load first project when there is only one project', () => {
+      tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          projects: [
+            {
+              github_repository: 'org/repo-a',
+              git_repository_location: '/tmp/repo-a',
+            },
+          ],
+        }),
+        'utf-8'
+      );
+
+      const config = createConfigurationRepository({
+        SMM_STORE_DATA_AT: tempDir,
+      }).getActiveConfiguration();
+      expect(config.githubRepository).toBe('org/repo-a');
+      expect(config.gitRepositoryLocation).toBe('/tmp/repo-a');
+    });
+
+    it('should throw error when selected project is not found', () => {
+      tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          projects: [
+            {
+              github_repository: 'org/repo-a',
+              git_repository_location: '/tmp/repo-a',
+            },
+          ],
+        }),
+        'utf-8'
+      );
+
+      expect(() =>
+        createConfigurationRepository(
           {
             SMM_STORE_DATA_AT: tempDir,
-            GITHUB_TOKEN: 'env-token',
           },
-          'org/repo-a'
-        ).getActiveConfiguration();
+          'nonexistent/repo'
+        )
+      ).toThrow('Project "nonexistent/repo" not found');
+    });
 
-        expect(config.githubToken).toBe('default-token');
-      });
+    it('should throw error when projects array is empty', () => {
+      tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
+      writeFileSync(join(tempDir, 'smm_config.json'), JSON.stringify({ projects: [] }), 'utf-8');
 
-      it('should prefer project github_token over root github_token', () => {
-        tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
-        writeFileSync(
-          join(tempDir, 'smm_config.json'),
-          JSON.stringify({
-            github_token: 'default-token',
-            projects: [
-              {
-                github_repository: 'org/repo-a',
-                git_repository_location: '/tmp/repo-a',
-                github_token: 'project-token',
-              },
-            ],
-          }),
-          'utf-8'
-        );
+      expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir })).toThrow(
+        'smm_config.json has empty projects array'
+      );
+    });
 
-        const config = createConfigurationRepository(
-          { SMM_STORE_DATA_AT: tempDir },
-          'org/repo-a'
-        ).getActiveConfiguration();
+    it('should load from env vars when projects array is missing', () => {
+      tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          github_repository: 'org/repo',
+          git_repository_location: '/tmp/repo',
+        }),
+        'utf-8'
+      );
 
-        expect(config.githubToken).toBe('project-token');
-      });
-
-      it('should select project by constructor projectName (github_repository)', () => {
-        tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
-        writeFileSync(
-          join(tempDir, 'smm_config.json'),
-          JSON.stringify({
-            projects: [
-              {
-                github_repository: 'org/repo-a',
-                git_repository_location: '/tmp/repo-a',
-              },
-              {
-                github_repository: 'org/repo-b',
-                git_repository_location: '/tmp/repo-b',
-              },
-            ],
-          }),
-          'utf-8'
-        );
-
-        const config = createConfigurationRepository(
-          { SMM_STORE_DATA_AT: tempDir },
-          'org/repo-b'
-        ).getActiveConfiguration();
-        expect(config.githubRepository).toBe('org/repo-b');
-        expect(config.gitRepositoryLocation).toBe('/tmp/repo-b');
-      });
-
-      it('should load first project when there is only one project', () => {
-        tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
-        writeFileSync(
-          join(tempDir, 'smm_config.json'),
-          JSON.stringify({
-            projects: [
-              {
-                github_repository: 'org/repo-a',
-                git_repository_location: '/tmp/repo-a',
-              },
-            ],
-          }),
-          'utf-8'
-        );
-
-        const config = createConfigurationRepository({
-          SMM_STORE_DATA_AT: tempDir,
-        }).getActiveConfiguration();
-        expect(config.githubRepository).toBe('org/repo-a');
-        expect(config.gitRepositoryLocation).toBe('/tmp/repo-a');
-      });
-
-      it('should throw error when selected project is not found', () => {
-        tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
-        writeFileSync(
-          join(tempDir, 'smm_config.json'),
-          JSON.stringify({
-            projects: [
-              {
-                github_repository: 'org/repo-a',
-                git_repository_location: '/tmp/repo-a',
-              },
-            ],
-          }),
-          'utf-8'
-        );
-
-        expect(
-          () =>
-            createConfigurationRepository(
-              {
-                SMM_STORE_DATA_AT: tempDir,
-              },
-              'nonexistent/repo'
-            )
-        ).toThrow('Project "nonexistent/repo" not found');
-      });
-
-      it('should throw error when projects array is empty', () => {
-        tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
-        writeFileSync(join(tempDir, 'smm_config.json'), JSON.stringify({ projects: [] }), 'utf-8');
-
-        expect(() => createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir })).toThrow(
-          'smm_config.json has empty projects array'
-        );
-      });
-
-      it('should load from env vars when projects array is missing', () => {
-        tempDir = mkdtempSync(join(tmpdir(), 'smm-config-'));
-        writeFileSync(
-          join(tempDir, 'smm_config.json'),
-          JSON.stringify({
-            github_repository: 'org/repo',
-            git_repository_location: '/tmp/repo',
-          }),
-          'utf-8'
-        );
-
-        const config = createConfigurationRepository({
-          SMM_STORE_DATA_AT: tempDir,
-        }).getActiveConfiguration();
-        expect(config.githubRepository).toBe('org/repo');
-        expect(config.gitRepositoryLocation).toBe('/tmp/repo');
-      });
+      const config = createConfigurationRepository({
+        SMM_STORE_DATA_AT: tempDir,
+      }).getActiveConfiguration();
+      expect(config.githubRepository).toBe('org/repo');
+      expect(config.gitRepositoryLocation).toBe('/tmp/repo');
     });
   });
+});

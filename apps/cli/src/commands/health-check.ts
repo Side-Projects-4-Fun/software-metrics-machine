@@ -235,7 +235,10 @@ async function analyzeDataset(
   return analyzeJsonDataset(def, maxGapDays);
 }
 
-async function analyzeJsonDataset(def: DatasetDefinition, maxGapDays: number): Promise<DatasetCheck> {
+async function analyzeJsonDataset(
+  def: DatasetDefinition,
+  maxGapDays: number
+): Promise<DatasetCheck> {
   const base: DatasetCheck = {
     id: def.id,
     filePath: def.filePath,

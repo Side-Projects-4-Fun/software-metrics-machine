@@ -3,9 +3,15 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { TimeZoneProvider, Configuration, SqliteRepository, RepositoryFactory } from '../../../..';
-import { WorkflowJsonResponse, WorkflowJobJsonResponse } from '../../../../providers/github/github-response-types';
-import { PipelineGitHubRunBuilder, PipelineGitHubJobBuilder } from '../../../../test';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  WorkflowJsonResponse,
+  WorkflowJobJsonResponse,
+} from '../../../../providers/github/github-response-types';
+import {
+  PipelineGitHubRunBuilder,
+  PipelineGitHubJobBuilder,
+} from '../../../../test/github-builders';
+import { afterEach, describe, expect, it } from 'vitest';
 import { PipelineFactory } from '../../factories';
 import { PipelinesService } from '../../services/pipelines-service';
 import { PipelinesSqliteRepository } from '../pipelines-repository-sqlite';

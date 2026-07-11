@@ -4,19 +4,15 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Logger } from '@smmachine/utils';
-import {
-  Configuration,
-  IRepository,
-  RepositoryFactory,
-  SqliteRepository,
-} from '..';
+import { Configuration, IRepository, RepositoryFactory, SqliteRepository } from '..';
 import { Commit } from '../../domain-types';
+import { CommitBuilder } from '../../test/domain-builders';
 import {
-  CommitBuilder,
   PullRequestCommentJsonResponseBuilder,
   PullRequestJsonResponseBuilder,
-} from '../../test/builders';
-import { PipelineGitHubJobBuilder, PipelineGitHubRunBuilder } from '../../test';
+  PipelineGitHubJobBuilder,
+  PipelineGitHubRunBuilder,
+} from '../../test/github-builders';
 import {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
@@ -50,7 +46,11 @@ describe('sqlite repository implementations', () => {
       [
         'sqlite',
         () =>
-          new SqliteRepository<TestRecord>(join(createTempDir(), 'smm.sqlite'), 'records.json', logger),
+          new SqliteRepository<TestRecord>(
+            join(createTempDir(), 'smm.sqlite'),
+            'records.json',
+            logger
+          ),
       ],
     ];
   }
@@ -448,10 +448,7 @@ describe('sqlite repository implementations', () => {
       });
 
       expect(
-        RepositoryFactory.getSqliteNamespace(
-          '/tmp/smm/github_owner_repo/github/prs.json',
-          config
-        )
+        RepositoryFactory.getSqliteNamespace('/tmp/smm/github_owner_repo/github/prs.json', config)
       ).toBe('github/prs.json');
     });
 

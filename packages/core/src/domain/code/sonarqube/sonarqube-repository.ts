@@ -6,13 +6,6 @@ import {
   TimestampedEntry,
 } from '../../../providers/sonarqube';
 
-type StoredMeasure = {
-  metric?: string;
-  key?: string;
-  name?: string;
-  value?: string | number;
-};
-
 export type SonarqubeMeasureFilters = {
   measures?: string | string[];
 };
@@ -27,14 +20,9 @@ export type SonarqubeComponentTreeFilters = {
 };
 
 export interface SonarqubeRepository {
+  loadAll(options?: SonarqubeMeasureFilters | string[]): Promise<SonarqubeComponentMeasure | null>;
 
-  loadAll(
-    options?: SonarqubeMeasureFilters | string[]
-  ): Promise<SonarqubeComponentMeasure | null> ;
-
-  loadMeasurements(
-    options?: SonarqubeMeasureFilters | string[]
-  ): Promise<SonarqubeMeasure[]>;
+  loadMeasurements(options?: SonarqubeMeasureFilters | string[]): Promise<SonarqubeMeasure[]>;
 
   loadAllMeasurementEntries(): Promise<TimestampedEntry<SonarqubeMeasure[]>[]>;
 
@@ -46,13 +34,11 @@ export interface SonarqubeRepository {
     options?: SonarqubeComponentTreeFilters
   ): Promise<TimestampedEntry<SonarqubeComponentTreeMeasure[]>[]>;
 
-  loadHistoricalMeasures(
-    options?: SonarqubeMeasureFilters | string[]
-  ): Promise<CodeMetric[]> ;
+  loadHistoricalMeasures(options?: SonarqubeMeasureFilters | string[]): Promise<CodeMetric[]>;
 
-  loadCoverageHistory(): Promise<CodeMetric[]> ;
+  loadCoverageHistory(): Promise<CodeMetric[]>;
 
   loadAllHistoricalMeasureEntries(
     options?: SonarqubeMeasureFilters | string[]
-  ): Promise<TimestampedEntry<CodeMetric[]>[]> ;
+  ): Promise<TimestampedEntry<CodeMetric[]>[]>;
 }

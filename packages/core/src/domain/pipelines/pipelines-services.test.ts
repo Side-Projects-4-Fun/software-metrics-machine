@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PipelinesRepository } from '../..';
+import { PipelineRun, PipelinesRepository } from '../..';
 import { PipelinesService } from '../..';
 import {
   PipelineJobBuilder,
   PipelineRunBuilder,
   PipelineStepBuilder,
-  PipelinesRepositoryBuilder,
-} from '../../test/builders';
+} from '../../test/domain-builders';
+import { PipelinesRepositoryBuilder } from '../../test/repository-builders';
 import { MockLoggerBuilder } from '../../test/mock-logger-builder';
 import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
 
@@ -34,9 +34,9 @@ describe('PipelinesService', () => {
     createdAt: string;
     updatedAt: string;
     path: string;
-    jobId?: string;
-    jobName?: string;
-    jobStartedAt?: string;
+    jobId: string;
+    jobName: string;
+    jobStartedAt: string;
     jobCompletedAt?: string;
   }) {
     const jobs =
@@ -548,11 +548,7 @@ describe('PipelinesService', () => {
         { createdAt: '2026-01-13T10:00:00Z' },
       ];
 
-      const filtered = pipelinesService.filterRunsByDateRange(
-        weeklyRuns,
-        '2026-W02',
-        '2026-W02'
-      );
+      const filtered = pipelinesService.filterRunsByDateRange(weeklyRuns, '2026-W02', '2026-W02');
 
       expect(filtered).toEqual([{ createdAt: '2026-01-06T10:00:00Z' }]);
     });
@@ -695,7 +691,7 @@ describe('PipelinesService', () => {
           path: '.github/workflows/release.yml',
           jobId: 'release-job-no-timestamps',
           jobName: 'deploy-production',
-          jobStartedAt: undefined,
+          jobStartedAt: '2025-01-01T08:00:00Z',
           jobCompletedAt: undefined,
         }),
       ];
@@ -726,6 +722,10 @@ describe('PipelinesService', () => {
           createdAt: '2025-01-01T08:00:00Z',
           updatedAt: '2025-01-01T08:15:00Z',
           path: '.github/workflows/other.yml',
+          jobId: 'other-job',
+          jobName: 'deploy-staging',
+          jobStartedAt: '2025-01-01T08:05:00Z',
+          jobCompletedAt: '2025-01-01T08:15:00Z',
         }),
       ];
 
@@ -857,9 +857,9 @@ describe('PipelinesService', () => {
     function jobRun(
       id: string,
       jobName: string,
-      conclusion: string | undefined,
-      options: { runAttempt?: number; startedAt?: string; completedAt?: string; path?: string } = {}
-    ): import('../../domain-types').PipelineRun {
+      conclusion: string,
+      options: { runAttempt?: number; startedAt?: string; completedAt?: string; path?: string }
+    ): PipelineRun {
       return new PipelineRunBuilder()
         .withId(id)
         .withNumber(1)
@@ -1082,7 +1082,7 @@ describe('PipelinesService', () => {
       id: string,
       createdAt: string,
       options: { completedAt?: string; runAttempt?: number } = {}
-    ): import('../../domain-types').PipelineRun {
+    ) {
       return new PipelineRunBuilder()
         .withId(id)
         .withNumber(1)
@@ -1179,7 +1179,7 @@ describe('PipelinesService', () => {
     function runWithSteps(
       id: string,
       steps: Array<{ name?: string; startedAt?: string; completedAt?: string }>
-    ): import('../../domain-types').PipelineRun {
+    ) {
       return new PipelineRunBuilder()
         .withId(id)
         .withNumber(1)
@@ -1356,7 +1356,7 @@ describe('PipelinesService', () => {
       createdAt: string,
       steps: Array<{ name?: string; startedAt?: string; completedAt?: string }>,
       completedAt?: string
-    ): import('../../domain-types').PipelineRun {
+    ) {
       return new PipelineRunBuilder()
         .withId(id)
         .withNumber(1)
@@ -1564,7 +1564,7 @@ describe('PipelinesService', () => {
   });
 
   describe('loadUniqueWorkflows', () => {
-    function runWithPath(id: string, path: string): import('../../domain-types').PipelineRun {
+    function runWithPath(id: string, path: string) {
       return new PipelineRunBuilder()
         .withId(id)
         .withNumber(1)

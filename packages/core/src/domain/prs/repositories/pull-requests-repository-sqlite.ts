@@ -3,7 +3,10 @@ import * as path from 'path';
 import { DatabaseSync } from 'node:sqlite';
 import { Configuration, RepositoryFactory } from '../../../infrastructure';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
-import { ParseRawFiltersRepository, RawFilter } from '../../../infrastructure/parse-raw-filters-repository';
+import {
+  ParseRawFiltersRepository,
+  RawFilter,
+} from '../../../infrastructure/parse-raw-filters-repository';
 import { PRDetails, PRFilters } from '../pr-types';
 import {
   PullRequestCommentJsonResponse,

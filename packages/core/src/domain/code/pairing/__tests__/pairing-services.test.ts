@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PairingService } from '../pairing-service';
-import {
-  CommitBuilder,
-  RepositoryBuilder,
-} from '../../../../test/builders';
+import { CommitBuilder } from '../../../../test/domain-builders';
+import { RepositoryBuilder } from '../../../../test/repository-builders';
 import { Commit } from '../../../../domain-types';
 import { IRepository, TimeZoneProvider } from '../../../../infrastructure';
 import { MockLoggerBuilder } from '../../../../test/mock-logger-builder';
@@ -223,9 +221,7 @@ describe('PairingService', () => {
     it('should exclude a self-pair where the author and coAuthor are the same person case-insensitively', async () => {
       pairingService = new PairingService(
         new RepositoryBuilder<Commit>()
-          .withLoadAll([
-            new CommitBuilder().withAuthor('Alice').withCoAuthors(['alice']).build(),
-          ])
+          .withLoadAll([new CommitBuilder().withAuthor('Alice').withCoAuthors(['alice']).build()])
           .build(),
         new TimeZoneProvider('UTC'),
         logger
@@ -239,9 +235,7 @@ describe('PairingService', () => {
     it('should skip an empty-string or whitespace-only coAuthor entry', async () => {
       pairingService = new PairingService(
         new RepositoryBuilder<Commit>()
-          .withLoadAll([
-            new CommitBuilder().withAuthor('Alice').withCoAuthors(['   ']).build(),
-          ])
+          .withLoadAll([new CommitBuilder().withAuthor('Alice').withCoAuthors(['   ']).build()])
           .build(),
         new TimeZoneProvider('UTC'),
         logger
@@ -255,9 +249,7 @@ describe('PairingService', () => {
     it('should skip a commit whose author is empty or whitespace-only', async () => {
       pairingService = new PairingService(
         new RepositoryBuilder<Commit>()
-          .withLoadAll([
-            new CommitBuilder().withAuthor('   ').withCoAuthors(['Bob']).build(),
-          ])
+          .withLoadAll([new CommitBuilder().withAuthor('   ').withCoAuthors(['Bob']).build()])
           .build(),
         new TimeZoneProvider('UTC'),
         logger

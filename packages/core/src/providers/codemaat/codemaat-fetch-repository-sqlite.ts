@@ -14,10 +14,7 @@ import type {
 export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
   private readonly sqliteDbPath: string;
 
-  constructor(
-    configuration: Configuration,
-    logger: Logger
-  ) {
+  constructor(configuration: Configuration, logger: Logger) {
     super(configuration, logger);
     this.sqliteDbPath = RepositoryFactory.getSqliteDatabasePath(configuration);
   }

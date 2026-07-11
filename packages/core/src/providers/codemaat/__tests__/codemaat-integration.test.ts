@@ -514,7 +514,11 @@ src/medium.ts,10,5,3`;
 
       const result = await analyzer.getEntityChurn();
 
-      expect(result.map((row) => row.entity)).toEqual(['src/big.ts', 'src/medium.ts', 'src/small.ts']);
+      expect(result.map((row) => row.entity)).toEqual([
+        'src/big.ts',
+        'src/medium.ts',
+        'src/small.ts',
+      ]);
     });
 
     it('should limit results when top is provided', async () => {
@@ -620,7 +624,11 @@ src/medium.ts,10`;
 
       const result = await analyzer.getEntityEffort();
 
-      expect(result.map((row) => row.entity)).toEqual(['src/big.ts', 'src/medium.ts', 'src/small.ts']);
+      expect(result.map((row) => row.entity)).toEqual([
+        'src/big.ts',
+        'src/medium.ts',
+        'src/small.ts',
+      ]);
     });
 
     it('should collapse author-expanded rows into one effort row per entity', async () => {

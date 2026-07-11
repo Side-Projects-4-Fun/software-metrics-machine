@@ -16,8 +16,20 @@ function stderrLog(message: string): void {
 }
 
 function isJsonRpcRequest(value: unknown): value is JsonRpcRequest {
-  const maybeRequest = value as Partial<JsonRpcRequest>;
-  return maybeRequest?.jsonrpc === '2.0' && typeof maybeRequest.method === 'string';
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'jsonrpc' in value &&
+    value.jsonrpc === '2.0' &&
+    'method' in value &&
+    typeof value.method === 'string' &&
+    // Optional: check id is string, number, null, or undefined
+    (!('id' in value) ||
+      value.id === undefined ||
+      value.id === null ||
+      typeof value.id === 'string' ||
+      typeof value.id === 'number')
+  );
 }
 
 function ok(id: string | number | null | undefined, result: JsonValue): JsonRpcResponse {
@@ -98,7 +110,7 @@ async function handleRequestWithLogging(
         const result = await selectedTool.handler(request.params?.arguments);
         log?.(`Completed tool: ${name}`);
 
-        return ok(request.id, result as unknown as JsonValue);
+        return ok(request.id, result);
       }
 
       case 'resources/list':
@@ -115,7 +127,7 @@ async function handleRequestWithLogging(
         }
 
         log?.(`Reading resource: ${uri}`);
-        return ok(request.id, (await readResource(uri)) as unknown as JsonValue);
+        return ok(request.id, await readResource(uri));
       }
 
       case 'prompts/list':
@@ -156,7 +168,7 @@ export async function startMcpServer(): Promise<void> {
     let response: JsonRpcResponse | undefined;
 
     try {
-      const parsed = JSON.parse(line) as unknown;
+      const parsed: unknown = JSON.parse(line);
       if (!isJsonRpcRequest(parsed)) {
         stderrLog('Rejected invalid JSON-RPC request');
         response = error(null, -32600, 'Invalid JSON-RPC request');

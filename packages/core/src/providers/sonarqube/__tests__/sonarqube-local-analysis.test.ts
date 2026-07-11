@@ -105,10 +105,7 @@ describe('SonarqubeLocalAnalysis', () => {
 
     it('returns undefined when the local data file holds invalid JSON', async () => {
       const sonarqubePath = await fs.mkdtemp(path.join(os.tmpdir(), 'smm-sq-local-'));
-      await fs.writeFile(
-        path.join(sonarqubePath, 'local_sonarqube_data.json'),
-        '{ not valid json'
-      );
+      await fs.writeFile(path.join(sonarqubePath, 'local_sonarqube_data.json'), '{ not valid json');
       const analysis = buildAnalysis({}, sonarqubePath);
 
       expect(analysis.readLocalServerUrl()).toBeUndefined();
@@ -171,7 +168,9 @@ describe('SonarqubeLocalAnalysis', () => {
 
         await expect(
           analysis.changePassword('http://localhost:9000', 'admin', 'old-password', 'new-password')
-        ).rejects.toThrow('Failed to update SonarQube admin password. 401 Unauthorized - bad credentials');
+        ).rejects.toThrow(
+          'Failed to update SonarQube admin password. 401 Unauthorized - bad credentials'
+        );
       });
     });
 

@@ -426,7 +426,8 @@ describe('SonarqubeMeasuresClient', () => {
     expect(mockGet).toHaveBeenCalledWith('/api/measures/component', {
       params: {
         component: 'project-key',
-        metricKeys: 'coverage,sqale_rating,complexity,duplicated_lines_density,ncloc,code_smells,bugs',
+        metricKeys:
+          'coverage,sqale_rating,complexity,duplicated_lines_density,ncloc,code_smells,bugs',
       },
     });
   });

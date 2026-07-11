@@ -3,6 +3,8 @@
  * Migrated from: api/src/software_metrics_machine/core/code_types.py
  */
 
+import { PipelineStep } from './domain';
+
 /**
  * Represents a Git commit
  */
@@ -74,24 +76,24 @@ export interface PRLabel {
   description?: string;
 }
 
-export interface PullRequest {
-  id: number;
-  number: number;
-  title: string;
-  body?: string;
-  author: PRUser;
-  url: string;
-  createdAt: string; // ISO format
-  updatedAt: string;
-  closedAt?: string;
-  mergedAt?: string;
-  state: 'open' | 'closed' | 'merged';
-  additions?: number;
-  deletions?: number;
-  filesChanged?: number;
-  labels?: PRLabel[];
-  comments?: number;
-}
+// export interface PullRequest {
+//   id: number;
+//   number: number;
+//   title: string;
+//   body?: string;
+//   author: PRUser;
+//   url: string;
+//   createdAt: string; // ISO format
+//   updatedAt: string;
+//   closedAt?: string;
+//   mergedAt?: string;
+//   state: 'open' | 'closed' | 'merged' | 'draft';
+//   additions?: number;
+//   deletions?: number;
+//   filesChanged?: number;
+//   labels?: PRLabel[];
+//   comments?: number;
+// }
 
 /**
  * Detailed pull request for analytics
@@ -106,7 +108,7 @@ export interface PRDetails {
   closedAt?: string;
   author: PRUser;
   labels: PRLabel[];
-  state: 'open' | 'closed' | 'merged';
+  state: 'open' | 'closed' | 'merged' | 'draft';
   url: string;
   comments: number;
 }
@@ -123,10 +125,12 @@ export interface PipelineJob {
   conclusion: string; // success, failure, cancelled, skipped, timed_out
   status: string;
   durationSeconds?: number;
+  steps?: PipelineStep[];
 }
 
 export interface PipelineRun {
   id: string;
+  runAttempt: number;
   number: number;
   name: string;
   status: string; // completed, in_progress, queued

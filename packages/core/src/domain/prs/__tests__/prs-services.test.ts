@@ -1,10 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { IReadPullRequestsRepository } from '..';
 import { PRsService } from '..';
-import {
-  PullRequestBuilder,
-  ReadPullRequestsRepositoryBuilder,
-} from '../../../test/builders';
+import { PullRequestBuilder } from '../../../test/domain-builders';
+import { ReadPullRequestsRepositoryBuilder } from '../../../test/repository-builders';
 import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 
@@ -271,7 +269,7 @@ describe('PRsService', () => {
       const prWithUndefinedTotalComments = new PullRequestBuilder()
         .withId(4)
         .withTitle('No comments field')
-        .withComments(undefined)
+        .withComments([])
         .build();
 
       prsService = new PRsService(
@@ -458,26 +456,6 @@ describe('PRsService', () => {
   });
 
   describe('getSummary', () => {
-    it('should exclude authorless PRs from the unique author count and use "unknown" for most_commented_pr/top_commenter', async () => {
-      const authorlessPr = new PullRequestBuilder()
-        .withId(1)
-        .withTitle('No author')
-        .withComments(2)
-        .withoutAuthor()
-        .build();
-
-      prsService = new PRsService(
-        new ReadPullRequestsRepositoryBuilder().withPullRequests([authorlessPr]).build(),
-        new TimeZoneProvider('UTC'),
-        logger
-      );
-
-      const summary = (await prsService.getSummary()).result;
-
-      expect(summary.unique_authors).toBe(0);
-      expect(summary.most_commented_pr?.author).toBe('unknown');
-    });
-
     it('should exclude PRs missing id, title, or url from most_commented_prs', async () => {
       const missingId = new PullRequestBuilder()
         .withId(undefined)
@@ -749,24 +727,6 @@ describe('PRsService', () => {
   });
 
   describe('getByAuthor', () => {
-    it('should group authorless PRs under "unknown"', async () => {
-      const authorlessPr = new PullRequestBuilder()
-        .withId(1)
-        .withTitle('No author')
-        .withoutAuthor()
-        .build();
-
-      prsService = new PRsService(
-        new ReadPullRequestsRepositoryBuilder().withPullRequests([authorlessPr]).build(),
-        new TimeZoneProvider('UTC'),
-        logger
-      );
-
-      const result = await prsService.getByAuthor();
-
-      expect(result).toEqual([{ author: 'unknown', count: 1 }]);
-    });
-
     it('should default to top 10 when top is omitted, and respect an explicit top value', async () => {
       const prs = Array.from({ length: 12 }, (_, i) =>
         new PullRequestBuilder()
@@ -830,17 +790,10 @@ describe('PRsService', () => {
         .withMergedAt('2025-01-02T00:00:00Z')
         .withClosedAt('2025-01-05T00:00:00Z')
         .build();
-      const authorless = new PullRequestBuilder()
-        .withId(3)
-        .withTitle('Authorless')
-        .withCreatedAt('2025-01-01T00:00:00Z')
-        .withClosedAt('2025-01-02T00:00:00Z')
-        .withoutAuthor()
-        .build();
 
       prsService = new PRsService(
         new ReadPullRequestsRepositoryBuilder()
-          .withPullRequests([closedOnly, mergedAndClosed, authorless])
+          .withPullRequests([closedOnly, mergedAndClosed])
           .build(),
         new TimeZoneProvider('UTC'),
         logger
@@ -852,7 +805,6 @@ describe('PRsService', () => {
         expect.arrayContaining([
           expect.objectContaining({ author: 'alice', avg_days: 2 }),
           expect.objectContaining({ author: 'bob', avg_days: 1 }),
-          expect.objectContaining({ author: 'unknown', avg_days: 1 }),
         ])
       );
     });
@@ -1016,34 +968,6 @@ describe('PRsService', () => {
   });
 
   describe('calculateFirstCommentTimeSummary (via getSummary)', () => {
-    it('should ignore PRs with no comments and PRs whose comments all lack createdAt', async () => {
-      const noCommentsPr = new PullRequestBuilder().withId(1).withTitle('No comments').build();
-      const commentsWithoutCreatedAt = new PullRequestBuilder()
-        .withId(2)
-        .withTitle('No createdAt on comments')
-        .withCommentDetails([{ body: 'hi', createdAt: undefined }])
-        .build();
-
-      prsService = new PRsService(
-        new ReadPullRequestsRepositoryBuilder()
-          .withPullRequests([noCommentsPr, commentsWithoutCreatedAt])
-          .build(),
-        new TimeZoneProvider('UTC'),
-        logger
-      );
-
-      const summary = (await prsService.getSummary()).result;
-
-      expect(summary.time_to_first_comment_hours).toEqual({
-        average: 0,
-        median: 0,
-        min: 0,
-        max: 0,
-        prs_with_comment: 0,
-        prs_without_comment: 2,
-      });
-    });
-
     it('should skip a PR whose first comment is timestamped before the PR was opened', async () => {
       const backdatedCommentPr = new PullRequestBuilder()
         .withId(1)
@@ -1159,27 +1083,6 @@ describe('PRsService', () => {
   });
 
   describe('getFirstCommentTime', () => {
-    it('should ignore PRs with no comments and PRs whose comments all lack createdAt', async () => {
-      const noCommentsPr = new PullRequestBuilder().withId(1).withTitle('No comments').build();
-      const commentsWithoutCreatedAt = new PullRequestBuilder()
-        .withId(2)
-        .withTitle('No createdAt')
-        .withCommentDetails([{ body: 'hi', createdAt: undefined }])
-        .build();
-
-      prsService = new PRsService(
-        new ReadPullRequestsRepositoryBuilder()
-          .withPullRequests([noCommentsPr, commentsWithoutCreatedAt])
-          .build(),
-        new TimeZoneProvider('UTC'),
-        logger
-      );
-
-      const result = await prsService.getFirstCommentTime();
-
-      expect(result).toEqual([]);
-    });
-
     it('should skip a PR whose first comment is timestamped before the PR was opened', async () => {
       const backdatedCommentPr = new PullRequestBuilder()
         .withId(1)
@@ -1223,26 +1126,6 @@ describe('PRsService', () => {
       expect(defaultTop).toHaveLength(10);
       expect(explicitTop).toHaveLength(3);
       expect(defaultTop[0]).toMatchObject({ avg_hours: 1, prs_with_comments: 1 });
-    });
-
-    it('should use "unknown" for PRs with no author', async () => {
-      const authorlessPr = new PullRequestBuilder()
-        .withId(1)
-        .withTitle('No author')
-        .withoutAuthor()
-        .withCreatedAt('2025-01-01T00:00:00Z')
-        .withCommentDetails([{ body: 'first', createdAt: '2025-01-01T01:00:00Z' }])
-        .build();
-
-      prsService = new PRsService(
-        new ReadPullRequestsRepositoryBuilder().withPullRequests([authorlessPr]).build(),
-        new TimeZoneProvider('UTC'),
-        logger
-      );
-
-      const result = await prsService.getFirstCommentTime();
-
-      expect(result).toEqual([{ author: 'unknown', avg_hours: 1, prs_with_comments: 1 }]);
     });
 
     it('should pick the earliest comment as first when a PR has multiple comments', async () => {

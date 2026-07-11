@@ -27,11 +27,12 @@ export class SmmCommand extends Command {
     return this.command(nameAndArgs) as SmmCommand;
   }
 
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   actionWithSmm(handler: (options: any, command: SmmCommand) => void | Promise<void>): this {
     return this.action((options: unknown, command: Command) => {
       const smmCommand = command as unknown as SmmCommand;
       smmCommand.getConfigurationRepository();
-      return handler(options as any, smmCommand);
+      return handler(options, smmCommand);
     });
   }
 

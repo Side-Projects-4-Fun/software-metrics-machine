@@ -157,7 +157,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
     config.loggingLevel = logLevel as IConfiguration['loggingLevel'];
 
-    config.jiraUrl = this.getString(configData, 'jira_url') || this.getProjectEnv(repository, 'JIRA_URL');
+    config.jiraUrl =
+      this.getString(configData, 'jira_url') || this.getProjectEnv(repository, 'JIRA_URL');
     config.jiraEmail =
       this.getString(configData, 'jira_email') || this.getProjectEnv(repository, 'JIRA_EMAIL');
     config.jiraToken =
@@ -169,11 +170,14 @@ export class ConfigurationRepository implements IConfigurationRepository {
     config.sonarToken =
       this.getString(configData, 'sonar_token') || this.getProjectEnv(repository, 'SONAR_TOKEN');
     config.sonarProject =
-      this.getString(configData, 'sonar_project') || this.getProjectEnv(repository, 'SONAR_PROJECT');
+      this.getString(configData, 'sonar_project') ||
+      this.getProjectEnv(repository, 'SONAR_PROJECT');
     config.sonarLocalRunnerToken = this.getString(configData, 'sonar_local_runner_token');
     config.storeLogs = this.resolveStoreLogs(configData, repository);
     config.timezone =
-      this.getString(configData, 'timezone') || this.getProjectEnv(repository, 'SMM_TIMEZONE') || 'UTC';
+      this.getString(configData, 'timezone') ||
+      this.getProjectEnv(repository, 'SMM_TIMEZONE') ||
+      'UTC';
     config.internal = {
       storageType: this.resolveStorageType(configData, repository),
     };
@@ -206,7 +210,9 @@ export class ConfigurationRepository implements IConfigurationRepository {
   }
 
   getDefaultGithubToken(): string | undefined {
-    return typeof this.rawConfig.github_token === 'string' ? this.rawConfig.github_token : undefined;
+    return typeof this.rawConfig.github_token === 'string'
+      ? this.rawConfig.github_token
+      : undefined;
   }
 
   private getProjectEnv(repository: string | undefined, envName: string): string | undefined {
@@ -214,7 +220,10 @@ export class ConfigurationRepository implements IConfigurationRepository {
     return normalizedRepository ? this.env[`${normalizedRepository}_${envName}`] : undefined;
   }
 
-  private getProjectBooleanEnv(repository: string | undefined, envName: string): boolean | undefined {
+  private getProjectBooleanEnv(
+    repository: string | undefined,
+    envName: string
+  ): boolean | undefined {
     const value = this.getProjectEnv(repository, envName)?.trim().toLowerCase();
     if (value === 'true') {
       return true;
@@ -333,11 +342,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
 
     const storageType = obj.storage_type;
-    if (
-      storageType !== undefined &&
-      storageType !== null &&
-      typeof storageType !== 'string'
-    ) {
+    if (storageType !== undefined && storageType !== null && typeof storageType !== 'string') {
       throw new Error(
         `smm_config.json at ${configPath}: ${pathPrefix}.storage_type must be a string, got ${typeof storageType}.`
       );
@@ -500,7 +505,10 @@ export class ConfigurationRepository implements IConfigurationRepository {
     return value !== null && typeof value === 'object' && !Array.isArray(value) ? value : undefined;
   }
 
-  private resolveStoreLogs(configData: JsonObject, repository: string | undefined): boolean | undefined {
+  private resolveStoreLogs(
+    configData: JsonObject,
+    repository: string | undefined
+  ): boolean | undefined {
     if (typeof configData.store_logs === 'boolean') {
       return configData.store_logs;
     }

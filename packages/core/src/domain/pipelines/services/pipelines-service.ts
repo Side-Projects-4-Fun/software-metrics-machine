@@ -62,9 +62,7 @@ export interface IPipelinesService {
   getJobRerunsByDay(
     filters?: PipelineFilters
   ): Promise<Array<{ day: string; rerun_count: number }>>;
-  getJobStepsAverageTime(
-    filters?: PipelineFilters
-  ): Promise<
+  getJobStepsAverageTime(filters?: PipelineFilters): Promise<
     Array<{
       name: string;
       averageDurationMinutes: number;
@@ -72,9 +70,7 @@ export interface IPipelinesService {
       outliers?: PipelineAverageOutlier[];
     }>
   >;
-  getJobStepsAverageTimeByDay(
-    filters?: PipelineFilters
-  ): Promise<
+  getJobStepsAverageTimeByDay(filters?: PipelineFilters): Promise<
     Array<{
       day: string;
       steps: Array<{
@@ -194,7 +190,10 @@ export class PipelinesService implements IPipelinesService {
       completedRuns.length > 0 ? (successful.length / completedRuns.length) * 100 : 0;
 
     // Calculate average duration
-    const cleanedDurations = this.cleanPipelineSamples(this.extractDurationSamples(runs), filters?.cleaning);
+    const cleanedDurations = this.cleanPipelineSamples(
+      this.extractDurationSamples(runs),
+      filters?.cleaning
+    );
     const averageDuration = averageMetricSamples(cleanedDurations.samples);
 
     this.logger.info(
@@ -207,7 +206,9 @@ export class PipelinesService implements IPipelinesService {
       failedRuns: failed.length,
       successRate: Math.round(successRate * 100) / 100,
       averageDurationMinutes: Math.round(averageDuration * 100) / 100,
-      outliers: this.shouldExposeOutliers(filters?.cleaning) ? cleanedDurations.outliers : undefined,
+      outliers: this.shouldExposeOutliers(filters?.cleaning)
+        ? cleanedDurations.outliers
+        : undefined,
     };
   }
 
@@ -482,9 +483,7 @@ export class PipelinesService implements IPipelinesService {
   /**
    * Get average duration of steps for a job.
    */
-  async getJobStepsAverageTime(
-    filters?: PipelineFilters
-  ): Promise<
+  async getJobStepsAverageTime(filters?: PipelineFilters): Promise<
     Array<{
       name: string;
       averageDurationMinutes: number;
@@ -509,7 +508,9 @@ export class PipelinesService implements IPipelinesService {
           if (!stepDurations.has(step.name)) {
             stepDurations.set(step.name, []);
           }
-          stepDurations.get(step.name)!.push(this.toStepSample(run, job, step.name, durationMinutes));
+          stepDurations
+            .get(step.name)!
+            .push(this.toStepSample(run, job, step.name, durationMinutes));
         }
       }
     }
@@ -538,9 +539,7 @@ export class PipelinesService implements IPipelinesService {
   /**
    * Get average duration of steps for a job, grouped by day.
    */
-  async getJobStepsAverageTimeByDay(
-    filters?: PipelineFilters
-  ): Promise<
+  async getJobStepsAverageTimeByDay(filters?: PipelineFilters): Promise<
     Array<{
       day: string;
       steps: Array<{
@@ -553,7 +552,10 @@ export class PipelinesService implements IPipelinesService {
     const runs = await this.filterRuns(filters);
 
     // day -> stepName -> durations
-    const dayStepDurations = new Map<string, Map<string, Array<MetricSample<PipelineAverageOutlierItem>>>>();
+    const dayStepDurations = new Map<
+      string,
+      Map<string, Array<MetricSample<PipelineAverageOutlierItem>>>
+    >();
 
     for (const run of runs) {
       const runDate = run.completedAt || run.createdAt;
@@ -666,7 +668,9 @@ export class PipelinesService implements IPipelinesService {
     const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(value);
     if (isDateOnly) {
       const dayBoundary =
-        boundary === 'end' ? this.tz.getEndOfDayBoundary(value) : this.tz.getStartOfDayBoundary(value);
+        boundary === 'end'
+          ? this.tz.getEndOfDayBoundary(value)
+          : this.tz.getStartOfDayBoundary(value);
       return dayBoundary.getTime();
     }
 
@@ -730,7 +734,9 @@ export class PipelinesService implements IPipelinesService {
     );
   }
 
-  private extractDurationSamples(runs: PipelineRun[]): Array<MetricSample<PipelineAverageOutlierItem>> {
+  private extractDurationSamples(
+    runs: PipelineRun[]
+  ): Array<MetricSample<PipelineAverageOutlierItem>> {
     const samples: Array<MetricSample<PipelineAverageOutlierItem>> = [];
 
     for (const run of runs) {

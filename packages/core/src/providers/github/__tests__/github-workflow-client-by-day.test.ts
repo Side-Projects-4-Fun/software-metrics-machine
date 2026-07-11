@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { PipelineGitHubRunBuilder } from '../../..';
+import { PipelineGitHubRunBuilder } from '../../../test/github-builders';
 import { GithubWorkflowClient } from '../github-workflow-client';
 import { GitHubRateLimitManager } from '../github-rate-limit-manager';
 import { MockLoggerBuilder } from '../../../test/mock-logger-builder';

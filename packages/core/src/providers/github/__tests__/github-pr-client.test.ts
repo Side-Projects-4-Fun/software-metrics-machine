@@ -3,12 +3,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import axios from 'axios';
-import {
-  GithubPrsClient,
-  GitHubPullRequestsFetchRepository,
-  type IGithubPrsClient,
-} from '..';
-import { PullRequestJsonResponseBuilder } from '../../../test/builders';
+import { GithubPrsClient, GitHubPullRequestsFetchRepository, type IGithubPrsClient } from '..';
+import { PullRequestJsonResponseBuilder } from '../../../test/github-builders';
 import { MockLoggerBuilder } from '../../../test/mock-logger-builder';
 
 const logger = new MockLoggerBuilder().build();

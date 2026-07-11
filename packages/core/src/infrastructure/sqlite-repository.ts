@@ -146,7 +146,9 @@ export class SqliteRepository<T> implements IRepository<T> {
       } else if (this.isPullRequestCommentsNamespace()) {
         db.prepare('DELETE FROM pull_request_comments WHERE namespace = ?').run(this.namespace);
       } else if (this.isAnySonarqubeNamespace()) {
-        db.prepare(`DELETE FROM ${this.getSonarqubeTableName()} WHERE namespace = ?`).run(this.namespace);
+        db.prepare(`DELETE FROM ${this.getSonarqubeTableName()} WHERE namespace = ?`).run(
+          this.namespace
+        );
       } else {
         db.prepare('DELETE FROM repository_records WHERE namespace = ?').run(this.namespace);
       }
@@ -391,7 +393,13 @@ export class SqliteRepository<T> implements IRepository<T> {
     const updatedAt = new Date().toISOString();
 
     items.forEach((item, index) => {
-      insert.run(this.namespace, this.getRecordKey(item, index), this.serialize(item), index, updatedAt);
+      insert.run(
+        this.namespace,
+        this.getRecordKey(item, index),
+        this.serialize(item),
+        index,
+        updatedAt
+      );
     });
   }
 

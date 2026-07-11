@@ -1,6 +1,10 @@
-import { PipelineStep } from "../../domain";
-import { PipelineRun, PipelineJob } from "../../domain/pipelines/pipeline-types";
-import { WorkflowJsonResponse, WorkflowJobJsonResponse, WorkflowJobStepJsonResponse } from "./github-response-types";
+import { PipelineStep } from '../../domain';
+import { PipelineRun, PipelineJob } from '../../domain/pipelines/pipeline-types';
+import {
+  WorkflowJsonResponse,
+  WorkflowJobJsonResponse,
+  WorkflowJobStepJsonResponse,
+} from './github-response-types';
 
 export class PipelineMapToDomainRepository {
   mapPipelinesToDomain(run: WorkflowJsonResponse): PipelineRun {
@@ -67,5 +71,4 @@ export class PipelineMapToDomainRepository {
     if (!startedAt || !completedAt) return 0;
     return (new Date(completedAt).getTime() - new Date(startedAt).getTime()) / 1000;
   }
-
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Box, Pagination, Typography } from '@mui/material';
 import { SortableColumn, SortableTable } from '@/components/ui/sortable-table';
 
@@ -27,11 +27,6 @@ export function ClientPaginatedSortableTable<T>({
 }: ClientPaginatedSortableTableProps<T>) {
   const [page, setPage] = useState(1);
   const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
-
-  useEffect(() => {
-    setPage(1);
-  }, [rows]);
-
   const visibleRows = useMemo(
     () => rows.slice((page - 1) * pageSize, page * pageSize),
     [page, pageSize, rows]

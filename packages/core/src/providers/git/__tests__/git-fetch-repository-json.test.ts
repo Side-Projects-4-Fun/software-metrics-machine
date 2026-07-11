@@ -96,7 +96,7 @@ describe('GitFetchRepository', () => {
         timestamp: '2025-01-02T00:00:00Z',
       },
     ];
-    const { traverseCommits, commitTraverser, commitCache } = createMocks(fetchedCommits);
+    const { commitTraverser, commitCache } = createMocks(fetchedCommits);
 
     const repository = new GitFetchRepository(commitTraverser, commitCache, logger);
     await repository.fetchCommits({ forceRefresh: true });

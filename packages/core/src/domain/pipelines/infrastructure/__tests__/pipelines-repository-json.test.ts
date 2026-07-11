@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   PipelineGitHubJobBuilder,
   PipelineGitHubRunBuilder,
-} from '../../../..';
+} from '../../../../test/github-builders';
 import { PipelinesRepositoryJson } from '../pipelines-repository-json';
 import { InMemoryRepository } from '../../../../test/in-memory-repository';
 import {

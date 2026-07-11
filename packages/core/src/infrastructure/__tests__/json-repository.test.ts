@@ -3,10 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Logger } from '@smmachine/utils';
-import {
-  IRepository,
-  JsonFileSystemRepository,
-} from '..';
+import { IRepository, JsonFileSystemRepository } from '..';
 
 type TestRecord = {
   id: number;
@@ -33,7 +30,8 @@ describe('json repository implementations', () => {
     return [
       [
         'json',
-        () => new JsonFileSystemRepository<TestRecord>(join(createTempDir(), 'records.json'), logger),
+        () =>
+          new JsonFileSystemRepository<TestRecord>(join(createTempDir(), 'records.json'), logger),
       ],
     ];
   }

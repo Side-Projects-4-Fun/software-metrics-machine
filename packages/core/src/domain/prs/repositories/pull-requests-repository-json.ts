@@ -1,7 +1,10 @@
 import { IRepository } from '../../../infrastructure';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import { PRDetails, PRFilters } from '../pr-types';
-import { ParseRawFiltersRepository, RawFilter } from '../../../infrastructure/parse-raw-filters-repository';
+import {
+  ParseRawFiltersRepository,
+  RawFilter,
+} from '../../../infrastructure/parse-raw-filters-repository';
 import {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,

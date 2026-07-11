@@ -106,9 +106,7 @@ function isWeekday(timestamp?: string): boolean {
   return day >= 1 && day <= 5;
 }
 
-function findIqrOutliers<TItem>(
-  samples: Array<MetricSample<TItem>>
-): Array<MetricOutlier<TItem>> {
+function findIqrOutliers<TItem>(samples: Array<MetricSample<TItem>>): Array<MetricOutlier<TItem>> {
   if (samples.length < 4) {
     return [];
   }

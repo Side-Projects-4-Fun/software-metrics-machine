@@ -21,11 +21,7 @@ export class RepositoryFactory {
    * @param config - Configuration containing internal.storageType
    * @returns An IRepository<T> implementation
    */
-  static create<T>(
-    filePath: string,
-    logger: Logger,
-    config: Configuration
-  ): IRepository<T> {
+  static create<T>(filePath: string, logger: Logger, config: Configuration): IRepository<T> {
     const storageType = config.internal?.storageType ?? 'json';
     switch (storageType) {
       case 'json':
@@ -37,9 +33,7 @@ export class RepositoryFactory {
           logger
         );
       default:
-        throw new Error(
-          `Unknown storage type: ${storageType}. Supported types: json, sqlite`
-        );
+        throw new Error(`Unknown storage type: ${storageType}. Supported types: json, sqlite`);
     }
   }
 

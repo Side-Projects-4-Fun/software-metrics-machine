@@ -31,7 +31,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
   constructor(
     private githubPrsClient: IGithubPrsClient,
     config: Configuration,
-    private logger: Logger,
+    private logger: Logger
   ) {
     const providerDir = config.getPathFromGitProvider();
     this.pullRequestsJsonRepository = RepositoryFactory.create<PullRequestJsonResponse>(
@@ -39,11 +39,12 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
       logger,
       config
     );
-    this.pullRequestCommentsJsonRepository = RepositoryFactory.create<PullRequestCommentJsonResponse>(
-      `${providerDir}/pr-comments.json`,
-      logger,
-      config
-    );
+    this.pullRequestCommentsJsonRepository =
+      RepositoryFactory.create<PullRequestCommentJsonResponse>(
+        `${providerDir}/pr-comments.json`,
+        logger,
+        config
+      );
     const pullRequestFiltersJsonRepository = RepositoryFactory.create<PullRequestFilterOptions>(
       `${providerDir}/pull-request-filter-options.json`,
       logger,

@@ -13,7 +13,6 @@ export type PipelineFilterOptionsQuery = {
 };
 
 export interface PipelineFiltersRepository {
-
   loadOptions(query?: PipelineFilterOptionsQuery): Promise<PipelineFilterOptions>;
 
   refreshOptions(): Promise<PipelineFilterOptions>;

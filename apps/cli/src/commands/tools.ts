@@ -268,7 +268,11 @@ function persistStorageTypeMigration(
   }
 
   const projectNames = Array.from(
-    new Set(configs.map((config) => config.githubRepository).filter((name): name is string => Boolean(name)))
+    new Set(
+      configs
+        .map((config) => config.githubRepository)
+        .filter((name): name is string => Boolean(name))
+    )
   );
 
   if (projectNames.length === 0) {

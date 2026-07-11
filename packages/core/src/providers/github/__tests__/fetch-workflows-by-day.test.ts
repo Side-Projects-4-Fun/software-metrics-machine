@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { PipelineGitHubRunBuilder } from '../../..';
+import { PipelineGitHubRunBuilder } from '../../../test/github-builders';
 import { InMemoryRepository } from '../../../test/in-memory-repository';
 import { IGithubWorkflowClient } from '../../..';
 import { WorkflowJsonResponse } from '../github-response-types';

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import mermaid from 'mermaid';
 
 type MermaidC4DiagramProps = {
@@ -10,7 +10,7 @@ type MermaidC4DiagramProps = {
 export default function MermaidC4Diagram({ chart }: MermaidC4DiagramProps) {
   const [svg, setSvg] = useState<string>('');
   const [error, setError] = useState<string>('');
-  const renderId = useMemo(() => `mermaid-${Math.random().toString(36).slice(2, 10)}`, []);
+  const [renderId] = useState(() => `mermaid-${Math.random().toString(36).slice(2, 10)}`);
 
   useEffect(() => {
     let mounted = true;

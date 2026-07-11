@@ -8,10 +8,7 @@ import {
   TimestampedStore,
   extractLatestData,
 } from '../types';
-import {
-  matchesPathPattern,
-  normalizePatternList,
-} from '../../../domain/code/pattern-filters';
+import { matchesPathPattern, normalizePatternList } from '../../../domain/code/pattern-filters';
 
 type StoredMeasure = {
   metric?: string;
@@ -36,7 +33,9 @@ export type SonarqubeComponentTreeFilters = {
 export class SonarqubeRepositoryJson {
   constructor(
     private measuresJsonRepository: IRepository<TimestampedStore<SonarqubeComponentMeasure>>,
-    private componentTreeJsonRepository: IRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>,
+    private componentTreeJsonRepository: IRepository<
+      TimestampedStore<SonarqubeComponentTreeMeasure[]>
+    >,
     private historicalMeasuresJsonRepository?: IRepository<TimestampedStore<CodeMetric[]>>
   ) {}
 
