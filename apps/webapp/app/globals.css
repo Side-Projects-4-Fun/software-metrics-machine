@@ -29,40 +29,146 @@
   body {
     background: white !important;
     color: black !important;
+    font-size: 12pt;
+    line-height: 1.4;
   }
 
+  /* Hide all navigation and interactive elements */
   nav,
   header,
   footer,
   .MuiDrawer-root,
+  .MuiDrawer-paper,
   .MuiAppBar-root,
   .MuiButton-root,
   .MuiIconButton-root,
   .MuiTabs-root,
   .recharts-tooltip-wrapper,
-  .no-print {
+  .no-print,
+  .MuiDivider-root {
     display: none !important;
   }
 
-  main {
+  /* Reset the main content area to take full width */
+  main,
+  .css-1w67tn7-MuiBox-root > main,
+  [class*="Main-"] {
     margin: 0 !important;
-    padding: 16px !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    transition: none !important;
+  }
+
+  /* Remove toolbar spacers */
+  .MuiToolbar-root,
+  [class*="Toolbar-"],
+  .css-13i4rnv-MuiToolbar-root {
+    display: none !important;
+  }
+
+  /* Reset box container */
+  .css-1w67tn7-MuiBox-root {
+    display: block !important;
     width: 100% !important;
   }
 
+  /* Style cards and papers for print */
   .MuiCard-root,
-  .MuiPaper-root {
+  .MuiPaper-root,
+  [class*="Card-root"],
+  [class*="Paper-root"] {
     break-inside: avoid;
     box-shadow: none !important;
-    border: 1px solid #ccc !important;
-    margin-bottom: 16px !important;
+    border: 1px solid #ddd !important;
+    margin-bottom: 20px !important;
+    page-break-inside: avoid;
+    background: white !important;
+  }
+
+  /* Improve typography for print */
+  h1, h2, h3, h4, h5, h6 {
+    color: #000 !important;
+    page-break-after: avoid;
+  }
+
+  h1 { font-size: 18pt; margin-top: 0; }
+  h2 { font-size: 16pt; margin-top: 16pt; }
+  h3 { font-size: 14pt; margin-top: 12pt; }
+  h4 { font-size: 12pt; margin-top: 10pt; }
+
+  /* Fix chart containers */
+  .recharts-responsive-container,
+  .recharts-wrapper {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 300px !important;
+    page-break-inside: avoid;
   }
 
   .recharts-responsive-container > div {
     overflow: visible !important;
+    width: 100% !important;
   }
 
   .recharts-surface {
     overflow: visible;
+  }
+
+  /* Ensure table readability */
+  table {
+    width: 100% !important;
+    border-collapse: collapse;
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  td, th {
+    border: 1px solid #ddd !important;
+    padding: 4px 8px !important;
+  }
+
+  /* Improve link visibility in print */
+  a {
+    color: #000 !important;
+    text-decoration: underline;
+  }
+
+  /* Hide interactive components */
+  .MuiSwitch-root,
+  .MuiCheckbox-root,
+  .MuiRadio-root,
+  .MuiSelect-root,
+  .MuiTextField-root,
+  .MuiInputBase-root {
+    display: none !important;
+  }
+
+  /* Ensure content is visible */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Add page breaks between major sections */
+  section {
+    page-break-inside: avoid;
+  }
+
+  /* Handle grid layouts */
+  .MuiGrid-root {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .MuiGrid-item {
+    width: 100% !important;
+    padding: 0 !important;
   }
 }
