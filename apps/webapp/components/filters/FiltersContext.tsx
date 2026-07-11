@@ -22,6 +22,7 @@ import {
 interface FiltersContextInterface {
   filters: DashboardFilters;
   updateFilter: <K extends keyof DashboardFilters>(key: K, value: DashboardFilters[K]) => void;
+  applyFilters: (nextFilters: DashboardFilters) => void;
   resetFilters: () => void;
 }
 
@@ -115,12 +116,20 @@ export const FiltersProvider = ({
     shouldSyncToUrl.current = true;
   }, []);
 
+  const applyFilters = useCallback((nextFilters: DashboardFilters) => {
+    setFilters(applyBrowserTimezone({ ...nextFilters }));
+    shouldSyncToUrl.current = true;
+  }, []);
+
   const resetFilters = useCallback(() => {
     setFilters({ ...defaultFilters, timezone: getBrowserTimezone() });
     shouldSyncToUrl.current = true;
   }, []);
 
-  const contextValue = useMemo(() => ({ filters, updateFilter, resetFilters }), [filters, resetFilters, updateFilter]);
+  const contextValue = useMemo(
+    () => ({ filters, updateFilter, applyFilters, resetFilters }),
+    [applyFilters, filters, resetFilters, updateFilter],
+  );
 
   return (
     <FiltersContext.Provider value={contextValue}>

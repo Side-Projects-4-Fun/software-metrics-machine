@@ -78,6 +78,26 @@ describe('saved-filters-store', () => {
     expect(sourceCode).toHaveLength(0);
   });
 
+  it('updates an existing saved filter by id', async () => {
+    const store = new SavedFiltersStore(new InMemoryAdapter(), 'test.saved.filters');
+
+    const created = await store.save('source-code', '/dashboard/source-code', 'Churn Snapshot', defaultFilters, 'repo1');
+    const updatedFilters = {
+      ...defaultFilters,
+      topEntries: 50,
+      workflowStatus: ['completed'],
+    };
+
+    await store.update(created.id, updatedFilters);
+
+    const sourceCode = await store.getBySection('source-code', 'repo1');
+    expect(sourceCode).toHaveLength(1);
+    expect(sourceCode[0]?.id).toBe(created.id);
+    expect(sourceCode[0]?.name).toBe('Churn Snapshot');
+    expect(sourceCode[0]?.filters.topEntries).toBe(50);
+    expect(sourceCode[0]?.filters.workflowStatus).toEqual(['completed']);
+  });
+
   it('maps pathname and section helpers', () => {
     expect(dashboardSectionFromPathname('/dashboard/pull-requests')).toBe('pull-requests');
     expect(dashboardSectionFromPathname('/dashboard/source-code')).toBe('source-code');

@@ -1,8 +1,11 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { FiltersProvider } from '@/components/filters/FiltersContext';
 import FiltersContainer from '@/components/filters/FiltersContainer';
+import { defaultFilters } from '@/components/filters/DashboardFilters';
 import * as api from '@/server/api';
+
+const navigation = jest.requireMock('next/navigation');
 
 // Mock the API
 jest.mock('@/server/api');
@@ -20,6 +23,9 @@ const FiltersContainerWithProvider = () => (
 describe('FiltersContainer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    window.localStorage.clear();
+    navigation.usePathname.mockReturnValue('/');
+    navigation.useSearchParams.mockReturnValue(new URLSearchParams());
     
     // Mock API responses
     mockPipelineAPI.getFilterOptions = jest.fn().mockResolvedValue({
@@ -40,9 +46,79 @@ describe('FiltersContainer', () => {
     mockSourceCodeAPI.getAuthors = jest.fn().mockResolvedValue(['alice']);
   });
 
+  it('shows saved filter as selected when URL filters match a saved option', async () => {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    window.localStorage.setItem('smm.saved-filters', JSON.stringify({
+      version: 1,
+      filters: [
+        {
+          id: 'saved-filter-1',
+          name: 'Last Completed Pipelines',
+          section: 'insights',
+          pathname: '/dashboard/insights',
+          repository: 'test/repository',
+          createdAt: '2026-07-11T00:00:00.000Z',
+          filters: {
+            ...defaultFilters,
+            timezone,
+            startDate: '2024-01-01',
+            workflowStatus: ['completed'],
+          },
+        },
+      ],
+    }));
+
+    navigation.usePathname.mockReturnValue('/dashboard/insights');
+    navigation.useSearchParams.mockReturnValue(new URLSearchParams('startDate=2024-01-01&workflowStatus=completed'));
+
+    render(<FiltersContainerWithProvider />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Saved Filters')).toHaveValue('Last Completed Pipelines');
+    });
+  });
+
+  it('keeps pipelines saved filter selected when PR-only filters change', async () => {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    window.localStorage.setItem('smm.saved-filters', JSON.stringify({
+      version: 1,
+      filters: [
+        {
+          id: 'saved-filter-2',
+          name: 'Pipelines Baseline',
+          section: 'pipelines',
+          pathname: '/dashboard/pipelines',
+          repository: 'test/repository',
+          createdAt: '2026-07-11T00:00:00.000Z',
+          filters: {
+            ...defaultFilters,
+            timezone,
+            startDate: '2024-01-01',
+            workflowStatus: ['completed'],
+          },
+        },
+      ],
+    }));
+
+    navigation.usePathname.mockReturnValue('/dashboard/pipelines');
+    navigation.useSearchParams.mockReturnValue(
+      new URLSearchParams('startDate=2024-01-01&workflowStatus=completed&authorSelect=alice')
+    );
+
+    render(<FiltersContainerWithProvider />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Saved Filters')).toHaveValue('Pipelines Baseline');
+    });
+  });
+
   it('renders filters section', () => {
     render(<FiltersContainerWithProvider />);
     expect(screen.getByText('Filters')).toBeInTheDocument();
+    expect(screen.getByLabelText('Saved Filters')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save Filter' })).toBeEnabled();
   });
 
   it('renders without crashing', () => {

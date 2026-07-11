@@ -23,7 +23,7 @@ export default function SelectFilter({ label, value, options, onChange, disabled
       value={value || null}
       onChange={handleChange}
       disabled={disabled}
-      sx={{ m: 1, minWidth: 200 }}
+      sx={{ m: 0, minWidth: 200 }}
       renderInput={(params) => <TextField {...params} label={label} />}
     />
   );

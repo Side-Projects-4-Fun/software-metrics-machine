@@ -118,6 +118,31 @@ describe('FiltersContext', () => {
     expect(result.current.filters.workflowStatus).toEqual(['completed', 'in_progress']);
   });
 
+  it('applies a full filters snapshot', () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <FiltersProvider>{children}</FiltersProvider>
+    );
+
+    const { result } = renderHook(() => useFilters(), { wrapper });
+
+    act(() => {
+      result.current.applyFilters({
+        ...result.current.filters,
+        startDate: '2024-01-01',
+        endDate: '2024-01-31',
+        workflowStatus: ['completed'],
+        authorSelect: ['alice'],
+        topEntries: 40,
+      });
+    });
+
+    expect(result.current.filters.startDate).toBe('2024-01-01');
+    expect(result.current.filters.endDate).toBe('2024-01-31');
+    expect(result.current.filters.workflowStatus).toEqual(['completed']);
+    expect(result.current.filters.authorSelect).toEqual(['alice']);
+    expect(result.current.filters.topEntries).toBe(40);
+  });
+
   it('updates numeric filters', () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <FiltersProvider>{children}</FiltersProvider>

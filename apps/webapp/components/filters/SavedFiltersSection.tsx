@@ -1,18 +1,16 @@
 'use client';
 
-import Link from 'next/link';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
-import Box from '@mui/material/Box';
-import MUILink from '@mui/material/Link';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { useEffect, useMemo, useState } from 'react';
 import { useFilters } from '@/components/filters/FiltersContext';
-import { serializeDashboardFilters } from './DashboardFilters';
 import {
-  dashboardPathForSection,
   DashboardSection,
   SavedFilterEntry,
   SavedFiltersStore,
@@ -22,128 +20,143 @@ interface SavedFiltersSectionProps {
   activeSection: DashboardSection;
   pathname: string;
   repository: string;
+  selectedSavedFilter?: SavedFilterEntry;
+  onSavedFiltersLoaded?: (entries: SavedFilterEntry[]) => void;
 }
 
 export default function SavedFiltersSection({
   activeSection,
   pathname,
   repository,
+  selectedSavedFilter,
+  onSavedFiltersLoaded,
 }: SavedFiltersSectionProps) {
   const { filters } = useFilters();
   const savedFiltersStore = useMemo(() => new SavedFiltersStore(), []);
-  const [savedFilterName, setSavedFilterName] = useState('');
-  const [savedFilters, setSavedFilters] = useState<SavedFilterEntry[]>([]);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [isSaveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [newFilterName, setNewFilterName] = useState('');
 
   const loadSavedFilters = async () => {
     const entries = await savedFiltersStore.getBySection(activeSection, repository);
-    setSavedFilters(entries);
+    onSavedFiltersLoaded?.(entries);
   };
 
-  const handleSaveFilter = async () => {
-    setSaveError(null);
-
-    try {
-      await savedFiltersStore.save(activeSection, pathname, savedFilterName, filters, repository);
-      setSavedFilterName('');
-      await loadSavedFilters();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unable to save filter.';
-      setSaveError(errorMessage);
+  const handleDeleteSelectedFilter = async () => {
+    if (!selectedSavedFilter) {
+      return;
     }
-  };
 
-  const handleDeleteSavedFilter = async (entry: SavedFilterEntry) => {
-    const shouldDelete = window.confirm(`Delete saved filter "${entry.name}"?`);
+    const shouldDelete = window.confirm(`Delete saved filter "${selectedSavedFilter.name}"?`);
     if (!shouldDelete) {
       return;
     }
 
-    await savedFiltersStore.remove(entry.id);
+    setActionError(null);
+    await savedFiltersStore.remove(selectedSavedFilter.id);
     await loadSavedFilters();
+  };
+
+  const handleOpenSaveDialog = () => {
+    setActionError(null);
+    setSaveDialogOpen(true);
+  };
+
+  const handleCloseSaveDialog = () => {
+    setSaveDialogOpen(false);
+    setNewFilterName('');
+  };
+
+  const handleSaveNewFilter = async () => {
+    const normalizedFilterName = newFilterName.trim();
+    if (!normalizedFilterName) {
+      return;
+    }
+
+    setActionError(null);
+
+    try {
+      await savedFiltersStore.save(activeSection, pathname, normalizedFilterName, filters, repository);
+      await loadSavedFilters();
+      handleCloseSaveDialog();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unable to save filter.';
+      setActionError(errorMessage);
+    }
   };
 
   useEffect(() => {
     savedFiltersStore.getBySection(activeSection, repository)
       .then((entries) => {
-        setSavedFilters(entries);
+        onSavedFiltersLoaded?.(entries);
       })
       .catch((error) => {
         console.warn('Unable to load saved filters', error);
       });
-  }, [activeSection, repository, savedFiltersStore]);
+  }, [activeSection, onSavedFiltersLoaded, repository, savedFiltersStore]);
 
   return (
-    <Stack direction="column" spacing={2}>
-      <Box>
-        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-          Save Current Filter
+    <>
+      <Stack direction="row" spacing={1}>
+        <Button
+          disabled={selectedSavedFilter ? true : false}
+          variant="contained"
+          size="small"
+          onClick={() => {
+            handleOpenSaveDialog();
+          }}
+        >
+          Save Filter
+        </Button>
+        <Button
+          variant="outlined"
+          color="error"
+          size="small"
+          onClick={() => {
+            handleDeleteSelectedFilter().catch((error) => {
+              console.warn('Unable to delete saved filter', error);
+            });
+          }}
+          disabled={!selectedSavedFilter}
+        >
+          Delete Filter
+        </Button>
+      </Stack>
+      {actionError && (
+        <Typography variant="caption" color="error">
+          {actionError}
         </Typography>
-        <Stack direction="column" spacing={1}>
+      )}
+
+      <Dialog open={isSaveDialogOpen} onClose={handleCloseSaveDialog} fullWidth maxWidth="sm">
+        <DialogTitle>Save Filter</DialogTitle>
+        <DialogContent>
           <TextField
-            label="Saved filter name"
-            size="small"
-            value={savedFilterName}
-            onChange={(event) => setSavedFilterName(event.target.value)}
+            autoFocus
+            margin="dense"
+            label="Filter name"
+            type="text"
+            fullWidth
+            value={newFilterName}
+            onChange={(event) => setNewFilterName(event.target.value)}
             placeholder="e.g. Team A - last 30 days"
           />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseSaveDialog}>Cancel</Button>
           <Button
+            onClick={() => {
+              handleSaveNewFilter().catch((error) => {
+                console.warn('Unable to save filter', error);
+              });
+            }}
             variant="contained"
-            size="small"
-            onClick={handleSaveFilter}
-            disabled={savedFilterName.trim().length === 0}
+            disabled={newFilterName.trim().length === 0}
           >
-            Save Filter
+            Save
           </Button>
-          {saveError && (
-            <Typography variant="caption" color="error">
-              {saveError}
-            </Typography>
-          )}
-        </Stack>
-      </Box>
-
-      <Divider />
-
-      <Box>
-        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-          Saved Filters
-        </Typography>
-        {savedFilters.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            No saved filters for this section yet.
-          </Typography>
-        ) : (
-          <Stack direction="column" spacing={1}>
-            {savedFilters.map((entry) => {
-              const queryString = serializeDashboardFilters(entry.filters).toString();
-              const href = queryString
-                ? `${dashboardPathForSection(entry.section)}?${queryString}`
-                : dashboardPathForSection(entry.section);
-
-              return (
-                <Stack key={entry.id} direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                  <MUILink component={Link} href={href} underline="hover">
-                    {entry.name}
-                  </MUILink>
-                  <Button
-                    variant="text"
-                    size="small"
-                    color="error"
-                    onClick={() => {
-                      handleDeleteSavedFilter(entry).catch((error) => {
-                        console.warn('Unable to delete saved filter', error);
-                      });
-                    }}
-                  >
-                    Delete
-                  </Button>
-                </Stack>
-              );
-            })}
-          </Stack>
-        )}
-      </Box>
-    </Stack>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }

@@ -189,6 +189,26 @@ export class SavedFiltersStore {
     return entry;
   }
 
+  async update(id: string, filters: DashboardFilters): Promise<SavedFilterEntry> {
+    const document = await this.readDocument();
+    const existingEntryIndex = document.filters.findIndex((entry) => entry.id === id);
+
+    if (existingEntryIndex === -1) {
+      throw new Error('Saved filter not found.');
+    }
+
+    const existingEntry = document.filters[existingEntryIndex] as SavedFilterEntry;
+    const updatedEntry: SavedFilterEntry = {
+      ...existingEntry,
+      filters: cloneFilters(filters),
+    };
+
+    document.filters[existingEntryIndex] = updatedEntry;
+    await this.writeDocument(document);
+
+    return updatedEntry;
+  }
+
   async remove(id: string): Promise<void> {
     const document = await this.readDocument();
     document.filters = document.filters.filter((entry) => entry.id !== id);
