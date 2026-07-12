@@ -5,6 +5,8 @@
 ![NPM Downloads](https://img.shields.io/npm/dw/%40smmachine%2Flauncher)
 ![NPM Version](https://img.shields.io/npm/v/%40smmachine%2Flauncher)
 
+<img width="60%" alt="Screenshot 2026-07-12 at 21 33 18" src="https://github.com/user-attachments/assets/e53f06c1-6f7b-4594-9724-fd980521cec0" />
+
 # Software Metrics Machine
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-❤️-ff69b4?style=for-the-badge&logo=github)](https://github.com/sponsors/marabesi)   
