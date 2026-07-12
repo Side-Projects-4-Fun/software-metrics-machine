@@ -52,7 +52,7 @@ export interface IConfiguration {
   /**
    * Target workflows and jobs for deployment frequency
    */
-  deploymentFrequencyTargets?: DeploymentFrequencyTarget[];
+  deploymentFrequencyTargets?: ConfigurableDeploymentFrequencyTarget[];
 
   /**
    * Main branch name
@@ -133,7 +133,7 @@ export interface IConfiguration {
   internal?: InternalConfiguration;
 }
 
-export interface DeploymentFrequencyTarget extends JsonObject {
+export interface ConfigurableDeploymentFrequencyTarget extends JsonObject {
   pipeline: string;
   job: string;
 }
@@ -151,7 +151,7 @@ export interface ISmmProjectConfig extends JsonObject {
   gitlab_token?: string;
   github_repository?: string;
   git_repository_location?: string;
-  deployment_frequency_targets?: DeploymentFrequencyTarget[];
+  deployment_frequency_targets?: ConfigurableDeploymentFrequencyTarget[];
   main_branch?: string;
   dashboard_start_date?: string;
   dashboard_end_date?: string;
@@ -190,7 +190,7 @@ export class Configuration implements IConfiguration {
   githubRepository?: string;
   storeData = '';
   gitRepositoryLocation = '';
-  deploymentFrequencyTargets?: DeploymentFrequencyTarget[];
+  deploymentFrequencyTargets?: ConfigurableDeploymentFrequencyTarget[];
   mainBranch?: string;
   dashboardStartDate?: string;
   dashboardEndDate?: string;
@@ -242,7 +242,7 @@ export class Configuration implements IConfiguration {
     return path.join(this.getBaseDirectory(), 'smm.log');
   }
 
-  getDeploymentFrequencyTargets(): DeploymentFrequencyTarget[] {
+  getDeploymentFrequencyTargets(): ConfigurableDeploymentFrequencyTarget[] {
     return this.deploymentFrequencyTargets || [];
   }
 

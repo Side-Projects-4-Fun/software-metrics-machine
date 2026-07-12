@@ -9,96 +9,21 @@ import {
   PipelineRun,
 } from '../pipeline-types';
 import { Configuration } from '../../..';
-import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
+import { TimeZoneProvider } from '../../../infrastructure';
 import {
   averageMetricSamples,
   cleanMetricSamples,
   MetricCleaningOptions,
   MetricSample,
 } from '../../metric-samples';
-import { PipelinesRepository } from '../repositories/pipeline-repository';
-
-type PipelineDateFields = {
-  createdAt?: string;
-  completedAt?: string;
-  startedAt?: string;
-  jobs?: Array<{
-    startedAt?: string;
-    completedAt?: string;
-  }>;
-};
-
-type PipelineRunFilterOptions = {
-  sort_by?: {
-    created_at?: 'asc' | 'desc';
-  };
-};
-
-export interface IPipelinesService {
-  filterRunsByDateRange<T extends PipelineDateFields>(
-    runs: T[],
-    startDate?: string,
-    endDate?: string,
-    options?: PipelineRunFilterOptions
-  ): T[];
-  getRunMetricDate(run: PipelineDateFields): string | undefined;
-  getRunDurationMinutes(run: PipelineDateFields): number | null;
-  getDurationMinutes(startedAt?: string, completedAt?: string): number | null;
-  getPeriodKey(dateString: string | undefined, interval: 'day' | 'week' | 'month'): string;
-  getMetrics(filters?: PipelineFilters): Promise<PipelineMetrics>;
-  getDeploymentFrequency(
-    interval: 'day' | 'week' | 'month',
-    filters?: PipelineFilters
-  ): Promise<
-    Array<{
-      period: string;
-      count: number;
-    }>
-  >;
-  getDeploymentFrequencyWithAllIntervals(
-    filters?: PipelineFilters
-  ): Promise<DeploymentFrequencyRow[]>;
-  getJobMetrics(filters?: PipelineFilters): Promise<JobMetrics[]>;
-  getJobRerunsByDay(
-    filters?: PipelineFilters
-  ): Promise<Array<{ day: string; rerun_count: number }>>;
-  getJobStepsAverageTime(filters?: PipelineFilters): Promise<
-    Array<{
-      name: string;
-      averageDurationMinutes: number;
-      count: number;
-      outliers?: PipelineAverageOutlier[];
-    }>
-  >;
-  getJobStepsAverageTimeByDay(filters?: PipelineFilters): Promise<
-    Array<{
-      day: string;
-      steps: Array<{
-        name: string;
-        averageDurationMinutes: number;
-        outliers?: PipelineAverageOutlier[];
-      }>;
-    }>
-  >;
-}
-
-interface DeploymentFrequencyTarget {
-  pipeline: string;
-  job: string;
-}
-
-export interface DeploymentFrequencyRow {
-  pipeline: string;
-  job: string;
-  days: string;
-  weeks: string;
-  months: string;
-  daily_counts: number;
-  weekly_counts: number;
-  monthly_counts: number;
-  commits: string;
-  links: string;
-}
+import { PipelinesRepository } from '../repositories';
+import {
+  DeploymentFrequencyRow,
+  DeploymentFrequencyTarget,
+  IPipelinesService,
+  PipelineDateFields,
+  PipelineRunFilterOptions,
+} from '../service';
 
 export class PipelinesService implements IPipelinesService {
   private tz: TimeZoneProvider;
@@ -638,7 +563,7 @@ export class PipelinesService implements IPipelinesService {
       return this.loadCachedWorkflowsWithJobs();
     }
 
-    const runs = await this.pipelineRepository.loadPipelines({
+    return await this.pipelineRepository.loadPipelines({
       includeJobs: true,
       startDate: filters.startDate,
       endDate: filters.endDate,
@@ -652,8 +577,6 @@ export class PipelinesService implements IPipelinesService {
       jobConclusion: filters.jobConclusion,
       rawFilters: filters.rawFilters,
     });
-
-    return runs;
   }
 
   private toTimestamp(value?: string): number {

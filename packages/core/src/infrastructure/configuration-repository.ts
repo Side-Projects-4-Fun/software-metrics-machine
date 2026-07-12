@@ -3,7 +3,7 @@ import * as path from 'path';
 import { Logger } from '@smmachine/utils';
 import {
   Configuration,
-  DeploymentFrequencyTarget,
+  ConfigurableDeploymentFrequencyTarget,
   IConfiguration,
   ISmmConfigFile,
   ISmmProjectConfig,
@@ -472,12 +472,12 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
   private normalizeDeploymentFrequencyTargets(
     configData: JsonObject
-  ): DeploymentFrequencyTarget[] | undefined {
+  ): ConfigurableDeploymentFrequencyTarget[] | undefined {
     const configuredTargets = configData.deployment_frequency_targets;
 
     if (Array.isArray(configuredTargets)) {
       const targets = configuredTargets
-        .map((target): DeploymentFrequencyTarget | null => {
+        .map((target): ConfigurableDeploymentFrequencyTarget | null => {
           if (!target || typeof target !== 'object' || Array.isArray(target)) {
             return null;
           }
@@ -487,7 +487,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
           return pipeline && job ? { pipeline, job } : null;
         })
-        .filter((target): target is DeploymentFrequencyTarget => target !== null);
+        .filter((target): target is ConfigurableDeploymentFrequencyTarget => target !== null);
 
       return targets.length > 0 ? targets : undefined;
     }
