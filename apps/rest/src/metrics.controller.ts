@@ -15,7 +15,7 @@ import {
   DeploymentMetricsQueryDto,
   CodeMetricsQueryDto,
   QualityMetricsQueryDto,
-} from './dtos/index';
+} from './dtos';
 import {
   ErrorResponse,
   MetricsIssueResponse,
@@ -24,7 +24,7 @@ import {
   MetricsCodeResponse,
   MetricsQualityResponse,
   MetricsFullReportResponse,
-} from './dtos/response.dto';
+} from './dtos';
 
 /**
  * Metrics API Controller

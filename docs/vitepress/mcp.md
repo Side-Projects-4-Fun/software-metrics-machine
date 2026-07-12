@@ -154,6 +154,52 @@ The MCP server exposes these resources:
 
 Configuration resources redact token-like fields before returning data to the MCP client.
 
+## Logging
+
+The MCP server has two logging layers:
+
+### Transport logging
+
+The server writes transport-level logs (startup, JSON-RPC requests, errors, shutdown) using the SMM Logger. The level
+is controlled by the `DEBUG` environment variable:
+
+- `DEBUG=true` — all transport messages visible (INFO level)
+- No `DEBUG` — transport logs suppressed (CRITICAL level)
+
+These logs appear in the MCP client output panel (e.g. VS Code MCP Output view).
+
+```bash
+DEBUG=true smm mcp server start
+```
+
+Or in your MCP client configuration:
+
+```json
+{
+  "mcpServers": {
+    "software-metrics-machine": {
+      "command": "smm",
+      "args": ["mcp", "server", "start"],
+      "env": {
+        "SMM_STORE_DATA_AT": "/path/to/smm-data",
+        "DEBUG": "true"
+      }
+    }
+  }
+}
+```
+
+### Domain service logging
+
+Metric readers and data access services use the SMM Logger and respect the project's configured `log_level`,
+`<REPO>_LOGGING_LEVEL` env var, or fall back to `CRITICAL`. These logs can also write to the log file if
+`store_logs` is enabled in the project's `smm_config.json`.
+
+```{tip}
+Transport logs are independent of `smm_config.json` because the server may not have a project loaded at the
+time startup messages are written. Domain service logs always use the project's log level settings.
+```
+
 ## Security notes
 
 The MCP server is intended for local use with trusted project data. It does not expose write tools, fetch tools, or commands that mutate `smm_config.json`.

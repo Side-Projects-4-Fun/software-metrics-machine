@@ -1,6 +1,6 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { ErrorResponse } from '../dtos/response.dto';
+import { ErrorResponse } from '../dtos';
 import { Logger as SmmLogger } from '@smmachine/utils';
 
 /**

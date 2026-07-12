@@ -127,6 +127,42 @@ Common query params:
 - `component`, `depth`, `metrics`
 - `ignore_files`, `include_files`, `remove_folders`
 
+## Logging
+
+The REST API has two logging layers:
+
+### Domain service logging
+
+The core business logic (Jira, SonarQube, PRs, pipelines, etc.) always respects the project's configured `log_level`,
+`<REPO>_LOGGING_LEVEL` env var, or falls back to `CRITICAL`. These logs use the standard SMM log format
+(`[timestamp] [LEVEL] [serviceName] message`) and can optionally write to the log file if `store_logs` is enabled.
+
+### HTTP-level logging
+
+Request logging (middleware), controller debug/error messages, exception filters, and the startup banner use
+`SmmNestLogger` — a NestJS `LoggerService` wrapper around the SMM logger. Its level is controlled by the `DEBUG`
+environment variable only:
+
+- `DEBUG=true` — all messages visible (equivalent to INFO level)
+- No `DEBUG` — only fatal logs appear (CRITICAL level)
+
+To see HTTP request logs in development:
+
+```bash
+DEBUG=true smm dashboard serve
+```
+
+Or with the binary directly:
+
+```bash
+DEBUG=true PORT=8000 node apps/rest/dist/main.js
+```
+
+```{tip}
+HTTP-level logging does not currently read per-project `log_level` from `smm_config.json`. Domain service logs
+always respect it. If you need HTTP logs, use `DEBUG=true`.
+```
+
 ## Configuration
 
 - `GET /configuration`

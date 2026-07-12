@@ -100,6 +100,49 @@ export BLA_123_SMM_TIMEZONE=UTC   # used for github_repository "bla/123"
 -h, --help              display help
 ```
 
+## Logging
+
+SMM writes logs from the CLI to the console (stderr for warnings/errors, stdout for info/debug). Logging can also be written
+to a file inside the project data directory.
+
+### Level resolution
+
+The log level is resolved in this order (highest precedence first):
+
+1. `--debug` flag or `DEBUG` environment variable — forces `DEBUG` level
+2. `<REPO>_LOGGING_LEVEL` environment variable — project-specific override (e.g. `OWNER_REPO_LOGGING_LEVEL=INFO`)
+3. `log_level` in `smm_config.json` — per-project setting
+4. `CRITICAL` — built-in default (only fatal errors are shown)
+
+If an invalid value is provided (e.g. `log_level: "TRACE"`), it falls back to `CRITICAL` with a warning.
+
+```bash
+# Quick debug
+smm --debug pr summary
+
+# Via environment
+DEBUG=true smm pr summary
+
+# Per-project config
+export OWNER_REPO_LOGGING_LEVEL=INFO
+smm --project owner/repo pr summary
+```
+
+### File logging
+
+Set `store_logs: true` in `smm_config.json` or `<REPO>_STORE_LOGS=true` to write logs to
+`<storeData>/<provider>_<owner_repo>/smm.log`. File output uses the same format and level filtering as console output.
+
+### Valid levels
+
+| Level | Console output | Use case |
+|-------|---------------|----------|
+| `DEBUG` | All messages | Development / troubleshooting |
+| `INFO` | Info, warnings, errors | General usage |
+| `WARN` | Warnings and errors | Production (moderate verbosity) |
+| `ERROR` | Errors only | Production |
+| `CRITICAL` | Fatal errors only | Silent operation (default) |
+
 ## Outliers and weekend filtering
 
 Some average-based PR and pipeline commands support data cleaning options before computing the final average.
