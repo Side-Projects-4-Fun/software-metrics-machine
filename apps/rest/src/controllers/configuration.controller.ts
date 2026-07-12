@@ -1,4 +1,4 @@
-import { Controller, Get, Logger } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Configuration } from '@smmachine/core';
 import { ConfigurationResponse } from '../dtos';
@@ -10,8 +10,6 @@ import { ConfigurationResponse } from '../dtos';
 @ApiTags('Configuration')
 @Controller()
 export class ConfigurationController {
-  private readonly logger = new Logger('ConfigurationController');
-
   constructor(private readonly config: Configuration) {}
 
   @Get('/configuration')

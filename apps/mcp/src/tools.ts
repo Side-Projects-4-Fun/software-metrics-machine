@@ -46,7 +46,7 @@ export const tools: RegisteredTool[] = [
       const repository = new ConfigurationRepository(
         process.env,
         undefined,
-        new Logger('SmmMcpServer')
+        new Logger('SmmMcpServer', 'CRITICAL')
       );
       const projects = repository.getAllProjects().map((project) => ({
         github_repository: project.github_repository,

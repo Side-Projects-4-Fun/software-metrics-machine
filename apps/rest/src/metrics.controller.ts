@@ -1,4 +1,5 @@
-import { Controller, Get, Query, HttpException, HttpStatus, Logger, Inject } from '@nestjs/common';
+import { Controller, Get, Query, HttpException, HttpStatus, Inject } from '@nestjs/common';
+import { Logger as SmmLogger } from '@smmachine/utils';
 import { ApiTags, ApiOperation, ApiQuery, ApiResponse, ApiOkResponse } from '@nestjs/swagger';
 import {
   ICodeMetricsRepository,
@@ -37,7 +38,7 @@ import {
 @ApiTags('Metrics')
 @Controller('')
 export class MetricsController {
-  private readonly logger = new Logger('MetricsController');
+  private readonly logger = new SmmLogger('MetricsController', 'CRITICAL');
 
   constructor(
     private prsService: PRsService,

@@ -147,10 +147,3 @@ export class Logger {
     return this.filePath;
   }
 }
-
-/**
- * Global logger instance
- */
-export const logger = new Logger('SMM', {
-  level: (process.env.LOG_LEVEL as LogLevel) || undefined,
-});

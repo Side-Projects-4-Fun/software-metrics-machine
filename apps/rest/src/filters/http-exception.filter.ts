@@ -1,13 +1,7 @@
-import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  HttpException,
-  HttpStatus,
-  Logger,
-} from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ErrorResponse } from '../dtos/response.dto';
+import { Logger as SmmLogger } from '@smmachine/utils';
 
 /**
  * Global exception filter for all HTTP exceptions
@@ -15,7 +9,7 @@ import { ErrorResponse } from '../dtos/response.dto';
  */
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger('HttpExceptionFilter');
+  private readonly logger = new SmmLogger('HttpExceptionFilter', 'CRITICAL');
 
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -49,7 +43,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
  */
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-  private readonly logger = new Logger('AllExceptionsFilter');
+  private readonly logger = new SmmLogger('AllExceptionsFilter', 'CRITICAL');
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

@@ -1,5 +1,6 @@
-import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+import { Logger as SmmLogger } from '@smmachine/utils';
 
 /**
  * Request logging middleware
@@ -7,7 +8,7 @@ import { Request, Response, NextFunction } from 'express';
  */
 @Injectable()
 export class LoggingMiddleware implements NestMiddleware {
-  private readonly logger = new Logger('HTTP');
+  private readonly logger = new SmmLogger('HTTP', 'CRITICAL');
 
   use(req: Request, res: Response, next: NextFunction) {
     const { method, originalUrl, query } = req;
@@ -18,7 +19,7 @@ export class LoggingMiddleware implements NestMiddleware {
       Object.keys(query).length > 0
         ? '?' + new URLSearchParams(query as Record<string, string>).toString()
         : '';
-    this.logger.log(`${method} ${originalUrl}${queryString}`);
+    this.logger.info(`${method} ${originalUrl}${queryString}`);
 
     // Capture response
     const originalSend = res.send;
@@ -29,7 +30,7 @@ export class LoggingMiddleware implements NestMiddleware {
       const statusCode = res.statusCode;
 
       // Log response
-      logger.log(`${method} ${originalUrl} ${statusCode} - ${duration}ms`);
+      logger.info(`${method} ${originalUrl} ${statusCode} - ${duration}ms`);
 
       // Restore original send method
       res.send = originalSend;

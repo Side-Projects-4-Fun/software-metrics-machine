@@ -1,4 +1,5 @@
-import { Controller, Get, Query, HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { Controller, Get, Query, HttpException, HttpStatus } from '@nestjs/common';
+import { Logger as SmmLogger } from '@smmachine/utils';
 import { ApiTags, ApiOperation, ApiQuery, ApiResponse, ApiOkResponse } from '@nestjs/swagger';
 import {
   SonarqubeComponentMeasure,
@@ -18,7 +19,7 @@ import { ErrorResponse } from '../dtos/response.dto';
 @ApiTags('SonarQube')
 @Controller('sonarqube')
 export class SonarqubeController {
-  private readonly logger = new Logger('SonarqubeController');
+  private readonly logger = new SmmLogger('SonarqubeController', 'CRITICAL');
 
   constructor(private sonarqubeRepository: SonarqubeRepository) {}
 

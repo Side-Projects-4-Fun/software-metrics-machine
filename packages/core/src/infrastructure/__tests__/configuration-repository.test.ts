@@ -613,6 +613,39 @@ describe('ConfigurationRepository', () => {
       ).toThrow(/projects\[0\]\.deployment_frequency_targets\[0\]\.job must be a string/);
     });
 
+    it('should fall back to CRITICAL when log_level in config file is invalid', () => {
+      tempDir = mkdtempSync(join(tmpdir(), 'smm-config-invalid-loglevel-'));
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          projects: [
+            {
+              github_repository: 'org/repo',
+              git_repository_location: '/tmp/repo',
+              log_level: 'TRACE',
+            },
+          ],
+        }),
+        'utf-8'
+      );
+      const config = createConfigurationRepository(
+        { SMM_STORE_DATA_AT: tempDir },
+        'org/repo'
+      ).getActiveConfiguration();
+      expect(config.loggingLevel).toBe('CRITICAL');
+    });
+
+    it('should fall back to CRITICAL when LOGGING_LEVEL env var is invalid', () => {
+      const config = createConfigurationRepository(
+        {
+          SMM_STORE_DATA_AT: '/tmp',
+          ORG_REPO_LOGGING_LEVEL: 'VERBOSE',
+        },
+        'org/repo'
+      ).getActiveConfiguration();
+      expect(config.loggingLevel).toBe('CRITICAL');
+    });
+
     it('should accept valid config with all fields', () => {
       tempDir = mkdtempSync(join(tmpdir(), 'smm-config-repo-valid-'));
       writeFileSync(

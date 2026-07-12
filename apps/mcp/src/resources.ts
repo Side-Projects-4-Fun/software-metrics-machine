@@ -13,7 +13,11 @@ export type ResourceReadResult = {
 };
 
 function getConfigurationRepository(): ConfigurationRepository {
-  return new ConfigurationRepository(process.env, undefined, new Logger('SmmMcpServer'));
+  return new ConfigurationRepository(
+    process.env,
+    undefined,
+    new Logger('SmmMcpServer', 'CRITICAL')
+  );
 }
 
 function encodeProject(project: string): string {

@@ -45,7 +45,7 @@ export class McpMetricsReader {
     const configurationRepository = new ConfigurationRepository(
       process.env,
       options.project,
-      new Logger('SmmMcpServer')
+      new Logger('SmmMcpServer', 'CRITICAL')
     );
 
     this.configuration = configurationRepository.getActiveConfiguration();

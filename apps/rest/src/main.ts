@@ -1,9 +1,10 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { Logger, ValidationPipe, BadRequestException } from '@nestjs/common';
+import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { MetricsModule } from './metrics.module';
 import { HttpExceptionFilter, AllExceptionsFilter } from './filters/http-exception.filter';
 import { setupSwagger } from './config/swagger.config';
+import { SmmNestLogger } from './logger/smm-nest-logger';
 
 /**
  * Software Metrics Machine - REST API Server
@@ -20,7 +21,8 @@ import { setupSwagger } from './config/swagger.config';
  */
 async function bootstrap() {
   const app = await NestFactory.create(MetricsModule);
-  const logger = new Logger('SoftwareMetricsMachine');
+  app.useLogger(new SmmNestLogger('Bootstrap'));
+  const logger = new SmmNestLogger('SoftwareMetricsMachine');
 
   // Global validation pipe
   app.useGlobalPipes(

@@ -1,5 +1,5 @@
 import { createInterface } from 'node:readline';
-import { getApplicationVersion } from '@smmachine/utils';
+import { getApplicationVersion, Logger } from '@smmachine/utils';
 import type { JsonObject, JsonRpcRequest, JsonRpcResponse, JsonValue } from './mcp-types';
 import { listResources, readResource } from './resources';
 import { findTool, tools } from './tools';
@@ -11,9 +11,8 @@ const SERVER_INFO = {
 
 type McpLog = (message: string) => void;
 
-function stderrLog(message: string): void {
-  process.stderr.write(`[${new Date().toISOString()}] [SMM MCP] ${message}\n`);
-}
+const mcpLogger = new Logger('SmmMcpServer', process.env.DEBUG ? 'DEBUG' : 'CRITICAL');
+const log: McpLog = (message) => mcpLogger.info(message);
 
 function isJsonRpcRequest(value: unknown): value is JsonRpcRequest {
   return (
@@ -146,9 +145,9 @@ async function handleRequestWithLogging(
 }
 
 export async function startMcpServer(): Promise<void> {
-  stderrLog(`Starting Software Metrics Machine MCP server v${SERVER_INFO.version} over stdio`);
-  stderrLog(`Configuration directory: ${process.env.SMM_STORE_DATA_AT || '<not set>'}`);
-  stderrLog(`Available tools: ${tools.map((tool) => tool.name).join(', ')}`);
+  log(`Starting Software Metrics Machine MCP server v${SERVER_INFO.version} over stdio`);
+  log(`Configuration directory: ${process.env.SMM_STORE_DATA_AT || '<not set>'}`);
+  log(`Available tools: ${tools.map((tool) => tool.name).join(', ')}`);
 
   const reader = createInterface({
     input: process.stdin,
@@ -157,7 +156,7 @@ export async function startMcpServer(): Promise<void> {
   });
 
   reader.on('close', () => {
-    stderrLog('MCP stdio input closed; server stopped');
+    log('MCP stdio input closed; server stopped');
   });
 
   for await (const line of reader) {
@@ -170,14 +169,14 @@ export async function startMcpServer(): Promise<void> {
     try {
       const parsed: unknown = JSON.parse(line);
       if (!isJsonRpcRequest(parsed)) {
-        stderrLog('Rejected invalid JSON-RPC request');
+        log('Rejected invalid JSON-RPC request');
         response = error(null, -32600, 'Invalid JSON-RPC request');
       } else {
-        stderrLog(`Received request: ${parsed.method}`);
-        response = await handleRequestWithLogging(parsed, stderrLog);
+        log(`Received request: ${parsed.method}`);
+        response = await handleRequestWithLogging(parsed, log);
       }
     } catch (caught) {
-      stderrLog(
+      log(
         `Failed to parse request: ${caught instanceof Error ? caught.message : 'Invalid JSON payload'}`
       );
       response = error(

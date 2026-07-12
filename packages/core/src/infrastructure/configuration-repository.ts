@@ -155,6 +155,15 @@ export class ConfigurationRepository implements IConfigurationRepository {
     if (projectLogLevel) {
       logLevel = projectLogLevel;
     }
+
+    const VALID_LOG_LEVELS = ['DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL'];
+    if (!VALID_LOG_LEVELS.includes(logLevel)) {
+      this.logger?.warn(
+        `Invalid log level "${logLevel}". Valid values: ${VALID_LOG_LEVELS.join(', ')}. Falling back to CRITICAL.`
+      );
+      logLevel = 'CRITICAL';
+    }
+
     config.loggingLevel = logLevel as IConfiguration['loggingLevel'];
 
     config.jiraUrl =
