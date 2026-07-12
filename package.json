@@ -43,7 +43,8 @@
     "typecheck": "turbo run type-check",
     "cli": "cd ./apps/cli && pnpm run dev",
     "cli:e2e": "cd ./apps/cli && pnpm run test:e2e",
-    "prepack": "pnpm run build:npm"
+    "prepack": "pnpm run build:npm",
+    "prepare": "husky"
   },
   "keywords": [
     "software-metrics",
@@ -103,6 +104,7 @@
     "eslint": "catalog:",
     "eslint-config-prettier": "catalog:",
     "eslint-plugin-prettier": "catalog:",
+    "husky": "^9.1.7",
     "inquirer": "catalog:",
     "ora": "catalog:",
     "ts-node": "catalog:",
