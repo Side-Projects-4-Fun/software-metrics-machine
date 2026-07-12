@@ -86,7 +86,7 @@ GET /pipelines/jobs-average-time
 GET /pipelines/jobs-average-time-by-day
 GET /pipelines/jobs-steps-average-time
 GET /pipelines/jobs-steps-average-time-by-day
-GET /pipelines/deployment-frequency
+GET /dora/deployment-frequency
 GET /pipelines/jobs-duration-by-workflow
 GET /pipelines/workflows
 GET /pipelines/statuses

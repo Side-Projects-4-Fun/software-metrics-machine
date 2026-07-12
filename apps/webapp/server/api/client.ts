@@ -59,7 +59,9 @@ export async function fetchAPI<T>(endpoint: string, params?: ApiParams): Promise
   });
 
   if (!response.ok) {
-    throw new Error(`API error: ${response.statusText}`);
+    const body = await response.json().catch(() => null);
+    const message = body?.message || body?.error || response.statusText;
+    throw new Error(`API error: ${message}`);
   }
 
   return response.json();

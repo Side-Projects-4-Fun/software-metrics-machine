@@ -3,6 +3,26 @@ import { Request, Response } from 'express';
 import { ErrorResponse } from '../dtos';
 import { Logger as SmmLogger } from '@smmachine/utils';
 
+function extractErrorMessage(exceptionResponse: string | object, exception: HttpException): string {
+  if (typeof exceptionResponse === 'string') {
+    return exceptionResponse;
+  }
+
+  const response = exceptionResponse as Record<string, unknown>;
+
+  if (typeof response.message === 'string') {
+    return response.message;
+  }
+  if (typeof response.error === 'string') {
+    return response.error;
+  }
+  if (typeof response.message === 'object' && response.message !== null) {
+    return String(response.message);
+  }
+
+  return exception.message;
+}
+
 /**
  * Global exception filter for all HTTP exceptions
  * Provides consistent error response format
@@ -20,10 +40,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const errorResponse: ErrorResponse = {
       statusCode: status,
-      message:
-        typeof exceptionResponse === 'object' && 'message' in exceptionResponse
-          ? String((exceptionResponse as Record<string, unknown>).message)
-          : exception.message,
+      message: extractErrorMessage(exceptionResponse, exception),
       error: exception.name,
       timestamp: new Date().toISOString(),
       path: request.url,

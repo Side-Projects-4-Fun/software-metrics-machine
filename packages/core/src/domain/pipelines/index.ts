@@ -1,6 +1,7 @@
 export * from './services/pipelines-service';
 export * from './services/pipelines-data-service';
 export * from './services/pipeline-implementation';
+export * from './services/deployment-frequency-service';
 export * from './service';
 export * from './pipeline-types';
 export * from './repositories';

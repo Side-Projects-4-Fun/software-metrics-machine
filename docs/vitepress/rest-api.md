@@ -64,7 +64,7 @@ Common query params:
 - `GET /pipelines/jobs-by-status`
 - `GET /pipelines/runs-duration`
 - `GET /pipelines/jobs-duration-by-workflow`
-- `GET /pipelines/deployment-frequency`
+- `GET /dora/deployment-frequency`
 - `GET /pipelines/runs-by`
 - `GET /pipelines/jobs-average-time`
 - `GET /pipelines/jobs-average-time-by-day`

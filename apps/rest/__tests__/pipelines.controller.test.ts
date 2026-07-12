@@ -645,36 +645,6 @@ describe('PipelinesController', () => {
     });
   });
 
-  describe('deploymentFrequency', () => {
-    it('delegates to the service and passes through its result', async () => {
-      const { controller, pipelinesService } = createController([]);
-      const expected = [
-        {
-          pipeline: 'ci.yml',
-          job: 'deploy',
-          days: '2026-01-01',
-          weeks: '2026-W01',
-          months: '2026-01',
-          daily_counts: 1,
-          weekly_counts: 1,
-          monthly_counts: 1,
-          commits: '',
-          links: '',
-        },
-      ];
-      vi.spyOn(pipelinesService, 'getDeploymentFrequencyWithAllIntervals').mockResolvedValue(
-        expected
-      );
-
-      const result = await controller.deploymentFrequency({ workflow_path: 'ci.yml' });
-
-      expect(pipelinesService.getDeploymentFrequencyWithAllIntervals).toHaveBeenCalledWith(
-        expect.objectContaining({ workflowPath: 'ci.yml' })
-      );
-      expect(result).toEqual(expected);
-    });
-  });
-
   describe('pipelineSummary', () => {
     it('returns zeroed summary with null first/last run when there are no runs', async () => {
       const { controller, pipelinesRepo } = createController([]);

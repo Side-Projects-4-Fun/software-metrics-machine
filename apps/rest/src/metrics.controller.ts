@@ -104,10 +104,7 @@ export class MetricsController {
         error instanceof Error ? error.stack : ''
       );
       throw new HttpException(
-        {
-          error: `Failed to fetch PR metrics: ${error instanceof Error ? error.message : String(error)}`,
-          timestamp: new Date().toISOString(),
-        },
+        `Failed to fetch PR metrics: ${error instanceof Error ? error.message : String(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }

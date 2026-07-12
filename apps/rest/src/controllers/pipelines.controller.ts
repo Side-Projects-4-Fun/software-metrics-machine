@@ -9,7 +9,6 @@ import {
   PipelineFiltersRepository,
   type MetricSample,
 } from '@smmachine/core';
-import type { DeploymentFrequencyRow } from '../dtos/response.dto';
 import type {
   PipelineSummaryResponse,
   PipelineByStatusResponse,
@@ -283,15 +282,6 @@ export class PipelinesController {
         return { workflow, jobs };
       })
       .sort((a, b) => a.workflow.localeCompare(b.workflow));
-  }
-
-  @Get('/pipelines/deployment-frequency')
-  async deploymentFrequency(
-    @Query() query: PipelineFiltersQuery
-  ): Promise<DeploymentFrequencyRow[]> {
-    return this.pipelinesService.getDeploymentFrequencyWithAllIntervals(
-      this.toServiceFilters(query)
-    );
   }
 
   @Get('/pipelines/runs-by')

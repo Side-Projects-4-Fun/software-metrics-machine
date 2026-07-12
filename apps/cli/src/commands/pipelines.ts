@@ -7,6 +7,7 @@ import {
   PipelineFactory,
 } from '@smmachine/core';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
+import { DeploymentFrequencyService } from '@smmachine/core/domain/pipelines/services/deployment-frequency-service';
 
 function createPipelineDependencies(command: SmmCommand) {
   const config = command.getConfiguration();
@@ -29,6 +30,12 @@ function createPipelineDependencies(command: SmmCommand) {
     logger,
     timeZoneProvider
   );
+  const deploymentFrequency = new DeploymentFrequencyService(
+    pipelineRepository,
+    config.getDeploymentFrequencyTargets(),
+    logger,
+    timeZoneProvider
+  );
   return {
     config,
     pipelineRepository,
@@ -36,6 +43,7 @@ function createPipelineDependencies(command: SmmCommand) {
     workflowJobRepository,
     pipelineService,
     pipelineImplementation,
+    deploymentFrequency,
   };
 }
 
@@ -316,11 +324,10 @@ export function createPipelinesCommands(program: SmmCommand): void {
       const logger = command.getLogger('PipelinesCommand');
       try {
         screen.printLine('📈 Analyzing pipeline runs by time period...');
-        const { pipelineService } = createPipelineDependencies(command);
+        const { deploymentFrequency } = createPipelineDependencies(command);
 
-        const metrics = await pipelineService.getDeploymentFrequencyWithAllIntervals(
-          buildPipelineFilters(options)
-        );
+        const filters = buildPipelineFilters(options);
+        const metrics = await deploymentFrequency.getDeploymentFrequencyWithAllIntervals(filters);
 
         if (options.output === 'json') {
           screen.printLine(JSON.stringify(metrics, null, 2));
