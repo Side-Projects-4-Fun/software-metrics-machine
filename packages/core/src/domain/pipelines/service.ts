@@ -15,12 +15,6 @@ export type PipelineDateFields = {
   }>;
 };
 
-export type PipelineRunFilterOptions = {
-  sort_by?: {
-    created_at?: 'asc' | 'desc';
-  };
-};
-
 export interface DeploymentFrequencyTarget {
   pipeline: string;
   job: string;
@@ -40,12 +34,6 @@ export interface DeploymentFrequencyRow {
 }
 
 export interface IPipelinesService {
-  filterRunsByDateRange<T extends PipelineDateFields>(
-    runs: T[],
-    startDate?: string,
-    endDate?: string,
-    options?: PipelineRunFilterOptions
-  ): T[];
   getRunMetricDate(run: PipelineDateFields): string | undefined;
   getRunDurationMinutes(run: PipelineDateFields): number | null;
   getDurationMinutes(startedAt?: string, completedAt?: string): number | null;

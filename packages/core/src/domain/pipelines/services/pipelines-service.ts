@@ -22,7 +22,6 @@ import {
   DeploymentFrequencyTarget,
   IPipelinesService,
   PipelineDateFields,
-  PipelineRunFilterOptions,
 } from '../service';
 
 export class PipelinesService implements IPipelinesService {
@@ -35,31 +34,6 @@ export class PipelinesService implements IPipelinesService {
     timeZoneProvider: TimeZoneProvider
   ) {
     this.tz = timeZoneProvider;
-  }
-
-  filterRunsByDateRange<T extends PipelineDateFields>(
-    runs: T[],
-    startDate?: string,
-    endDate?: string,
-    options?: PipelineRunFilterOptions
-  ): T[] {
-    const start = startDate ? this.toDateBoundaryTimestamp(startDate, 'start') : 0;
-    const end = endDate ? this.toDateBoundaryTimestamp(endDate, 'end') : 0;
-    const filteredRuns =
-      start || end
-        ? runs.filter((run) => {
-            const runTimestamp = this.toTimestamp(this.getRunMetricDate(run));
-            if (start && runTimestamp < start) return false;
-            if (end && runTimestamp > end) return false;
-            return true;
-          })
-        : runs;
-
-    if (options?.sort_by?.created_at) {
-      return this.sortRunsByMetricDate(filteredRuns, options.sort_by.created_at);
-    }
-
-    return filteredRuns;
   }
 
   getRunMetricDate(run: PipelineDateFields): string | undefined {

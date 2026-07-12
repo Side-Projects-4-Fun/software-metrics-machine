@@ -1,14 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PipelineRun, PipelinesRepository } from '../..';
 import { PipelinesService } from '../..';
-import {
-  PipelineJobBuilder,
-  PipelineRunBuilder,
-  PipelineStepBuilder,
-} from '../../test/domain/domain-builders';
+import { PipelineJobBuilder, PipelineRunBuilder, PipelineStepBuilder } from '../../test/domain';
 import { PipelinesRepositoryBuilder } from '../../test/repositories/repository-builders';
 import { MockLoggerBuilder } from '../../test/infrastructure/mock-logger-builder';
-import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
+import { TimeZoneProvider } from '../../infrastructure';
 
 const logger = new MockLoggerBuilder().build();
 
@@ -485,126 +481,6 @@ describe('PipelinesService', () => {
       const key = pipelinesService.getPeriodKey('2025-01-15T08:00:00Z', 'day');
 
       expect(key).toBe('2025-01-15');
-    });
-  });
-
-  describe('filterRunsByDateRange', () => {
-    const runs = [
-      { createdAt: '2025-01-01T08:00:00Z' },
-      { createdAt: '2025-01-10T08:00:00Z' },
-      { createdAt: '2025-01-20T08:00:00Z' },
-    ];
-
-    it('should return all runs unfiltered when no startDate or endDate is given', () => {
-      const filtered = pipelinesService.filterRunsByDateRange(runs);
-
-      expect(filtered).toEqual(runs);
-    });
-
-    it('should exclude runs before startDate when only startDate is given', () => {
-      const filtered = pipelinesService.filterRunsByDateRange(runs, '2025-01-05T00:00:00Z');
-
-      expect(filtered).toEqual([
-        { createdAt: '2025-01-10T08:00:00Z' },
-        { createdAt: '2025-01-20T08:00:00Z' },
-      ]);
-    });
-
-    it('should exclude runs after endDate when only endDate is given', () => {
-      const filtered = pipelinesService.filterRunsByDateRange(
-        runs,
-        undefined,
-        '2025-01-15T00:00:00Z'
-      );
-
-      expect(filtered).toEqual([
-        { createdAt: '2025-01-01T08:00:00Z' },
-        { createdAt: '2025-01-10T08:00:00Z' },
-      ]);
-    });
-
-    it('should exclude runs outside the range when both startDate and endDate are given', () => {
-      const filtered = pipelinesService.filterRunsByDateRange(
-        runs,
-        '2025-01-05T00:00:00Z',
-        '2025-01-15T00:00:00Z'
-      );
-
-      expect(filtered).toEqual([{ createdAt: '2025-01-10T08:00:00Z' }]);
-    });
-
-    it('should treat a date-only endDate as the end of that day', () => {
-      const sameDay = [{ createdAt: '2025-01-10T23:30:00Z' }];
-
-      const filtered = pipelinesService.filterRunsByDateRange(sameDay, undefined, '2025-01-10');
-
-      expect(filtered).toEqual(sameDay);
-    });
-
-    it('should interpret week-only ranges using ISO week boundaries', () => {
-      const weeklyRuns = [
-        { createdAt: '2026-01-04T10:00:00Z' },
-        { createdAt: '2026-01-06T10:00:00Z' },
-        { createdAt: '2026-01-13T10:00:00Z' },
-      ];
-
-      const filtered = pipelinesService.filterRunsByDateRange(weeklyRuns, '2026-W02', '2026-W02');
-
-      expect(filtered).toEqual([{ createdAt: '2026-01-06T10:00:00Z' }]);
-    });
-
-    it('should treat a full ISO datetime endDate literally rather than as end-of-day', () => {
-      const sameDay = [{ createdAt: '2025-01-10T23:30:00Z' }];
-
-      const filtered = pipelinesService.filterRunsByDateRange(
-        sameDay,
-        undefined,
-        '2025-01-10T12:00:00Z'
-      );
-
-      expect(filtered).toEqual([]);
-    });
-
-    it('should sort runs ascending by metric date when requested', () => {
-      const unordered = [
-        { createdAt: '2025-01-20T08:00:00Z' },
-        { createdAt: '2025-01-01T08:00:00Z' },
-        { createdAt: '2025-01-10T08:00:00Z' },
-      ];
-
-      const sorted = pipelinesService.filterRunsByDateRange(unordered, undefined, undefined, {
-        sort_by: { created_at: 'asc' },
-      });
-
-      expect(sorted).toEqual([
-        { createdAt: '2025-01-01T08:00:00Z' },
-        { createdAt: '2025-01-10T08:00:00Z' },
-        { createdAt: '2025-01-20T08:00:00Z' },
-      ]);
-    });
-
-    it('should sort runs descending by metric date when requested', () => {
-      const unordered = [
-        { createdAt: '2025-01-01T08:00:00Z' },
-        { createdAt: '2025-01-20T08:00:00Z' },
-        { createdAt: '2025-01-10T08:00:00Z' },
-      ];
-
-      const sorted = pipelinesService.filterRunsByDateRange(unordered, undefined, undefined, {
-        sort_by: { created_at: 'desc' },
-      });
-
-      expect(sorted).toEqual([
-        { createdAt: '2025-01-20T08:00:00Z' },
-        { createdAt: '2025-01-10T08:00:00Z' },
-        { createdAt: '2025-01-01T08:00:00Z' },
-      ]);
-    });
-
-    it('should treat an unparseable startDate as timestamp 0 (no lower bound applied)', () => {
-      const filtered = pipelinesService.filterRunsByDateRange(runs, 'not-a-real-date');
-
-      expect(filtered).toEqual(runs);
     });
   });
 
