@@ -1,26 +1,16 @@
 import { pipelineAPI } from '@/server/api';
 import { buildPipelineApiParams } from '@/server/utils/apiParams';
-import {
-  JobsAverageTimeData,
-  JobsAverageTimeResponseItem,
-  JobsAverageTimeByDayResponseItem,
-  JobsAverageTimeByDayData,
+import type {
   JobByStatusData,
-  JobByStatusResponseItem,
+  RunsDurationData,
+  RunsByDayData,
+  JobsAverageTimeData,
+  JobsAverageTimeByDayData,
   JobsDurationByWorkflowItem,
   JobSummaryData,
-  JobSummaryResponseItem,
   JobRerunsByDayData,
-  JobRerunsByDayResponseItem,
-  RunsByDayData,
-  RunsByResponseItem,
-  RunsDurationData,
-  RunsDurationResponseItem,
   JobStepsAverageTimeData,
-  JobStepsAverageTimeResponseItem,
   JobStepsAverageTimeByDayData,
-  JobStepsAverageTimeByDayResponseItem,
-  PipelineSummaryResponse,
 } from '@/components/charts/pipeline/types';
 import { defaultFilters, parseDashboardFilters } from '@/components/filters/DashboardFilters';
 import PipelineRunsDurationCard from '@/components/charts/pipeline/PipelineRunsDurationCard';
@@ -31,17 +21,6 @@ import JobStepsAnalysis from '@/components/charts/pipeline/JobStepsAnalysis';
 import { Card, CardContent } from '@/components/ui/card';
 import { toOutlierRows } from '@/components/charts/outliers-utils';
 import OutliersCard, { MetricOutlierRow } from '@/components/charts/OutliersCard';
-
-type ResultWrapper<T> = {
-  result: T;
-};
-
-function unwrapResult<T>(data: T | ResultWrapper<T>): T {
-  if (typeof data === 'object' && data !== null && 'result' in data) {
-    return data.result;
-  }
-  return data;
-}
 
 export default async function PipelinesPage({
   searchParams,
@@ -70,108 +49,58 @@ export default async function PipelinesPage({
 
   try {
     const apiParams = buildPipelineApiParams(filters);
-    const [
-      summary,
-      jobs,
-      duration,
-      runsBy,
-      avgTime,
-      avgTimeByDay,
-      jobsDurationRaw,
-      jobsSummaryRaw,
-      jobsRerunsByDayRaw,
-      jobStepsTimeRaw,
-      jobStepsTimeByDayRaw,
-    ] = await Promise.all([
-      pipelineAPI.summary(apiParams),
-      pipelineAPI.jobsByStatus(apiParams),
-      pipelineAPI.runsDuration(apiParams),
-      pipelineAPI.runsBy({ ...apiParams, aggregate_by: 'day' }),
-      pipelineAPI.jobsAverageTime(apiParams),
-      pipelineAPI.jobsAverageTimeByDay(apiParams),
-      pipelineAPI.jobsDurationByWorkflow(apiParams),
-      pipelineAPI.jobsSummary(apiParams),
-      pipelineAPI.jobsRerunsByDay(apiParams),
-      pipelineAPI.jobStepsAverageTime(apiParams),
-      pipelineAPI.jobStepsAverageTimeByDay(apiParams),
-    ]);
+    const data = await pipelineAPI.dashboard(apiParams);
 
-    const summaryResult = unwrapResult(summary as PipelineSummaryResponse | ResultWrapper<PipelineSummaryResponse>);
-    totalRuns = summaryResult?.total_runs || 0;
+    totalRuns = data.summary?.total_runs || 0;
 
-    // Handle jobsByStatus - Status and Count fields
-    const jobsResult = unwrapResult(jobs as JobByStatusResponseItem[] | ResultWrapper<JobByStatusResponseItem[]>);
-    const jobsData = Array.isArray(jobsResult) ? jobsResult.map((j: JobByStatusResponseItem): JobByStatusData => ({
-      status: (j.Status || 'unknown').toLowerCase(),
-      count: j.Count || 0,
-    })) : [];
+    const jobsData: JobByStatusData[] = Array.isArray(data.jobs_by_status)
+      ? data.jobs_by_status.map((j) => ({
+          status: (j.Status || 'unknown').toLowerCase(),
+          count: j.Count || 0,
+        }))
+      : [];
 
-    // Handle runsDuration - read all API-computed aggregations from a single response
-    const durationResult = unwrapResult(
-      duration as RunsDurationResponseItem[] | ResultWrapper<RunsDurationResponseItem[]>
-    );
-    const durationData = Array.isArray(durationResult)
-      ? durationResult.map((d: RunsDurationResponseItem): RunsDurationData => ({
-          workflow: d.workflow || d.name || 'Unknown',
-          avg_duration: d.avg_duration ?? d.value ?? 0,
+    const durationData: RunsDurationData[] = Array.isArray(data.runs_duration)
+      ? data.runs_duration.map((d) => ({
+          workflow: d.workflow || 'Unknown',
+          avg_duration: d.avg_duration ?? 0,
           min_duration: d.min_duration ?? 0,
           max_duration: d.max_duration ?? 0,
           total_runs: d.total_runs ?? 0,
-          name: d.name,
-          value: d.value,
           outliers: d.outliers,
         }))
       : [];
 
-    const runsByResult = unwrapResult(
-      runsBy as RunsByResponseItem[] | ResultWrapper<RunsByResponseItem[]>
-    );
-    const runsByDayData = Array.isArray(runsByResult)
-      ? runsByResult.reduce((acc: Map<string, number>, item: RunsByResponseItem) => {
+    const runsByDayMap: Map<string, number> = Array.isArray(data.runs_by)
+      ? data.runs_by.reduce((acc, item) => {
           const day = item.period || '';
-          if (!day) {
-            return acc;
-          }
-
+          if (!day) return acc;
           acc.set(day, (acc.get(day) || 0) + Number(item.runs || 0));
           return acc;
         }, new Map<string, number>())
       : new Map<string, number>();
 
-    // Handle jobsAverageTime - unwrap if needed and transform
-    let avgTimeData: JobsAverageTimeData[] = [];
-    const avgTimeResult = unwrapResult(
-      avgTime as JobsAverageTimeResponseItem[] | ResultWrapper<JobsAverageTimeResponseItem[]>
-    );
-    if (Array.isArray(avgTimeResult)) {
-      avgTimeData = avgTimeResult.map((a: JobsAverageTimeResponseItem): JobsAverageTimeData => ({
-        job_name: a.job_name || 'Unknown',
-        workflow_name: a.workflow_name,
-        avg_time: a.avg_time || 0,
-        count: a.count || 0,
-        outliers: a.outliers,
-      }));
-    }
+    const avgTimeData: JobsAverageTimeData[] = Array.isArray(data.jobs_average_time)
+      ? data.jobs_average_time.map((a) => ({
+          job_name: a.job_name || 'Unknown',
+          workflow_name: a.workflow_name,
+          avg_time: a.avg_time || 0,
+          count: a.count || 0,
+          outliers: a.outliers,
+        }))
+      : [];
 
-    // Handle jobsAverageTimeByDay - unwrap if needed and transform
-    let avgTimeByDayData: JobsAverageTimeByDayData[] = [];
-    const avgTimeByDayResult = unwrapResult(
-      avgTimeByDay as JobsAverageTimeByDayResponseItem[] | ResultWrapper<JobsAverageTimeByDayResponseItem[]>
-    );
-    if (Array.isArray(avgTimeByDayResult)) {
-      avgTimeByDayData = avgTimeByDayResult.map((a: JobsAverageTimeByDayResponseItem): JobsAverageTimeByDayData => ({
-        day: a.day || 'Unknown',
-        avg_time: a.avg_time || 0,
-        count: a.count || 0,
-        outliers: a.outliers,
-      }));
-    }
+    const avgTimeByDayData: JobsAverageTimeByDayData[] = Array.isArray(data.jobs_average_time_by_day)
+      ? data.jobs_average_time_by_day.map((a) => ({
+          day: a.day || 'Unknown',
+          avg_time: a.avg_time || 0,
+          count: a.count || 0,
+          outliers: a.outliers,
+        }))
+      : [];
 
-    const jobsSummaryResult = unwrapResult(
-      jobsSummaryRaw as JobSummaryResponseItem[] | ResultWrapper<JobSummaryResponseItem[]>
-    );
-    const jobsSummaryData = Array.isArray(jobsSummaryResult)
-      ? jobsSummaryResult.map((item: JobSummaryResponseItem): JobSummaryData => ({
+    const jobsSummaryData: JobSummaryData[] = Array.isArray(data.jobs_summary)
+      ? data.jobs_summary.map((item) => ({
           workflow_name: item.workflow_name,
           job_name: item.job_name || 'Unknown',
           total_runs: item.total_runs || 0,
@@ -185,11 +114,8 @@ export default async function PipelinesPage({
         }))
       : [];
 
-    const jobsRerunsByDayResult = unwrapResult(
-      jobsRerunsByDayRaw as JobRerunsByDayResponseItem[] | ResultWrapper<JobRerunsByDayResponseItem[]>
-    );
-    const jobsRerunsByDayData = Array.isArray(jobsRerunsByDayResult)
-      ? jobsRerunsByDayResult.map((item: JobRerunsByDayResponseItem): JobRerunsByDayData => ({
+    const jobsRerunsByDayData: JobRerunsByDayData[] = Array.isArray(data.jobs_reruns_by_day)
+      ? data.jobs_reruns_by_day.map((item) => ({
           day: item.day || 'Unknown',
           rerun_count: item.rerun_count || 0,
         }))
@@ -201,20 +127,19 @@ export default async function PipelinesPage({
       min: durationData,
       max: durationData,
     };
-    runsByDay = Array.from(runsByDayData.entries())
+    runsByDay = Array.from(runsByDayMap.entries())
       .map(([day, runs]) => ({ day, runs }))
       .sort((a, b) => a.day.localeCompare(b.day));
     jobsAvgTime = avgTimeData;
     jobsAvgTimeByDay = avgTimeByDayData;
-    jobsDurationByWorkflow = Array.isArray(jobsDurationRaw) ? jobsDurationRaw : [];
+    jobsDurationByWorkflow = Array.isArray(data.jobs_duration_by_workflow)
+      ? data.jobs_duration_by_workflow
+      : [];
     jobsSummary = jobsSummaryData;
     jobsRerunsByDay = jobsRerunsByDayData;
 
-    const jobStepsResult = unwrapResult(
-      jobStepsTimeRaw as JobStepsAverageTimeResponseItem[] | ResultWrapper<JobStepsAverageTimeResponseItem[]>
-    );
-    if (Array.isArray(jobStepsResult)) {
-      jobStepsTime = jobStepsResult.map((item: JobStepsAverageTimeResponseItem): JobStepsAverageTimeData => ({
+    if (Array.isArray(data.job_steps_average_time)) {
+      jobStepsTime = data.job_steps_average_time.map((item) => ({
         name: item.name || 'Unknown',
         averageDurationMinutes: item.averageDurationMinutes || 0,
         count: item.count || 0,
@@ -222,13 +147,11 @@ export default async function PipelinesPage({
       }));
     }
 
-    const jobStepsByDayResult = unwrapResult(
-      jobStepsTimeByDayRaw as JobStepsAverageTimeByDayResponseItem[] | ResultWrapper<JobStepsAverageTimeByDayResponseItem[]>
-    );
-    if (Array.isArray(jobStepsByDayResult)) {
-      jobStepsTimeByDay = jobStepsByDayResult.map((item: JobStepsAverageTimeByDayResponseItem): JobStepsAverageTimeByDayData => {
+    const jobStepsByDayRaw = data.job_steps_average_time_by_day;
+    if (Array.isArray(jobStepsByDayRaw)) {
+      jobStepsTimeByDay = jobStepsByDayRaw.map((item) => {
         const obj: JobStepsAverageTimeByDayData = { day: item.day };
-        item.steps.forEach(step => {
+        item.steps.forEach((step) => {
           obj[step.name] = step.averageDurationMinutes;
         });
         return obj;
@@ -250,8 +173,8 @@ export default async function PipelinesPage({
       ...jobStepsTime.flatMap((item) =>
         toOutlierRows(`Step average time: ${item.name}`, item.outliers)
       ),
-      ...(Array.isArray(jobStepsByDayResult)
-        ? jobStepsByDayResult.flatMap((item) =>
+      ...(Array.isArray(jobStepsByDayRaw)
+        ? jobStepsByDayRaw.flatMap((item) =>
             item.steps.flatMap((step) =>
               toOutlierRows(`Step average time by day: ${item.day} / ${step.name}`, step.outliers)
             )

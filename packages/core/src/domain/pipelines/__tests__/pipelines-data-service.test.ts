@@ -87,12 +87,7 @@ describe('PipelinesDataService', () => {
         .build(),
     ];
 
-    dataService = new PipelinesDataService(
-      runs,
-      [],
-      logger,
-      new TimeZoneProvider('UTC')
-    );
+    dataService = new PipelinesDataService(runs, [], logger, new TimeZoneProvider('UTC'));
   });
 
   it('should calculate overall metrics', async () => {
@@ -898,7 +893,12 @@ describe('PipelinesDataService', () => {
     it('should skip runs with neither completedAt nor createdAt', async () => {
       const runWithNoDate = dayRun('run-no-date', '');
 
-      dataService = new PipelinesDataService([runWithNoDate], [], logger, new TimeZoneProvider('UTC'));
+      dataService = new PipelinesDataService(
+        [runWithNoDate],
+        [],
+        logger,
+        new TimeZoneProvider('UTC')
+      );
 
       const result = await dataService.getJobRerunsByDay();
 
@@ -1215,7 +1215,12 @@ describe('PipelinesDataService', () => {
         },
       ]);
 
-      dataService = new PipelinesDataService([runDay2, runDay1], [], logger, new TimeZoneProvider('UTC'));
+      dataService = new PipelinesDataService(
+        [runDay2, runDay1],
+        [],
+        logger,
+        new TimeZoneProvider('UTC')
+      );
 
       const result = await dataService.getJobStepsAverageTimeByDay();
 

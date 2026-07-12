@@ -106,6 +106,65 @@ export const pipelineAPI = {
       params
     ),
 
+  dashboard: (params?: ApiParams) =>
+    fetchAPI<{
+      summary: {
+        total_runs: number;
+        in_progress: number;
+        queued: number;
+      };
+      jobs_by_status: Array<{ Status: string; Count: number }>;
+      runs_duration: Array<{
+        workflow: string;
+        avg_duration: number;
+        min_duration: number;
+        max_duration: number;
+        total_runs: number;
+        outliers?: MetricOutlier[];
+      }>;
+      runs_by: Array<{ period: string; workflow: string; runs: number }>;
+      jobs_average_time: Array<{
+        job_name: string;
+        workflow_name?: string;
+        avg_time: number;
+        count: number;
+        outliers?: MetricOutlier[];
+      }>;
+      jobs_average_time_by_day: Array<{
+        day: string;
+        avg_time: number;
+        count: number;
+        outliers?: MetricOutlier[];
+      }>;
+      jobs_duration_by_workflow: Array<{
+        workflow: string;
+        jobs: Record<string, number>;
+      }>;
+      jobs_summary: Array<{
+        workflow_name?: string;
+        job_name: string;
+        total_runs: number;
+        avg_duration_minutes: number;
+        success_count: number;
+        failure_count: number;
+        success_rate: number;
+        failure_rate: number;
+        rerun_count: number;
+        outliers?: MetricOutlier[];
+      }>;
+      jobs_reruns_by_day: Array<{ day: string; rerun_count: number }>;
+      job_steps_average_time: Array<{
+        name: string;
+        averageDurationMinutes: number;
+        count: number;
+        outliers?: MetricOutlier[];
+      }>;
+      job_steps_average_time_by_day: Array<{
+        day: string;
+        steps: Array<{ name: string; averageDurationMinutes: number; outliers?: MetricOutlier[] }>;
+      }>;
+    }>('/pipelines/dashboard', params),
+
   // Filter option endpoints
   getFilterOptions: (params?: ApiParams) =>
     fetchAPI<{

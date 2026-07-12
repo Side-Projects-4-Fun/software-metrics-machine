@@ -277,6 +277,28 @@ export type PipelineJobsResponse = Array<{ name: string; id: string }>;
 
 export type PipelineFilterOptionsResponse = PipelineFilterOptions;
 
+export interface PipelineDashboardResponse {
+  summary: PipelineSummaryResponse & {
+    successful_runs: number;
+    failed_runs: number;
+    cancelled_runs: number;
+    skipped_runs: number;
+    timed_out_runs: number;
+    success_rate: number;
+    average_duration_minutes: number;
+  };
+  jobs_by_status: PipelineJobsByStatusResponse;
+  runs_duration: PipelineRunsDurationResponse;
+  runs_by: PipelineRunsByResponse;
+  jobs_average_time: PipelineJobsAverageTimeResponse['result'];
+  jobs_average_time_by_day: PipelineJobsAverageTimeByDayResponse['result'];
+  jobs_duration_by_workflow: PipelineJobsDurationByWorkflowResponse;
+  jobs_summary: PipelineJobsSummaryResponse['result'];
+  jobs_reruns_by_day: PipelineJobsRerunsResponse['result'];
+  job_steps_average_time: PipelineStepsAverageTimeResponse['result'];
+  job_steps_average_time_by_day: PipelineStepsAverageTimeByDayResponse['result'];
+}
+
 // ──────────────────────────────────────────
 // Code endpoints
 // ──────────────────────────────────────────

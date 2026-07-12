@@ -115,3 +115,123 @@ export interface PipelineDurationRow {
   durationMinutes: number;
   timestamp: string;
 }
+
+// ──────────────────────────────────────────
+// Dashboard types (replaces REST DTOs)
+// ──────────────────────────────────────────
+
+export interface PipelineDashboardSummary {
+  total_runs: number;
+  first_run: {
+    path?: string;
+    createdAt?: string;
+    completedAt?: string;
+    startedAt?: string;
+    status?: string;
+    conclusion?: string;
+    branch?: string;
+    event?: string;
+  } | null;
+  last_run: {
+    path?: string;
+    createdAt?: string;
+    completedAt?: string;
+    startedAt?: string;
+    status?: string;
+    conclusion?: string;
+    branch?: string;
+    event?: string;
+  } | null;
+  in_progress: number;
+  queued: number;
+  successful_runs: number;
+  failed_runs: number;
+  cancelled_runs: number;
+  skipped_runs: number;
+  timed_out_runs: number;
+  success_rate: number;
+  average_duration_minutes: number;
+}
+
+export interface PipelineDashboardRunsDurationItem {
+  workflow: string;
+  avg_duration: number;
+  min_duration: number;
+  max_duration: number;
+  total_runs: number;
+  outliers?: PipelineAverageOutlier[];
+}
+
+export interface PipelineDashboardRunsByItem {
+  period: string;
+  workflow: string;
+  runs: number;
+}
+
+export interface PipelineDashboardJobsAverageTimeItem {
+  job_name: string;
+  workflow_name?: string;
+  avg_time: number;
+  count: number;
+  outliers?: PipelineAverageOutlier[];
+}
+
+export interface PipelineDashboardJobsAverageTimeByDayItem {
+  day: string;
+  avg_time: number;
+  count: number;
+  outliers?: PipelineAverageOutlier[];
+}
+
+export interface PipelineDashboardJobsDurationByWorkflowItem {
+  workflow: string;
+  jobs: Record<string, number>;
+}
+
+export interface PipelineDashboardJobsSummaryItem {
+  workflow_name?: string;
+  job_name: string;
+  total_runs: number;
+  avg_duration_minutes: number;
+  success_count: number;
+  failure_count: number;
+  success_rate: number;
+  failure_rate: number;
+  rerun_count: number;
+  outliers?: PipelineAverageOutlier[];
+}
+
+export interface PipelineDashboardRerunsByDayItem {
+  day: string;
+  rerun_count: number;
+}
+
+export interface PipelineDashboardStepsAverageTimeItem {
+  name: string;
+  averageDurationMinutes: number;
+  count: number;
+  outliers?: PipelineAverageOutlier[];
+}
+
+export interface PipelineDashboardStepsAverageTimeByDayItem {
+  day: string;
+  steps: Array<{
+    name: string;
+    averageDurationMinutes: number;
+    outliers?: PipelineAverageOutlier[];
+  }>;
+}
+
+export interface PipelineDashboard {
+  summary: PipelineDashboardSummary;
+  jobs_by_status: Array<{ Status: string; Count: number }>;
+  runs_duration: PipelineDashboardRunsDurationItem[];
+  runs_by: PipelineDashboardRunsByItem[];
+  jobs_average_time: PipelineDashboardJobsAverageTimeItem[];
+  jobs_average_time_by_day: PipelineDashboardJobsAverageTimeByDayItem[];
+  jobs_duration_by_workflow: PipelineDashboardJobsDurationByWorkflowItem[];
+  jobs_summary: PipelineDashboardJobsSummaryItem[];
+  jobs_reruns_by_day: PipelineDashboardRerunsByDayItem[];
+  job_steps_average_time: PipelineDashboardStepsAverageTimeItem[];
+  job_steps_average_time_by_day: PipelineDashboardStepsAverageTimeByDayItem[];
+}

@@ -1,5 +1,6 @@
 export * from './services/pipelines-service';
 export * from './services/pipelines-data-service';
+export * from './services/pipeline-implementation';
 export * from './service';
 export * from './pipeline-types';
 export * from './repositories';

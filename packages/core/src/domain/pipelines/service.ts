@@ -1,7 +1,7 @@
 import {
   JobMetrics,
   PipelineAverageOutlier,
-  PipelineFilters,
+  type PipelineFilters,
   PipelineMetrics,
 } from './pipeline-types';
 
@@ -10,8 +10,19 @@ export type PipelineDateFields = {
   completedAt?: string;
   startedAt?: string;
   jobs?: Array<{
+    name?: string;
+    status?: string;
+    conclusion?: string;
     startedAt?: string;
     completedAt?: string;
+    workflow_name?: string;
+    steps?: Array<{
+      name?: string;
+      status?: string;
+      conclusion?: string;
+      startedAt?: string;
+      completedAt?: string;
+    }>;
   }>;
 };
 

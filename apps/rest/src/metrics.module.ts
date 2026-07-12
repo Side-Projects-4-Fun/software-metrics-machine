@@ -9,6 +9,7 @@ import { ConfigurationController } from './controllers/configuration.controller'
 import { ProjectsController } from './controllers/projects.controller';
 import { SonarqubeController } from './controllers/sonarqube.controller';
 import { ArchitectureController } from './controllers/architecture.controller';
+import { PipelineDashboardController } from './controllers/pipeline-dashboard.controller';
 import { LoggingMiddleware } from './middleware/logging.middleware';
 import {
   PullRequestsRepository,
@@ -30,6 +31,7 @@ import {
   BigOService,
   ArchitectureService,
   PipelineFactory,
+  PipelineImplementation,
   CodemaatFactory,
 } from '@smmachine/core';
 import { PairingService } from '@smmachine/core/domain/code/pairing/pairing-service';
@@ -95,6 +97,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     ProjectsController,
     SonarqubeController,
     ArchitectureController,
+    PipelineDashboardController,
   ],
   providers: [
     // Configuration Repository (singleton — caches project list)
@@ -222,6 +225,23 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
           pipelineRepository,
           configuration,
           createLogger(configuration, 'PipelinesService'),
+          timeZoneProvider
+        );
+      },
+      inject: ['PipelinesRepository', Configuration, TimeZoneProvider],
+    },
+    {
+      provide: PipelineImplementation,
+      scope: Scope.REQUEST,
+      useFactory: async (
+        pipelineRepository: PipelinesRepository,
+        configuration: Configuration,
+        timeZoneProvider: TimeZoneProvider
+      ) => {
+        return new PipelineImplementation(
+          pipelineRepository,
+          configuration.getDeploymentFrequencyTargets(),
+          createLogger(configuration, 'PipelineImplementation'),
           timeZoneProvider
         );
       },
