@@ -5,6 +5,7 @@ import {
   PipelinesService,
   type PipelineFilters,
   PipelineFactory,
+  PipelineDashboardRunsByItem,
 } from '@smmachine/core';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 import { DeploymentFrequencyService } from '@smmachine/core/domain/pipelines/services/deployment-frequency-service';
@@ -47,9 +48,6 @@ function createPipelineDependencies(command: SmmCommand) {
   };
 }
 
-type DeploymentFrequencyInterval = Awaited<
-  ReturnType<PipelinesService['getDeploymentFrequencyWithAllIntervals']>
->[number];
 function buildPipelineFilters(options: {
   startDate?: string;
   endDate?: string;
@@ -324,24 +322,21 @@ export function createPipelinesCommands(program: SmmCommand): void {
       const logger = command.getLogger('PipelinesCommand');
       try {
         screen.printLine('📈 Analyzing pipeline runs by time period...');
-        const { deploymentFrequency } = createPipelineDependencies(command);
+        const { pipelineImplementation } = createPipelineDependencies(command);
 
         const filters = buildPipelineFilters(options);
-        const metrics = await deploymentFrequency.getDeploymentFrequencyWithAllIntervals(filters);
+        const dashboard = await pipelineImplementation.dashboard(filters);
 
+        const metrics = dashboard.runs_by;
         if (options.output === 'json') {
           screen.printLine(JSON.stringify(metrics, null, 2));
         } else {
           screen.printLine('\n=== Pipeline Runs by Period ===\n');
           screen.printLine(`Period: ${options.period}`);
-          metrics.forEach((item: DeploymentFrequencyInterval) => {
-            if (options.period === 'day') {
-              screen.printLine(`Period: ${item.days} | Total Runs: ${item.daily_counts}`);
-            } else if (options.period === 'week') {
-              screen.printLine(`Period: ${item.weeks} | Total Runs: ${item.weekly_counts}`);
-            } else {
-              screen.printLine(`Period: ${item.months} | Total Runs: ${item.monthly_counts}`);
-            }
+          metrics.forEach((item: PipelineDashboardRunsByItem) => {
+            screen.printLine(
+              `Period: ${item.period} | Total Runs: ${item.runs} | Pipeline: ${item.workflow}`
+            );
           });
         }
       } catch (error) {
@@ -562,12 +557,11 @@ export function createPipelinesCommands(program: SmmCommand): void {
       const logger = command.getLogger('PipelinesCommand');
       try {
         screen.printLine('🚀 Calculating deployment frequency...');
-        const { config, pipelineService } = createPipelineDependencies(command);
-
+        const { config, deploymentFrequency } = createPipelineDependencies(command);
         const deploymentTargets = config.getDeploymentFrequencyTargets();
-        const metrics = await pipelineService.getDeploymentFrequencyWithAllIntervals(
-          buildPipelineFilters(options)
-        );
+
+        const filters = buildPipelineFilters(options);
+        const metrics = await deploymentFrequency.getDeploymentFrequencyWithAllIntervals(filters);
 
         if (options.output === 'json') {
           screen.printLine(JSON.stringify(metrics, null, 2));

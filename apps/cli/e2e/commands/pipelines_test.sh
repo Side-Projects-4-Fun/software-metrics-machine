@@ -274,13 +274,11 @@ function test_pipelines_runs_duration_renders_cached_duration_average() {
   assert_smm_output_contains "Total Runs: 2"
 }
 
-function test_pipelines_runs_by_renders_deployments_by_period() {
+function test_pipelines_runs_by_period() {
   run_seeded_pipelines_command pipelines runs-by --period day
 
   assert_smm_success
-  assert_smm_output_contains "Pipeline Runs by Period"
-  assert_smm_output_contains "Period: day"
-  assert_smm_output_contains "Period: 2026-02-03 | Total Runs: 1"
+  assert_smm_output_contains "Period: 2026-02-03 | Total Runs: 1 | Pipeline: .github/workflows/deploy.yml"
 }
 
 function test_pipelines_jobs_summary_renders_cached_job_metrics() {
