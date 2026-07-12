@@ -1,6 +1,6 @@
 {
   "name": "@smmachine/launcher",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "description": "Data-driven approach to software measurement for high-performing teams",
   "type": "module",
   "main": "dist/index.cjs",
