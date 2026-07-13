@@ -107,6 +107,69 @@ function printOutliers(screen: ReturnType<SmmCommand['getScreen']>, outliers?: C
   }
 }
 
+type RunsByPeriod = 'day' | 'week' | 'month';
+
+function toPeriodKey(inputPeriod: string, period: RunsByPeriod): string {
+  if (period === 'day') {
+    return inputPeriod;
+  }
+
+  const date = new Date(inputPeriod);
+  if (Number.isNaN(date.getTime())) {
+    return inputPeriod;
+  }
+
+  if (period === 'month') {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  }
+
+  // ISO week, grouped by UTC date.
+  const utcDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const dayOfWeek = utcDate.getUTCDay() || 7;
+  utcDate.setUTCDate(utcDate.getUTCDate() + 4 - dayOfWeek);
+  const isoYear = utcDate.getUTCFullYear();
+  const firstDay = new Date(Date.UTC(isoYear, 0, 1));
+  const week = Math.ceil(((utcDate.getTime() - firstDay.getTime()) / 86400000 + 1) / 7);
+  return `${isoYear}-W${String(week).padStart(2, '0')}`;
+}
+
+function aggregateRunsByPeriod(
+  metrics: PipelineDashboardRunsByItem[],
+  requestedPeriod?: string
+): PipelineDashboardRunsByItem[] {
+  const period = (requestedPeriod || 'week') as RunsByPeriod;
+  if (period === 'day') {
+    return metrics;
+  }
+
+  const grouped = new Map<string, number>();
+
+  for (const item of metrics) {
+    const normalizedPeriod = toPeriodKey(item.period, period);
+    const key = `${normalizedPeriod}||${item.workflow}`;
+    grouped.set(key, (grouped.get(key) || 0) + item.runs);
+  }
+
+  return Array.from(grouped.entries())
+    .map(([key, runs]) => {
+      const [normalizedPeriod, workflow] = key.split('||');
+      return {
+        period: normalizedPeriod,
+        workflow,
+        runs,
+      };
+    })
+    .sort((a, b) => {
+      const periodComparison = a.period.localeCompare(b.period);
+      if (periodComparison !== 0) {
+        return periodComparison;
+      }
+      return a.workflow.localeCompare(b.workflow);
+    });
+}
+
 export function createPipelinesCommands(program: SmmCommand): void {
   const pipelinesGroup = program
     .subcommand('pipelines')
@@ -327,7 +390,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
         const filters = buildPipelineFilters(options);
         const dashboard = await pipelineImplementation.dashboard(filters);
 
-        const metrics = dashboard.runs_by;
+        const metrics = aggregateRunsByPeriod(dashboard.runs_by, options.period);
         if (options.output === 'json') {
           screen.printLine(JSON.stringify(metrics, null, 2));
         } else {
