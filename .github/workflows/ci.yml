@@ -84,6 +84,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Install Cypress binary
+        run: pnpm --filter @smmachine/e2e exec cypress install
+
       - name: Run tests
         run: pnpm run test
 
