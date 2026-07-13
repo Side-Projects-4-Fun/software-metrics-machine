@@ -31,6 +31,10 @@
       "cache": false,
       "persistent": true
     },
+    "e2e": {
+      "inputs": ["cypress/**/*.ts", "cypress.config.ts", "tsconfig.json", "package.json"],
+      "cache": false
+    },
     "type-check": {
       "dependsOn": ["^build"],
       "inputs": ["src/**/*.ts", "tsconfig.json", "package.json"]
