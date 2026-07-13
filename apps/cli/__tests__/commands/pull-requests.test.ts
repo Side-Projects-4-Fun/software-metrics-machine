@@ -4,25 +4,243 @@ import { Command } from 'commander';
 import { commands } from '../../src';
 import { formatPRSummary } from '../../src/commands/prs';
 
-describe('cli: Pull Request Metrics', () => {
+describe('cli: Pull Request Commands', () => {
   let program: Command;
+  let prsCommand: Command;
 
-  beforeEach(async () => {
+  const getSubcommand = (name: string): Command | undefined =>
+    prsCommand.commands.find((cmd) => cmd.name() === name);
+
+  const optionNames = (command: Command): string[] =>
+    command.options.map((option) => option.long).filter(Boolean);
+
+  beforeEach(() => {
     program = commands();
+    const found = program.commands.find((cmd) => cmd.name() === 'prs');
+    expect(found).toBeDefined();
+    prsCommand = found!;
   });
 
-  it('should have metrics command group', async () => {
-    program.parse(['prs', 'fetch'], { from: 'user' });
-
-    // const metricsCmd = program.commands.find((cmd) => {
-    //   return cmd.name() === 'prs';
-    // });
-    // expect(metricsCmd).toBeDefined();
+  it('registers prs command group', () => {
+    expect(prsCommand.name()).toBe('prs');
+    expect(prsCommand.description()).toBe('Pull request operations');
   });
 
-  it('should have pr subcommand', () => {
-    const prsCmd = program.commands.find((cmd) => cmd.name() === 'prs');
-    expect(prsCmd).toBeDefined();
+  describe('prs fetch', () => {
+    it('registers fetch command with expected options', () => {
+      const command = getSubcommand('fetch');
+
+      expect(command).toBeDefined();
+      expect(command?.description()).toBe('Fetch pull requests from the configured Git provider');
+      expect(optionNames(command!)).toEqual(
+        expect.arrayContaining([
+          '--force',
+          '--update',
+          '--start-date',
+          '--end-date',
+          '--raw-filters',
+        ])
+      );
+    });
+  });
+
+  describe('prs fetch-comments', () => {
+    it('registers fetch-comments command with expected options', () => {
+      const command = getSubcommand('fetch-comments');
+
+      expect(command).toBeDefined();
+      expect(command?.description()).toBe(
+        'Fetch pull request comments from the configured Git provider'
+      );
+      expect(optionNames(command!)).toEqual(
+        expect.arrayContaining([
+          '--force',
+          '--update',
+          '--start-date',
+          '--end-date',
+          '--raw-filters',
+        ])
+      );
+    });
+  });
+
+  describe('prs summary', () => {
+    it('registers summary command with expected options', () => {
+      const command = getSubcommand('summary');
+
+      expect(command).toBeDefined();
+      expect(command?.description()).toBe('View PR summary statistics');
+      expect(optionNames(command!)).toEqual(
+        expect.arrayContaining([
+          '--start-date',
+          '--end-date',
+          '--exclude-authors',
+          '--exclude-commenters',
+          '--authors',
+          '--labels',
+          '--raw-filters',
+          '--output',
+        ])
+      );
+    });
+  });
+
+  describe('prs by-month', () => {
+    it('registers by-month command with expected options', () => {
+      const command = getSubcommand('by-month');
+
+      expect(command).toBeDefined();
+      expect(command?.description()).toBe('View PR metrics grouped by month');
+      expect(optionNames(command!)).toEqual(
+        expect.arrayContaining([
+          '--start-date',
+          '--end-date',
+          '--exclude-authors',
+          '--exclude-commenters',
+          '--raw-filters',
+          '--output',
+        ])
+      );
+    });
+  });
+
+  describe('prs by-week', () => {
+    it('registers by-week command with expected options', () => {
+      const command = getSubcommand('by-week');
+
+      expect(command).toBeDefined();
+      expect(command?.description()).toBe('View PR metrics grouped by week');
+      expect(optionNames(command!)).toEqual(
+        expect.arrayContaining([
+          '--start-date',
+          '--end-date',
+          '--exclude-authors',
+          '--exclude-commenters',
+          '--raw-filters',
+          '--output',
+        ])
+      );
+    });
+  });
+
+  describe('prs through-time', () => {
+    it('registers through-time command with expected options', () => {
+      const command = getSubcommand('through-time');
+
+      expect(command).toBeDefined();
+      expect(command?.description()).toBe(
+        'View PRs opened and closed through time (daily/weekly/monthly)'
+      );
+      expect(optionNames(command!)).toEqual(
+        expect.arrayContaining([
+          '--start-date',
+          '--end-date',
+          '--exclude-authors',
+          '--exclude-commenters',
+          '--authors',
+          '--labels',
+          '--aggregate-by',
+          '--raw-filters',
+          '--output',
+        ])
+      );
+    });
+  });
+
+  describe('prs by-author', () => {
+    it('registers by-author command with expected options', () => {
+      const command = getSubcommand('by-author');
+
+      expect(command).toBeDefined();
+      expect(command?.description()).toBe('View PRs grouped by author');
+      expect(optionNames(command!)).toEqual(
+        expect.arrayContaining([
+          '--start-date',
+          '--end-date',
+          '--exclude-authors',
+          '--exclude-commenters',
+          '--authors',
+          '--labels',
+          '--top',
+          '--raw-filters',
+          '--output',
+        ])
+      );
+    });
+  });
+
+  describe('prs average-review-time', () => {
+    it('registers average-review-time command with expected options', () => {
+      const command = getSubcommand('average-review-time');
+
+      expect(command).toBeDefined();
+      expect(command?.description()).toBe('View average review time (days) by author');
+      expect(optionNames(command!)).toEqual(
+        expect.arrayContaining([
+          '--start-date',
+          '--end-date',
+          '--exclude-authors',
+          '--exclude-commenters',
+          '--authors',
+          '--labels',
+          '--top',
+          '--raw-filters',
+          '--output',
+          '--weekends',
+          '--outlier-mode',
+        ])
+      );
+    });
+  });
+
+  describe('prs average-open', () => {
+    it('registers average-open command with expected options', () => {
+      const command = getSubcommand('average-open');
+
+      expect(command).toBeDefined();
+      expect(command?.description()).toBe(
+        'View average PR open time (days) aggregated by day/week/month'
+      );
+      expect(optionNames(command!)).toEqual(
+        expect.arrayContaining([
+          '--start-date',
+          '--end-date',
+          '--exclude-authors',
+          '--exclude-commenters',
+          '--authors',
+          '--labels',
+          '--aggregate-by',
+          '--raw-filters',
+          '--output',
+          '--weekends',
+          '--outlier-mode',
+        ])
+      );
+    });
+  });
+
+  describe('prs average-comments', () => {
+    it('registers average-comments command with expected options', () => {
+      const command = getSubcommand('average-comments');
+
+      expect(command).toBeDefined();
+      expect(command?.description()).toBe('View average number of comments per PR');
+      expect(optionNames(command!)).toEqual(
+        expect.arrayContaining([
+          '--start-date',
+          '--end-date',
+          '--exclude-authors',
+          '--exclude-commenters',
+          '--authors',
+          '--labels',
+          '--aggregate-by',
+          '--raw-filters',
+          '--output',
+          '--weekends',
+          '--outlier-mode',
+        ])
+      );
+    });
   });
 
   describe('Output Formatters', () => {
