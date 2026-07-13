@@ -32,7 +32,6 @@ catalog:
   '@typescript-eslint/parser': ^8.63.0
   '@vitest/coverage-v8': ^4.1.10
   axios: ^1.18.1
-  cypress: ^15.18.1
   chalk: ^5.6.2
   class-transformer: ^0.5.1
   class-validator: ^0.14.4

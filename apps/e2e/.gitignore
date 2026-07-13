@@ -1,5 +1,0 @@
-cypress/videos/
-cypress/screenshots/
-cypress/downloads/
-node_modules/
-*.tsbuildinfo

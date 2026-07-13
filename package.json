@@ -37,7 +37,6 @@
     "dev": "turbo run dev --filter=./apps/*",
     "build:packages": "turbo run build --filter=@smmachine/utils --filter=@smmachine/core",
     "test": "turbo run test",
-    "test:e2e": "turbo run e2e --filter=@smmachine/e2e",
     "test:cli:acceptance": "cd apps/cli && pnpm run test:e2e",
     "test:cli:acceptance:full": "bash scripts/simulate-and-test-publish.sh build cli-e2e",
     "test:cli:acceptance:docker": "bash scripts/simulate-and-test-publish.sh cli-e2e",
