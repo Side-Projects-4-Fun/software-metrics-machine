@@ -1,9 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PipelineRun } from '../..';
-import { PipelinesDataService } from '../..';
-import { PipelineJobBuilder, PipelineRunBuilder, PipelineStepBuilder } from '../../../test/domain';
-import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
-import { TimeZoneProvider } from '../../../infrastructure';
+import { PipelineRun } from '../../..';
+import { PipelinesDataService } from '../../..';
+import {
+  PipelineJobBuilder,
+  PipelineRunBuilder,
+  PipelineStepBuilder,
+} from '../../../../test/domain';
+import { MockLoggerBuilder } from '../../../../test/infrastructure/mock-logger-builder';
+import { TimeZoneProvider } from '../../../../infrastructure';
 
 const logger = new MockLoggerBuilder().build();
 
