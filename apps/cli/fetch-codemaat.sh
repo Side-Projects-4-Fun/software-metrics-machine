@@ -17,6 +17,21 @@ else
   force=$5
 fi
 
+group_depth="${SMM_CODEMAAT_GROUP_DEPTH:-2}"
+if [ "$#" -ge 7 ] && [ -n "$7" ]; then
+  group_depth="$7"
+fi
+
+case "$group_depth" in
+  ''|*[!0-9]*)
+    group_depth=2
+    ;;
+esac
+
+if [ "$group_depth" -lt 1 ]; then
+  group_depth=1
+fi
+
 if [ -z "$git_directory" ]; then
   echo "❌ SMM_GIT_REPOSITORY_LOCATION is not set. Export SMM_GIT_REPOSITORY_LOCATION to point the git repository to be used."
   exit 1
@@ -72,6 +87,7 @@ fi
 
 git_log_file="logfile.log"
 codemaat="$script_dir/tools/code-maat-1.0.4-standalone.jar"
+layers_file="$target_store_data/layers.txt"
 
 #clean up
 rm -rf "$target_store_data/$git_log_file"
@@ -87,6 +103,90 @@ if ! git log --pretty=format:'[%h] %aN %ad %s' --date=short --numstat --after="$
   echo "❌ Failed to generate git log file at $target_store_data/$git_log_file"
   exit 1
 fi
+
+generate_layers_file() {
+  local output_file="$1"
+  local root_dir="$2"
+  local depth="$3"
+
+  cd "$root_dir" || return 1
+
+  {
+    git ls-files | awk -v depth="$depth" '
+      function join_parts(parts, count,    i, result) {
+        result = parts[1]
+        for (i = 2; i <= count; i++) {
+          result = result "/" parts[i]
+        }
+        return result
+      }
+
+      function sanitize_label(value,    result) {
+        result = value
+        gsub(/[^A-Za-z0-9]+/, "_", result)
+        gsub(/^_+|_+$/, "", result)
+        if (result == "") {
+          result = "ROOT"
+        }
+        return result
+      }
+
+      {
+        path = $0
+        sub(/^\.\//, "", path)
+        if (path == "") {
+          next
+        }
+
+        count = split(path, parts, "/")
+        if (count == 1) {
+          roots_seen = 1
+          next
+        }
+
+        directory_count = count - 1
+        used = depth < directory_count ? depth : directory_count
+        if (used < 1) {
+          used = 1
+        }
+
+        group = join_parts(parts, used)
+        groups[group] = 1
+      }
+
+      END {
+        if (roots_seen) {
+          print "^[^/]+$ => ROOT"
+        }
+
+        n = 0
+        for (group in groups) {
+          ordered[++n] = group
+        }
+
+        for (i = 1; i <= n; i++) {
+          for (j = i + 1; j <= n; j++) {
+            if (ordered[j] < ordered[i]) {
+              tmp = ordered[i]
+              ordered[i] = ordered[j]
+              ordered[j] = tmp
+            }
+          }
+        }
+
+        for (i = 1; i <= n; i++) {
+          group = ordered[i]
+          print "^" group "(/.*)?$ => " sanitize_label(group)
+        }
+
+        print ".* => Other"
+      }
+    '
+  } > "$output_file"
+}
+
+echo "Generating automatic layer grouping file ..."
+generate_layers_file "$layers_file" "$git_directory" "$group_depth"
 
 cd "$current"
 
@@ -121,7 +221,45 @@ run_codemaat() {
     echo "Force mode: regenerating $outpath"
   fi
   echo "Running $action data extraction ..."
-  java -jar "$codemaat" -l "$target_store_data/$git_log_file" -c git -a "$action" > "$outpath"
+  local codemaat_args=("-l" "$target_store_data/$git_log_file" "-c" "git")
+
+  if [ -s "$layers_file" ]; then
+    codemaat_args+=("-g" "$layers_file")
+  fi
+
+  codemaat_args+=("-a" "$action")
+
+  java -jar "$codemaat" "${codemaat_args[@]}" > "$outpath"
+  echo "Done."
+}
+
+run_codemaat_layered_coupling() {
+  local out="coupling-layers.csv"
+  local outpath="$target_store_data/$out"
+
+  if [ ! -s "$layers_file" ]; then
+    echo "Skipping layered coupling: layers file is missing at $layers_file"
+    return
+  fi
+
+  if [ "$force" = false ]; then
+    if [ -f "$outpath" ] && [ -s "$outpath" ]; then
+      echo "Skipping layered coupling: output already exists at $outpath"
+      return
+    fi
+  else
+    echo "Force mode: regenerating $outpath"
+  fi
+
+  echo "Running layered coupling extraction ..."
+  java -jar "$codemaat" \
+    -l "$target_store_data/$git_log_file" \
+    -c git \
+    -a coupling \
+    -g "$layers_file" \
+    -n 5 \
+    -m 5 \
+    -i 30 > "$outpath"
   echo "Done."
 }
 
@@ -132,6 +270,7 @@ run_codemaat entity-ownership entity-ownership.csv
 run_codemaat entity-effort entity-effort.csv
 run_codemaat entity-churn entity-churn.csv
 run_codemaat coupling coupling.csv
+run_codemaat_layered_coupling
 
 echo "..."
 echo "..."

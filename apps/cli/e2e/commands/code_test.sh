@@ -189,6 +189,13 @@ function test_code_codemaat_fetch_help_renders_successfully() {
   assert_smm_output_contains "--start-date"
 }
 
+function test_code_codemaat_fetch_help_includes_group_depth_option() {
+  run_smm code codemaat-fetch --help
+
+  assert_smm_success
+  assert_smm_output_contains "--group-depth"
+}
+
 function test_code_churn_reads_codemaat_churn_csv() {
   local workspace
 

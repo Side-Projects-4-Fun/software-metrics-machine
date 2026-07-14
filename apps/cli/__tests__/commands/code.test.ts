@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Command } from 'commander';
 import { commands } from '../../src';
-import { GitFactory } from '@smmachine/core';
+import { CodemaatFactory, GitFactory } from '@smmachine/core';
 
 describe('cli: Code Commands', () => {
   let program: Command;
@@ -139,7 +139,48 @@ describe('cli: Code Commands', () => {
       expect(command).toBeDefined();
       expect(command?.description()).toBe('Fetch CodeMaat CSV data from the git repository');
       expect(optionNames(command!)).toEqual(
-        expect.arrayContaining(['--start-date', '--end-date', '--subfolder', '--force', '--output'])
+        expect.arrayContaining([
+          '--start-date',
+          '--end-date',
+          '--subfolder',
+          '--group-depth',
+          '--force',
+          '--output',
+        ])
+      );
+    });
+
+    it('passes group-depth to codemaat fetch repository', async () => {
+      const fetch = vi.fn().mockReturnValue({
+        repository: '/tmp/repo',
+        outputDirectory: '/tmp/out',
+        stdout: 'ok',
+      });
+
+      vi.spyOn(CodemaatFactory, 'createWriteRepository').mockReturnValue({
+        fetch,
+      } as unknown as ReturnType<typeof CodemaatFactory.createWriteRepository>);
+
+      await program.parseAsync(
+        [
+          'code',
+          'codemaat-fetch',
+          '--start-date',
+          '2025-01-01',
+          '--end-date',
+          '2025-01-31',
+          '--group-depth',
+          '4',
+        ],
+        { from: 'user' }
+      );
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          startDate: '2025-01-01',
+          endDate: '2025-01-31',
+          groupDepth: 4,
+        })
       );
     });
   });

@@ -245,6 +245,10 @@ export function createCodeCommands(program: SmmCommand): void {
     .requiredOption('--start-date <date>', 'Start date (YYYY-MM-DD)')
     .requiredOption('--end-date <date>', 'End date (YYYY-MM-DD)')
     .option('--subfolder <path>', 'Subfolder within the repository to analyze', '')
+    .option(
+      '--group-depth <depth>',
+      'Directory depth used to auto-generate CodeMaat grouping layers'
+    )
     .option('--force', 'Force regeneration of CodeMaat CSV files')
     .option('--output <format>', 'Output format (text|json)', 'text')
     .actionWithSmm(async (options, command) => {
@@ -253,10 +257,16 @@ export function createCodeCommands(program: SmmCommand): void {
         screen.printLine('🔍 Running CodeMaat analysis...');
         const config = command.getConfiguration();
         const fetchRepository = CodemaatFactory.createWriteRepository(config, logger);
+        const parsedGroupDepth =
+          typeof options.groupDepth === 'string' ? Number(options.groupDepth) : undefined;
         const result = fetchRepository.fetch({
           startDate: options.startDate,
           endDate: options.endDate,
           subfolder: options.subfolder,
+          groupDepth:
+            Number.isFinite(parsedGroupDepth) && parsedGroupDepth > 0
+              ? Math.floor(parsedGroupDepth)
+              : undefined,
           force: options.force,
           scriptPath:
             process.env.SMM_DEV_MODE === 'true'

@@ -452,6 +452,7 @@ Run CodeMaat analysis and produce CSV output. Requires `fetch-commits` to have r
 --start-date <date>   required
 --end-date <date>
 --subfolder <path>    subfolder within the repo to analyze  (default: repo root)
+--group-depth <n>     optional directory depth for auto-generated architectural grouping  (default: 2)
 --force               regenerate CSV files even if they exist
 --output <format>     text|json  (default: text)
 ```

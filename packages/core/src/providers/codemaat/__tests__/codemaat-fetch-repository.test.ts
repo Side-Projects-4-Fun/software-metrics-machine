@@ -63,13 +63,13 @@ describe('CodemaatFetchRepository', () => {
     ).toThrow(`Could not locate fetch-codemaat.sh at expected path: ${expectedDefaultScriptPath}`);
   });
 
-  it('fetches successfully using a real script, creating the output directory and returning its stdout', () => {
+  it('fetches successfully using a real script with default grouping depth, creating the output directory and returning its stdout', () => {
     const configuration = new Configuration({ gitRepositoryLocation: '/some/path' });
     const repository = new CodemaatFetchRepository(configuration, logger);
 
     const scriptDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'smm-codemaat-script-'));
     const scriptPath = path.join(scriptDirectory, 'fetch-codemaat.sh');
-    fs.writeFileSync(scriptPath, 'echo "ran: $1 $2 $3 $4 $5 $6"');
+    fs.writeFileSync(scriptPath, 'echo "ran: $1 $2 $3 $4 $5 $6 $7"');
 
     const outputBaseDirectory = path.join(
       fs.mkdtempSync(path.join(os.tmpdir(), 'smm-codemaat-out-')),
@@ -92,8 +92,32 @@ describe('CodemaatFetchRepository', () => {
     expect(result).toEqual({
       repository: '/explicit/repo/path',
       outputDirectory,
-      stdout: `ran: /explicit/repo/path ${outputDirectory} 2026-01-01 2026-01-31 sub true\n`,
+      stdout: `ran: /explicit/repo/path ${outputDirectory} 2026-01-01 2026-01-31 sub true \n`,
     });
+  });
+
+  it('passes groupDepth override to the fetch script', () => {
+    const configuration = new Configuration({ gitRepositoryLocation: '/some/path' });
+    const repository = new CodemaatFetchRepository(configuration, logger);
+
+    const scriptDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'smm-codemaat-script-'));
+    const scriptPath = path.join(scriptDirectory, 'fetch-codemaat.sh');
+    fs.writeFileSync(scriptPath, 'echo "depth: $7"');
+
+    const outputBaseDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'smm-codemaat-out-'));
+
+    const result = repository.fetch({
+      repositoryPath: '/explicit/repo/path',
+      outputDirectory: outputBaseDirectory,
+      startDate: '2026-01-01',
+      endDate: '2026-01-31',
+      subfolder: '',
+      force: false,
+      groupDepth: 4,
+      scriptPath,
+    });
+
+    expect(result.stdout).toBe('depth: 4\n');
   });
 
   it('stores fetchedAt using the analysis run timestamp and creates a new snapshot on later runs', async () => {

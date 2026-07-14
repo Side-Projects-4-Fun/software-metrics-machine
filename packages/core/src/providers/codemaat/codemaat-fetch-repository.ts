@@ -9,6 +9,7 @@ export interface CodemaatFetchOptions {
   startDate: string;
   endDate?: string;
   subfolder?: string;
+  groupDepth?: number;
   force?: boolean;
   scriptPath?: string;
 }
