@@ -185,9 +185,6 @@ generate_layers_file() {
   } > "$output_file"
 }
 
-echo "Generating automatic layer grouping file ..."
-generate_layers_file "$layers_file" "$git_directory" "$group_depth"
-
 cd "$current"
 
 if [ ! -s "$target_store_data/$git_log_file" ]; then
@@ -196,6 +193,9 @@ if [ ! -s "$target_store_data/$git_log_file" ]; then
 fi
 
 echo "Git log extracted to $target_store_data/$git_log_file"
+
+echo "Generating automatic layer grouping file ..."
+generate_layers_file "$layers_file" "$git_directory" "$group_depth"
 
 echo "Running CodeMaat analyses... this may take a while depending on the size of the repository."
 
