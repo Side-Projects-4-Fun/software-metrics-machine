@@ -10,6 +10,9 @@ export interface CodemaatFetchOptions {
   endDate?: string;
   subfolder?: string;
   groupDepth?: number;
+  minRevs?: number;
+  minSharedRevs?: number;
+  minCoupling?: number;
   force?: boolean;
   scriptPath?: string;
 }

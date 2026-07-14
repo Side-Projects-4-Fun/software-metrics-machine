@@ -249,6 +249,17 @@ export function createCodeCommands(program: SmmCommand): void {
       '--group-depth <depth>',
       'Directory depth used to auto-generate CodeMaat grouping layers'
     )
+    .option(
+      '--min-revs <number>',
+      'Minimum number of revisions to include in a coupling analysis',
+      '5'
+    )
+    .option(
+      '--min-shared-revs <number>',
+      'Minimum number of shared revisions to include in a coupling analysis',
+      '5'
+    )
+    .option('--min-coupling <number>', 'Minimum coupling threshold in percentage', '30')
     .option('--force', 'Force regeneration of CodeMaat CSV files')
     .option('--output <format>', 'Output format (text|json)', 'text')
     .actionWithSmm(async (options, command) => {
@@ -267,6 +278,9 @@ export function createCodeCommands(program: SmmCommand): void {
             parsedGroupDepth && Number.isFinite(parsedGroupDepth) && parsedGroupDepth > 0
               ? Math.floor(parsedGroupDepth)
               : undefined,
+          minRevs: Number(options.minRevs),
+          minSharedRevs: Number(options.minSharedRevs),
+          minCoupling: Number(options.minCoupling),
           force: options.force,
           scriptPath:
             process.env.SMM_DEV_MODE === 'true'

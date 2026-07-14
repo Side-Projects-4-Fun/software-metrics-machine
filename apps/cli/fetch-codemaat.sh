@@ -17,6 +17,22 @@ else
   force=$5
 fi
 
+min_revs=5
+min_shared_revs=5
+min_coupling=30
+
+if [ "$#" -ge 8 ] && [ -n "$8" ]; then
+  min_revs=$8
+fi
+
+if [ "$#" -ge 9 ] && [ -n "$9" ]; then
+  min_shared_revs=$9
+fi
+
+if [ "$#" -ge 10 ] && [ -n "${10}" ]; then
+  min_coupling=${10}
+fi
+
 group_depth="${SMM_CODEMAAT_GROUP_DEPTH:-2}"
 if [ "$#" -ge 7 ] && [ -n "$7" ]; then
   group_depth="$7"
@@ -257,9 +273,9 @@ run_codemaat_layered_coupling() {
     -c git \
     -a coupling \
     -g "$layers_file" \
-    -n 5 \
-    -m 5 \
-    -i 30 > "$outpath"
+    -n "$min_revs" \
+    -m "$min_shared_revs" \
+    -i "$min_coupling" > "$outpath"
   echo "Done."
 }
 

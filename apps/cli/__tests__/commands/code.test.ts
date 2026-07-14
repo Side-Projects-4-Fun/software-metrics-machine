@@ -7,6 +7,7 @@ describe('cli: Code Commands', () => {
   let program: Command;
   let codeCommand: Command;
   let fetchCommits: ReturnType<typeof vi.fn>;
+  let fetchCodeMaat: ReturnType<typeof vi.fn>;
   let consoleSpy: ReturnType<typeof vi.spyOn>;
 
   const getSubcommand = (name: string): Command | undefined =>
@@ -35,6 +36,16 @@ describe('cli: Code Commands', () => {
     vi.spyOn(GitFactory, 'create').mockReturnValue({
       fetchCommits,
     } as unknown as ReturnType<typeof GitFactory.create>);
+
+    fetchCodeMaat = vi.fn().mockReturnValue({
+      repository: '/tmp/repo',
+      outputDirectory: '/tmp/out',
+      stdout: 'ok',
+    });
+
+    vi.spyOn(CodemaatFactory, 'createWriteRepository').mockReturnValue({
+      fetch: fetchCodeMaat,
+    } as unknown as ReturnType<typeof CodemaatFactory.createWriteRepository>);
 
     consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     program = commands();
@@ -144,6 +155,9 @@ describe('cli: Code Commands', () => {
           '--end-date',
           '--subfolder',
           '--group-depth',
+          '--min-revs',
+          '--min-shared-revs',
+          '--min-coupling',
           '--force',
           '--output',
         ])
@@ -151,16 +165,6 @@ describe('cli: Code Commands', () => {
     });
 
     it('passes group-depth to codemaat fetch repository', async () => {
-      const fetch = vi.fn().mockReturnValue({
-        repository: '/tmp/repo',
-        outputDirectory: '/tmp/out',
-        stdout: 'ok',
-      });
-
-      vi.spyOn(CodemaatFactory, 'createWriteRepository').mockReturnValue({
-        fetch,
-      } as unknown as ReturnType<typeof CodemaatFactory.createWriteRepository>);
-
       await program.parseAsync(
         [
           'code',
@@ -171,15 +175,39 @@ describe('cli: Code Commands', () => {
           '2025-01-31',
           '--group-depth',
           '4',
+          '--min-revs',
+          '7',
+          '--min-shared-revs',
+          '9',
+          '--min-coupling',
+          '33',
         ],
         { from: 'user' }
       );
 
-      expect(fetch).toHaveBeenCalledWith(
+      expect(fetchCodeMaat).toHaveBeenCalledWith(
         expect.objectContaining({
           startDate: '2025-01-01',
           endDate: '2025-01-31',
           groupDepth: 4,
+          minRevs: 7,
+          minSharedRevs: 9,
+          minCoupling: 33,
+        })
+      );
+    });
+
+    it('uses the default coupling thresholds when they are omitted', async () => {
+      await program.parseAsync(
+        ['code', 'codemaat-fetch', '--start-date', '2025-01-01', '--end-date', '2025-01-31'],
+        { from: 'user' }
+      );
+
+      expect(fetchCodeMaat).toHaveBeenCalledWith(
+        expect.objectContaining({
+          minRevs: 5,
+          minSharedRevs: 5,
+          minCoupling: 30,
         })
       );
     });

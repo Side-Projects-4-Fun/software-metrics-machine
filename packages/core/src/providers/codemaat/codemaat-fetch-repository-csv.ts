@@ -45,6 +45,9 @@ export class CodemaatFetchCsvRepository implements ICodeMaatFetchRepository {
         options.subfolder || '',
         options.force ? 'true' : 'false',
         options.groupDepth ? String(options.groupDepth) : '',
+        options.minRevs ? String(options.minRevs) : '',
+        options.minSharedRevs ? String(options.minSharedRevs) : '',
+        options.minCoupling ? String(options.minCoupling) : '',
       ],
       {
         cwd: scriptDirectory,
