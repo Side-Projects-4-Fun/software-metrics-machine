@@ -172,6 +172,36 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
       CREATE INDEX IF NOT EXISTS idx_codemaat_code_churn_fetched_at
         ON codemaat_code_churn(fetched_at);
 
+        CREATE TABLE IF NOT EXISTS codemaat_age (
+          entity TEXT NOT NULL,
+          age_months INTEGER NOT NULL,
+          position INTEGER NOT NULL,
+          stored_at TEXT NOT NULL,
+          fetched_at TEXT,
+          PRIMARY KEY (entity, position)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_codemaat_age_entity
+          ON codemaat_age(entity);
+        CREATE INDEX IF NOT EXISTS idx_codemaat_age_fetched_at
+          ON codemaat_age(fetched_at);
+
+        CREATE TABLE IF NOT EXISTS codemaat_author_churn (
+          author TEXT NOT NULL,
+          added INTEGER NOT NULL,
+          deleted INTEGER NOT NULL,
+          commits INTEGER NOT NULL,
+          position INTEGER NOT NULL,
+          stored_at TEXT NOT NULL,
+          fetched_at TEXT,
+          PRIMARY KEY (author, position)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_codemaat_author_churn_author
+          ON codemaat_author_churn(author);
+        CREATE INDEX IF NOT EXISTS idx_codemaat_author_churn_fetched_at
+          ON codemaat_author_churn(fetched_at);
+
       CREATE TABLE IF NOT EXISTS codemaat_file_coupling (
         entity TEXT NOT NULL,
         coupled TEXT NOT NULL,
@@ -262,6 +292,8 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
     `);
 
     this.ensureFetchedAtColumn(db, 'codemaat_code_churn');
+    this.ensureFetchedAtColumn(db, 'codemaat_age');
+    this.ensureFetchedAtColumn(db, 'codemaat_author_churn');
     this.ensureFetchedAtColumn(db, 'codemaat_file_coupling');
     this.ensureFetchedAtColumn(db, 'codemaat_layered_coupling');
     this.ensureFetchedAtColumn(db, 'codemaat_entity_churn');
@@ -447,6 +479,66 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
       insert.run(
         entity,
         this.toNumber(record['total-revs'] || record.total_revs || record.revs),
+        positionStart + position,
+        fetchedAt,
+        fetchedAt
+      );
+      imported += 1;
+    });
+
+    return imported;
+  }
+
+  private importAge(db: DatabaseSync, fetchedAt: string, sourceDirectory: string): number {
+    const records = this.readCsvRecords('age.csv', sourceDirectory);
+    const insert = db.prepare(
+      `INSERT INTO codemaat_age
+        (entity, age_months, position, stored_at, fetched_at)
+       VALUES (?, ?, ?, ?, ?)`
+    );
+    const positionStart = this.getNextPosition(db, 'codemaat_age');
+    let imported = 0;
+
+    records.forEach((record, position) => {
+      const entity = String(record.entity || '');
+      if (!entity) {
+        return;
+      }
+
+      insert.run(
+        entity,
+        this.toNumber(record['age-months'] || record.age_months || record.ageMonths),
+        positionStart + position,
+        fetchedAt,
+        fetchedAt
+      );
+      imported += 1;
+    });
+
+    return imported;
+  }
+
+  private importAuthorChurn(db: DatabaseSync, fetchedAt: string, sourceDirectory: string): number {
+    const records = this.readCsvRecords('author-churn.csv', sourceDirectory);
+    const insert = db.prepare(
+      `INSERT INTO codemaat_author_churn
+        (author, added, deleted, commits, position, stored_at, fetched_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    );
+    const positionStart = this.getNextPosition(db, 'codemaat_author_churn');
+    let imported = 0;
+
+    records.forEach((record, position) => {
+      const author = String(record.author || '');
+      if (!author) {
+        return;
+      }
+
+      insert.run(
+        author,
+        this.toNumber(record.added),
+        this.toNumber(record.deleted),
+        this.toNumber(record.commits || record.revisions),
         positionStart + position,
         fetchedAt,
         fetchedAt

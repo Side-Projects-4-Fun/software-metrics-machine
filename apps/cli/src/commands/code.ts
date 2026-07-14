@@ -264,7 +264,7 @@ export function createCodeCommands(program: SmmCommand): void {
           endDate: options.endDate,
           subfolder: options.subfolder,
           groupDepth:
-            Number.isFinite(parsedGroupDepth) && parsedGroupDepth > 0
+            parsedGroupDepth && Number.isFinite(parsedGroupDepth) && parsedGroupDepth > 0
               ? Math.floor(parsedGroupDepth)
               : undefined,
           force: options.force,

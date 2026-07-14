@@ -176,10 +176,10 @@ generate_layers_file() {
 
         for (i = 1; i <= n; i++) {
           group = ordered[i]
-          print "^" group "(/.*)?$ => " sanitize_label(group)
+          print group " => " sanitize_label(group)
         }
 
-        print ".* => Other"
+        print "^.*$ => Other"
       }
     '
   } > "$output_file"
