@@ -1,23 +1,55 @@
-import { CodeChurnResult, FileCoupling } from '../../../../providers/codemaat/types';
+import {
+  CodeChurnResult,
+  FileCoupling,
+  CodeMaatCodeChurnEntry,
+  CodeMaatEntityChurnEntry,
+  CodeMaatEntityEffortEntry,
+  CodeMaatEntityOwnershipEntry,
+  CodeMaatFileCouplingEntry,
+} from '../../../../providers/codemaat/types';
+
+export type EntityChurnRecord = {
+  entity: string;
+  added: number;
+  deleted: number;
+  commits: number;
+};
+
+export type EntityEffortRecord = {
+  entity: string;
+  'total-revs': number;
+};
+
+export type EntityOwnershipRecord = {
+  entity: string;
+  author: string;
+  added: number;
+  deleted: number;
+};
 
 export interface ICodeMetricsRepository {
   getCodeChurn(
     options: CodeMaatChurnOptions & { typeChurn: string }
   ): Promise<CodeChurnValueResult>;
   getCodeChurn(options?: CodeMaatChurnOptions): Promise<CodeChurnResult>;
+  getCodeChurnHistory(options?: CodeMaatChurnOptions): Promise<CodeMaatCodeChurnEntry[]>;
   getFileCoupling(options?: CodeMaatEntityFilterOptions): Promise<FileCoupling[]>;
-  getEntityChurn(
+  getFileCouplingHistory(
     options?: CodeMaatEntityFilterOptions
-  ): Promise<Array<{ entity: string; added: number; deleted: number; commits: number }>>;
-  getEntityEffort(
+  ): Promise<CodeMaatFileCouplingEntry[]>;
+  getEntityChurn(options?: CodeMaatEntityFilterOptions): Promise<EntityChurnRecord[]>;
+  getEntityChurnHistory(options?: CodeMaatEntityFilterOptions): Promise<CodeMaatEntityChurnEntry[]>;
+  getEntityEffort(options?: CodeMaatEntityFilterOptions): Promise<EntityEffortRecord[]>;
+  getEntityEffortHistory(
     options?: CodeMaatEntityFilterOptions
-  ): Promise<Array<{ entity: string; 'total-revs': number }>>;
+  ): Promise<CodeMaatEntityEffortEntry[]>;
   getEntityOwnership(
     options: CodeMaatEntityFilterOptions & { select: 'authors' }
   ): Promise<string[]>;
-  getEntityOwnership(
+  getEntityOwnership(options?: CodeMaatEntityFilterOptions): Promise<EntityOwnershipRecord[]>;
+  getEntityOwnershipHistory(
     options?: CodeMaatEntityFilterOptions
-  ): Promise<Array<{ entity: string; author: string; added: number; deleted: number }>>;
+  ): Promise<CodeMaatEntityOwnershipEntry[]>;
 }
 
 export type CodeMaatEntityFilterOptions = {

@@ -5,11 +5,16 @@ import { PairingService } from '@smmachine/core/domain/code/pairing/pairing-serv
 import type {
   BigOFileAnalysis,
   BigOFileSummary,
+  CodeChurnHistoryResponse,
   CodePairingIndexResponse,
   CodeChurnResponse,
+  CodeCouplingHistoryResponse,
   CodeCouplingResponse,
+  CodeEntityChurnHistoryResponse,
   CodeEntityChurnResponse,
+  CodeEntityEffortHistoryResponse,
   CodeEntityEffortResponse,
+  CodeEntityOwnershipHistoryResponse,
   CodeEntityOwnershipResponse,
   CodeAuthorsResponse,
 } from '../dtos';
@@ -92,6 +97,17 @@ export class CodeController {
     return churn.data as unknown as CodeChurnResponse;
   }
 
+  @Get('/code/code-churn/history')
+  async codeChurnHistory(
+    @Query('start_date') startDate?: string,
+    @Query('end_date') endDate?: string
+  ): Promise<CodeChurnHistoryResponse> {
+    return this.codemaat.getCodeChurnHistory({
+      startDate,
+      endDate,
+    });
+  }
+
   @Get('/code/coupling')
   async coupling(
     @Query('ignore_files') ignoreFiles?: string,
@@ -106,6 +122,20 @@ export class CodeController {
     });
 
     return coupling;
+  }
+
+  @Get('/code/coupling/history')
+  async couplingHistory(
+    @Query('ignore_files') ignoreFiles?: string,
+    @Query('include_only') includeOnly?: string,
+    @Query('top') top?: string
+  ): Promise<CodeCouplingHistoryResponse> {
+    return this.codemaat.getFileCouplingHistory({
+      ignorePatterns: ignoreFiles,
+      includePatterns: includeOnly,
+      top,
+      sortBy: 'degree',
+    });
   }
 
   @Get('/code/entity-churn')
@@ -123,6 +153,19 @@ export class CodeController {
     return filtered;
   }
 
+  @Get('/code/entity-churn/history')
+  async entityChurnHistory(
+    @Query('ignore_files') ignoreFiles?: string,
+    @Query('include_only') includeOnly?: string,
+    @Query('top') top?: string
+  ): Promise<CodeEntityChurnHistoryResponse> {
+    return this.codemaat.getEntityChurnHistory({
+      ignorePatterns: ignoreFiles,
+      includePatterns: includeOnly,
+      top,
+    });
+  }
+
   @Get('/code/entity-effort')
   async entityEffort(
     @Query('ignore_files') ignoreFiles?: string,
@@ -136,6 +179,19 @@ export class CodeController {
     });
 
     return filtered;
+  }
+
+  @Get('/code/entity-effort/history')
+  async entityEffortHistory(
+    @Query('ignore_files') ignoreFiles?: string,
+    @Query('include_only') includeOnly?: string,
+    @Query('top') top?: string
+  ): Promise<CodeEntityEffortHistoryResponse> {
+    return this.codemaat.getEntityEffortHistory({
+      ignorePatterns: ignoreFiles,
+      includePatterns: includeOnly,
+      top,
+    });
   }
 
   @Get('/code/entity-ownership')
@@ -153,6 +209,21 @@ export class CodeController {
     });
 
     return filtered;
+  }
+
+  @Get('/code/entity-ownership/history')
+  async entityOwnershipHistory(
+    @Query('ignore_files') ignoreFiles?: string,
+    @Query('include_only') includeOnly?: string,
+    @Query('authors') authors?: string,
+    @Query('top') top?: string
+  ): Promise<CodeEntityOwnershipHistoryResponse> {
+    return this.codemaat.getEntityOwnershipHistory({
+      ignorePatterns: ignoreFiles,
+      includePatterns: includeOnly,
+      authors,
+      top,
+    });
   }
 
   @Get('/code/authors')

@@ -3,6 +3,11 @@ import { Logger } from '@smmachine/utils';
 import type {
   CodeChurn,
   CodeChurnResult,
+  CodeMaatCodeChurnEntry,
+  CodeMaatEntityChurnEntry,
+  CodeMaatEntityEffortEntry,
+  CodeMaatEntityOwnershipEntry,
+  CodeMaatFileCouplingEntry,
   CodemaatAnalysisResult,
   FileCoupling,
 } from '../../../../providers/codemaat/types';
@@ -13,6 +18,9 @@ import type {
   CodeChurnValueResult,
   CodeMaatChurnOptions,
   CodeMaatEntityFilterOptions,
+  EntityChurnRecord,
+  EntityEffortRecord,
+  EntityOwnershipRecord,
   ICodeMetricsRepository,
 } from '../../../../domain/code/codemaat/repositories/codemaat-metrics-repository';
 
@@ -27,6 +35,7 @@ import type {
 export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
   protected logger: Logger;
   protected dataDir: string;
+  private readonly codeMaatRunDirectoryPattern = /^\d{4}-\d{2}-\d{2}_to_\d{4}-\d{2}-\d{2}$/;
 
   constructor(configuration: Configuration, logger: Logger) {
     this.dataDir = configuration.getCodeMaatPath();
@@ -41,7 +50,10 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
     options?: CodeMaatChurnOptions
   ): Promise<CodeChurnResult | CodeChurnValueResult> {
     try {
-      const csvPath = path.join(this.dataDir, 'abs-churn.csv');
+      const csvPath = path.join(
+        this.resolveDataDirectory({ startDate: options?.startDate, endDate: options?.endDate }),
+        'abs-churn.csv'
+      );
 
       this.logger.info(
         `Reading code churn from ${csvPath}` +
@@ -153,9 +165,18 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
     }
   }
 
+  async getCodeChurnHistory(options?: CodeMaatChurnOptions): Promise<CodeMaatCodeChurnEntry[]> {
+    return [
+      {
+        fetchedAt: new Date(0).toISOString(),
+        data: await this.getCodeChurn(options),
+      },
+    ];
+  }
+
   async getFileCoupling(options?: CodeMaatEntityFilterOptions): Promise<FileCoupling[]> {
     try {
-      const csvPath = path.join(this.dataDir, 'coupling.csv');
+      const csvPath = path.join(this.resolveDataDirectory(), 'coupling.csv');
 
       this.logger.info(`Reading file coupling from ${csvPath}`);
 
@@ -247,6 +268,17 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
     }
   }
 
+  async getFileCouplingHistory(
+    options?: CodeMaatEntityFilterOptions
+  ): Promise<CodeMaatFileCouplingEntry[]> {
+    return [
+      {
+        fetchedAt: new Date(0).toISOString(),
+        data: await this.getFileCoupling(options),
+      },
+    ];
+  }
+
   private detectCsvDelimiter(headerLine: string): string {
     const semicolons = (headerLine.match(/;/g) || []).length;
     const commas = (headerLine.match(/,/g) || []).length;
@@ -317,11 +349,9 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
     }
   }
 
-  async getEntityChurn(
-    options?: CodeMaatEntityFilterOptions
-  ): Promise<Array<{ entity: string; added: number; deleted: number; commits: number }>> {
+  async getEntityChurn(options?: CodeMaatEntityFilterOptions): Promise<EntityChurnRecord[]> {
     try {
-      const records = this.readCsvRecords('entity-churn.csv');
+      const records = this.readCsvRecords('entity-churn.csv', this.resolveDataDirectory());
 
       return records
         .map((record) => ({
@@ -341,11 +371,20 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
     }
   }
 
-  async getEntityEffort(
+  async getEntityChurnHistory(
     options?: CodeMaatEntityFilterOptions
-  ): Promise<Array<{ entity: string; 'total-revs': number }>> {
+  ): Promise<CodeMaatEntityChurnEntry[]> {
+    return [
+      {
+        fetchedAt: new Date(0).toISOString(),
+        data: await this.getEntityChurn(options),
+      },
+    ];
+  }
+
+  async getEntityEffort(options?: CodeMaatEntityFilterOptions): Promise<EntityEffortRecord[]> {
     try {
-      const records = this.readCsvRecords('entity-effort.csv');
+      const records = this.readCsvRecords('entity-effort.csv', this.resolveDataDirectory());
 
       const effortByEntity = new Map<string, number>();
 
@@ -376,17 +415,26 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
     }
   }
 
+  async getEntityEffortHistory(
+    options?: CodeMaatEntityFilterOptions
+  ): Promise<CodeMaatEntityEffortEntry[]> {
+    return [
+      {
+        fetchedAt: new Date(0).toISOString(),
+        data: await this.getEntityEffort(options),
+      },
+    ];
+  }
+
   async getEntityOwnership(
     options: CodeMaatEntityFilterOptions & { select: 'authors' }
   ): Promise<string[]>;
+  async getEntityOwnership(options?: CodeMaatEntityFilterOptions): Promise<EntityOwnershipRecord[]>;
   async getEntityOwnership(
     options?: CodeMaatEntityFilterOptions
-  ): Promise<Array<{ entity: string; author: string; added: number; deleted: number }>>;
-  async getEntityOwnership(
-    options?: CodeMaatEntityFilterOptions
-  ): Promise<Array<{ entity: string; author: string; added: number; deleted: number }> | string[]> {
+  ): Promise<EntityOwnershipRecord[] | string[]> {
     try {
-      const records = this.readCsvRecords('entity-ownership.csv');
+      const records = this.readCsvRecords('entity-ownership.csv', this.resolveDataDirectory());
 
       const rows = records
         .map((record) => ({
@@ -419,8 +467,26 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
     }
   }
 
-  protected readCsvRecords(fileName: string): Array<Record<string, string>> {
-    const csvPath = path.join(this.dataDir, fileName);
+  async getEntityOwnershipHistory(
+    options?: CodeMaatEntityFilterOptions
+  ): Promise<CodeMaatEntityOwnershipEntry[]> {
+    if (options?.select === 'authors') {
+      return [];
+    }
+
+    return [
+      {
+        fetchedAt: new Date(0).toISOString(),
+        data: await this.getEntityOwnership(options),
+      },
+    ];
+  }
+
+  protected readCsvRecords(
+    fileName: string,
+    dataDirectory?: string
+  ): Array<Record<string, string>> {
+    const csvPath = path.join(dataDirectory || this.resolveDataDirectory(), fileName);
 
     if (!fs.existsSync(csvPath)) {
       this.logger.warn(`CSV file not found: ${csvPath}`);
@@ -561,5 +627,49 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
 
   private matchesPattern(entity: string, pattern: string): boolean {
     return matchesPathPattern(entity, pattern);
+  }
+
+  protected resolveDataDirectory(range?: { startDate?: string; endDate?: string }): string {
+    const directoryByRange = this.resolveDirectoryByRange(range);
+    if (directoryByRange) {
+      return directoryByRange;
+    }
+
+    const latestRunDirectory = this.resolveLatestRunDirectory();
+    if (latestRunDirectory) {
+      return latestRunDirectory;
+    }
+
+    return this.dataDir;
+  }
+
+  private resolveDirectoryByRange(range?: { startDate?: string; endDate?: string }): string | null {
+    if (!range?.startDate || !range?.endDate) {
+      return null;
+    }
+
+    const startDate = this.toDateOnly(range.startDate);
+    const endDate = this.toDateOnly(range.endDate);
+    const expectedDirectory = path.join(this.dataDir, `${startDate}_to_${endDate}`);
+
+    return fs.existsSync(expectedDirectory) ? expectedDirectory : null;
+  }
+
+  private resolveLatestRunDirectory(): string | null {
+    if (!fs.existsSync(this.dataDir)) {
+      return null;
+    }
+
+    const runDirectories = fs
+      .readdirSync(this.dataDir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && this.codeMaatRunDirectoryPattern.test(entry.name))
+      .map((entry) => entry.name)
+      .sort((a, b) => b.localeCompare(a));
+
+    if (runDirectories.length === 0) {
+      return null;
+    }
+
+    return path.join(this.dataDir, runDirectories[0]);
   }
 }

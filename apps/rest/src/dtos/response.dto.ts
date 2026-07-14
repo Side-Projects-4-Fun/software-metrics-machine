@@ -351,6 +351,40 @@ export type CodeEntityOwnershipResponse = Array<{
 
 export type CodeAuthorsResponse = string[];
 
+export type CodeChurnHistoryResponse = Array<{
+  fetchedAt: string;
+  data: {
+    data: Array<{
+      date: string;
+      added: number;
+      deleted: number;
+      commits: number;
+    }>;
+    startDate?: string;
+    endDate?: string;
+  };
+}>;
+
+export type CodeCouplingHistoryResponse = Array<{
+  fetchedAt: string;
+  data: CodeCouplingResponse;
+}>;
+
+export type CodeEntityChurnHistoryResponse = Array<{
+  fetchedAt: string;
+  data: CodeEntityChurnResponse;
+}>;
+
+export type CodeEntityEffortHistoryResponse = Array<{
+  fetchedAt: string;
+  data: CodeEntityEffortResponse;
+}>;
+
+export type CodeEntityOwnershipHistoryResponse = Array<{
+  fetchedAt: string;
+  data: CodeEntityOwnershipResponse;
+}>;
+
 // ──────────────────────────────────────────
 // SonarQube endpoints
 // ──────────────────────────────────────────

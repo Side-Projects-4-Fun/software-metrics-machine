@@ -8,10 +8,15 @@ describe('CodeController', () => {
     };
     const codemaat = {
       getCodeChurn: vi.fn(),
+      getCodeChurnHistory: vi.fn(),
       getFileCoupling: vi.fn(),
+      getFileCouplingHistory: vi.fn(),
       getEntityChurn: vi.fn(),
+      getEntityChurnHistory: vi.fn(),
       getEntityEffort: vi.fn(),
+      getEntityEffortHistory: vi.fn(),
       getEntityOwnership: vi.fn(),
+      getEntityOwnershipHistory: vi.fn(),
     };
     const bigOService = {
       listFiles: vi.fn(),
@@ -102,6 +107,22 @@ describe('CodeController', () => {
     });
   });
 
+  describe('codeChurnHistory', () => {
+    it('forwards query params and returns timestamped history entries', async () => {
+      const { controller, codemaat } = createController();
+      const history = [{ fetchedAt: '2026-07-13T12:00:00.000Z', data: [] }];
+      codemaat.getCodeChurnHistory.mockResolvedValue(history);
+
+      const result = await controller.codeChurnHistory('2026-01-01', '2026-06-01');
+
+      expect(codemaat.getCodeChurnHistory).toHaveBeenCalledWith({
+        startDate: '2026-01-01',
+        endDate: '2026-06-01',
+      });
+      expect(result).toBe(history);
+    });
+  });
+
   describe('coupling', () => {
     it('forwards query params with sortBy hardcoded to degree', async () => {
       const { controller, codemaat } = createController();
@@ -117,6 +138,24 @@ describe('CodeController', () => {
         sortBy: 'degree',
       });
       expect(result).toBe(coupling);
+    });
+  });
+
+  describe('couplingHistory', () => {
+    it('forwards query params with sortBy hardcoded to degree', async () => {
+      const { controller, codemaat } = createController();
+      const history = [{ fetchedAt: '2026-07-13T12:00:00.000Z', data: [] }];
+      codemaat.getFileCouplingHistory.mockResolvedValue(history);
+
+      const result = await controller.couplingHistory('ignored.ts', 'included.ts', '5');
+
+      expect(codemaat.getFileCouplingHistory).toHaveBeenCalledWith({
+        ignorePatterns: 'ignored.ts',
+        includePatterns: 'included.ts',
+        top: '5',
+        sortBy: 'degree',
+      });
+      expect(result).toBe(history);
     });
   });
 
@@ -137,6 +176,23 @@ describe('CodeController', () => {
     });
   });
 
+  describe('entityChurnHistory', () => {
+    it('forwards query params to getEntityChurnHistory', async () => {
+      const { controller, codemaat } = createController();
+      const history = [{ fetchedAt: '2026-07-13T12:00:00.000Z', data: [] }];
+      codemaat.getEntityChurnHistory.mockResolvedValue(history);
+
+      const result = await controller.entityChurnHistory('ignored.ts', 'included.ts', '5');
+
+      expect(codemaat.getEntityChurnHistory).toHaveBeenCalledWith({
+        ignorePatterns: 'ignored.ts',
+        includePatterns: 'included.ts',
+        top: '5',
+      });
+      expect(result).toBe(history);
+    });
+  });
+
   describe('entityEffort', () => {
     it('forwards query params to getEntityEffort', async () => {
       const { controller, codemaat } = createController();
@@ -151,6 +207,23 @@ describe('CodeController', () => {
         top: '5',
       });
       expect(result).toBe(effort);
+    });
+  });
+
+  describe('entityEffortHistory', () => {
+    it('forwards query params to getEntityEffortHistory', async () => {
+      const { controller, codemaat } = createController();
+      const history = [{ fetchedAt: '2026-07-13T12:00:00.000Z', data: [] }];
+      codemaat.getEntityEffortHistory.mockResolvedValue(history);
+
+      const result = await controller.entityEffortHistory('ignored.ts', 'included.ts', '5');
+
+      expect(codemaat.getEntityEffortHistory).toHaveBeenCalledWith({
+        ignorePatterns: 'ignored.ts',
+        includePatterns: 'included.ts',
+        top: '5',
+      });
+      expect(result).toBe(history);
     });
   });
 
@@ -174,6 +247,29 @@ describe('CodeController', () => {
         top: '5',
       });
       expect(result).toBe(ownership);
+    });
+  });
+
+  describe('entityOwnershipHistory', () => {
+    it('forwards query params to getEntityOwnershipHistory', async () => {
+      const { controller, codemaat } = createController();
+      const history = [{ fetchedAt: '2026-07-13T12:00:00.000Z', data: [] }];
+      codemaat.getEntityOwnershipHistory.mockResolvedValue(history);
+
+      const result = await controller.entityOwnershipHistory(
+        'ignored.ts',
+        'included.ts',
+        'alice,bob',
+        '5'
+      );
+
+      expect(codemaat.getEntityOwnershipHistory).toHaveBeenCalledWith({
+        ignorePatterns: 'ignored.ts',
+        includePatterns: 'included.ts',
+        authors: 'alice,bob',
+        top: '5',
+      });
+      expect(result).toBe(history);
     });
   });
 

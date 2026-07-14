@@ -7,6 +7,7 @@ export interface CodemaatFetchOptions {
   repositoryPath?: string;
   outputDirectory?: string;
   startDate: string;
+  endDate?: string;
   subfolder?: string;
   force?: boolean;
   scriptPath?: string;

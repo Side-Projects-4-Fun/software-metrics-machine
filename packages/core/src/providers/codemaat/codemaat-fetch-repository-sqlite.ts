@@ -13,6 +13,7 @@ import type {
 
 export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
   private readonly sqliteDbPath: string;
+  private readonly codeMaatRunDirectoryPattern = /^\d{4}-\d{2}-\d{2}_to_\d{4}-\d{2}-\d{2}$/;
 
   constructor(configuration: Configuration, logger: Logger) {
     super(configuration, logger);
@@ -21,7 +22,7 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
 
   override fetch(options: CodemaatFetchOptions): CodemaatFetchResult {
     const result = super.fetch(options);
-    const persistedRecords = this.importCsvFilesToSqlite();
+    const persistedRecords = this.importCsvFilesToSqlite(result.outputDirectory);
 
     return {
       ...result,
@@ -32,23 +33,25 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
   async persistFetchedMetrics(): Promise<CodeMaatPersistenceResult> {
     return {
       persisted: true,
-      records: this.importCsvFilesToSqlite(),
+      records: this.importCsvFilesToSqlite(this.resolveLatestDataDirectory()),
     };
   }
 
-  private importCsvFilesToSqlite(): number {
+  private importCsvFilesToSqlite(sourceDirectory?: string): number {
     fs.mkdirSync(path.dirname(this.sqliteDbPath), { recursive: true });
     const db = new DatabaseSync(this.sqliteDbPath);
     try {
       this.ensureSqliteSchema(db);
       db.exec('BEGIN IMMEDIATE TRANSACTION');
       try {
+        const fetchedAt = new Date().toISOString();
+        const dataDirectory = sourceDirectory || this.resolveLatestDataDirectory();
         const imported =
-          this.importCodeChurn(db) +
-          this.importFileCoupling(db) +
-          this.importEntityChurn(db) +
-          this.importEntityEffort(db) +
-          this.importEntityOwnership(db);
+          this.importCodeChurn(db, fetchedAt, dataDirectory) +
+          this.importFileCoupling(db, fetchedAt, dataDirectory) +
+          this.importEntityChurn(db, fetchedAt, dataDirectory) +
+          this.importEntityEffort(db, fetchedAt, dataDirectory) +
+          this.importEntityOwnership(db, fetchedAt, dataDirectory);
         db.exec('COMMIT');
         return imported;
       } catch (error) {
@@ -60,8 +63,8 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
     }
   }
 
-  private readCsvRecords(fileName: string): Array<Record<string, string>> {
-    const csvPath = path.join(this.configuration.getCodeMaatPath(), fileName);
+  private readCsvRecords(fileName: string, sourceDirectory: string): Array<Record<string, string>> {
+    const csvPath = path.join(sourceDirectory, fileName);
 
     if (!fs.existsSync(csvPath)) {
       return [];
@@ -159,11 +162,14 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
         commits INTEGER NOT NULL,
         position INTEGER NOT NULL,
         stored_at TEXT NOT NULL,
+        fetched_at TEXT,
         PRIMARY KEY (date, position)
       );
 
       CREATE INDEX IF NOT EXISTS idx_codemaat_code_churn_date
         ON codemaat_code_churn(date);
+      CREATE INDEX IF NOT EXISTS idx_codemaat_code_churn_fetched_at
+        ON codemaat_code_churn(fetched_at);
 
       CREATE TABLE IF NOT EXISTS codemaat_file_coupling (
         entity TEXT NOT NULL,
@@ -172,6 +178,7 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
         average_revs INTEGER NOT NULL,
         position INTEGER NOT NULL,
         stored_at TEXT NOT NULL,
+        fetched_at TEXT,
         PRIMARY KEY (entity, coupled, position)
       );
 
@@ -181,6 +188,8 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
         ON codemaat_file_coupling(coupled);
       CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_degree
         ON codemaat_file_coupling(degree);
+      CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_fetched_at
+        ON codemaat_file_coupling(fetched_at);
 
       CREATE TABLE IF NOT EXISTS codemaat_entity_churn (
         entity TEXT NOT NULL,
@@ -189,22 +198,28 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
         commits INTEGER NOT NULL,
         position INTEGER NOT NULL,
         stored_at TEXT NOT NULL,
+        fetched_at TEXT,
         PRIMARY KEY (entity, position)
       );
 
       CREATE INDEX IF NOT EXISTS idx_codemaat_entity_churn_entity
         ON codemaat_entity_churn(entity);
+      CREATE INDEX IF NOT EXISTS idx_codemaat_entity_churn_fetched_at
+        ON codemaat_entity_churn(fetched_at);
 
       CREATE TABLE IF NOT EXISTS codemaat_entity_effort (
         entity TEXT NOT NULL,
         total_revs INTEGER NOT NULL,
         position INTEGER NOT NULL,
         stored_at TEXT NOT NULL,
+        fetched_at TEXT,
         PRIMARY KEY (entity, position)
       );
 
       CREATE INDEX IF NOT EXISTS idx_codemaat_entity_effort_entity
         ON codemaat_entity_effort(entity);
+      CREATE INDEX IF NOT EXISTS idx_codemaat_entity_effort_fetched_at
+        ON codemaat_entity_effort(fetched_at);
 
       CREATE TABLE IF NOT EXISTS codemaat_entity_ownership (
         entity TEXT NOT NULL,
@@ -213,6 +228,7 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
         deleted INTEGER NOT NULL,
         position INTEGER NOT NULL,
         stored_at TEXT NOT NULL,
+        fetched_at TEXT,
         PRIMARY KEY (entity, author, position)
       );
 
@@ -220,18 +236,44 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
         ON codemaat_entity_ownership(entity);
       CREATE INDEX IF NOT EXISTS idx_codemaat_entity_ownership_author
         ON codemaat_entity_ownership(author);
+      CREATE INDEX IF NOT EXISTS idx_codemaat_entity_ownership_fetched_at
+        ON codemaat_entity_ownership(fetched_at);
     `);
+
+    this.ensureFetchedAtColumn(db, 'codemaat_code_churn');
+    this.ensureFetchedAtColumn(db, 'codemaat_file_coupling');
+    this.ensureFetchedAtColumn(db, 'codemaat_entity_churn');
+    this.ensureFetchedAtColumn(db, 'codemaat_entity_effort');
+    this.ensureFetchedAtColumn(db, 'codemaat_entity_ownership');
   }
 
-  private importCodeChurn(db: DatabaseSync): number {
-    const records = this.readCsvRecords('abs-churn.csv');
-    db.prepare('DELETE FROM codemaat_code_churn').run();
+  private ensureFetchedAtColumn(db: DatabaseSync, tableName: string): void {
+    const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name: string }>;
+
+    const hasFetchedAt = columns.some((column) => column.name === 'fetched_at');
+    if (!hasFetchedAt) {
+      db.exec(`ALTER TABLE ${tableName} ADD COLUMN fetched_at TEXT`);
+    }
+
+    db.prepare(`UPDATE ${tableName} SET fetched_at = stored_at WHERE fetched_at IS NULL`).run();
+  }
+
+  private getNextPosition(db: DatabaseSync, tableName: string): number {
+    const row = db
+      .prepare(`SELECT COALESCE(MAX(position), -1) AS max_position FROM ${tableName}`)
+      .get() as { max_position: number };
+
+    return this.toNumber(row?.max_position) + 1;
+  }
+
+  private importCodeChurn(db: DatabaseSync, fetchedAt: string, sourceDirectory: string): number {
+    const records = this.readCsvRecords('abs-churn.csv', sourceDirectory);
     const insert = db.prepare(
       `INSERT INTO codemaat_code_churn
-        (date, added, deleted, commits, position, stored_at)
-       VALUES (?, ?, ?, ?, ?, ?)`
+        (date, added, deleted, commits, position, stored_at, fetched_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
-    const storedAt = new Date().toISOString();
+    const positionStart = this.getNextPosition(db, 'codemaat_code_churn');
     let imported = 0;
 
     records.forEach((record, position) => {
@@ -244,22 +286,29 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
         return;
       }
 
-      insert.run(date, added, deleted, commits || 1, position, storedAt);
+      insert.run(
+        date,
+        added,
+        deleted,
+        commits || 1,
+        positionStart + position,
+        fetchedAt,
+        fetchedAt
+      );
       imported += 1;
     });
 
     return imported;
   }
 
-  private importFileCoupling(db: DatabaseSync): number {
-    const records = this.readCsvRecords('coupling.csv');
-    db.prepare('DELETE FROM codemaat_file_coupling').run();
+  private importFileCoupling(db: DatabaseSync, fetchedAt: string, sourceDirectory: string): number {
+    const records = this.readCsvRecords('coupling.csv', sourceDirectory);
     const insert = db.prepare(
       `INSERT INTO codemaat_file_coupling
-        (entity, coupled, degree, average_revs, position, stored_at)
-       VALUES (?, ?, ?, ?, ?, ?)`
+        (entity, coupled, degree, average_revs, position, stored_at, fetched_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
-    const storedAt = new Date().toISOString();
+    const positionStart = this.getNextPosition(db, 'codemaat_file_coupling');
     let imported = 0;
 
     records.forEach((record, position) => {
@@ -272,22 +321,29 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
         return;
       }
 
-      insert.run(entity, coupled, degree, averageRevs, position, storedAt);
+      insert.run(
+        entity,
+        coupled,
+        degree,
+        averageRevs,
+        positionStart + position,
+        fetchedAt,
+        fetchedAt
+      );
       imported += 1;
     });
 
     return imported;
   }
 
-  private importEntityChurn(db: DatabaseSync): number {
-    const records = this.readCsvRecords('entity-churn.csv');
-    db.prepare('DELETE FROM codemaat_entity_churn').run();
+  private importEntityChurn(db: DatabaseSync, fetchedAt: string, sourceDirectory: string): number {
+    const records = this.readCsvRecords('entity-churn.csv', sourceDirectory);
     const insert = db.prepare(
       `INSERT INTO codemaat_entity_churn
-        (entity, added, deleted, commits, position, stored_at)
-       VALUES (?, ?, ?, ?, ?, ?)`
+        (entity, added, deleted, commits, position, stored_at, fetched_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
-    const storedAt = new Date().toISOString();
+    const positionStart = this.getNextPosition(db, 'codemaat_entity_churn');
     let imported = 0;
 
     records.forEach((record, position) => {
@@ -301,8 +357,9 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
         this.toNumber(record.added),
         this.toNumber(record.deleted),
         this.toNumber(record.commits),
-        position,
-        storedAt
+        positionStart + position,
+        fetchedAt,
+        fetchedAt
       );
       imported += 1;
     });
@@ -310,15 +367,14 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
     return imported;
   }
 
-  private importEntityEffort(db: DatabaseSync): number {
-    const records = this.readCsvRecords('entity-effort.csv');
-    db.prepare('DELETE FROM codemaat_entity_effort').run();
+  private importEntityEffort(db: DatabaseSync, fetchedAt: string, sourceDirectory: string): number {
+    const records = this.readCsvRecords('entity-effort.csv', sourceDirectory);
     const insert = db.prepare(
       `INSERT INTO codemaat_entity_effort
-        (entity, total_revs, position, stored_at)
-       VALUES (?, ?, ?, ?)`
+        (entity, total_revs, position, stored_at, fetched_at)
+       VALUES (?, ?, ?, ?, ?)`
     );
-    const storedAt = new Date().toISOString();
+    const positionStart = this.getNextPosition(db, 'codemaat_entity_effort');
     let imported = 0;
 
     records.forEach((record, position) => {
@@ -330,8 +386,9 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
       insert.run(
         entity,
         this.toNumber(record['total-revs'] || record.total_revs || record.revs),
-        position,
-        storedAt
+        positionStart + position,
+        fetchedAt,
+        fetchedAt
       );
       imported += 1;
     });
@@ -339,15 +396,18 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
     return imported;
   }
 
-  private importEntityOwnership(db: DatabaseSync): number {
-    const records = this.readCsvRecords('entity-ownership.csv');
-    db.prepare('DELETE FROM codemaat_entity_ownership').run();
+  private importEntityOwnership(
+    db: DatabaseSync,
+    fetchedAt: string,
+    sourceDirectory: string
+  ): number {
+    const records = this.readCsvRecords('entity-ownership.csv', sourceDirectory);
     const insert = db.prepare(
       `INSERT INTO codemaat_entity_ownership
-        (entity, author, added, deleted, position, stored_at)
-       VALUES (?, ?, ?, ?, ?, ?)`
+        (entity, author, added, deleted, position, stored_at, fetched_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
-    const storedAt = new Date().toISOString();
+    const positionStart = this.getNextPosition(db, 'codemaat_entity_ownership');
     let imported = 0;
 
     records.forEach((record, position) => {
@@ -362,12 +422,33 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
         author,
         this.toNumber(record.added),
         this.toNumber(record.deleted),
-        position,
-        storedAt
+        positionStart + position,
+        fetchedAt,
+        fetchedAt
       );
       imported += 1;
     });
 
     return imported;
+  }
+
+  private resolveLatestDataDirectory(): string {
+    const codemaatPath = this.configuration.getCodeMaatPath();
+
+    if (!fs.existsSync(codemaatPath)) {
+      return codemaatPath;
+    }
+
+    const runDirectories = fs
+      .readdirSync(codemaatPath, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && this.codeMaatRunDirectoryPattern.test(entry.name))
+      .map((entry) => entry.name)
+      .sort((a, b) => b.localeCompare(a));
+
+    if (runDirectories.length === 0) {
+      return codemaatPath;
+    }
+
+    return path.join(codemaatPath, runDirectories[0]);
   }
 }

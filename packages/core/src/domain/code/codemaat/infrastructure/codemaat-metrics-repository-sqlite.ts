@@ -1,7 +1,15 @@
 import { DatabaseSync } from 'node:sqlite';
 import { Logger } from '@smmachine/utils';
 import { Configuration } from '../../../../infrastructure/configuration';
-import type { CodeChurnResult, FileCoupling } from '../../../../providers/codemaat/types';
+import type {
+  CodeChurnResult,
+  CodeMaatCodeChurnEntry,
+  CodeMaatEntityChurnEntry,
+  CodeMaatEntityEffortEntry,
+  CodeMaatEntityOwnershipEntry,
+  CodeMaatFileCouplingEntry,
+  FileCoupling,
+} from '../../../../providers/codemaat/types';
 import { RepositoryFactory } from '../../../../infrastructure/repository-factory';
 import { normalizePatternList } from '../../../../domain/code/pattern-filters';
 import { CodeMaatMetricsCsvRepository } from './codemaat-metrics-repository-csv';
@@ -9,6 +17,9 @@ import type {
   CodeChurnValueResult,
   CodeMaatChurnOptions,
   CodeMaatEntityFilterOptions,
+  EntityChurnRecord,
+  EntityEffortRecord,
+  EntityOwnershipRecord,
 } from '../../../../domain/code/codemaat/repositories/codemaat-metrics-repository';
 
 export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepository {
@@ -38,18 +49,28 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
           endDate: options?.endDate,
         };
       }
+      this.ensureFetchedAtColumn(db, 'codemaat_code_churn');
 
       const startDate = options?.startDate ? this.toDateOnly(options.startDate) : undefined;
       const endDate = options?.endDate ? this.toDateOnly(options.endDate) : undefined;
+      const latestFetchedAt = this.getLatestFetchedAt(db, 'codemaat_code_churn');
       const rows = db
         .prepare(
           `SELECT date, added, deleted, commits
            FROM codemaat_code_churn
            WHERE (? IS NULL OR date >= ?)
              AND (? IS NULL OR date <= ?)
+             AND (? IS NULL OR COALESCE(fetched_at, stored_at) = ?)
            ORDER BY date ASC, position ASC`
         )
-        .all(startDate ?? null, startDate ?? null, endDate ?? null, endDate ?? null) as Array<{
+        .all(
+          startDate ?? null,
+          startDate ?? null,
+          endDate ?? null,
+          endDate ?? null,
+          latestFetchedAt,
+          latestFetchedAt
+        ) as Array<{
         date: string;
         added: number;
         deleted: number;
@@ -86,20 +107,78 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
     }
   }
 
+  override async getCodeChurnHistory(
+    options?: CodeMaatChurnOptions
+  ): Promise<CodeMaatCodeChurnEntry[]> {
+    const db = this.openSqlite();
+    try {
+      if (!this.tableExists(db, 'codemaat_code_churn')) {
+        return [];
+      }
+      this.ensureFetchedAtColumn(db, 'codemaat_code_churn');
+
+      const startDate = options?.startDate ? this.toDateOnly(options.startDate) : undefined;
+      const endDate = options?.endDate ? this.toDateOnly(options.endDate) : undefined;
+      const rows = db
+        .prepare(
+          `SELECT date, added, deleted, commits, COALESCE(fetched_at, stored_at) AS fetchedAt
+           FROM codemaat_code_churn
+           WHERE (? IS NULL OR date >= ?)
+             AND (? IS NULL OR date <= ?)
+           ORDER BY fetchedAt ASC, date ASC, position ASC`
+        )
+        .all(startDate ?? null, startDate ?? null, endDate ?? null, endDate ?? null) as Array<{
+        date: string;
+        added: number;
+        deleted: number;
+        commits: number;
+        fetchedAt: string;
+      }>;
+
+      const entries = new Map<string, CodeChurnResult>();
+      for (const row of rows) {
+        const fetchedAt = row.fetchedAt || new Date(0).toISOString();
+        const existing = entries.get(fetchedAt) ?? {
+          data: [],
+          startDate: options?.startDate,
+          endDate: options?.endDate,
+        };
+
+        existing.data.push({
+          date: row.date,
+          added: this.toNumber(row.added),
+          deleted: this.toNumber(row.deleted),
+          commits: this.toNumber(row.commits),
+        });
+
+        entries.set(fetchedAt, existing);
+      }
+
+      return Array.from(entries.entries()).map(([fetchedAt, data]) => ({ fetchedAt, data }));
+    } finally {
+      db.close();
+    }
+  }
+
   override async getFileCoupling(options?: CodeMaatEntityFilterOptions): Promise<FileCoupling[]> {
     const db = this.openSqlite();
     try {
       if (!this.tableExists(db, 'codemaat_file_coupling')) {
         return [];
       }
+      this.ensureFetchedAtColumn(db, 'codemaat_file_coupling');
 
       const rows = db
         .prepare(
           `SELECT entity, coupled, degree, average_revs AS averageRevs
            FROM codemaat_file_coupling
+           WHERE (? IS NULL OR COALESCE(fetched_at, stored_at) = ?)
            ORDER BY position ASC`
         )
-        .all() as unknown as FileCoupling[];
+        .all(
+          this.getLatestFetchedAt(db, 'codemaat_file_coupling'),
+          this.getLatestFetchedAt(db, 'codemaat_file_coupling')
+        ) as unknown as FileCoupling[];
 
       const filtered = rows
         .map((row) => ({
@@ -118,22 +197,84 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
     }
   }
 
+  override async getFileCouplingHistory(
+    options?: CodeMaatEntityFilterOptions
+  ): Promise<CodeMaatFileCouplingEntry[]> {
+    const db = this.openSqlite();
+    try {
+      if (!this.tableExists(db, 'codemaat_file_coupling')) {
+        return [];
+      }
+      this.ensureFetchedAtColumn(db, 'codemaat_file_coupling');
+
+      const rows = db
+        .prepare(
+          `SELECT entity, coupled, degree, average_revs AS averageRevs,
+                  COALESCE(fetched_at, stored_at) AS fetchedAt
+           FROM codemaat_file_coupling
+           ORDER BY fetchedAt ASC, position ASC`
+        )
+        .all() as Array<{
+        entity: string;
+        coupled: string;
+        degree: number;
+        averageRevs: number;
+        fetchedAt: string;
+      }>;
+
+      const grouped = new Map<string, FileCoupling[]>();
+      for (const row of rows) {
+        const fetchedAt = row.fetchedAt || new Date(0).toISOString();
+        const current = grouped.get(fetchedAt) ?? [];
+        const normalized = {
+          entity: row.entity,
+          coupled: row.coupled,
+          degree: this.toNumber(row.degree),
+          averageRevs: this.toNumber(row.averageRevs),
+        };
+
+        if (this.matchesCouplingFilters(normalized.entity, normalized.coupled, options)) {
+          current.push(normalized);
+          grouped.set(fetchedAt, current);
+        }
+      }
+
+      return Array.from(grouped.entries()).map(([fetchedAt, data]) => ({
+        fetchedAt,
+        data:
+          options?.sortBy === 'degree'
+            ? this.limitRows(
+                [...data].sort((a, b) => b.degree - a.degree),
+                options?.top
+              )
+            : this.limitRows(data, options?.top),
+      }));
+    } finally {
+      db.close();
+    }
+  }
+
   override async getEntityChurn(
     options?: CodeMaatEntityFilterOptions
-  ): Promise<Array<{ entity: string; added: number; deleted: number; commits: number }>> {
+  ): Promise<EntityChurnRecord[]> {
     const db = this.openSqlite();
     try {
       if (!this.tableExists(db, 'codemaat_entity_churn')) {
         return [];
       }
+      this.ensureFetchedAtColumn(db, 'codemaat_entity_churn');
 
       const rows = db
         .prepare(
           `SELECT entity, added, deleted, commits
            FROM codemaat_entity_churn
+           WHERE (? IS NULL OR COALESCE(fetched_at, stored_at) = ?)
            ORDER BY position ASC`
         )
-        .all() as Array<{ entity: string; added: number; deleted: number; commits: number }>;
+        .all(
+          this.getLatestFetchedAt(db, 'codemaat_entity_churn'),
+          this.getLatestFetchedAt(db, 'codemaat_entity_churn')
+        ) as Array<{ entity: string; added: number; deleted: number; commits: number }>;
 
       return rows
         .map((row) => ({
@@ -151,22 +292,79 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
     }
   }
 
+  override async getEntityChurnHistory(
+    options?: CodeMaatEntityFilterOptions
+  ): Promise<CodeMaatEntityChurnEntry[]> {
+    const db = this.openSqlite();
+    try {
+      if (!this.tableExists(db, 'codemaat_entity_churn')) {
+        return [];
+      }
+      this.ensureFetchedAtColumn(db, 'codemaat_entity_churn');
+
+      const rows = db
+        .prepare(
+          `SELECT entity, added, deleted, commits, COALESCE(fetched_at, stored_at) AS fetchedAt
+           FROM codemaat_entity_churn
+           ORDER BY fetchedAt ASC, position ASC`
+        )
+        .all() as Array<{
+        entity: string;
+        added: number;
+        deleted: number;
+        commits: number;
+        fetchedAt: string;
+      }>;
+
+      const grouped = new Map<string, EntityChurnRecord[]>();
+      for (const row of rows) {
+        const fetchedAt = row.fetchedAt || new Date(0).toISOString();
+        const current = grouped.get(fetchedAt) ?? [];
+        const normalized = {
+          entity: row.entity,
+          added: this.toNumber(row.added),
+          deleted: this.toNumber(row.deleted),
+          commits: this.toNumber(row.commits),
+        };
+
+        if (normalized.entity.length > 0 && this.matchesEntityFilters(normalized.entity, options)) {
+          current.push(normalized);
+          grouped.set(fetchedAt, current);
+        }
+      }
+
+      return Array.from(grouped.entries()).map(([fetchedAt, data]) => ({
+        fetchedAt,
+        data: data
+          .sort((a, b) => b.added + b.deleted - (a.added + a.deleted))
+          .slice(0, this.resolveLimit(options?.top, Number.POSITIVE_INFINITY)),
+      }));
+    } finally {
+      db.close();
+    }
+  }
+
   override async getEntityEffort(
     options?: CodeMaatEntityFilterOptions
-  ): Promise<Array<{ entity: string; 'total-revs': number }>> {
+  ): Promise<EntityEffortRecord[]> {
     const db = this.openSqlite();
     try {
       if (!this.tableExists(db, 'codemaat_entity_effort')) {
         return [];
       }
+      this.ensureFetchedAtColumn(db, 'codemaat_entity_effort');
 
       const rows = db
         .prepare(
           `SELECT entity, total_revs
            FROM codemaat_entity_effort
+           WHERE (? IS NULL OR COALESCE(fetched_at, stored_at) = ?)
            ORDER BY position ASC`
         )
-        .all() as Array<{ entity: string; total_revs: number }>;
+        .all(
+          this.getLatestFetchedAt(db, 'codemaat_entity_effort'),
+          this.getLatestFetchedAt(db, 'codemaat_entity_effort')
+        ) as Array<{ entity: string; total_revs: number }>;
 
       const effortByEntity = new Map<string, number>();
       rows
@@ -194,28 +392,75 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
     }
   }
 
+  override async getEntityEffortHistory(
+    options?: CodeMaatEntityFilterOptions
+  ): Promise<CodeMaatEntityEffortEntry[]> {
+    const db = this.openSqlite();
+    try {
+      if (!this.tableExists(db, 'codemaat_entity_effort')) {
+        return [];
+      }
+      this.ensureFetchedAtColumn(db, 'codemaat_entity_effort');
+
+      const rows = db
+        .prepare(
+          `SELECT entity, total_revs, COALESCE(fetched_at, stored_at) AS fetchedAt
+           FROM codemaat_entity_effort
+           ORDER BY fetchedAt ASC, position ASC`
+        )
+        .all() as Array<{ entity: string; total_revs: number; fetchedAt: string }>;
+
+      const grouped = new Map<string, Map<string, number>>();
+      for (const row of rows) {
+        if (!row.entity || !this.matchesEntityFilters(row.entity, options)) {
+          continue;
+        }
+
+        const fetchedAt = row.fetchedAt || new Date(0).toISOString();
+        const entityMap = grouped.get(fetchedAt) ?? new Map<string, number>();
+        const totalRevs = this.toNumber(row.total_revs);
+        entityMap.set(row.entity, Math.max(entityMap.get(row.entity) ?? 0, totalRevs));
+        grouped.set(fetchedAt, entityMap);
+      }
+
+      return Array.from(grouped.entries()).map(([fetchedAt, data]) => ({
+        fetchedAt,
+        data: Array.from(data, ([entity, totalRevs]) => ({ entity, 'total-revs': totalRevs }))
+          .sort((a, b) => b['total-revs'] - a['total-revs'])
+          .slice(0, this.resolveLimit(options?.top, Number.POSITIVE_INFINITY)),
+      }));
+    } finally {
+      db.close();
+    }
+  }
+
   override async getEntityOwnership(
     options: CodeMaatEntityFilterOptions & { select: 'authors' }
   ): Promise<string[]>;
   override async getEntityOwnership(
     options?: CodeMaatEntityFilterOptions
-  ): Promise<Array<{ entity: string; author: string; added: number; deleted: number }>>;
+  ): Promise<EntityOwnershipRecord[]>;
   override async getEntityOwnership(
     options?: CodeMaatEntityFilterOptions
-  ): Promise<Array<{ entity: string; author: string; added: number; deleted: number }> | string[]> {
+  ): Promise<EntityOwnershipRecord[] | string[]> {
     const db = this.openSqlite();
     try {
       if (!this.tableExists(db, 'codemaat_entity_ownership')) {
         return options?.select === 'authors' ? [] : [];
       }
+      this.ensureFetchedAtColumn(db, 'codemaat_entity_ownership');
 
       const rows = db
         .prepare(
           `SELECT entity, author, added, deleted
            FROM codemaat_entity_ownership
+           WHERE (? IS NULL OR COALESCE(fetched_at, stored_at) = ?)
            ORDER BY position ASC`
         )
-        .all() as Array<{ entity: string; author: string; added: number; deleted: number }>;
+        .all(
+          this.getLatestFetchedAt(db, 'codemaat_entity_ownership'),
+          this.getLatestFetchedAt(db, 'codemaat_entity_ownership')
+        ) as Array<{ entity: string; author: string; added: number; deleted: number }>;
 
       const authors = normalizePatternList(options?.authors).map((author) => author.toLowerCase());
       const filtered = rows
@@ -242,6 +487,72 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
     }
   }
 
+  override async getEntityOwnershipHistory(
+    options?: CodeMaatEntityFilterOptions
+  ): Promise<CodeMaatEntityOwnershipEntry[]> {
+    if (options?.select === 'authors') {
+      return [];
+    }
+
+    const db = this.openSqlite();
+    try {
+      if (!this.tableExists(db, 'codemaat_entity_ownership')) {
+        return [];
+      }
+      this.ensureFetchedAtColumn(db, 'codemaat_entity_ownership');
+
+      const rows = db
+        .prepare(
+          `SELECT entity, author, added, deleted, COALESCE(fetched_at, stored_at) AS fetchedAt
+           FROM codemaat_entity_ownership
+           ORDER BY fetchedAt ASC, position ASC`
+        )
+        .all() as Array<{
+        entity: string;
+        author: string;
+        added: number;
+        deleted: number;
+        fetchedAt: string;
+      }>;
+
+      const authors = normalizePatternList(options?.authors).map((author) => author.toLowerCase());
+      const grouped = new Map<string, EntityOwnershipRecord[]>();
+
+      for (const row of rows) {
+        const normalized = {
+          entity: row.entity,
+          author: row.author,
+          added: this.toNumber(row.added),
+          deleted: this.toNumber(row.deleted),
+        };
+
+        if (!normalized.entity || !normalized.author) {
+          continue;
+        }
+        if (!this.matchesEntityFilters(normalized.entity, options)) {
+          continue;
+        }
+        if (authors.length > 0 && !authors.includes(normalized.author.toLowerCase())) {
+          continue;
+        }
+
+        const fetchedAt = row.fetchedAt || new Date(0).toISOString();
+        const current = grouped.get(fetchedAt) ?? [];
+        current.push(normalized);
+        grouped.set(fetchedAt, current);
+      }
+
+      return Array.from(grouped.entries()).map(([fetchedAt, data]) => ({
+        fetchedAt,
+        data: data
+          .sort((a, b) => b.added + b.deleted - (a.added + a.deleted))
+          .slice(0, this.resolveLimit(options?.top, Number.POSITIVE_INFINITY)),
+      }));
+    } finally {
+      db.close();
+    }
+  }
+
   private openSqlite(): DatabaseSync {
     return new DatabaseSync(this.sqliteDbPath);
   }
@@ -252,5 +563,28 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
         .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1")
         .get(tableName)
     );
+  }
+
+  private getLatestFetchedAt(db: DatabaseSync, tableName: string): string | null {
+    if (!this.tableExists(db, tableName)) {
+      return null;
+    }
+    this.ensureFetchedAtColumn(db, tableName);
+
+    const row = db
+      .prepare(`SELECT MAX(COALESCE(fetched_at, stored_at)) AS latest FROM ${tableName}`)
+      .get() as { latest: string | null };
+
+    return row?.latest ?? null;
+  }
+
+  private ensureFetchedAtColumn(db: DatabaseSync, tableName: string): void {
+    const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name: string }>;
+
+    if (!columns.some((column) => column.name === 'fetched_at')) {
+      db.exec(`ALTER TABLE ${tableName} ADD COLUMN fetched_at TEXT`);
+    }
+
+    db.prepare(`UPDATE ${tableName} SET fetched_at = stored_at WHERE fetched_at IS NULL`).run();
   }
 }

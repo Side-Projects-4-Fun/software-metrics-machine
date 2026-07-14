@@ -207,6 +207,110 @@ describe('CodeMaatMetricsRepository', () => {
       await expect(sqliteReadRepository.getEntityOwnership()).resolves.toEqual([
         { entity: 'src/Button.ts', author: 'Ada', added: 10, deleted: 2 },
       ]);
+
+      await expect(sqliteReadRepository.getCodeChurnHistory()).resolves.toHaveLength(1);
+    } finally {
+      rmSync(storeDir, { recursive: true, force: true });
+    }
+  });
+
+  it('stores append-only CodeMaat snapshots and keeps latest reads unchanged', async () => {
+    const storeDir = mkdtempSync(path.join(tmpdir(), 'smm-codemaat-sqlite-history-'));
+    const config = new Configuration({
+      storeData: storeDir,
+      gitProvider: 'github',
+      githubRepository: 'owner/repo',
+      gitRepositoryLocation: '/tmp/repo',
+      internal: { storageType: 'sqlite' },
+    });
+    const logger = new MockLoggerBuilder().build();
+    const sqliteWriteRepository = CodemaatFactory.createWriteRepository(config, logger);
+    const sqliteReadRepository = CodemaatFactory.create(config, logger);
+    const codemaatDir = config.getCodeMaatPath();
+    mkdirSync(codemaatDir, { recursive: true });
+
+    try {
+      writeFileSync(
+        path.join(codemaatDir, 'abs-churn.csv'),
+        ['date,added,deleted,commits', '2026-01-01,10,1,1'].join('\n')
+      );
+      writeFileSync(
+        path.join(codemaatDir, 'coupling.csv'),
+        ['entity,coupled,degree,average-revs', 'src/one.ts,src/two.ts,50,2'].join('\n')
+      );
+      writeFileSync(
+        path.join(codemaatDir, 'entity-churn.csv'),
+        ['entity,added,deleted,commits', 'src/one.ts,10,1,1'].join('\n')
+      );
+      writeFileSync(
+        path.join(codemaatDir, 'entity-effort.csv'),
+        ['entity,total-revs', 'src/one.ts,1'].join('\n')
+      );
+      writeFileSync(
+        path.join(codemaatDir, 'entity-ownership.csv'),
+        ['entity,author,added,deleted', 'src/one.ts,Ada,10,1'].join('\n')
+      );
+
+      await sqliteWriteRepository.persistFetchedMetrics();
+
+      writeFileSync(
+        path.join(codemaatDir, 'abs-churn.csv'),
+        ['date,added,deleted,commits', '2026-01-01,99,9,2'].join('\n')
+      );
+      writeFileSync(
+        path.join(codemaatDir, 'coupling.csv'),
+        ['entity,coupled,degree,average-revs', 'src/one.ts,src/three.ts,80,4'].join('\n')
+      );
+      writeFileSync(
+        path.join(codemaatDir, 'entity-churn.csv'),
+        ['entity,added,deleted,commits', 'src/one.ts,99,9,2'].join('\n')
+      );
+      writeFileSync(
+        path.join(codemaatDir, 'entity-effort.csv'),
+        ['entity,total-revs', 'src/one.ts,2'].join('\n')
+      );
+      writeFileSync(
+        path.join(codemaatDir, 'entity-ownership.csv'),
+        ['entity,author,added,deleted', 'src/one.ts,Bob,99,9'].join('\n')
+      );
+
+      await sqliteWriteRepository.persistFetchedMetrics();
+
+      await expect(sqliteReadRepository.getCodeChurn()).resolves.toEqual({
+        data: [{ date: '2026-01-01', added: 99, deleted: 9, commits: 2 }],
+        startDate: undefined,
+        endDate: undefined,
+      });
+
+      await expect(sqliteReadRepository.getCodeChurnHistory()).resolves.toMatchObject([
+        {
+          data: [{ date: '2026-01-01', added: 10, deleted: 1, commits: 1 }],
+        },
+        {
+          data: [{ date: '2026-01-01', added: 99, deleted: 9, commits: 2 }],
+        },
+      ]);
+
+      const churnHistory = await sqliteReadRepository.getCodeChurnHistory();
+      expect(churnHistory).toHaveLength(2);
+      expect(typeof churnHistory[0].fetchedAt).toBe('string');
+      expect(typeof churnHistory[1].fetchedAt).toBe('string');
+      expect(new Date(churnHistory[0].fetchedAt).getTime()).toBeLessThanOrEqual(
+        new Date(churnHistory[1].fetchedAt).getTime()
+      );
+
+      await expect(sqliteReadRepository.getFileCoupling()).resolves.toEqual([
+        {
+          entity: 'src/one.ts',
+          coupled: 'src/three.ts',
+          degree: 80,
+          averageRevs: 4,
+        },
+      ]);
+      await expect(sqliteReadRepository.getFileCouplingHistory()).resolves.toHaveLength(2);
+      await expect(sqliteReadRepository.getEntityChurnHistory()).resolves.toHaveLength(2);
+      await expect(sqliteReadRepository.getEntityEffortHistory()).resolves.toHaveLength(2);
+      await expect(sqliteReadRepository.getEntityOwnershipHistory()).resolves.toHaveLength(2);
     } finally {
       rmSync(storeDir, { recursive: true, force: true });
     }

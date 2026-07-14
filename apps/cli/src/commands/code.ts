@@ -243,7 +243,7 @@ export function createCodeCommands(program: SmmCommand): void {
     .subcommand('codemaat-fetch')
     .description('Fetch CodeMaat CSV data from the git repository')
     .requiredOption('--start-date <date>', 'Start date (YYYY-MM-DD)')
-    .option('--end-date <date>', 'End date (YYYY-MM-DD)')
+    .requiredOption('--end-date <date>', 'End date (YYYY-MM-DD)')
     .option('--subfolder <path>', 'Subfolder within the repository to analyze', '')
     .option('--force', 'Force regeneration of CodeMaat CSV files')
     .option('--output <format>', 'Output format (text|json)', 'text')
@@ -255,6 +255,7 @@ export function createCodeCommands(program: SmmCommand): void {
         const fetchRepository = CodemaatFactory.createWriteRepository(config, logger);
         const result = fetchRepository.fetch({
           startDate: options.startDate,
+          endDate: options.endDate,
           subfolder: options.subfolder,
           force: options.force,
           scriptPath:

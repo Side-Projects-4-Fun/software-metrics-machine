@@ -26,7 +26,7 @@ export class CodemaatFetchCsvRepository implements ICodeMaatFetchRepository {
       throw new Error('Git repository path is not configured.');
     }
 
-    const outputDirectory = options.outputDirectory || this.configuration.getCodeMaatPath();
+    const outputDirectory = this.resolveOutputDirectory(options);
     fs.mkdirSync(outputDirectory, { recursive: true });
 
     const scriptPath = this.resolveScriptPath(options.scriptPath);
@@ -41,6 +41,7 @@ export class CodemaatFetchCsvRepository implements ICodeMaatFetchRepository {
         repositoryPath,
         outputDirectory,
         options.startDate,
+        options.endDate || this.toDateOnly(new Date().toISOString()),
         options.subfolder || '',
         options.force ? 'true' : 'false',
       ],
@@ -60,6 +61,23 @@ export class CodemaatFetchCsvRepository implements ICodeMaatFetchRepository {
 
   async persistFetchedMetrics(): Promise<CodeMaatPersistenceResult> {
     return { persisted: false, records: 0 };
+  }
+
+  protected resolveOutputDirectory(options: CodemaatFetchOptions): string {
+    const outputBaseDirectory = options.outputDirectory || this.configuration.getCodeMaatPath();
+    const startDate = this.toDateOnly(options.startDate);
+    const endDate = this.toDateOnly(options.endDate || new Date().toISOString());
+
+    return path.join(outputBaseDirectory, `${startDate}_to_${endDate}`);
+  }
+
+  private toDateOnly(value: string): string {
+    const parsed = new Date(value);
+    if (Number.isFinite(parsed.getTime())) {
+      return parsed.toISOString().split('T')[0];
+    }
+
+    return value.split('T')[0];
   }
 
   private resolveScriptPath(explicitScriptPath?: string): string {
