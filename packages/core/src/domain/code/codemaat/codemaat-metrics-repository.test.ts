@@ -55,6 +55,30 @@ describe('CodeMaatMetricsRepository', () => {
     ]);
   });
 
+  it('should parse valid layered coupling CSV', async () => {
+    const csvContent = `entity,coupled,degree,average-revs
+layer-a,layer-b,45,2
+layer-c,layer-d,78,5`;
+
+    writeFileSync(path.join(dataDir, 'coupling-layers.csv'), csvContent);
+
+    const result = await repository.getLayeredCoupling();
+
+    expect(result.length).toBe(2);
+    expect(result[0]).toEqual({
+      entity: 'layer-a',
+      coupled: 'layer-b',
+      degree: 45,
+      averageRevs: 2,
+    });
+    expect(result[1]).toEqual({
+      entity: 'layer-c',
+      coupled: 'layer-d',
+      degree: 78,
+      averageRevs: 5,
+    });
+  });
+
   it('applies shared include and ignore patterns to entity metrics', async () => {
     writeFileSync(
       path.join(dataDir, 'entity-churn.csv'),
@@ -165,6 +189,10 @@ describe('CodeMaatMetricsRepository', () => {
         ['entity,coupled,degree,average-revs', 'src/Button.ts,src/utils.ts,90,4'].join('\n')
       );
       writeFileSync(
+        path.join(codemaatDir, 'coupling-layers.csv'),
+        ['entity,coupled,degree,average-revs', 'layer-a,layer-b,70,3'].join('\n')
+      );
+      writeFileSync(
         path.join(codemaatDir, 'entity-churn.csv'),
         ['entity,added,deleted,commits', 'src/Button.ts,10,2,3'].join('\n')
       );
@@ -179,7 +207,7 @@ describe('CodeMaatMetricsRepository', () => {
 
       await expect(sqliteWriteRepository.persistFetchedMetrics()).resolves.toEqual({
         persisted: true,
-        records: 6,
+        records: 7,
       });
       expect(existsSync(path.join(config.getBaseDirectory(), 'smm.sqlite'))).toBe(true);
       await expect(sqliteReadRepository.getCodeChurn()).resolves.toEqual({
@@ -196,6 +224,14 @@ describe('CodeMaatMetricsRepository', () => {
           coupled: 'src/utils.ts',
           degree: 90,
           averageRevs: 4,
+        },
+      ]);
+      await expect(sqliteReadRepository.getLayeredCoupling({ sortBy: 'degree' })).resolves.toEqual([
+        {
+          entity: 'layer-a',
+          coupled: 'layer-b',
+          degree: 70,
+          averageRevs: 3,
         },
       ]);
       await expect(sqliteReadRepository.getEntityChurn()).resolves.toEqual([
@@ -239,6 +275,10 @@ describe('CodeMaatMetricsRepository', () => {
         ['entity,coupled,degree,average-revs', 'src/one.ts,src/two.ts,50,2'].join('\n')
       );
       writeFileSync(
+        path.join(codemaatDir, 'coupling-layers.csv'),
+        ['entity,coupled,degree,average-revs', 'layer-x,layer-y,55,2'].join('\n')
+      );
+      writeFileSync(
         path.join(codemaatDir, 'entity-churn.csv'),
         ['entity,added,deleted,commits', 'src/one.ts,10,1,1'].join('\n')
       );
@@ -260,6 +300,10 @@ describe('CodeMaatMetricsRepository', () => {
       writeFileSync(
         path.join(codemaatDir, 'coupling.csv'),
         ['entity,coupled,degree,average-revs', 'src/one.ts,src/three.ts,80,4'].join('\n')
+      );
+      writeFileSync(
+        path.join(codemaatDir, 'coupling-layers.csv'),
+        ['entity,coupled,degree,average-revs', 'layer-x,layer-z,95,6'].join('\n')
       );
       writeFileSync(
         path.join(codemaatDir, 'entity-churn.csv'),
@@ -307,7 +351,16 @@ describe('CodeMaatMetricsRepository', () => {
           averageRevs: 4,
         },
       ]);
+      await expect(sqliteReadRepository.getLayeredCoupling()).resolves.toEqual([
+        {
+          entity: 'layer-x',
+          coupled: 'layer-z',
+          degree: 95,
+          averageRevs: 6,
+        },
+      ]);
       await expect(sqliteReadRepository.getFileCouplingHistory()).resolves.toHaveLength(2);
+      await expect(sqliteReadRepository.getLayeredCouplingHistory()).resolves.toHaveLength(2);
       await expect(sqliteReadRepository.getEntityChurnHistory()).resolves.toHaveLength(2);
       await expect(sqliteReadRepository.getEntityEffortHistory()).resolves.toHaveLength(2);
       await expect(sqliteReadRepository.getEntityOwnershipHistory()).resolves.toHaveLength(2);

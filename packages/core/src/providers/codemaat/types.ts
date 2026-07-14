@@ -18,9 +18,17 @@ export interface FileCoupling {
   averageRevs: number;
 }
 
+export interface LayeredCoupling {
+  entity: string;
+  coupled: string;
+  degree: number;
+  averageRevs: number;
+}
+
 export interface CodemaatAnalysisResult {
   churn?: CodeChurnResult;
   coupling?: FileCoupling[];
+  layeredCoupling?: LayeredCoupling[];
   entityChurn?: Array<Record<string, unknown>>;
   entityEffort?: Array<{ entity: string; 'total-revs': number }>;
   entityOwnership?: Array<{ entity: string; author: string; added: number; deleted: number }>;
@@ -34,6 +42,8 @@ export interface CodeMaatTimestampedEntry<T> {
 export type CodeMaatCodeChurnEntry = CodeMaatTimestampedEntry<CodeChurnResult>;
 
 export type CodeMaatFileCouplingEntry = CodeMaatTimestampedEntry<FileCoupling[]>;
+
+export type CodeMaatLayeredCouplingEntry = CodeMaatTimestampedEntry<LayeredCoupling[]>;
 
 export type CodeMaatEntityChurnEntry = CodeMaatTimestampedEntry<
   Array<{ entity: string; added: number; deleted: number; commits: number }>

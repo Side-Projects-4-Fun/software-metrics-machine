@@ -330,6 +330,13 @@ export type CodeCouplingResponse = Array<{
   averageRevs: number;
 }>;
 
+export type CodeLayeredCouplingResponse = Array<{
+  entity: string;
+  coupled: string;
+  degree: number;
+  averageRevs: number;
+}>;
+
 export type CodeEntityChurnResponse = Array<{
   entity: string;
   added: number;
@@ -368,6 +375,11 @@ export type CodeChurnHistoryResponse = Array<{
 export type CodeCouplingHistoryResponse = Array<{
   fetchedAt: string;
   data: CodeCouplingResponse;
+}>;
+
+export type CodeLayeredCouplingHistoryResponse = Array<{
+  fetchedAt: string;
+  data: CodeLayeredCouplingResponse;
 }>;
 
 export type CodeEntityChurnHistoryResponse = Array<{

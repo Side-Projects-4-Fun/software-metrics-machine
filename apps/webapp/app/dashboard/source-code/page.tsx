@@ -8,6 +8,7 @@ import EntityEffortCard from '@/components/charts/source-code/EntityEffortCard';
 import CodeChurnOverTimeCard from '@/components/charts/source-code/CodeChurnOverTimeCard';
 import EntityOwnershipCard from '@/components/charts/source-code/EntityOwnershipCard';
 import CodeCouplingCard from '@/components/charts/source-code/CodeCouplingCard';
+import LayeredCouplingClusterCard from '@/components/charts/source-code/LayeredCouplingClusterCard';
 import CrapMetricCard from '@/components/charts/source-code/CrapMetricCard';
 import { calculateCrapScore } from '@/components/charts/source-code/crap-metric';
 import EntityEffortTreemap from '@/components/entity-effort-treemap';
@@ -18,6 +19,7 @@ import {
   EntityChurnData,
   EntityEffortData,
   EntityOwnershipData,
+  LayeredCouplingData,
 } from '@/components/charts/source-code/types';
 import { LatestPairedCommitsCard } from "@/components/charts/source-code/LatestPairedCommitsCard";
 import { TopPairingsCard } from '@/components/charts/source-code/TopPairingsCard';
@@ -91,6 +93,7 @@ export default async function SourceCodePage({
   const bigOSearch = Array.isArray(bigOSearchParam) ? bigOSearchParam[0] ?? '' : bigOSearchParam ?? '';
   let entityChurn: EntityChurnData[] = [];
   let coupling: CouplingData[] = [];
+  let layeredCoupling: LayeredCouplingData[] = [];
   let entityEffort: EntityEffortData[] = [];
   let codeChurn: CodeChurnData[] = [];
   let entityOwnership: EntityOwnershipData[] = [];
@@ -112,9 +115,10 @@ export default async function SourceCodePage({
       metrics: 'complexity,coverage',
       remove_folders: 'true',
     };
-    const [churn, couplingData, effort, churnOverTime, ownership, pairing, bigO, sonarqubeTree] = await Promise.all([
+    const [churn, couplingData, layeredCouplingData, effort, churnOverTime, ownership, pairing, bigO, sonarqubeTree] = await Promise.all([
       sourceCodeAPI.entityChurn(apiParams),
       sourceCodeAPI.coupling(apiParams),
+      sourceCodeAPI.layeredCoupling(apiParams),
       sourceCodeAPI.entityEffort(apiParams),
       sourceCodeAPI.codeChurn(apiParams),
       sourceCodeAPI.entityOwnership(apiParams),
@@ -125,6 +129,9 @@ export default async function SourceCodePage({
     // Handle both direct array responses and wrapped responses
     entityChurn = ensureArray<EntityChurnData>(unwrapResult(churn as EntityChurnData[] | ResultWrapper<EntityChurnData[]>));
     coupling = ensureArray<CouplingData>(unwrapResult(couplingData as CouplingData[] | ResultWrapper<CouplingData[]>));
+    layeredCoupling = ensureArray<LayeredCouplingData>(
+      unwrapResult(layeredCouplingData as LayeredCouplingData[] | ResultWrapper<LayeredCouplingData[]>)
+    );
     entityEffort = ensureArray<EntityEffortData>(unwrapResult(effort as EntityEffortData[] | ResultWrapper<EntityEffortData[]>));
     codeChurn = ensureArray<CodeChurnData>(unwrapResult(churnOverTime as CodeChurnData[] | ResultWrapper<CodeChurnData[]>));
     entityOwnership = ensureArray<EntityOwnershipData>(unwrapResult(ownership as EntityOwnershipData[] | ResultWrapper<EntityOwnershipData[]>));
@@ -145,6 +152,7 @@ export default async function SourceCodePage({
     // Set empty arrays on error
     entityChurn = [];
     coupling = [];
+    layeredCoupling = [];
     entityEffort = [];
     codeChurn = [];
     entityOwnership = [];
@@ -185,6 +193,7 @@ export default async function SourceCodePage({
       </div>
 
       <CodeCouplingCard data={coupling} />
+      <LayeredCouplingClusterCard data={layeredCoupling} />
     </div>
   );
 }

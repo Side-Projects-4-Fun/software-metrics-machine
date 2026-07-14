@@ -56,6 +56,12 @@ export const sourceCodeAPI = {
       '/code/coupling',
       params
     ),
+
+  layeredCoupling: (params?: ApiParams) =>
+    fetchAPI<Array<{ entity: string; coupled: string; degree: number; averageRevs: number }>>(
+      '/code/layered-coupling',
+      params
+    ),
   
   entityEffort: (params?: ApiParams) =>
     fetchAPI<Array<{ entity: string; 'total-revs': number }>>(

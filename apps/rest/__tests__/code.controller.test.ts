@@ -11,6 +11,8 @@ describe('CodeController', () => {
       getCodeChurnHistory: vi.fn(),
       getFileCoupling: vi.fn(),
       getFileCouplingHistory: vi.fn(),
+      getLayeredCoupling: vi.fn(),
+      getLayeredCouplingHistory: vi.fn(),
       getEntityChurn: vi.fn(),
       getEntityChurnHistory: vi.fn(),
       getEntityEffort: vi.fn(),
@@ -150,6 +152,42 @@ describe('CodeController', () => {
       const result = await controller.couplingHistory('ignored.ts', 'included.ts', '5');
 
       expect(codemaat.getFileCouplingHistory).toHaveBeenCalledWith({
+        ignorePatterns: 'ignored.ts',
+        includePatterns: 'included.ts',
+        top: '5',
+        sortBy: 'degree',
+      });
+      expect(result).toBe(history);
+    });
+  });
+
+  describe('layeredCoupling', () => {
+    it('forwards query params with sortBy hardcoded to degree', async () => {
+      const { controller, codemaat } = createController();
+      const coupling = [{ entity: 'layer-a', coupled: 'layer-b', degree: 80, averageRevs: 3 }];
+      codemaat.getLayeredCoupling.mockResolvedValue(coupling);
+
+      const result = await controller.layeredCoupling('ignored.ts', 'included.ts', '5');
+
+      expect(codemaat.getLayeredCoupling).toHaveBeenCalledWith({
+        ignorePatterns: 'ignored.ts',
+        includePatterns: 'included.ts',
+        top: '5',
+        sortBy: 'degree',
+      });
+      expect(result).toBe(coupling);
+    });
+  });
+
+  describe('layeredCouplingHistory', () => {
+    it('forwards query params with sortBy hardcoded to degree', async () => {
+      const { controller, codemaat } = createController();
+      const history = [{ fetchedAt: '2026-07-13T12:00:00.000Z', data: [] }];
+      codemaat.getLayeredCouplingHistory.mockResolvedValue(history);
+
+      const result = await controller.layeredCouplingHistory('ignored.ts', 'included.ts', '5');
+
+      expect(codemaat.getLayeredCouplingHistory).toHaveBeenCalledWith({
         ignorePatterns: 'ignored.ts',
         includePatterns: 'included.ts',
         top: '5',

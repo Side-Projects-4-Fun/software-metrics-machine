@@ -10,6 +10,8 @@ import type {
   CodeChurnResponse,
   CodeCouplingHistoryResponse,
   CodeCouplingResponse,
+  CodeLayeredCouplingHistoryResponse,
+  CodeLayeredCouplingResponse,
   CodeEntityChurnHistoryResponse,
   CodeEntityChurnResponse,
   CodeEntityEffortHistoryResponse,
@@ -131,6 +133,36 @@ export class CodeController {
     @Query('top') top?: string
   ): Promise<CodeCouplingHistoryResponse> {
     return this.codemaat.getFileCouplingHistory({
+      ignorePatterns: ignoreFiles,
+      includePatterns: includeOnly,
+      top,
+      sortBy: 'degree',
+    });
+  }
+
+  @Get('/code/layered-coupling')
+  async layeredCoupling(
+    @Query('ignore_files') ignoreFiles?: string,
+    @Query('include_only') includeOnly?: string,
+    @Query('top') top?: string
+  ): Promise<CodeLayeredCouplingResponse> {
+    const coupling = await this.codemaat.getLayeredCoupling({
+      ignorePatterns: ignoreFiles,
+      includePatterns: includeOnly,
+      top,
+      sortBy: 'degree',
+    });
+
+    return coupling;
+  }
+
+  @Get('/code/layered-coupling/history')
+  async layeredCouplingHistory(
+    @Query('ignore_files') ignoreFiles?: string,
+    @Query('include_only') includeOnly?: string,
+    @Query('top') top?: string
+  ): Promise<CodeLayeredCouplingHistoryResponse> {
+    return this.codemaat.getLayeredCouplingHistory({
       ignorePatterns: ignoreFiles,
       includePatterns: includeOnly,
       top,

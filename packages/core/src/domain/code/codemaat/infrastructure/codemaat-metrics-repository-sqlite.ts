@@ -8,6 +8,8 @@ import type {
   CodeMaatEntityEffortEntry,
   CodeMaatEntityOwnershipEntry,
   CodeMaatFileCouplingEntry,
+  CodeMaatLayeredCouplingEntry,
+  LayeredCoupling,
   FileCoupling,
 } from '../../../../providers/codemaat/types';
 import { RepositoryFactory } from '../../../../infrastructure/repository-factory';
@@ -223,6 +225,102 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
       }>;
 
       const grouped = new Map<string, FileCoupling[]>();
+      for (const row of rows) {
+        const fetchedAt = row.fetchedAt || new Date(0).toISOString();
+        const current = grouped.get(fetchedAt) ?? [];
+        const normalized = {
+          entity: row.entity,
+          coupled: row.coupled,
+          degree: this.toNumber(row.degree),
+          averageRevs: this.toNumber(row.averageRevs),
+        };
+
+        if (this.matchesCouplingFilters(normalized.entity, normalized.coupled, options)) {
+          current.push(normalized);
+          grouped.set(fetchedAt, current);
+        }
+      }
+
+      return Array.from(grouped.entries()).map(([fetchedAt, data]) => ({
+        fetchedAt,
+        data:
+          options?.sortBy === 'degree'
+            ? this.limitRows(
+                [...data].sort((a, b) => b.degree - a.degree),
+                options?.top
+              )
+            : this.limitRows(data, options?.top),
+      }));
+    } finally {
+      db.close();
+    }
+  }
+
+  override async getLayeredCoupling(
+    options?: CodeMaatEntityFilterOptions
+  ): Promise<LayeredCoupling[]> {
+    const db = this.openSqlite();
+    try {
+      if (!this.tableExists(db, 'codemaat_layered_coupling')) {
+        return [];
+      }
+      this.ensureFetchedAtColumn(db, 'codemaat_layered_coupling');
+
+      const rows = db
+        .prepare(
+          `SELECT entity, coupled, degree, average_revs AS averageRevs
+           FROM codemaat_layered_coupling
+           WHERE (? IS NULL OR COALESCE(fetched_at, stored_at) = ?)
+           ORDER BY position ASC`
+        )
+        .all(
+          this.getLatestFetchedAt(db, 'codemaat_layered_coupling'),
+          this.getLatestFetchedAt(db, 'codemaat_layered_coupling')
+        ) as unknown as LayeredCoupling[];
+
+      const filtered = rows
+        .map((row) => ({
+          entity: row.entity,
+          coupled: row.coupled,
+          degree: this.toNumber(row.degree),
+          averageRevs: this.toNumber(row.averageRevs),
+        }))
+        .filter((row) => this.matchesCouplingFilters(row.entity, row.coupled, options));
+
+      const sorted =
+        options?.sortBy === 'degree' ? filtered.sort((a, b) => b.degree - a.degree) : filtered;
+      return this.limitRows(sorted, options?.top);
+    } finally {
+      db.close();
+    }
+  }
+
+  override async getLayeredCouplingHistory(
+    options?: CodeMaatEntityFilterOptions
+  ): Promise<CodeMaatLayeredCouplingEntry[]> {
+    const db = this.openSqlite();
+    try {
+      if (!this.tableExists(db, 'codemaat_layered_coupling')) {
+        return [];
+      }
+      this.ensureFetchedAtColumn(db, 'codemaat_layered_coupling');
+
+      const rows = db
+        .prepare(
+          `SELECT entity, coupled, degree, average_revs AS averageRevs,
+                  COALESCE(fetched_at, stored_at) AS fetchedAt
+           FROM codemaat_layered_coupling
+           ORDER BY fetchedAt ASC, position ASC`
+        )
+        .all() as Array<{
+        entity: string;
+        coupled: string;
+        degree: number;
+        averageRevs: number;
+        fetchedAt: string;
+      }>;
+
+      const grouped = new Map<string, LayeredCoupling[]>();
       for (const row of rows) {
         const fetchedAt = row.fetchedAt || new Date(0).toISOString();
         const current = grouped.get(fetchedAt) ?? [];

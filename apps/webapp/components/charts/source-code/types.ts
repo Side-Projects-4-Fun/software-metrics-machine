@@ -12,6 +12,13 @@ export interface CouplingData {
   averageRevs: number;
 }
 
+export interface LayeredCouplingData {
+  entity: string;
+  coupled: string;
+  degree: number;
+  averageRevs: number;
+}
+
 export interface EntityEffortData {
   entity: string;
   'total-revs': number;

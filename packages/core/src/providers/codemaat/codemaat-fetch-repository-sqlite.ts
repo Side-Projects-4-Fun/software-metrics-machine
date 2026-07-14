@@ -49,6 +49,7 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
         const imported =
           this.importCodeChurn(db, fetchedAt, dataDirectory) +
           this.importFileCoupling(db, fetchedAt, dataDirectory) +
+          this.importLayeredCoupling(db, fetchedAt, dataDirectory) +
           this.importEntityChurn(db, fetchedAt, dataDirectory) +
           this.importEntityEffort(db, fetchedAt, dataDirectory) +
           this.importEntityOwnership(db, fetchedAt, dataDirectory);
@@ -191,6 +192,26 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
       CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_fetched_at
         ON codemaat_file_coupling(fetched_at);
 
+      CREATE TABLE IF NOT EXISTS codemaat_layered_coupling (
+        entity TEXT NOT NULL,
+        coupled TEXT NOT NULL,
+        degree INTEGER NOT NULL,
+        average_revs INTEGER NOT NULL,
+        position INTEGER NOT NULL,
+        stored_at TEXT NOT NULL,
+        fetched_at TEXT,
+        PRIMARY KEY (entity, coupled, position)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_entity
+        ON codemaat_layered_coupling(entity);
+      CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_coupled
+        ON codemaat_layered_coupling(coupled);
+      CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_degree
+        ON codemaat_layered_coupling(degree);
+      CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_fetched_at
+        ON codemaat_layered_coupling(fetched_at);
+
       CREATE TABLE IF NOT EXISTS codemaat_entity_churn (
         entity TEXT NOT NULL,
         added INTEGER NOT NULL,
@@ -242,6 +263,7 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
 
     this.ensureFetchedAtColumn(db, 'codemaat_code_churn');
     this.ensureFetchedAtColumn(db, 'codemaat_file_coupling');
+    this.ensureFetchedAtColumn(db, 'codemaat_layered_coupling');
     this.ensureFetchedAtColumn(db, 'codemaat_entity_churn');
     this.ensureFetchedAtColumn(db, 'codemaat_entity_effort');
     this.ensureFetchedAtColumn(db, 'codemaat_entity_ownership');
@@ -309,6 +331,45 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
        VALUES (?, ?, ?, ?, ?, ?, ?)`
     );
     const positionStart = this.getNextPosition(db, 'codemaat_file_coupling');
+    let imported = 0;
+
+    records.forEach((record, position) => {
+      const entity = String(record.entity || record.file1 || record.entity1 || '');
+      const coupled = String(record.coupled || record.file2 || record.entity2 || '');
+      const degree = this.toNumber(record.degree || record.coupling_strength || record.strength);
+      const averageRevs = this.toNumber(record['average-revs'] || record.average_revs);
+
+      if (!entity || !coupled) {
+        return;
+      }
+
+      insert.run(
+        entity,
+        coupled,
+        degree,
+        averageRevs,
+        positionStart + position,
+        fetchedAt,
+        fetchedAt
+      );
+      imported += 1;
+    });
+
+    return imported;
+  }
+
+  private importLayeredCoupling(
+    db: DatabaseSync,
+    fetchedAt: string,
+    sourceDirectory: string
+  ): number {
+    const records = this.readCsvRecords('coupling-layers.csv', sourceDirectory);
+    const insert = db.prepare(
+      `INSERT INTO codemaat_layered_coupling
+        (entity, coupled, degree, average_revs, position, stored_at, fetched_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    );
+    const positionStart = this.getNextPosition(db, 'codemaat_layered_coupling');
     let imported = 0;
 
     records.forEach((record, position) => {

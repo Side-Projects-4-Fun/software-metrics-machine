@@ -8,7 +8,9 @@ import type {
   CodeMaatEntityEffortEntry,
   CodeMaatEntityOwnershipEntry,
   CodeMaatFileCouplingEntry,
+  CodeMaatLayeredCouplingEntry,
   CodemaatAnalysisResult,
+  LayeredCoupling,
   FileCoupling,
 } from '../../../../providers/codemaat/types';
 import { Configuration } from '../../../../infrastructure/configuration';
@@ -275,6 +277,40 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
       {
         fetchedAt: new Date(0).toISOString(),
         data: await this.getFileCoupling(options),
+      },
+    ];
+  }
+
+  async getLayeredCoupling(options?: CodeMaatEntityFilterOptions): Promise<LayeredCoupling[]> {
+    try {
+      const records = this.readCsvRecords('coupling-layers.csv', this.resolveDataDirectory());
+
+      const coupledData = records
+        .map((record) => ({
+          entity: String(record.entity || record.file1 || record.entity1 || ''),
+          coupled: String(record.coupled || record.file2 || record.entity2 || ''),
+          degree: this.toNumber(record.degree || record.coupling_strength || record.strength),
+          averageRevs: this.toNumber(record['average-revs'] || record.average_revs),
+        }))
+        .filter((row) => row.entity.length > 0 && row.coupled.length > 0)
+        .filter((row) => this.matchesCouplingFilters(row.entity, row.coupled, options))
+        .sort((a, b) => b.degree - a.degree);
+
+      return this.limitRows(coupledData, options?.top);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to read layered coupling: ${errorMsg}`);
+      throw error;
+    }
+  }
+
+  async getLayeredCouplingHistory(
+    options?: CodeMaatEntityFilterOptions
+  ): Promise<CodeMaatLayeredCouplingEntry[]> {
+    return [
+      {
+        fetchedAt: new Date(0).toISOString(),
+        data: await this.getLayeredCoupling(options),
       },
     ];
   }

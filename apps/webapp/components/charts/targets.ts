@@ -314,6 +314,21 @@ export const METRIC_TARGETS: Record<string, TargetDefinition> = {
       },
     ],
   },
+  'layered-coupling': {
+    target: '< 30% degree across layers',
+    description:
+      'Layer-level coupling should stay low so architectural modules can evolve independently without forcing cross-layer coordination.',
+    sources: [
+      {
+        label: 'Yourdon & Constantine (1979) — Structured Design: coupling and cohesion principles',
+        url: 'https://www.amazon.com/dp/0138544719',
+      },
+      {
+        label: 'El Emam et al. (2001) — JSS validation of OO design metrics',
+        url: 'https://doi.org/10.1016/S0164-1212(00)00104-7',
+      },
+    ],
+  },
   'big-o-classification': {
     target: 'Review O(n^2+) hotspots',
     description:

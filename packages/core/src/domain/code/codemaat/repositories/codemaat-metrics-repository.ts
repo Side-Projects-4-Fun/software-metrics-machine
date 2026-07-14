@@ -6,6 +6,7 @@ import {
   CodeMaatEntityEffortEntry,
   CodeMaatEntityOwnershipEntry,
   CodeMaatFileCouplingEntry,
+  CodeMaatLayeredCouplingEntry,
 } from '../../../../providers/codemaat/types';
 
 export type EntityChurnRecord = {
@@ -37,6 +38,10 @@ export interface ICodeMetricsRepository {
   getFileCouplingHistory(
     options?: CodeMaatEntityFilterOptions
   ): Promise<CodeMaatFileCouplingEntry[]>;
+  getLayeredCoupling(options?: CodeMaatEntityFilterOptions): Promise<FileCoupling[]>;
+  getLayeredCouplingHistory(
+    options?: CodeMaatEntityFilterOptions
+  ): Promise<CodeMaatLayeredCouplingEntry[]>;
   getEntityChurn(options?: CodeMaatEntityFilterOptions): Promise<EntityChurnRecord[]>;
   getEntityChurnHistory(options?: CodeMaatEntityFilterOptions): Promise<CodeMaatEntityChurnEntry[]>;
   getEntityEffort(options?: CodeMaatEntityFilterOptions): Promise<EntityEffortRecord[]>;
