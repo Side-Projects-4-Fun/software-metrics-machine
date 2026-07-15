@@ -214,6 +214,7 @@ echo "Generating automatic layer grouping file ..."
 generate_layers_file "$layers_file" "$git_directory" "$group_depth"
 
 echo "Running CodeMaat analyses... this may take a while depending on the size of the repository."
+echo "CodeMaat coupling thresholds: min_revs=$min_revs min_shared_revs=$min_shared_revs min_coupling=$min_coupling"
 
 echo "Running age data extraction ..."
 

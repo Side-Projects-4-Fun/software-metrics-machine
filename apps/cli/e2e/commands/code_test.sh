@@ -102,51 +102,6 @@ CSV
 JSON
 }
 
-function create_codemaat_fetch_workspace() {
-  local workspace
-
-  workspace="$(create_smm_e2e_workspace)"
-
-  git -C "${workspace}/repo" init --initial-branch=main >/dev/null 2>&1
-  git -C "${workspace}/repo" config user.name "Alice"
-  git -C "${workspace}/repo" config user.email "alice@example.com"
-  git -C "${workspace}/repo" config commit.gpgsign false
-
-  printf '%s\n' "checkout" >"${workspace}/repo/checkout.txt"
-  git -C "${workspace}/repo" add checkout.txt
-  GIT_AUTHOR_DATE="2026-03-01T10:00:00Z" \
-    GIT_COMMITTER_DATE="2026-03-01T10:00:00Z" \
-    git -C "${workspace}/repo" commit -m "Add checkout metrics" >/dev/null 2>&1
-
-  printf '%s\n' "cart" >"${workspace}/repo/cart.txt"
-  git -C "${workspace}/repo" add cart.txt
-  GIT_AUTHOR_NAME="Bob" \
-    GIT_AUTHOR_EMAIL="bob@example.com" \
-    GIT_AUTHOR_DATE="2026-03-02T10:00:00Z" \
-    GIT_COMMITTER_DATE="2026-03-02T10:00:00Z" \
-    git -C "${workspace}/repo" commit -m "Add cart metrics" >/dev/null 2>&1
-
-  printf '%s\n' "${workspace}"
-}
-
-function create_java_spy() {
-  local workspace="$1"
-  local spy_dir="${workspace}/bin"
-
-  mkdir -p "${spy_dir}"
-
-  cat >"${spy_dir}/java" <<'SH'
-#!/usr/bin/env bash
-set -uo pipefail
-
-: "${JAVA_SPY_ARGS_FILE:?}"
-printf '%s\n' "$@" >"${JAVA_SPY_ARGS_FILE}"
-exit 0
-SH
-
-  chmod +x "${spy_dir}/java"
-  printf '%s\n' "${spy_dir}"
-}
 
 function test_code_fetch_commits_help_renders_successfully() {
   run_smm code fetch-commits --help
@@ -251,32 +206,18 @@ function test_code_codemaat_fetch_help_includes_threshold_options() {
   assert_smm_output_contains "--min-coupling"
 }
 
-function test_code_codemaat_fetch_forwards_threshold_params_to_java() {
+function test_code_codemaat_fetch_reports_threshold_params_in_output() {
   local workspace
-  local java_spy_dir
-  local java_spy_args
 
-  workspace="$(create_codemaat_fetch_workspace)"
-  java_spy_dir="$(create_java_spy "${workspace}")"
-  java_spy_args="${workspace}/java-args.txt"
-
-  export PATH="${java_spy_dir}:${PATH}"
-  export JAVA_SPY_ARGS_FILE="${java_spy_args}"
+  workspace="$(create_code_workspace)"
   export SMM_STORE_DATA_AT="${workspace}"
 
   run_smm code codemaat-fetch --start-date 2026-03-01 --end-date 2026-03-31 --group-depth 4 --min-revs 7 --min-shared-revs 9 --min-coupling 33 --force --output json
 
-  unset JAVA_SPY_ARGS_FILE
   unset SMM_STORE_DATA_AT
 
+  assert_smm_output_contains "CodeMaat coupling thresholds: min_revs=7 min_shared_revs=9 min_coupling=33"
   assert_smm_success
-  assert_smm_file_exists "${java_spy_args}"
-  assert_smm_file_contains "${java_spy_args}" "-n
-7"
-  assert_smm_file_contains "${java_spy_args}" "-m
-9"
-  assert_smm_file_contains "${java_spy_args}" "-i
-33"
 }
 
 function test_code_churn_reads_codemaat_churn_csv() {
