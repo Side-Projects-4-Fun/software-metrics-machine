@@ -67,6 +67,7 @@ prepare_react_fixture() {
 	# create smm config file for testing template string
 	export git_repository_location="$REPO_ROOT/tmp/react"
 	template=$(cat <<EOF
+{"projects": [
 {
 	"git_provider": "github",
 	"github_token": "xxxxxxxxxxxxxxxxxxxxxx",
@@ -84,6 +85,8 @@ prepare_react_fixture() {
 	"log_level": "DEBUG",
 	"dashboard_start_date": "2025-03-01",
 	"dashboard_end_date": "2025-03-30"
+}
+]
 }
 EOF
 )
