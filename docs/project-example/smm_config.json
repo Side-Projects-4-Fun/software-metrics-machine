@@ -4,7 +4,7 @@
       "git_provider": "github",
       "github_token": "xxxxxxxxxxxxxxxxxxxxxx",
       "github_repository": "facebook/react",
-      "git_repository_location": "/home/runner/work/software-metrics-machine/software-metrics-machine/docs/project-example/react",
+      "git_repository_location": "/home/runner/work/software-metrics-machine/software-metrics-machine/tmp/react",
       "deployment_frequency_targets": [],
       "main_branch": "main",
       "jira_url": "https://xxx.atlassian.net",
