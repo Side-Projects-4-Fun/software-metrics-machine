@@ -1,0 +1,1382 @@
+[d31e34e] marabesi 2026-06-21 ci: updates sonarqube exclusions
+2	1	sonar-project.properties
+
+[3d473fa] marabesi 2026-06-20 ci: updated scanner
+2	2	.github/workflows/ci.yml
+
+[f83a03b] dependabot[bot] 2026-06-20 chore(deps-dev): bump tar from 7.5.11 to 7.5.16
+3	3	package-lock.json
+
+[0a366fe] marabesi 2026-06-20 fix: sonarqube required property
+1	0	sonar-project.properties
+
+[e6f663b] marabesi 2026-06-20 ci: set sonarqube scan
+7	3	.github/workflows/ci.yml
+2	0	sonar-project.properties
+
+[10ef102] dependabot[bot] 2026-06-20 chore(deps-dev): bump form-data from 4.0.5 to 4.0.6
+18	5	package-lock.json
+
+[065ece1] dependabot[bot] 2026-06-16 chore(deps-dev): bump vite from 8.0.5 to 8.0.16
+107	108	package-lock.json
+1	1	package.json
+
+[933e558] dependabot[bot] 2026-06-12 chore(deps): bump esbuild and @chromatic-com/cypress
+227	1794	package-lock.json
+1	1	package.json
+
+[1a7b0cd] dependabot[bot] 2026-06-09 chore(deps): bump shell-quote and concurrently
+164	20	package-lock.json
+1	1	package.json
+
+[b4efee3] dependabot[bot] 2026-06-06 chore(deps): bump react-router and react-router-dom
+8	8	package-lock.json
+1	1	package.json
+
+[309bc11] dependabot[bot] 2026-05-28 chore(deps-dev): bump tmp from 0.2.5 to 0.2.7
+3	3	package-lock.json
+
+[3e8b08b] dependabot[bot] 2026-05-09 chore(deps): bump @babel/plugin-transform-modules-systemjs
+3	3	package-lock.json
+
+[644f28f] dependabot[bot] 2026-05-13 chore(deps): bump systeminformation from 5.31.4 to 5.31.6
+3	3	package-lock.json
+
+[51a8e6b] dependabot[bot] 2026-05-07 chore(deps-dev): bump ip-address from 10.1.0 to 10.2.0
+3	3	package-lock.json
+
+[46e88cf] dependabot[bot] 2026-05-08 chore(deps-dev): bump axios from 1.15.0 to 1.16.0
+4	4	package-lock.json
+
+[1d1151e] dependabot[bot] 2026-04-25 chore(deps): bump postcss from 8.5.8 to 8.5.10
+3	3	package-lock.json
+
+[a4958b4] dependabot[bot] 2026-04-23 chore(deps-dev): bump @xmldom/xmldom from 0.8.12 to 0.8.13
+3	3	package-lock.json
+
+[d597535] dependabot[bot] 2026-04-14 chore(deps): bump follow-redirects from 1.15.11 to 1.16.0
+3	3	package-lock.json
+
+[d8873a5] Mat 2026-04-14 docs: removes snapcraft link
+1	1	README.md
+
+[8d6d605] dependabot[bot] 2026-04-12 chore(deps-dev): bump axios from 1.13.6 to 1.15.0
+11	8	package-lock.json
+
+[49461bc] dependabot[bot] 2026-04-06 chore(deps-dev): bump vite from 8.0.0 to 8.0.5
+99	105	package-lock.json
+1	1	package.json
+
+[c54faf2] dependabot[bot] 2026-04-04 chore(deps-dev): bump lodash from 4.17.23 to 4.18.1
+3	3	package-lock.json
+
+[2e462f8] dependabot[bot] 2026-04-03 chore(deps-dev): bump electron from 40.8.2 to 40.8.5
+4	4	package-lock.json
+1	1	package.json
+
+[1fc40f7] dependabot[bot] 2026-04-01 chore(deps-dev): bump @xmldom/xmldom from 0.8.11 to 0.8.12
+3	3	package-lock.json
+
+[8696e0f] dependabot[bot] 2026-03-26 chore(deps): bump picomatch
+15	15	package-lock.json
+
+[8529161] dependabot[bot] 2026-03-27 chore(deps-dev): bump handlebars from 4.7.8 to 4.7.9
+3	3	package-lock.json
+
+[07f2266] dependabot[bot] 2026-03-21 chore(deps-dev): bump flatted from 3.4.1 to 3.4.2
+3	3	package-lock.json
+
+[765509e] marabesi 2026-03-15 chore: upgrades vite and deps
+1899	1101	package-lock.json
+4	4	package.json
+
+[50a79b0] dependabot[bot] 2026-03-11 chore(deps-dev): bump tar from 7.5.10 to 7.5.11
+3	3	package-lock.json
+
+[6f9f17f] marabesi 2026-03-07 fix: dev mode for electron using vite
+1	1	package.json
+
+[61569ba] dependabot[bot] 2026-03-05 chore(deps): bump @tootallnate/once and jest-environment-jsdom
+656	282	package-lock.json
+1	1	package.json
+
+[67d51a8] marabesi 2026-03-07 chore: tagged version 0.30.1
+2	2	package-lock.json
+1	1	package.json
+
+[1fb6c74] marabesi 2026-03-07 fix: electron build
+3	1	electron.js
+5	0	package.json
+
+[734cf48] dependabot[bot] 2026-03-05 chore(deps-dev): bump tar from 7.5.9 to 7.5.10
+3	3	package-lock.json
+
+[661db9e] marabesi 2026-03-07 fix: electron.js path
+0	0	public/electron.js => electron.js
+
+[e94e224] marabesi 2026-03-05 chore: tagged version 0.30.0
+2	2	package-lock.json
+1	1	package.json
+
+[e5fe320] marabesi 2026-03-02 chore: adds benchmark script
+2	0	.gitignore
+176	0	benchmark.sh
+
+[4acca4b] marabesi 2026-03-02 Revert "chore: upgrade node to 25.7.0"
+1	1	Dockerfile
+1	1	envvars.for.actions
+
+[362e84a] marabesi 2026-03-02 chore: upgrade node to 25.7.0
+1	1	Dockerfile
+1	1	envvars.for.actions
+
+[6798672] marabesi 2026-03-01 chore: update dependencies
+62	69	package-lock.json
+6	1	package.json
+
+[63c6647] marabesi 2026-03-01 fix: instrumentation
+1	1	before-push.sh
+1	0	cypress/support/e2e.js
+
+[8f5d26c] marabesi 2026-03-01 ci: removed not needed step
+0	6	.github/workflows/ci.yml
+
+[0dc5f37] marabesi 2026-03-01 chore: cypress to instanbul
+6994	6080	package-lock.json
+16	6	package.json
+1	0	vite.config.ts
+
+[68818c8] marabesi 2026-03-01 chore: upgrades coveralls-next to v6
+10	70	package-lock.json
+1	1	package.json
+
+[024e41d] marabesi 2026-03-01 chore: upgrades cypress coverage
+0	1	cypress/support/e2e.js
+159	58	package-lock.json
+1	1	package.json
+
+[5a80b28] marabesi 2026-03-01 fix: cypress run from before-push
+1	1	before-push.sh
+3	2	cypress.config.js
+
+[9636766] marabesi 2026-03-01 fix: cypress run from before-push
+9	7	cypress.config.js
+
+[09b1922] marabesi 2026-03-01 chore: upgrades cypress from makefile
+1	1	Makefile
+3	1	cypress.config.js
+
+[5600ae9] marabesi 2026-03-01 fix: cypress run from before-push
+8	10	cypress.config.js
+
+[68d87af] marabesi 2026-03-01 fix: cypress run from before-push
+7	7	cypress.config.js
+0	78	package-lock.json
+
+[4ca243d] marabesi 2026-03-01 chore: update dependencies
+1146	1409	package-lock.json
+1	1	package.json
+
+[c7305da] marabesi 2026-03-01 fix: cypress run from before-push
+1	1	before-push.sh
+3	1	cypress.config.js
+1	1	package.json
+
+[456a0f0] marabesi 2026-03-01 fix: adds chromatic back
+1	1	cypress.config.js
+
+[845e5ed] marabesi 2026-03-01 fix: eslint issues
+2	2	package.json
+2	2	src/components/ui/editor/JsonEditor.tsx
+2	2	src/components/ui/io/Button.tsx
+4	4	src/components/ui/menu/JsonMenu.tsx
+1	2	src/components/ui/menu/ResultMenu.tsx
+3	3	src/setupTests.ts
+
+[a567604] marabesi 2026-03-01 chore: clean up
+1	1	babel.config.js
+0	5	craco.config.js
+8	1	cypress.config.js
+2	2	public/index.html => index.html
+241	1106	package-lock.json
+15	3	package.json
+1	1	src/__test__/Clipboard.test.tsx
+2	2	src/__test__/CustomSpacing.test.tsx
+1	0	src/core/formatter.ts
+2	2	src/pages/Editors.tsx
+1	1	src/react-app-env.d.ts
+1	1	tailwind.config.js
+1	5	vite.config.ts
+
+[6332d2e] marabesi 2026-03-01 chore: clean up
+0	21	index.html
+4	26	public/index.html
+1	1	tailwind.config.js
+5	1	vite.config.ts
+
+[90ecbda] marabesi 2026-03-01 wip: migrating to vite
+8	0	babel.config.js
+21	0	index.html
+13689	21555	package-lock.json
+31	14	package.json
+6	0	postcss.config.js
+1	0	src/__mocks__/styleMock.js
+2	2	src/__test__/core/__snapshots__/formater.test.ts.snap
+4	4	src/tailwindResolver.js
+0	3	stryker.config.json
+3	2	tailwind.config.js
+5	4	tsconfig.json
+34	0	vite.config.ts
+
+[0584fe3] dependabot[bot] 2026-02-28 chore(deps): bump rollup from 2.79.2 to 2.80.0
+3	3	package-lock.json
+
+[994c849] dependabot[bot] 2026-02-19 chore(deps-dev): bump tar from 7.5.7 to 7.5.9
+3	3	package-lock.json
+
+[19e22bb] marabesi 2026-02-15 chore: upgrades electron
+6	23	package-lock.json
+2	2	package.json
+
+[16ef992] marabesi 2026-02-15 chore: tagged version 0.29.0
+2	2	package-lock.json
+1	1	package.json
+
+[7649f29] marabesi 2026-02-15 chore: updated dependencies
+685	647	package-lock.json
+
+[38c7884] marabesi 2026-02-15 ci: upgrades node-setup version
+5	5	.github/workflows/ci.yml
+1	1	.github/workflows/delivery.yml
+1	1	.github/workflows/deploy.yml
+
+[4a17391] marabesi 2026-02-15 chore: upgrades cypress
+5	5	package-lock.json
+1	1	package.json
+
+[1a90016] marabesi 2026-02-15 ci: chromatic on main only
+1	0	.github/workflows/ci.yml
+
+[8d96800] dependabot[bot] 2026-02-14 chore(deps): bump qs from 6.14.1 to 6.14.2
+3	3	package-lock.json
+
+[90d58bf] marabesi 2026-02-01 chore: tagged version 0.28.0
+2	2	package-lock.json
+1	1	package.json
+
+[45c2711] marabesi 2026-02-01 docs: updated with new content
+18	0	src/pages/Docs.tsx
+
+[aa159d4] marabesi 2026-02-01 chore: tagged version 0.27.0
+1	1	package.json
+
+[bc93096] marabesi 2026-02-01 chore: updated dependencies
+2732	2575	package-lock.json
+
+[0830cb6] marabesi 2026-02-01 ci: updates all channels on push
+0	5	cypress.config.js
+
+[14de778] Mat 2026-02-01 chore: created funding.yml
+2	0	.github/FUNDING.yml
+
+[9317515] Mat 2026-02-01 docs: fix Node CI badge link in README.md
+1	1	README.md
+
+[4dcf16e] Mat 2026-02-01 ci: remove schedule from CI workflow
+0	2	.github/workflows/ci.yml
+
+[73f3d26] Mat 2026-02-01 docs: adds sponsor link
+2	0	README.md
+
+[fd93298] dependabot[bot] 2026-01-22 chore(deps): bump lodash from 4.17.21 to 4.17.23
+3	3	package-lock.json
+
+[48824e3] marabesi 2026-01-11 fix: cypress config
+5	0	cypress.config.js
+
+[dad7dd5] dependabot[bot] 2026-01-09 chore(deps): bump react-router and react-router-dom
+811	553	package-lock.json
+1	1	package.json
+
+[a44b886] Mat 2026-01-04 docs: updated readme
+3	0	README.md
+
+[f107220] Mat 2026-01-02 fix: missing comman
+1	1	cypress.config.js
+
+[6a944b5] Mat 2026-01-02 chore: enabled experimental config for cypress run
+1	1	cypress.config.js
+
+[aa0b3d3] marabesi 2025-12-30 chore: bump cypress to 15.8.1
+1	0	cypress.config.js
+10	10	package-lock.json
+1	1	package.json
+
+[d96fbbe] marabesi 2025-12-28 ci: schedule back
+2	2	.github/workflows/ci.yml
+
+[64e84b3] marabesi 2025-12-28 ci: avoid sonarcube issue
+1	1	.github/workflows/ci.yml
+
+[e62fae3] marabesi 2025-12-28 chore: adds docs check for cypress
+5	0	cypress/e2e/UserInterface.feature
+4	0	cypress/support/commands.js
+8	0	cypress/support/step_definitions/UserInterfaceSteps.js
+
+[396d9c5] marabesi 2025-12-28 chore: adds settings navigation
+2	0	.github/workflows/ci.yml
+5	0	cypress/e2e/UserInterface.feature
+8	0	cypress/support/commands.js
+9	1	cypress/support/step_definitions/UserInterfaceSteps.js
+2	2	src/pages/Settings.tsx
+
+[c667b8b] marabesi 2025-12-28 chore: updated dependencies
+1923	2194	package-lock.json
+
+[da623b6] marabesi 2025-12-28 fix: image diff dependency command
+0	3	cypress/support/commands.js
+
+[a8f6c72] marabesi 2025-12-28 ci: updated npm command to exit
+1	1	.github/workflows/ci.yml
+
+[a658d8f] marabesi 2025-12-28 ci: enables chromatic run
+6	1	.github/workflows/ci.yml
+2	0	.gitignore
+-	-	cypress-visual-screenshots/baseline/pages.spec-index.png
+-	-	cypress-visual-screenshots/baseline/pages.spec-settings.png
+1	8	cypress.config.js
+1	0	cypress/support/e2e.js
+0	1	package.json
+
+[ce38e4b] marabesi 2025-12-28 ci: disabled schedule
+2	2	.github/workflows/ci.yml
+
+[97081c2] marabesi 2025-12-28 ci: adds chromatic
+2	0	cypress.config.js
+2429	560	package-lock.json
+6	4	package.json
+
+[1e4833b] marabesi 2025-12-05 ci: updates all channels on push
+1	1	.github/workflows/ci.yml
+
+[91b547a] marabesi 2025-12-05 chore: tagged version 0.26.0
+2	2	package-lock.json
+1	1	package.json
+
+[27cc3c2] marabesi 2025-12-05 chore: updated reactjs version
+301	227	package-lock.json
+2	2	package.json
+
+[0ce2ed0] marabesi 2025-12-01 chore: adds sonar badge
+1	0	README.md
+
+[22d177b] marabesi 2025-12-01 chore: updated npm packages
+393	391	package-lock.json
+
+[19624fd] dependabot[bot] 2025-11-26 chore(deps): bump node-forge from 1.3.1 to 1.3.2
+5	4	package-lock.json
+
+[7f8f5a0] Mat 2025-11-20 ci: upgrade to node 25
+1	1	envvars.for.actions
+
+[bcd4535] marabesi 2025-11-17 chore: tagged version 0.25.0
+2	2	package-lock.json
+1	1	package.json
+
+[42759ca] marabesi 2025-11-17 chore: updates tailwind to 3.4.18
+1	1	package-lock.json
+1	1	package.json
+
+[b24f4a7] marabesi 2025-11-17 chore: updates concurrently to 9.2.1
+210	195	package-lock.json
+1	1	package.json
+
+[8caca3d] marabesi 2025-11-17 chore: updates husky to 9.1.7
+1	3	.husky/pre-commit
+6	6	package-lock.json
+3	2	package.json
+
+[1ac8cd8] marabesi 2025-11-17 chore: updates electron to 39.2.1
+4	4	package-lock.json
+1	1	package.json
+
+[8d602f4] marabesi 2025-11-17 chore: updates cypress to 15.6.0
+1	1	package-lock.json
+1	1	package.json
+
+[bc63624] marabesi 2025-11-17 chore: updates @cypress/code-coverage to 3.14.7
+1	1	package-lock.json
+1	1	package.json
+
+[c214c67] marabesi 2025-11-17 chore: updates react-router-dom to 7.9.6
+10	10	package-lock.json
+1	1	package.json
+
+[962e87c] marabesi 2025-11-15 chore: updated deps
+489	501	package-lock.json
+
+[c6dd39c] marabesi 2025-10-11 ci: adds parallel to cypress run
+2	0	.github/workflows/ci.yml
+
+[cf13ef7] marabesi 2025-10-11 chore: tagged version 0.24.0
+2	2	package-lock.json
+1	1	package.json
+
+[1aa628e] marabesi 2025-10-11 chore: updated dependencies - electron
+4	4	package-lock.json
+1	1	package.json
+
+[4717523] marabesi 2025-10-11 chore: updated dependencies
+1	1	before-push.sh
+1	1	package-lock.json
+1	1	package.json
+
+[0efd43d] marabesi 2025-10-11 chore: updated dependencies
+24	17	package-lock.json
+10	10	package.json
+
+[06c4fd9] marabesi 2025-10-11 chore: updated dependencies
+1262	1229	package-lock.json
+
+[d5e036a] dependabot[bot] 2025-09-04 chore(deps-dev): bump electron from 35.7.2 to 35.7.5
+4	4	package-lock.json
+1	1	package.json
+
+[d5fe254] dependabot[bot] 2025-08-24 chore(deps): bump tmp, @stryker-mutator/core, @stryker-mutator/jest-runner and @stryker-mutator/typescript-checker
+352	313	package-lock.json
+3	3	package.json
+
+[525a500] marabesi 2025-08-24 chore: upgrade to cypress 15
+1	1	Dockerfile
+1	1	before-push.sh
+1	1	envvars.for.actions
+62	75	package-lock.json
+2	2	package.json
+
+[c165103] dependabot[bot] 2025-08-22 chore(deps): bump form-data and coveralls-next
+15	29	package-lock.json
+1	1	package.json
+
+[9f0a768] dependabot[bot] 2025-07-23 chore(deps-dev): bump axios from 1.10.0 to 1.11.0
+21	4	package-lock.json
+
+[eb1abe5] dependabot[bot] 2025-07-18 chore(deps): bump on-headers and compression
+7	7	package-lock.json
+
+[84764d0] marabesi 2025-07-16 chore: upgraded cypress version
+1	1	before-push.sh
+529	516	package-lock.json
+1	1	package.json
+
+[cccf6b0] dependabot[bot] 2025-06-24 chore(deps-dev): bump pbkdf2 from 3.1.2 to 3.1.3
+65	8	package-lock.json
+
+[af93cfe] marabesi 2025-05-23 chore: tagged version 0.23.0
+2	2	package-lock.json
+1	1	package.json
+
+[b401bf1] marabesi 2025-05-23 chore: json history enabled by default
+0	13	src/__test__/Settings.test.tsx
+122	232	src/__test__/UsedJsonHistory.test.tsx
+1	1	src/default-features.ts
+
+[495e655] marabesi 2025-05-23 chore: updated deps
+370	477	package-lock.json
+
+[128e9b3] marabesi 2025-05-06 chore: tagged version 0.22.0
+2	2	package-lock.json
+1	1	package.json
+
+[6d4239b] Mat 2025-05-03 fix: eslint errors
+1	1	src/__test__/UiElements.test.tsx
+
+[a79a6a2] marabesi 2025-05-03 chore: updated styles
+1	1	src/components/ui/io/Button.tsx
+1	1	src/components/ui/menu/JsonMenu.tsx
+2	2	src/components/ui/menu/ResultMenu.tsx
+2	2	src/pages/Editors.tsx
+
+[1e0c4b0] marabesi 2025-05-03 feat: active menu
+25	0	src/__test__/UiElements.test.tsx
+11	7	src/components/ui/Header.tsx
+
+[674476e] marabesi 2025-05-03 refactor: wrapper for link from react router
+14	15	src/components/ui/Header.tsx
+
+[1233573] marabesi 2025-05-03 chore: moving ui elements around
+17	10	src/components/ui/Footer.tsx
+43	23	src/components/ui/Header.tsx
+
+[393903a] marabesi 2025-05-03 refactor(json-history): utility for navigating the feature
+28	27	src/__test__/UsedJsonHistory.test.tsx
+
+[d319bd1] marabesi 2025-05-03 feature(json-history): friendly message for history
+33	0	src/__test__/UsedJsonHistory.test.tsx
+2	0	src/components/ui/layout/Drawer.tsx
+
+[d571ba4] marabesi 2025-05-03 refactor(json-history): internal logic for settings toggle
+1	2	src/components/ui/Header.tsx
+2	37	src/components/ui/layout/Default.tsx
+33	7	src/components/ui/layout/Drawer.tsx
+4	0	src/settings/SettingsContext.tsx
+
+[d732715] marabesi 2025-05-03 refactor(json-history): internal logic for drawer
+6	5	src/DrawerContext.tsx
+2	2	src/components/ui/Header.tsx
+3	3	src/components/ui/layout/Default.tsx
+7	7	src/components/ui/layout/Drawer.tsx
+
+[f3a9d6d] marabesi 2025-05-03 feat(json-history): close drawer on restore json
+34	0	src/__test__/UsedJsonHistory.test.tsx
+7	1	src/components/ui/layout/Default.tsx
+
+[b727125] marabesi 2025-05-03 refactor: unified App entry point
+21	29	src/App.tsx
+8	5	src/__test__/__testutilities__/builder.tsx
+
+[4a715ee] marabesi 2025-05-03 refactor: merged json history context
+20	23	src/App.tsx
+0	45	src/JsonHistoryContext.tsx
+22	3	src/PersistenceContext.tsx
+1	3	src/components/ui/layout/Default.tsx
+5	0	src/types/jsonHistory.ts
+
+[abe134d] marabesi 2025-05-03 chore: adds max workers for jest tests
+2	2	package.json
+
+[a73c091] marabesi 2025-05-02 refactor: moving options to src/
+7	0	src/default-features.ts
+1	3	src/{components/ui/editor => }/default-options.ts
+2	2	src/settings/SettingsContext.tsx
+
+[51c24b1] marabesi 2025-05-02 feat(json-history): increased limit to 25 before ...
+1	1	src/JsonHistoryContext.tsx
+3	5	src/__test__/UsedJsonHistory.test.tsx
+
+[8010bc0] marabesi 2025-05-02 feat(json-history): avoid duplicating when it comes from the history
+6	3	src/PersistenceContext.tsx
+2	2	src/ToolbarContext.tsx
+22	0	src/__test__/UsedJsonHistory.test.tsx
+1	1	src/components/ui/layout/Default.tsx
+1	1	src/components/ui/menu/JsonMenu.tsx
+2	2	src/pages/Editors.tsx
+
+[a669d59] marabesi 2025-05-02 feat(json-history): drawer style
+3	3	src/components/ui/layout/Default.tsx
+2	2	src/components/ui/layout/Drawer.tsx
+
+[9b13fa4] marabesi 2025-05-02 feat(json-history): send json to editor
+4	0	src/JsonHistoryContext.tsx
+54	1	src/__test__/UsedJsonHistory.test.tsx
+9	2	src/components/ui/layout/Default.tsx
+
+[cf195ba] marabesi 2025-05-02 feat(json-history): show toasts for copy in the clipoard
+7	0	src/ClipboardContext.tsx
+1	1	src/DrawerContext.tsx
+58	0	src/__test__/UsedJsonHistory.test.tsx
+7	1	src/components/ui/layout/Default.tsx
+1	3	src/components/ui/menu/ResultMenu.tsx
+9	0	src/setupTests.ts
+
+[f2a644b] marabesi 2025-05-02 refactor: created clipboard context
+19	16	src/App.tsx
+54	0	src/ClipboardContext.tsx
+1	30	src/ToolbarContext.tsx
+3	1	src/components/ui/menu/JsonMenu.tsx
+3	1	src/components/ui/menu/ResultMenu.tsx
+
+[86ca848] marabesi 2025-05-02 refactor: lift state up to contexts
+11	8	src/App.tsx
+93	7	src/PersistenceContext.tsx
+90	0	src/ToolbarContext.tsx
+13	6	src/components/ui/menu/JsonMenu.tsx
+9	10	src/components/ui/menu/ResultMenu.tsx
+6	140	src/pages/Editors.tsx
+
+[d874082] marabesi 2025-05-02 chore: clean up dependencies
+252	2526	package-lock.json
+1	3	package.json
+
+[258c464] marabesi 2025-05-02 chore: removed postcss dep
+0	8	craco.config.js
+605	625	package-lock.json
+0	1	package.json
+
+[06bf98d] Mat 2025-04-27 ci: update envvars.for.actions to node 23.11
+1	1	envvars.for.actions
+
+[9ad979b] Mat 2025-04-27 fix: lint errors
+1	1	src/__test__/UsedJsonHistory.test.tsx
+
+[853d1ee] marabesi 2025-04-27 feat(json-history): adds copy button
+18	0	src/__test__/UsedJsonHistory.test.tsx
+8	2	src/components/ui/layout/Default.tsx
+1	1	src/components/ui/layout/Drawer.tsx
+
+[6f124b3] marabesi 2025-04-27 chore: increased json for loading in the test
+1	1	src/__test__/Editors.test.tsx
+
+[d9b1e1e] marabesi 2025-04-27 chore: increased delay for typing
+4	2	src/JsonHistoryContext.tsx
+2	4	src/__test__/UsedJsonHistory.test.tsx
+1	1	src/__test__/__testutilities__/customTyping.ts
+1	1	src/components/ui/layout/Default.tsx
+
+[f3460b9] marabesi 2025-04-27 chore: found issue with data persistin across tests
+13	3	src/__test__/UsedJsonHistory.test.tsx
+3	3	src/components/ui/editor/default-options.ts
+2	2	src/settings/SettingsContext.tsx
+
+[1bb2393] marabesi 2025-04-27 chore: clean up acts from tests
+3	7	src/__test__/ErrorHandling.test.tsx
+
+[3b0256c] marabesi 2025-04-27 chore: clean up acts from tests
+2	2	src/__test__/UiElements.test.tsx
+6	6	src/__test__/UsedJsonHistory.test.tsx
+
+[a57c4eb] marabesi 2025-04-27 chore: clean up acts from tests
+7	19	src/__test__/CustomSpacing.test.tsx
+
+[12e388b] marabesi 2025-04-27 chore: attempt to mitigate issue with state in the test suite
+24	18	src/App.tsx
+5	13	src/__test__/Editors.test.tsx
+5	2	src/__test__/__testutilities__/builder.tsx
+1	1	src/__test__/__testutilities__/customTyping.ts
+
+[742c728] marabesi 2025-04-27 feat(json-history): updated styles
+1	1	src/components/ui/layout/Drawer.tsx
+
+[ff411b4] marabesi 2025-04-27 feat(json-history): entry and snippet
+9	3	src/JsonHistoryContext.tsx
+1	1	src/__test__/Editors.test.tsx
+47	10	src/__test__/UsedJsonHistory.test.tsx
+4	4	src/components/ui/editor/JsonEditor.tsx
+2	4	src/components/ui/layout/Default.tsx
+3	3	src/pages/Editors.tsx
+1	1	src/pages/Settings.tsx
+2	2	src/settings/SettingsContext.tsx
+
+[3f290b7] marabesi 2025-04-27 feta(json-history): first iteration with simples case
+17	14	src/App.tsx
+1	1	src/DrawerContext.tsx
+33	0	src/JsonHistoryContext.tsx
+28	2	src/__test__/UsedJsonHistory.test.tsx
+10	1	src/components/ui/layout/Default.tsx
+3	0	src/pages/Editors.tsx
+0	2	src/settings/SettingsContext.tsx
+
+[465b407] marabesi 2025-04-27 chore(settings): updated styles
+1	1	src/components/ui/layout/Default.tsx
+1	1	src/components/ui/layout/Drawer.tsx
+6	7	src/pages/Settings.tsx
+
+[cc98616] marabesi 2025-04-27 feat: hidden feature drawer with list of jsons - ui only
+11	8	src/App.tsx
+30	0	src/DrawerContext.tsx
+5	5	src/__test__/Settings.test.tsx
+50	0	src/__test__/UsedJsonHistory.test.tsx
+2	2	src/__test__/__testutilities__/builder.tsx
+14	3	src/components/ui/Header.tsx
+6	0	src/components/ui/editor/default-options.ts
+8	5	src/components/ui/layout/Default.tsx
+1	0	src/components/ui/layout/Drawer.tsx
+26	7	src/pages/Settings.tsx
+18	5	src/settings/SettingsContext.tsx
+8	0	src/setupTests.ts
+
+[18e5d51] marabesi 2025-04-26 refactor: naming for settings
+10	10	src/pages/Settings.tsx
+
+[e674f65] marabesi 2025-04-26 feat: adds option for json history
+26	0	src/__test__/Settings.test.tsx
+10	0	src/pages/Settings.tsx
+
+[6378ed6] marabesi 2025-04-26 feat(settings): moving editor to a section
+24	19	src/__test__/Settings.test.tsx
+18	14	src/pages/Settings.tsx
+
+[44f24c8] marabesi 2025-04-26 refactor: build app for testing
+5	5	src/__test__/CleanUpEditors.test.tsx
+4	4	src/__test__/CleanUpJsonNewLines.test.tsx
+4	4	src/__test__/CleanUpJsonString.test.tsx
+7	7	src/__test__/Clipboard.test.tsx
+10	10	src/__test__/CustomSpacing.test.tsx
+5	5	src/__test__/DarkMode.test.tsx
+4	4	src/__test__/Documentation.test.tsx
+9	8	src/__test__/Editors.test.tsx
+5	5	src/__test__/ErrorHandling.test.tsx
+7	7	src/__test__/Settings.test.tsx
+14	15	src/__test__/UiElements.test.tsx
+8	0	src/__test__/__testutilities__/builder.tsx
+
+[133a1df] marabesi 2025-04-26 chore: removed skip for loading test cases
+2	2	src/__test__/Editors.test.tsx
+
+[05ad16d] marabesi 2025-04-26 chore: upgrade toast react
+2	1	before-push.sh
+1	1	package-lock.json
+1	1	package.json
+
+[c4138e2] marabesi 2025-04-26 chore: updated electron run
+1	1	package.json
+
+[4517d07] marabesi 2025-04-26 chore: removed sass
+0	391	package-lock.json
+0	1	package.json
+
+[64a31a1] marabesi 2025-04-26 chore: using css instead of scss
+0	0	src/{index.scss => index.css}
+1	1	src/index.tsx
+
+[a25a1fb] marabesi 2025-04-26 chore: created match media for faking api
+4	18	src/__test__/Clipboard.test.tsx
+6	35	src/__test__/DarkMode.test.tsx
+22	0	src/__test__/__testutilities__/matchMedia.ts
+
+[14af9ce] marabesi 2025-04-26 fix: matchMedia fake
+11	4	src/__test__/Clipboard.test.tsx
+16	2	src/__test__/DarkMode.test.tsx
+
+[20d1614] marabesi 2025-04-26 chore: updated code mirror
+31	15	package-lock.json
+4	4	package.json
+
+[2f9cae2] marabesi 2025-04-26 refactor: moves write and wait to a command
+7	0	cypress/support/commands.js
+1	1	cypress/support/step_definitions/ClipboardSteps.js
+2	2	cypress/support/step_definitions/FormatJsonSteps.js
+2	4	cypress/support/step_definitions/RemoveNewLinesFromJson.js
+1	4	cypress/support/step_definitions/RemoveSpacesAndNewLines.js
+1	4	cypress/support/step_definitions/RemoveWhiteSpacesFromJsonSteps.js
+
+[00c56fa] marabesi 2025-04-26 chore: changes in code due to cypress api
+2	2	cypress/support/commands.js
+1	1	cypress/support/configuration.js
+3	3	cypress/support/step_definitions/CleanEditorsSteps.js
+1	1	cypress/support/step_definitions/ClipboardSteps.js
+2	2	cypress/support/step_definitions/FormatJsonSteps.js
+3	3	cypress/support/step_definitions/RemoveNewLinesFromJson.js
+1	1	cypress/support/step_definitions/RemoveSpacesAndNewLines.js
+1	1	cypress/support/step_definitions/RemoveWhiteSpacesFromJsonSteps.js
+
+[19ac395] marabesi 2025-04-26 chore: removes warns from tailwind colors
+0	4	tailwind.config.js
+
+[0c5f232] marabesi 2025-04-26 chore: upgrade electron-builder to 26
+1329	624	package-lock.json
+1	1	package.json
+
+[b8f3360] marabesi 2025-04-26 chore: upgraded to electron 35
+9	16	package-lock.json
+1	1	package.json
+
+[e632991] marabesi 2025-04-26 fix: issues with types
+3	3	src/pages/Editors.tsx
+
+[53c3362] marabesi 2025-04-26 chore: upgrade jest types
+22091	43268	package-lock.json
+4	4	package.json
+
+[42a8a58] marabesi 2025-04-26 chore: upgrade to tailwind 3
+415	1360	package-lock.json
+2	1	package.json
+7	8	tailwind.config.js
+
+[eb2f342] dependabot[bot] 2025-04-25 chore(deps): bump http-proxy-middleware from 2.0.7 to 2.0.9
+7	6	package-lock.json
+
+[62961e0] dependabot[bot] 2025-04-25 chore(deps): bump react-router and react-router-dom
+15	28	package-lock.json
+1	1	package.json
+
+[d2fb7db] marabesi 2025-04-16 chore: reaply stryker config
+3	1	.gitignore
+2134	549	package-lock.json
+3	0	package.json
+0	9	stryker.conf.json
+18	0	stryker.config.json
+
+[c21d391] marabesi 2025-04-14 chore: updates postcss version
+1	1	package-lock.json
+1	1	package.json
+
+[ed04acf] marabesi 2025-04-14 chore: upgrade coveralls lib
+84	362	package-lock.json
+1	1	package.json
+
+[48cbce3] marabesi 2025-04-14 chore: removes webdrive types
+0	19	package-lock.json
+0	1	package.json
+
+[b870b65] marabesi 2025-04-14 chore: removes stryker
+4	1939	package-lock.json
+0	3	package.json
+
+[f251639] marabesi 2025-04-14 chore: update dependencies
+82	119	package-lock.json
+
+[4c8d955] marabesi 2025-04-14 chore: clean up dependencies
+16	200	package-lock.json
+1	5	package.json
+0	144	src/jsdom.js
+1	2	src/setupTests.ts
+
+[26eb7ac] marabesi 2025-04-12 docs: updated section of docs
+42	9	src/pages/Docs.tsx
+
+[f89b41b] marabesi 2025-04-12 docs: adds makefile
+40	0	Makefile
+6	0	README.md
+
+[1820125] marabesi 2025-04-12 chore: handling different platforms for cypress
+5	1	cypress/support/step_definitions/CleanEditorsSteps.js
+
+[ce2bc95] marabesi 2025-04-12 feat: meta+z undo text in editors
+6	0	cypress/e2e/CleanEditors.feature
+4	0	cypress/support/step_definitions/CleanEditorsSteps.js
+5	1	src/__test__/Settings.test.tsx
+2	1	src/components/ui/editor/default-options.ts
+
+[f87b0e7] marabesi 2025-04-12 revert: changes in test suite
+11	5	src/__test__/CleanUpEditors.test.tsx
+7	3	src/__test__/CleanUpJsonNewLines.test.tsx
+13	5	src/__test__/CleanUpJsonString.test.tsx
+16	8	src/__test__/Clipboard.test.tsx
+28	10	src/__test__/CustomSpacing.test.tsx
+35	15	src/__test__/Editors.test.tsx
+17	7	src/__test__/ErrorHandling.test.tsx
+4	2	src/__test__/Settings.test.tsx
+
+[b439377] marabesi 2025-04-12 Revert "revert: changes to custom spacing test due to flakiness"
+10	28	src/__test__/CustomSpacing.test.tsx
+
+[073ce7a] marabesi 2025-04-12 Revert "chore: clean up act from tests"
+30	16	src/__test__/CustomSpacing.test.tsx
+4	14	src/__test__/Editors.test.tsx
+
+[3268775] marabesi 2025-04-12 chore: clean up act from tests
+16	30	src/__test__/CustomSpacing.test.tsx
+14	4	src/__test__/Editors.test.tsx
+
+[3136454] marabesi 2025-04-12 chore: updated browsers db
+8	7	package-lock.json
+4	4	package.json
+
+[044177a] marabesi 2025-04-12 revert: changes to custom spacing test due to flakiness
+28	10	src/__test__/CustomSpacing.test.tsx
+
+[2fb9714] marabesi 2025-04-12 chore: clean up act from tests
+5	11	src/__test__/CleanUpEditors.test.tsx
+3	7	src/__test__/CleanUpJsonNewLines.test.tsx
+5	13	src/__test__/CleanUpJsonString.test.tsx
+8	16	src/__test__/Clipboard.test.tsx
+10	28	src/__test__/CustomSpacing.test.tsx
+15	35	src/__test__/Editors.test.tsx
+7	17	src/__test__/ErrorHandling.test.tsx
+2	4	src/__test__/Settings.test.tsx
+
+[b7c396e] marabesi 2025-04-12 chore: removed webvitals package
+1	12	package-lock.json
+1	2	package.json
+0	5	src/index.tsx
+0	15	src/reportWebVitals.ts
+
+[1af9a60] marabesi 2025-04-12 chore: upgraded react-dom to version 7
+89	43	package-lock.json
+1	1	package.json
+1	1	src/App.tsx
+1	1	src/components/ui/Header.tsx
+3	0	src/setupTests.ts
+
+[f743549] marabesi 2025-04-12 chore: upgrade testing library deps
+34	56	package-lock.json
+3	3	package.json
+2	1	src/__test__/CustomSpacing.test.tsx
+
+[4405453] marabesi 2025-04-12 chore: upgrade react switch and testing library react
+29	4643	package-lock.json
+2	2	package.json
+
+[62d1152] marabesi 2025-04-12 chore: upgrade to reactjs 19
+24	38	package-lock.json
+3	4	package.json
+
+[f6b4a8f] marabesi 2025-04-12 chore: upgrade cypress to 14
+1	1	Dockerfile
+1	1	before-push.sh
+1	1	cypress.config.js
+469	166	package-lock.json
+1	1	package.json
+
+[8213458] Matheus Marabesi 2025-04-09 fix: check for run delivery job
+1	1	.github/workflows/ci.yml
+
+[67ab6ba] Matheus Marabesi 2025-04-09 ci: prevent delivery on every commit
+2	1	.github/workflows/ci.yml
+
+[49d32e3] dependabot[bot] 2025-03-28 chore(deps-dev): bump tar-fs from 3.0.6 to 3.0.8
+90	75	package-lock.json
+
+[6101593] dependabot[bot] 2025-03-29 chore(deps): bump @babel/helpers from 7.25.6 to 7.27.0
+69	186	package-lock.json
+
+[487b265] dependabot[bot] 2025-04-01 chore(deps): bump @babel/runtime from 7.24.5 to 7.27.0
+7	6	package-lock.json
+
+[88b53c4] dependabot[bot] 2025-03-29 chore(deps-dev): bump axios from 1.7.6 to 1.8.4
+7	6	package-lock.json
+
+[bb77598] dependabot[bot] 2025-02-18 chore(deps-dev): bump elliptic from 6.6.0 to 6.6.1
+7	6	package-lock.json
+
+[59735e4] dependabot[bot] 2025-02-11 chore(deps-dev): bump esbuild from 0.17.19 to 0.25.0
+309	208	package-lock.json
+1	1	package.json
+
+[fda333c] marabesi 2025-02-01 ci: updated download artifact
+1	1	.github/workflows/ci.yml
+
+[2fd2cf0] marabesi 2025-02-01 ci: updated upload ation
+3	3	.github/workflows/ci.yml
+
+[b23bb85] dependabot[bot] 2025-01-21 chore(deps-dev): bump undici from 6.20.0 to 6.21.1
+7	6	package-lock.json
+
+[726d507] dependabot[bot] 2024-12-18 chore(deps): bump path-to-regexp and express
+18	14	package-lock.json
+
+[a44ec78] dependabot[bot] 2024-12-15 chore(deps): bump nanoid from 3.3.7 to 3.3.8
+6	6	package-lock.json
+
+[d39f849] marabesi 2024-11-26 chore: removes legacy peer deps
+2	2	.github/workflows/ci.yml
+1	1	.github/workflows/delivery.yml
+1	1	.github/workflows/deploy.yml
+1	1	Dockerfile
+1	1	before-push.sh
+
+[34f95c7] marabesi 2024-11-24 chore: remove --legacy-peer-deps
+71	137	package-lock.json
+8	10	package.json
+
+[d524149] dependabot[bot] 2024-11-19 chore(deps): bump cross-spawn
+12	12	package-lock.json
+
+[4b9d90e] dependabot[bot] 2024-10-31 chore(deps-dev): bump elliptic from 6.5.7 to 6.6.0
+6	6	package-lock.json
+
+[b51e2db] dependabot[bot] 2024-10-25 chore(deps): bump http-proxy-middleware from 2.0.6 to 2.0.7
+6	6	package-lock.json
+
+[d0c61cc] dependabot[bot] 2024-10-13 chore(deps): bump cookie and express
+5125	97	package-lock.json
+
+[c0fbb02] marabesi 2024-10-10 docs: updated
+16	3	src/pages/Docs.tsx
+
+[50f0dd0] marabesi 2024-10-06 chore: tagged version 0.21.0
+2	2	package-lock.json
+1	1	package.json
+
+[040f279] marabesi 2024-10-06 feat: adds doc page
+2	0	src/App.tsx
+20	0	src/__test__/Documentation.test.tsx
+0	9	src/__test__/UiElements.test.tsx
+10	6	src/components/ui/Header.tsx
+14	0	src/pages/Docs.tsx
+
+[a3d76a2] marabesi 2024-10-06 chore: tagged version 0.20.5
+85	5113	package-lock.json
+1	1	package.json
+
+[2a91f40] marabesi 2024-10-06 chore: clean up
+1	9	src/__test__/Editors.test.tsx
+
+[bd243e1] marabesi 2024-10-06 fix: eslint
+1	1	src/__test__/Editors.test.tsx
+
+[160ff7c] marabesi 2024-10-06 fix: dancing editors
+1	1	src/components/ui/editor/EditorContainer.tsx
+1	0	src/components/ui/editor/JsonEditor.tsx
+
+[68166ad] marabesi 2024-10-06 chore: clean up
+5	8	src/components/ui/Header.tsx
+2	2	src/components/ui/layout/Default.tsx
+
+[b1e8552] marabesi 2024-10-06 refactor: moving validate to header
+7	4	src/PersistenceContext.tsx
+9	2	src/components/ui/Header.tsx
+2	7	src/pages/Editors.tsx
+
+[733e966] marabesi 2024-10-06 fix: persisting result when navigating away
+6	3	src/PersistenceContext.tsx
+1	0	src/__test__/Editors.test.tsx
+5	5	src/pages/Editors.tsx
+
+[67e3b61] marabesi 2024-10-06 refactor: created persistence context
+14	20	src/App.tsx
+30	0	src/PersistenceContext.tsx
+6	5	src/pages/Editors.tsx
+
+[14cfb61] marabesi 2024-10-06 refactor: dark theme clean up
+2	10	src/DarkModeContext.tsx
+
+[d16ab6d] marabesi 2024-10-06 refactor: dark theme context
+5	22	src/App.tsx
+45	4	src/DarkModeContext.tsx
+4	4	src/components/ui/editor/JsonEditor.tsx
+4	4	src/components/ui/layout/Default.tsx
+
+[4c50a74] marabesi 2024-10-06 refactor: renamed theme context
+1	1	src/App.tsx
+1	0	src/{DarkMode.tsx => DarkModeContext.tsx}
+1	1	src/components/ui/editor/JsonEditor.tsx
+
+[1b70f40] marabesi 2024-10-06 refactor: using settings context
+10	19	src/App.tsx
+5	5	src/components/ui/editor/JsonEditor.tsx
+3	2	src/pages/Settings.tsx
+26	8	src/settings/SettingsContext.tsx
+1	8	src/types/pages.ts
+
+[bce4b28] marabesi 2024-10-06 refactor: created settings context
+7	6	src/App.tsx
+2	2	src/components/ui/editor/JsonEditor.tsx
+21	0	src/settings/SettingsContext.tsx
+
+[933339e] marabesi 2024-10-06 docs: adds ref to drawer
+1	0	README.md
+
+[a605453] marabesi 2024-10-06 chore: hidden drawer
+8	1	src/components/ui/layout/Default.tsx
+47	0	src/components/ui/layout/Drawer.tsx
+
+[1e7754d] dependabot[bot] 2024-09-27 chore(deps): bump rollup from 2.79.1 to 2.79.2
+5117	89	package-lock.json
+
+[e6cfb00] marabesi 2024-09-22 chore: removed @swc/jest
+0	60	package-lock.json
+0	1	package.json
+
+[bf6b78a] marabesi 2024-09-22 chore: upgrade cypress coverage to 3.13.1
+2	4	before-push.sh
+37	25	package-lock.json
+1	1	package.json
+
+[59c1fde] marabesi 2024-09-22 ci: adding back property path for download action
+1	0	.github/workflows/ci.yml
+
+[f3f8186] marabesi 2024-09-22 ci: downgrade download action
+1	1	.github/workflows/ci.yml
+
+[832257c] marabesi 2024-09-22 ci: changed download artifact path
+0	1	.github/workflows/ci.yml
+
+[5594e5f] marabesi 2024-09-22 ci: generate lcov for cypress
+2	0	.github/workflows/ci.yml
+
+[1d17aa1] marabesi 2024-09-22 ci: attempt to fix coverage
+8	0	.github/workflows/ci.yml
+
+[2d8b3fe] marabesi 2024-09-22 chore: tagged version 0.20.4
+2	2	package-lock.json
+1	1	package.json
+
+[fb3d066] marabesi 2024-09-22 chore: upgraded to cypress for before-push.sh
+1	1	before-push.sh
+
+[6fe8e74] marabesi 2024-09-22 fix: avoid dancing width json area
+1	1	src/components/ui/editor/EditorContainer.tsx
+
+[cdbaafe] marabesi 2024-09-22 chore: upgrade typescript to 5.6.2
+8	27	package-lock.json
+1	1	package.json
+1	0	tsconfig.json
+
+[08fa279] marabesi 2024-09-22 chore: upgrade craco to 7.1.0
+1	1	package-lock.json
+1	1	package.json
+
+[3a7608e] marabesi 2024-09-22 chore: upgrade to typescript 4.9.5
+0	1	docker-compose.yml
+1	1	package-lock.json
+1	1	package.json
+2	1	src/index.tsx
+
+[78d7398] marabesi 2024-09-22 chore: removed spectron as a dev dependency
+3	3824	package-lock.json
+0	1	package.json
+
+[d168471] marabesi 2024-09-22 chore: upgraded cypress to 13.14.1
+9	9	package-lock.json
+1	1	package.json
+
+[c08517e] marabesi 2024-09-22 chore: upgrade to electron 32
+8	6	before-push.sh
+23832	36313	package-lock.json
+1	1	package.json
+
+[0277dbe] dependabot[bot] 2024-09-03 chore(deps): bump actions/download-artifact in /.github/workflows
+1	1	.github/workflows/ci.yml
+
+[3bf6451] dependabot[bot] 2024-09-12 chore(deps): bump path-to-regexp and express
+143	94	package-lock.json
+
+[44baf36] Matheus Marabesi 2024-09-05 docs: update README.md with related proejcts
+5	0	README.md
+
+[ebffbe4] dependabot[bot] 2024-08-31 chore(deps-dev): bump axios from 1.6.7 to 1.7.6
+8	8	package-lock.json
+
+[7e8e2af] dependabot[bot] 2024-09-01 chore(deps-dev): bump node-fetch from 3.0.0 to 3.3.2
+24	120	package-lock.json
+1	1	package.json
+
+[bbb7192] dependabot[bot] 2024-08-31 chore(deps-dev): bump elliptic from 6.5.4 to 6.5.7
+6	6	package-lock.json
+
+[40de0f8] dependabot[bot] 2024-08-31 chore(deps): bump webpack from 5.91.0 to 5.94.0
+20533	10924	package-lock.json
+
+[7a525a7] marabesi 2024-07-27 chore: tagged version 0.20.3
+2	2	package-lock.json
+1	1	package.json
+
+[e7e1620] marabesi 2024-07-27 chore: removed link to issue
+0	1	src/components/ui/Header.tsx
+
+[b1b2d28] marabesi 2024-07-25 chore: adds CNAME
+2	0	CNAME
+
+[2c864d6] marabesi 2024-07-21 ci: upgraded codeql to v3
+3	3	.github/workflows/codeql-analysis.yml
+
+[47e897a] marabesi 2024-07-21 ci: update to checkout v4
+1	1	.github/workflows/codeql-analysis.yml
+1	1	.github/workflows/deploy.yml
+
+[b477e91] marabesi 2024-07-21 ci: update to checkout v4
+5	5	.github/workflows/ci.yml
+
+[7efda19] marabesi 2024-07-21 ci: updated to v3 artifacts down/up
+4	17	.github/workflows/ci.yml
+
+[ce4a537] marabesi 2024-07-21 ci: publish to coveralls
+1	1	.github/workflows/ci.yml
+1	1	package.json
+
+[1f9e62a] marabesi 2024-07-21 ci: merged coverage stored
+5	2	.github/workflows/ci.yml
+
+[d3817c1] marabesi 2024-07-21 ci: merging coverage info
+6	1	.github/workflows/ci.yml
+
+[3c321f3] marabesi 2024-07-21 ci: fixed wrong dependencies
+1	1	.github/workflows/ci.yml
+
+[e2d4ffb] marabesi 2024-07-21 ci: atempt fix syntax
+1	1	.github/workflows/ci.yml
+
+[a71a919] marabesi 2024-07-21 ci: listing coverage files
+33	0	.github/workflows/ci.yml
+
+[7201649] marabesi 2024-07-21 ci: changing coverage collection
+16	11	.github/workflows/ci.yml
+27	0	package-lock.json
+1	0	package.json
+
+[7d4cee0] marabesi 2024-07-21 chore: configured coverage for cypress
+5	1	.gitignore
+4	0	cypress.config.js
+2	0	cypress/support/e2e.js
+1532	134	package-lock.json
+3	1	package.json
+
+[527d7e4] marabesi 2024-06-15 chore: updated scripts to legacy deps
+1	1	Dockerfile
+2	2	before-push.sh
+
+[abd1b20] marabesi 2024-06-09 fix: eslint
+1	1	src/__test__/CustomSpacing.test.tsx
+
+[622d61d] marabesi 2024-06-09 test: deleted snapshot
+0	2	src/__test__/DarkMode.test.tsx
+0	1160	src/__test__/__snapshots__/DarkMode.test.tsx.snap
+
+[f4a4f12] marabesi 2024-06-09 feat: added toast
+37	0	package-lock.json
+1	0	package.json
+2	0	src/App.tsx
+12	1	src/__test__/Clipboard.test.tsx
+5	1	src/pages/Editors.tsx
+
+[551d8ef] marabesi 2024-06-09 chore: snapshot for theme
+2	0	src/__test__/DarkMode.test.tsx
+1160	0	src/__test__/__snapshots__/DarkMode.test.tsx.snap
+
+[245d24c] marabesi 2024-06-09 fix: delete all also clear file input
+16	1	src/__test__/CustomSpacing.test.tsx
+11	3	src/components/ui/menu/JsonMenu.tsx
+
+[a241063] marabesi 2024-06-09 fix: dismiss dialog when uploading file
+16	1	src/__test__/CustomSpacing.test.tsx
+9	7	src/components/ui/menu/JsonMenu.tsx
+
+[553e7cc] marabesi 2024-06-09 fix: flickering when loading dark theme
+2	2	src/App.tsx
+
+[7f6f41b] marabesi 2024-06-09 fix: moving parts when loading
+1	1	src/pages/Editors.tsx
+
+[6f0602f] marabesi 2024-06-09 fix: minor styles issues
+2	3	src/pages/Editors.tsx
+
+[6649c4d] marabesi 2024-06-09 feat: validate json checkbox
+5	2	src/App.tsx
+27	0	src/__test__/ErrorHandling.test.tsx
+7	0	src/__test__/UiElements.test.tsx
+1	1	src/components/ui/Header.tsx
+13	5	src/pages/Editors.tsx
+
+[462c81d] marabesi 2024-06-09 fix: linter issues
+1	1	src/__test__/components/Label.test.tsx
+
+[b7c4aff] marabesi 2024-06-09 fix: linter issues
+2	2	src/__test__/components/InputText.test.tsx
+
+[d5cd312] marabesi 2024-06-09 chore: delay of type set to 500
+1	1	src/__test__/Clipboard.test.tsx
+
+[defca5b] marabesi 2024-06-09 ci: enables lint for build
+3	0	.github/workflows/ci.yml
+
+[9dbadcc] marabesi 2024-06-09 fix: test case linter rules
+25	24	src/__test__/Editors.test.tsx
+8	12	src/__test__/ErrorHandling.test.tsx
+22	22	src/__test__/Settings.test.tsx
+
+[621b18e] marabesi 2024-06-09 fix: test case linter rules
+25	34	src/__test__/CustomSpacing.test.tsx
+9	9	src/__test__/DarkMode.test.tsx
+
+[f36ea1e] marabesi 2024-06-09 fix: test case linter rules
+40	40	src/__test__/UiElements.test.tsx
+1	1	src/components/ui/layout/Default.tsx
+
+[765367d] marabesi 2024-06-09 fix: test case linter rules
+2	4	src/__test__/CleanUpEditors.test.tsx
+6	14	src/__test__/CleanUpJsonNewLines.test.tsx
+11	23	src/__test__/CleanUpJsonString.test.tsx
+16	22	src/__test__/Clipboard.test.tsx
+1	1	src/pages/Editors.tsx
+
+[f717037] marabesi 2024-06-08 fix: test case linter rules
+11	19	src/__test__/CleanUpEditors.test.tsx
+
+[6f3f9c9] marabesi 2024-06-08 ci: custom cypress install
+1	0	.github/workflows/ci.yml
+
+[c084f86] marabesi 2024-06-08 chore: checkpoint testing-library dependencies
+275	108	package-lock.json
+3	3	package.json
+
+[750eb1e] marabesi 2024-06-08 chore: checkpoint reactjs only
+130	5541	package-lock.json
+9	5	package.json
+
+[8827077] marabesi 2024-06-08 ci: upgrade cypress runner
+1	1	.github/workflows/ci.yml
+
+[4deacf2] marabesi 2024-06-08 feat: link for discussion
+2	2	package-lock.json
+1	1	package.json
+1	0	src/components/ui/Header.tsx
+
+[b72baf5] marabesi 2024-05-02 chore: tagged version 0.20.0
+2	2	package-lock.json
+1	1	package.json
+
+[6bc0853] marabesi 2024-05-02 chore: upgraded electron
+7	7	package-lock.json
+1	1	package.json
+
+[80a1079] marabesi 2024-05-02 chore: upgraded cypress version
+11	13	package-lock.json
+1	1	package.json
+
+[425265c] marabesi 2024-05-02 chore: clean up
+0	36	org.marabesi.json-utility-tool.yml
+
+[9a9b929] marabesi 2024-05-02 chore: skip tests due upgrade
+1	1	cypress/regression/pages.spec.js
+2	2	src/__test__/Editors.test.tsx
+
+[97914d8] marabesi 2024-05-02 chore: updated react scripts, craco and eslint
+3	3	craco.config.js
+35476	41911	package-lock.json
+4	3	package.json
+
+[b609e7c] marabesi 2024-05-02 chore: updated to jest 28
+333	65	package-lock.json
+1	1	package.json
+
+[7a4b99b] marabesi 2024-05-02 chore: updated user event
+7	7	package-lock.json
+1	1	package.json
+
+[8db14ed] marabesi 2024-05-02 chore: updated types to 18.3.1
+14	28	package-lock.json
+2	2	package.json
+
+[de653ba] marabesi 2024-05-02 chore: updated to react 18.3.1
+23	23	package-lock.json
+2	2	package.json
+
+[9a07b5b] dependabot[bot] 2024-04-11 chore(deps): bump tar from 6.2.0 to 6.2.1
+6	6	package-lock.json
+
+[3551b12] dependabot[bot] 2024-03-28 chore(deps): bump express from 4.18.2 to 4.19.2
+32	32	package-lock.json
+
+[cdea997] dependabot[bot] 2024-03-15 chore(deps): bump follow-redirects from 1.15.4 to 1.15.6
+6	6	package-lock.json
+
+[479e908] dependabot[bot] 2024-03-04 chore(deps): bump app-builder-lib and electron-builder
+646	79	package-lock.json
+1	1	package.json
+
+[dc49b8f] marabesi 2024-03-04 refactor: split theme context into a file
+3	5	src/App.tsx
+7	0	src/DarkMode.tsx
+2	1	src/components/ui/editor/JsonEditor.tsx
+
+[25b659d] marabesi 2024-03-03 ci> versioning codacy file
+8	0	.codacy.yml
+
+[f4f9d1a] dependabot[bot] 2024-02-27 chore(deps): bump es5-ext from 0.10.62 to 0.10.63
+63	6	package-lock.json
+
+[e5d9f73] dependabot[bot] 2024-02-25 chore(deps): bump the npm_and_yarn group group with 2 updates
+85	42	package-lock.json
+1	1	package.json
+
+[19d4e99] marabesi 2024-02-25 ci: disable coveralls on branches
+5	2	.github/workflows/ci.yml
+
+[b33640e] dependabot[bot] 2024-02-25 chore(deps-dev): bump ip from 1.1.8 to 1.1.9
+12	12	package-lock.json
+
+[0fdc27e] marabesi 2024-02-25 ci: merge pr and main workflow
+2	0	.github/workflows/ci.yml
+0	126	.github/workflows/pull_request.yml
+
+[72986c1] marabesi 2024-02-25 chore: tagged version 0.19.0
+2	2	package-lock.json
+1	1	package.json
+
+[b5d4cac] marabesi 2024-02-25 chore: upgrade electron to 29
+233	233	package-lock.json
+2	2	package.json
+
+[402bbe0] dependabot[bot] 2024-01-10 chore(deps): bump follow-redirects from 1.15.2 to 1.15.4
+6	6	package-lock.json
