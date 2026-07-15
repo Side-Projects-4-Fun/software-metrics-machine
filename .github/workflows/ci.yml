@@ -160,11 +160,15 @@ jobs:
       - name: Set project example
         uses: actions/checkout@v6
         with:
-          repository: react/react
+          repository: facebook/react
           path: tmp/react
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 500
+          fetch-depth: 1
           persist-credentials: false
+
+      - name: Deepen react clone for codemaat date range
+        working-directory: tmp/react
+        run: git fetch --shallow-since="2025-03-01" origin
 
       - name: Check package distribution
         env:
