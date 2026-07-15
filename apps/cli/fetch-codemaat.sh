@@ -105,10 +105,8 @@ git_log_file="logfile.log"
 codemaat="$script_dir/tools/code-maat-1.0.4-standalone.jar"
 layers_file="$target_store_data/layers.txt"
 
-# clean up only in force mode so existing logfiles can be reused
-if [ "$force" = true ]; then
-  rm -f "$target_store_data/$git_log_file"
-fi
+#clean up
+rm -rf "$target_store_data/$git_log_file"
 
 echo "Extracting git log from $git_directory between $start_date and $end_date for directory..."
 
@@ -117,13 +115,9 @@ if ! cd "$git_directory"; then
   exit 1
 fi
 
-if [ ! -s "$target_store_data/$git_log_file" ]; then
-  if ! git log --pretty=format:'[%h] %aN %ad %s' --date=short --numstat --after="$start_date" --before="$end_date" $target_directory > "$target_store_data/$git_log_file"; then
-    echo "❌ Failed to generate git log file at $target_store_data/$git_log_file"
-    exit 1
-  fi
-else
-  echo "Skipping git log extraction: existing logfile found at $target_store_data/$git_log_file"
+if ! git log --pretty=format:'[%h] %aN %ad %s' --date=short --numstat --after="$start_date" --before="$end_date" $target_directory > "$target_store_data/$git_log_file"; then
+  echo "❌ Failed to generate git log file at $target_store_data/$git_log_file"
+  exit 1
 fi
 
 generate_layers_file() {
