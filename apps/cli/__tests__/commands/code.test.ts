@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Command } from 'commander';
 import { commands } from '../../src';
 import { CodemaatFactory, GitFactory } from '@smmachine/core';
+import fs from 'fs';
 
 describe('cli: Code Commands', () => {
   let program: Command;
@@ -9,6 +10,7 @@ describe('cli: Code Commands', () => {
   let fetchCommits: ReturnType<typeof vi.fn>;
   let fetchCodeMaat: ReturnType<typeof vi.fn>;
   let consoleSpy: ReturnType<typeof vi.spyOn>;
+  let existsSyncSpy: ReturnType<typeof vi.spyOn>;
 
   const getSubcommand = (name: string): Command | undefined =>
     codeCommand.commands.find((cmd) => cmd.name() === name);
@@ -46,6 +48,8 @@ describe('cli: Code Commands', () => {
     vi.spyOn(CodemaatFactory, 'createWriteRepository').mockReturnValue({
       fetch: fetchCodeMaat,
     } as unknown as ReturnType<typeof CodemaatFactory.createWriteRepository>);
+
+    existsSyncSpy = vi.spyOn(fs, 'existsSync').mockReturnValue(false);
 
     consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     program = commands();
@@ -165,6 +169,10 @@ describe('cli: Code Commands', () => {
     });
 
     it('passes group-depth to codemaat fetch repository', async () => {
+      existsSyncSpy.mockImplementation((candidate) =>
+        String(candidate).endsWith('fetch-codemaat.sh')
+      );
+
       await program.parseAsync(
         [
           'code',
@@ -193,8 +201,31 @@ describe('cli: Code Commands', () => {
           minRevs: 7,
           minSharedRevs: 9,
           minCoupling: 33,
+          scriptPath: expect.stringMatching(/fetch-codemaat\.sh$/),
         })
       );
+    });
+
+    it('includes scriptPath in codemaat-fetch json output', async () => {
+      existsSyncSpy.mockImplementation((candidate) =>
+        String(candidate).endsWith('fetch-codemaat.sh')
+      );
+
+      await program.parseAsync(
+        [
+          'code',
+          'codemaat-fetch',
+          '--start-date',
+          '2025-01-01',
+          '--end-date',
+          '2025-01-31',
+          '--output',
+          'json',
+        ],
+        { from: 'user' }
+      );
+
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('"scriptPath":'));
     });
 
     it('uses the default coupling thresholds when they are omitted', async () => {

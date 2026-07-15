@@ -216,6 +216,7 @@ function test_code_codemaat_fetch_reports_threshold_params_in_output() {
 
   unset SMM_STORE_DATA_AT
 
+  assert_smm_output_contains "\"scriptPath\":"
   assert_smm_output_contains "CodeMaat coupling thresholds: min_revs=7 min_shared_revs=9 min_coupling=33"
   assert_smm_success
 }

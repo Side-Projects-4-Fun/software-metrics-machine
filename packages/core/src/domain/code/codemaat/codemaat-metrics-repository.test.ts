@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
+import { DatabaseSync } from 'node:sqlite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   CodeMaatMetricsCsvRepository,
@@ -245,6 +246,69 @@ layer-c,layer-d,78,5`;
       ]);
 
       await expect(sqliteReadRepository.getCodeChurnHistory()).resolves.toHaveLength(1);
+    } finally {
+      rmSync(storeDir, { recursive: true, force: true });
+    }
+  });
+
+  it('runs migrations for legacy CodeMaat SQLite schemas before reading metrics', async () => {
+    const storeDir = mkdtempSync(path.join(tmpdir(), 'smm-codemaat-sqlite-legacy-'));
+    const config = new Configuration({
+      storeData: storeDir,
+      gitProvider: 'github',
+      githubRepository: 'owner/repo',
+      gitRepositoryLocation: '/tmp/repo',
+      internal: { storageType: 'sqlite' },
+    });
+    const logger = new MockLoggerBuilder().build();
+    const sqliteReadRepository = CodemaatFactory.create(config, logger);
+    const dbPath = path.join(config.getBaseDirectory(), 'smm.sqlite');
+
+    const db = new DatabaseSync(dbPath);
+    try {
+      db.exec(`
+        CREATE TABLE codemaat_code_churn (
+          date TEXT NOT NULL,
+          added INTEGER NOT NULL,
+          deleted INTEGER NOT NULL,
+          commits INTEGER NOT NULL,
+          position INTEGER NOT NULL,
+          stored_at TEXT NOT NULL,
+          PRIMARY KEY (date, position)
+        );
+      `);
+
+      db.prepare(
+        `INSERT INTO codemaat_code_churn (date, added, deleted, commits, position, stored_at)
+         VALUES (?, ?, ?, ?, ?, ?)`
+      ).run('2026-01-05', 10, 2, 1, 0, '2026-07-15T10:00:00.000Z');
+    } finally {
+      db.close();
+    }
+
+    try {
+      await expect(sqliteReadRepository.getCodeChurn()).resolves.toEqual({
+        data: [{ date: '2026-01-05', added: 10, deleted: 2, commits: 1 }],
+        startDate: undefined,
+        endDate: undefined,
+      });
+
+      const migratedDb = new DatabaseSync(dbPath);
+      try {
+        const columns = migratedDb
+          .prepare('PRAGMA table_info(codemaat_code_churn)')
+          .all() as Array<{
+          name: string;
+        }>;
+        expect(columns.some((column) => column.name === 'fetched_at')).toBe(true);
+
+        const backfilled = migratedDb
+          .prepare('SELECT fetched_at, stored_at FROM codemaat_code_churn LIMIT 1')
+          .get() as { fetched_at: string; stored_at: string };
+        expect(backfilled.fetched_at).toBe(backfilled.stored_at);
+      } finally {
+        migratedDb.close();
+      }
     } finally {
       rmSync(storeDir, { recursive: true, force: true });
     }

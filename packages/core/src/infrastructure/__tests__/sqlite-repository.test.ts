@@ -4,7 +4,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Logger } from '@smmachine/utils';
-import { Configuration, IRepository, RepositoryFactory, SqliteRepository } from '..';
+import {
+  Configuration,
+  IRepository,
+  RepositoryFactory,
+  SqliteRepository,
+  applySqliteMigrations,
+} from '..';
 import { Commit } from '../../domain-types';
 import { CommitBuilder } from '../../test/domain/domain-builders';
 import {
@@ -112,6 +118,82 @@ describe('sqlite repository implementations', () => {
 
     expect(existsSync(dbPath)).toBe(true);
     await expect(repository.exists()).resolves.toBe(false);
+  });
+
+  it('initializes all required application tables for a fresh SQLite install', async () => {
+    const dbPath = join(createTempDir(), 'project', 'smm.sqlite');
+    const repository = new SqliteRepository<TestRecord>(dbPath, 'records.json', logger);
+
+    await repository.initialize();
+
+    const db = new DatabaseSync(dbPath);
+    try {
+      const expectedTables = [
+        'repository_records',
+        'workflow_runs',
+        'workflow_jobs',
+        'commits',
+        'pull_requests',
+        'pull_request_comments',
+        'sonarqube_measures',
+        'sonarqube_component_tree',
+        'sonarqube_historical_measures',
+        'codemaat_code_churn',
+        'codemaat_age',
+        'codemaat_author_churn',
+        'codemaat_file_coupling',
+        'codemaat_layered_coupling',
+        'codemaat_entity_churn',
+        'codemaat_entity_effort',
+        'codemaat_entity_ownership',
+      ];
+
+      for (const tableName of expectedTables) {
+        const exists = Boolean(
+          db
+            .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1")
+            .get(tableName)
+        );
+        expect(exists).toBe(true);
+      }
+    } finally {
+      db.close();
+    }
+  });
+
+  it('applies migrations when legacy scoped migration metadata table already exists', () => {
+    const dbPath = join(createTempDir(), 'smm.sqlite');
+    const db = new DatabaseSync(dbPath);
+
+    try {
+      db.exec(`
+        CREATE TABLE smm_schema_migrations (
+          scope TEXT NOT NULL,
+          migration_id TEXT NOT NULL,
+          applied_at TEXT NOT NULL,
+          PRIMARY KEY (scope, migration_id)
+        );
+      `);
+
+      applySqliteMigrations(db);
+
+      const appliedRows = db
+        .prepare('SELECT scope, migration_id FROM smm_schema_migrations ORDER BY migration_id ASC')
+        .all() as Array<{ scope: string; migration_id: string }>;
+
+      expect(appliedRows.some((row) => row.scope === 'app')).toBe(true);
+      expect(
+        appliedRows.some((row) => row.migration_id === '001_create_core_repository_tables')
+      ).toBe(true);
+      expect(appliedRows.some((row) => row.migration_id === '002_create_codemaat_tables')).toBe(
+        true
+      );
+      expect(
+        appliedRows.some((row) => row.migration_id === '003_backfill_codemaat_fetched_at')
+      ).toBe(true);
+    } finally {
+      db.close();
+    }
   });
 
   describe('SQLite pipeline tables', () => {

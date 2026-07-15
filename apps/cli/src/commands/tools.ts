@@ -4,6 +4,7 @@ import {
   CodemaatFactory,
   Configuration,
   JsonFileSystemRepository,
+  applySqliteMigrations,
   RepositoryFactory,
   SqliteRepository,
 } from '@smmachine/core';
@@ -223,6 +224,7 @@ function appendMigrationMetadataRecord(
 ): void {
   const db = new DatabaseSync(sqliteDbPath);
   try {
+    applySqliteMigrations(db);
     const recordTimestamp = new Date().toISOString();
     const recordKey = `${metadata.projectLabel}:${recordTimestamp}`;
 
@@ -390,6 +392,7 @@ function getJsonToSqliteMigrationStores(config: Configuration): MigrationStore[]
 function removeLegacyPipelineSqliteNamespaces(config: Configuration, sqliteDbPath: string): void {
   const db = new DatabaseSync(sqliteDbPath);
   try {
+    applySqliteMigrations(db);
     if (tableExists(db, 'workflow_runs')) {
       db.prepare('DELETE FROM workflow_runs WHERE namespace = ?').run(
         RepositoryFactory.getSqliteNamespace(

@@ -8,7 +8,18 @@ import {
 } from '@smmachine/core';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 import type { CodeChurn } from '@smmachine/core/providers/codemaat/types';
+import fs from 'fs';
 import path from 'path';
+
+function resolveDevCodemaatScriptPath(): string | undefined {
+  const candidates = [
+    path.resolve(__dirname, '../../fetch-codemaat.sh'),
+    path.resolve(__dirname, '../fetch-codemaat.sh'),
+    path.resolve(process.cwd(), 'fetch-codemaat.sh'),
+  ];
+
+  return candidates.find((candidate) => fs.existsSync(candidate));
+}
 
 export function createCodeCommands(program: SmmCommand): void {
   const codeGroup = program.subcommand('code').description('Code analysis operations');
@@ -270,6 +281,7 @@ export function createCodeCommands(program: SmmCommand): void {
         const fetchRepository = CodemaatFactory.createWriteRepository(config, logger);
         const parsedGroupDepth =
           typeof options.groupDepth === 'string' ? Number(options.groupDepth) : undefined;
+        const scriptPath = resolveDevCodemaatScriptPath();
         const result = fetchRepository.fetch({
           startDate: options.startDate,
           endDate: options.endDate,
@@ -282,16 +294,14 @@ export function createCodeCommands(program: SmmCommand): void {
           minSharedRevs: Number(options.minSharedRevs),
           minCoupling: Number(options.minCoupling),
           force: options.force,
-          scriptPath:
-            process.env.SMM_DEV_MODE === 'true'
-              ? path.resolve(__dirname, '../../fetch-codemaat.sh')
-              : undefined,
+          scriptPath,
         });
 
         if (options.output === 'json') {
           screen.printLine(
             JSON.stringify(
               {
+                scriptPath,
                 repository: result.repository,
                 outputDirectory: result.outputDirectory,
                 stdout: result.stdout,
@@ -302,6 +312,7 @@ export function createCodeCommands(program: SmmCommand): void {
           );
         } else {
           screen.printLine('\n=== CodeMaat Fetch ===\n');
+          screen.printLine(`Script Path: ${scriptPath}`);
           screen.printLine(`Repository: ${result.repository}`);
           screen.printLine(`Output Directory: ${result.outputDirectory}`);
           screen.printLine(result.stdout.trimEnd());

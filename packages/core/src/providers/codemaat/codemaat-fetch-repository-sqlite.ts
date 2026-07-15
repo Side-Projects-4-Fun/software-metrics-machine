@@ -3,6 +3,7 @@ import * as path from 'path';
 import { DatabaseSync } from 'node:sqlite';
 import { Logger } from '@smmachine/utils';
 import { Configuration } from '../../infrastructure';
+import { applySqliteMigrations } from '../../infrastructure/sqlite-migrations';
 import { RepositoryFactory } from '../../infrastructure/repository-factory';
 import { CodemaatFetchCsvRepository } from './codemaat-fetch-repository-csv';
 import type {
@@ -41,7 +42,7 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
     fs.mkdirSync(path.dirname(this.sqliteDbPath), { recursive: true });
     const db = new DatabaseSync(this.sqliteDbPath);
     try {
-      this.ensureSqliteSchema(db);
+      applySqliteMigrations(db);
       db.exec('BEGIN IMMEDIATE TRANSACTION');
       try {
         const fetchedAt = new Date().toISOString();
@@ -152,164 +153,6 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
     }
 
     return 0;
-  }
-
-  private ensureSqliteSchema(db: DatabaseSync): void {
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS codemaat_code_churn (
-        date TEXT NOT NULL,
-        added INTEGER NOT NULL,
-        deleted INTEGER NOT NULL,
-        commits INTEGER NOT NULL,
-        position INTEGER NOT NULL,
-        stored_at TEXT NOT NULL,
-        fetched_at TEXT,
-        PRIMARY KEY (date, position)
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_codemaat_code_churn_date
-        ON codemaat_code_churn(date);
-      CREATE INDEX IF NOT EXISTS idx_codemaat_code_churn_fetched_at
-        ON codemaat_code_churn(fetched_at);
-
-        CREATE TABLE IF NOT EXISTS codemaat_age (
-          entity TEXT NOT NULL,
-          age_months INTEGER NOT NULL,
-          position INTEGER NOT NULL,
-          stored_at TEXT NOT NULL,
-          fetched_at TEXT,
-          PRIMARY KEY (entity, position)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_codemaat_age_entity
-          ON codemaat_age(entity);
-        CREATE INDEX IF NOT EXISTS idx_codemaat_age_fetched_at
-          ON codemaat_age(fetched_at);
-
-        CREATE TABLE IF NOT EXISTS codemaat_author_churn (
-          author TEXT NOT NULL,
-          added INTEGER NOT NULL,
-          deleted INTEGER NOT NULL,
-          commits INTEGER NOT NULL,
-          position INTEGER NOT NULL,
-          stored_at TEXT NOT NULL,
-          fetched_at TEXT,
-          PRIMARY KEY (author, position)
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_codemaat_author_churn_author
-          ON codemaat_author_churn(author);
-        CREATE INDEX IF NOT EXISTS idx_codemaat_author_churn_fetched_at
-          ON codemaat_author_churn(fetched_at);
-
-      CREATE TABLE IF NOT EXISTS codemaat_file_coupling (
-        entity TEXT NOT NULL,
-        coupled TEXT NOT NULL,
-        degree INTEGER NOT NULL,
-        average_revs INTEGER NOT NULL,
-        position INTEGER NOT NULL,
-        stored_at TEXT NOT NULL,
-        fetched_at TEXT,
-        PRIMARY KEY (entity, coupled, position)
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_entity
-        ON codemaat_file_coupling(entity);
-      CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_coupled
-        ON codemaat_file_coupling(coupled);
-      CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_degree
-        ON codemaat_file_coupling(degree);
-      CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_fetched_at
-        ON codemaat_file_coupling(fetched_at);
-
-      CREATE TABLE IF NOT EXISTS codemaat_layered_coupling (
-        entity TEXT NOT NULL,
-        coupled TEXT NOT NULL,
-        degree INTEGER NOT NULL,
-        average_revs INTEGER NOT NULL,
-        position INTEGER NOT NULL,
-        stored_at TEXT NOT NULL,
-        fetched_at TEXT,
-        PRIMARY KEY (entity, coupled, position)
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_entity
-        ON codemaat_layered_coupling(entity);
-      CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_coupled
-        ON codemaat_layered_coupling(coupled);
-      CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_degree
-        ON codemaat_layered_coupling(degree);
-      CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_fetched_at
-        ON codemaat_layered_coupling(fetched_at);
-
-      CREATE TABLE IF NOT EXISTS codemaat_entity_churn (
-        entity TEXT NOT NULL,
-        added INTEGER NOT NULL,
-        deleted INTEGER NOT NULL,
-        commits INTEGER NOT NULL,
-        position INTEGER NOT NULL,
-        stored_at TEXT NOT NULL,
-        fetched_at TEXT,
-        PRIMARY KEY (entity, position)
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_codemaat_entity_churn_entity
-        ON codemaat_entity_churn(entity);
-      CREATE INDEX IF NOT EXISTS idx_codemaat_entity_churn_fetched_at
-        ON codemaat_entity_churn(fetched_at);
-
-      CREATE TABLE IF NOT EXISTS codemaat_entity_effort (
-        entity TEXT NOT NULL,
-        total_revs INTEGER NOT NULL,
-        position INTEGER NOT NULL,
-        stored_at TEXT NOT NULL,
-        fetched_at TEXT,
-        PRIMARY KEY (entity, position)
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_codemaat_entity_effort_entity
-        ON codemaat_entity_effort(entity);
-      CREATE INDEX IF NOT EXISTS idx_codemaat_entity_effort_fetched_at
-        ON codemaat_entity_effort(fetched_at);
-
-      CREATE TABLE IF NOT EXISTS codemaat_entity_ownership (
-        entity TEXT NOT NULL,
-        author TEXT NOT NULL,
-        added INTEGER NOT NULL,
-        deleted INTEGER NOT NULL,
-        position INTEGER NOT NULL,
-        stored_at TEXT NOT NULL,
-        fetched_at TEXT,
-        PRIMARY KEY (entity, author, position)
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_codemaat_entity_ownership_entity
-        ON codemaat_entity_ownership(entity);
-      CREATE INDEX IF NOT EXISTS idx_codemaat_entity_ownership_author
-        ON codemaat_entity_ownership(author);
-      CREATE INDEX IF NOT EXISTS idx_codemaat_entity_ownership_fetched_at
-        ON codemaat_entity_ownership(fetched_at);
-    `);
-
-    this.ensureFetchedAtColumn(db, 'codemaat_code_churn');
-    this.ensureFetchedAtColumn(db, 'codemaat_age');
-    this.ensureFetchedAtColumn(db, 'codemaat_author_churn');
-    this.ensureFetchedAtColumn(db, 'codemaat_file_coupling');
-    this.ensureFetchedAtColumn(db, 'codemaat_layered_coupling');
-    this.ensureFetchedAtColumn(db, 'codemaat_entity_churn');
-    this.ensureFetchedAtColumn(db, 'codemaat_entity_effort');
-    this.ensureFetchedAtColumn(db, 'codemaat_entity_ownership');
-  }
-
-  private ensureFetchedAtColumn(db: DatabaseSync, tableName: string): void {
-    const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name: string }>;
-
-    const hasFetchedAt = columns.some((column) => column.name === 'fetched_at');
-    if (!hasFetchedAt) {
-      db.exec(`ALTER TABLE ${tableName} ADD COLUMN fetched_at TEXT`);
-    }
-
-    db.prepare(`UPDATE ${tableName} SET fetched_at = stored_at WHERE fetched_at IS NULL`).run();
   }
 
   private getNextPosition(db: DatabaseSync, tableName: string): number {

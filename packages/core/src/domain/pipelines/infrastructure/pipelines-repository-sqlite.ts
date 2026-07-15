@@ -5,6 +5,7 @@ import { Logger } from '@smmachine/utils';
 import { Configuration } from '../../../infrastructure/configuration';
 import { RepositoryFactory } from '../../../infrastructure/repository-factory';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
+import { applySqliteMigrations } from '../../../infrastructure/sqlite-migrations';
 import {
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
@@ -156,6 +157,7 @@ export class PipelinesSqliteRepository
     await fs.mkdir(path.dirname(this.sqliteDbPath), { recursive: true });
     const db = new DatabaseSync(this.sqliteDbPath);
     try {
+      applySqliteMigrations(db);
       if (!this.tableExists(db, 'workflow_jobs') || !this.tableExists(db, 'workflow_runs')) {
         return [];
       }
@@ -194,6 +196,7 @@ export class PipelinesSqliteRepository
     await fs.mkdir(path.dirname(this.sqliteDbPath), { recursive: true });
     const db = new DatabaseSync(this.sqliteDbPath);
     try {
+      applySqliteMigrations(db);
       if (!this.tableExists(db, tableName)) {
         return [];
       }

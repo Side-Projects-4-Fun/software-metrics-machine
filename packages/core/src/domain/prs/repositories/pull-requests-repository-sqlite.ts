@@ -2,6 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { DatabaseSync } from 'node:sqlite';
 import { Configuration, RepositoryFactory } from '../../../infrastructure';
+import { applySqliteMigrations } from '../../../infrastructure/sqlite-migrations';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import {
   ParseRawFiltersRepository,
@@ -234,6 +235,7 @@ export class PullRequestsSqliteRepository
     await fs.mkdir(path.dirname(this.sqliteDbPath), { recursive: true });
     const db = new DatabaseSync(this.sqliteDbPath);
     try {
+      applySqliteMigrations(db);
       if (!this.tableExists(db, tableName)) {
         return [];
       }

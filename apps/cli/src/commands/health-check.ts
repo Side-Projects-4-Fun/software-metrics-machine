@@ -1,5 +1,6 @@
 import { Configuration } from '@smmachine/core/infrastructure/configuration';
 import { RepositoryFactory } from '@smmachine/core/infrastructure/repository-factory';
+import { applySqliteMigrations } from '@smmachine/core/infrastructure/sqlite-migrations';
 import * as fs from 'fs/promises';
 import { DatabaseSync } from 'node:sqlite';
 import type { SmmCommand } from './smm-command';
@@ -392,6 +393,7 @@ function loadSqlitePayloadRows(
 ): Array<Record<string, unknown>> {
   const db = new DatabaseSync(sqliteDbPath);
   try {
+    applySqliteMigrations(db);
     const hasTable = Boolean(
       db
         .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1")

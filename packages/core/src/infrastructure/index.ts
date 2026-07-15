@@ -7,4 +7,5 @@ export * from './configuration-repository';
 export * from './repository';
 export * from './repository-factory';
 export * from './sqlite-repository';
+export * from './sqlite-migrations';
 export * from './timezone-provider';

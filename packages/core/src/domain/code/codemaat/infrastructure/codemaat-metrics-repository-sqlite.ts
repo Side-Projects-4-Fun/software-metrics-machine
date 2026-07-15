@@ -13,6 +13,7 @@ import type {
   FileCoupling,
 } from '../../../../providers/codemaat/types';
 import { RepositoryFactory } from '../../../../infrastructure/repository-factory';
+import { applySqliteMigrations } from '../../../../infrastructure/sqlite-migrations';
 import { normalizePatternList } from '../../../../domain/code/pattern-filters';
 import { CodeMaatMetricsCsvRepository } from './codemaat-metrics-repository-csv';
 import type {
@@ -51,7 +52,6 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
           endDate: options?.endDate,
         };
       }
-      this.ensureFetchedAtColumn(db, 'codemaat_code_churn');
 
       const startDate = options?.startDate ? this.toDateOnly(options.startDate) : undefined;
       const endDate = options?.endDate ? this.toDateOnly(options.endDate) : undefined;
@@ -117,7 +117,6 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
       if (!this.tableExists(db, 'codemaat_code_churn')) {
         return [];
       }
-      this.ensureFetchedAtColumn(db, 'codemaat_code_churn');
 
       const startDate = options?.startDate ? this.toDateOnly(options.startDate) : undefined;
       const endDate = options?.endDate ? this.toDateOnly(options.endDate) : undefined;
@@ -168,7 +167,6 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
       if (!this.tableExists(db, 'codemaat_file_coupling')) {
         return [];
       }
-      this.ensureFetchedAtColumn(db, 'codemaat_file_coupling');
 
       const rows = db
         .prepare(
@@ -207,7 +205,6 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
       if (!this.tableExists(db, 'codemaat_file_coupling')) {
         return [];
       }
-      this.ensureFetchedAtColumn(db, 'codemaat_file_coupling');
 
       const rows = db
         .prepare(
@@ -264,7 +261,6 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
       if (!this.tableExists(db, 'codemaat_layered_coupling')) {
         return [];
       }
-      this.ensureFetchedAtColumn(db, 'codemaat_layered_coupling');
 
       const rows = db
         .prepare(
@@ -303,7 +299,6 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
       if (!this.tableExists(db, 'codemaat_layered_coupling')) {
         return [];
       }
-      this.ensureFetchedAtColumn(db, 'codemaat_layered_coupling');
 
       const rows = db
         .prepare(
@@ -360,7 +355,6 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
       if (!this.tableExists(db, 'codemaat_entity_churn')) {
         return [];
       }
-      this.ensureFetchedAtColumn(db, 'codemaat_entity_churn');
 
       const rows = db
         .prepare(
@@ -398,7 +392,6 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
       if (!this.tableExists(db, 'codemaat_entity_churn')) {
         return [];
       }
-      this.ensureFetchedAtColumn(db, 'codemaat_entity_churn');
 
       const rows = db
         .prepare(
@@ -450,7 +443,6 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
       if (!this.tableExists(db, 'codemaat_entity_effort')) {
         return [];
       }
-      this.ensureFetchedAtColumn(db, 'codemaat_entity_effort');
 
       const rows = db
         .prepare(
@@ -498,7 +490,6 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
       if (!this.tableExists(db, 'codemaat_entity_effort')) {
         return [];
       }
-      this.ensureFetchedAtColumn(db, 'codemaat_entity_effort');
 
       const rows = db
         .prepare(
@@ -546,7 +537,6 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
       if (!this.tableExists(db, 'codemaat_entity_ownership')) {
         return options?.select === 'authors' ? [] : [];
       }
-      this.ensureFetchedAtColumn(db, 'codemaat_entity_ownership');
 
       const rows = db
         .prepare(
@@ -597,7 +587,6 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
       if (!this.tableExists(db, 'codemaat_entity_ownership')) {
         return [];
       }
-      this.ensureFetchedAtColumn(db, 'codemaat_entity_ownership');
 
       const rows = db
         .prepare(
@@ -652,7 +641,9 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
   }
 
   private openSqlite(): DatabaseSync {
-    return new DatabaseSync(this.sqliteDbPath);
+    const db = new DatabaseSync(this.sqliteDbPath);
+    applySqliteMigrations(db);
+    return db;
   }
 
   private tableExists(db: DatabaseSync, tableName: string): boolean {
@@ -667,22 +658,11 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
     if (!this.tableExists(db, tableName)) {
       return null;
     }
-    this.ensureFetchedAtColumn(db, tableName);
 
     const row = db
       .prepare(`SELECT MAX(COALESCE(fetched_at, stored_at)) AS latest FROM ${tableName}`)
       .get() as { latest: string | null };
 
     return row?.latest ?? null;
-  }
-
-  private ensureFetchedAtColumn(db: DatabaseSync, tableName: string): void {
-    const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name: string }>;
-
-    if (!columns.some((column) => column.name === 'fetched_at')) {
-      db.exec(`ALTER TABLE ${tableName} ADD COLUMN fetched_at TEXT`);
-    }
-
-    db.prepare(`UPDATE ${tableName} SET fetched_at = stored_at WHERE fetched_at IS NULL`).run();
   }
 }
