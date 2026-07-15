@@ -105,6 +105,18 @@ git_log_file="logfile.log"
 codemaat="$script_dir/tools/code-maat-1.0.4-standalone.jar"
 layers_file="$target_store_data/layers.txt"
 
+debug_log() {
+  if [ -n "${DEBUG:-}" ]; then
+    echo "[DEBUG] $*"
+  fi
+}
+
+debug_log "fetch-codemaat.sh started"
+debug_log "args: git_directory=$git_directory store_data=$store_data start_date=$start_date end_date=$end_date sub_folder=$sub_folder force=$force group_depth=$group_depth min_revs=$min_revs min_shared_revs=$min_shared_revs min_coupling=$min_coupling"
+debug_log "resolved target_store_data=$target_store_data"
+debug_log "resolved target_directory=${target_directory:-<none>}"
+debug_log "resolved layers_file=$layers_file"
+
 #clean up
 rm -rf "$target_store_data/$git_log_file"
 
@@ -115,10 +127,23 @@ if ! cd "$git_directory"; then
   exit 1
 fi
 
-if ! git log --pretty=format:'[%h] %aN %ad %s' --date=short --numstat --after="$start_date" --before="$end_date" $target_directory > "$target_store_data/$git_log_file"; then
+debug_log "working directory: $(pwd)"
+
+git_log_args=(--pretty=format:'[%h] %aN %ad %s' --date=short --numstat --after="$start_date" --before="$end_date")
+
+if [ -n "$target_directory" ]; then
+	git_log_args+=(-- "$target_directory")
+fi
+
+debug_log "git log command: git log ${git_log_args[*]}"
+
+if ! git log "${git_log_args[@]}" > "$target_store_data/$git_log_file"; then
   echo "❌ Failed to generate git log file at $target_store_data/$git_log_file"
   exit 1
 fi
+
+debug_log "git log output: $target_store_data/$git_log_file"
+debug_log "git log size: $(wc -c < "$target_store_data/$git_log_file") bytes"
 
 generate_layers_file() {
   local output_file="$1"
