@@ -130,7 +130,7 @@ jobs:
   check-distribution:
     name: Check Distribution
     runs-on: ubuntu-latest
-    needs: [build-typescript, test]
+    needs: [build-typescript]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -176,8 +176,17 @@ jobs:
           SMM_STORE_DATA_AT: /home/runner/work/software-metrics-machine/software-metrics-machine/docs/project-example
         run: ./scripts/simulate-and-test-publish.sh build
 
+  sonarqube:
+    name: SonarQube
+    runs-on: ubuntu-latest
+    needs: [build-typescript, test, cli-acceptance, check-distribution]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: SonarQube Scan
-        if: github.ref == 'refs/heads/main'
         uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
