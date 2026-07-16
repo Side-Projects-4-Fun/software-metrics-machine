@@ -158,17 +158,7 @@ jobs:
         run: cp apps/webapp/.env.local.example apps/webapp/.env
 
       - name: Set project example
-        uses: actions/checkout@v6
-        with:
-          repository: facebook/react
-          path: tmp/react
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 1
-          persist-credentials: false
-
-      - name: Deepen react clone for codemaat date range
-        working-directory: tmp/react
-        run: git fetch --shallow-since="2025-03-01" origin
+        run: git clone --shallow-since="2025-03-01" https://github.com/facebook/react tmp/react
 
       - name: Check package distribution
         env:
