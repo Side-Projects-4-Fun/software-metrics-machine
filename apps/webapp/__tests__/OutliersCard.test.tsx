@@ -1,5 +1,34 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import OutliersCard, { MetricOutlierRow } from '@/components/charts/OutliersCard';
+import { LinkBuilderProvider } from '@/components/providers/LinkBuilderContext';
+import { DashboardGlobalConfiguration } from '@/server/api/configuration';
+
+const configuration: DashboardGlobalConfiguration = {
+  git_provider: 'github',
+  github_repository: 'acme/widgets',
+  git_repository_location: '',
+  store_data: true,
+  deployment_frequency_targets: [],
+  main_branch: 'main',
+  dashboard_start_date: null,
+  dashboard_end_date: null,
+  dashboard_color: 'blue',
+  logging_level: 'INFO',
+  jira_url: null,
+  jira_email: null,
+  jira_token: null,
+  jira_project: null,
+  sonar_url: null,
+  sonar_project: null,
+};
+
+function renderOutliers(rows: MetricOutlierRow[]) {
+  return render(
+    <LinkBuilderProvider config={configuration}>
+      <OutliersCard rows={rows} />
+    </LinkBuilderProvider>
+  );
+}
 
 function makeRows(count: number): MetricOutlierRow[] {
   return Array.from({ length: count }, (_, index) => ({
@@ -17,13 +46,13 @@ function makeRows(count: number): MetricOutlierRow[] {
 
 describe('OutliersCard', () => {
   it('renders nothing when there are no rows', () => {
-    const { container } = render(<OutliersCard rows={[]} />);
+    const { container } = renderOutliers([]);
 
     expect(container).toBeEmptyDOMElement();
   });
 
   it('paginates outlier rows', () => {
-    render(<OutliersCard rows={makeRows(12)} />);
+    renderOutliers(makeRows(12));
 
     expect(screen.getByTestId('outliers-table-frame')).toHaveStyle({ height: '560px' });
     expect(screen.getByText('Metric 1')).toBeInTheDocument();
@@ -37,7 +66,7 @@ describe('OutliersCard', () => {
   });
 
   it('shows outliers academic references from the info icon', () => {
-    render(<OutliersCard rows={makeRows(1)} />);
+    renderOutliers(makeRows(1));
 
     fireEvent.click(screen.getByText('i'));
 
@@ -45,5 +74,53 @@ describe('OutliersCard', () => {
     expect(screen.getByText(/Kamei et al. \(2013\)/)).toBeInTheDocument();
     expect(screen.getByText(/Rahman & Devanbu \(2013\)/)).toBeInTheDocument();
     expect(screen.getByText(/Nagappan & Ball \(2005\)/)).toBeInTheDocument();
+  });
+
+  it('links item label using resource when url is not available', () => {
+    const rows: MetricOutlierRow[] = [
+      {
+        id: 'outlier-resource-1',
+        metric: 'Removed Resources',
+        value: 42,
+        timestamp: '2026-06-01T12:00:00Z',
+        lowerBound: 1,
+        upperBound: 10,
+        item: {
+          title: 'obsolete artifact',
+          resource: 'https://example.com/resources/obsolete-artifact',
+        },
+      },
+    ];
+
+    renderOutliers(rows);
+
+    expect(screen.getByRole('link', { name: /obsolete artifact/i })).toHaveAttribute(
+      'href',
+      'https://example.com/resources/obsolete-artifact'
+    );
+  });
+
+  it('links workflow outlier rows to provider run page when run id is available', () => {
+    const rows: MetricOutlierRow[] = [
+      {
+        id: 'outlier-workflow-1',
+        metric: 'Run duration: ci.yml',
+        value: 24,
+        timestamp: '2026-06-01T12:00:00Z',
+        lowerBound: 1,
+        upperBound: 10,
+        item: {
+          workflowName: 'ci.yml',
+          runId: '12345',
+        },
+      },
+    ];
+
+    renderOutliers(rows);
+
+    expect(screen.getByRole('link', { name: /ci.yml/i })).toHaveAttribute(
+      'href',
+      'https://github.com/acme/widgets/actions/runs/12345'
+    );
   });
 });

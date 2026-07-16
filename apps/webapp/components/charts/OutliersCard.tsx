@@ -3,6 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TargetInfo } from '@/components/charts/TargetInfo';
 import { ClientPaginatedSortableTable } from '@/components/ui/client-paginated-sortable-table';
+import { UrlBuilder } from '@/server/utils/urlBuilder';
+import { useLinkBuilder } from '@/components/providers/LinkBuilderContext';
 
 export interface MetricOutlierRow {
   id: string;
@@ -27,13 +29,49 @@ function itemLabel(item: Record<string, unknown>): string {
   const jobName = typeof item.jobName === 'string' ? item.jobName : '';
   const stepName = typeof item.stepName === 'string' ? item.stepName : '';
   const workflowName = typeof item.workflowName === 'string' ? item.workflowName : '';
+  const resource = typeof item.resource === 'string' ? item.resource : '';
 
-  return [prNumber, title, workflowName, jobName, stepName, runId]
+  return [prNumber, title, workflowName, jobName, stepName, runId, resource]
     .filter(Boolean)
     .join(' / ') || 'Unknown';
 }
 
+function itemLink(item: Record<string, unknown>, urlBuilder?: UrlBuilder): string {
+  const keys = ['url', 'resource', 'resourceUrl', 'removedResourceUrl'];
+  for (const key of keys) {
+    const value = item[key];
+    if (typeof value === 'string' && value.trim()) {
+      return value;
+    }
+  }
+
+  if (urlBuilder) {
+    const runIdValue = item.runId;
+    const runId =
+      typeof runIdValue === 'string'
+        ? runIdValue
+        : typeof runIdValue === 'number'
+          ? String(runIdValue)
+          : '';
+
+    if (runId) {
+      return urlBuilder.getPipelineRunUrl(runId);
+    }
+
+    const workflowName = typeof item.workflowName === 'string' ? item.workflowName : '';
+    const hasJobContext = typeof item.jobName === 'string' || typeof item.stepName === 'string';
+
+    if (workflowName && !hasJobContext) {
+      return urlBuilder.getPipelinesUrl({ workflow: workflowName });
+    }
+  }
+
+  return '';
+}
+
 export default function OutliersCard({ rows }: { rows: MetricOutlierRow[] }) {
+  const { urlBuilder } = useLinkBuilder();
+
   if (rows.length === 0) {
     return null;
   }
@@ -74,7 +112,7 @@ export default function OutliersCard({ rows }: { rows: MetricOutlierRow[] }) {
               label: 'Item',
               sortable: false,
               renderCell: (row) => {
-                const url = typeof row.item.url === 'string' ? row.item.url : '';
+                const url = itemLink(row.item, urlBuilder);
                 const label = itemLabel(row.item);
                 return url ? (
                   <a href={url} target="_blank" rel="noreferrer" className="text-blue-700 underline">

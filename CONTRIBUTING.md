@@ -16,6 +16,7 @@ Thanks for contributing. This repository is a **pnpm TypeScript monorepo** with 
 - [Pull Request Process](#pull-request-process)
 - [Contribution Guidelines](#contribution-guidelines)
 - [Troubleshooting](#troubleshooting)
+  - [SQLite data queries](#sqlite-data-queries)
 - [License](#license)
 
 ## Requirements
@@ -550,6 +551,130 @@ SMM_STORE_DATA_AT=./.data smm pipelines fetch
 ```bash
 corepack enable
 corepack prepare pnpm@10.34.1 --activate
+```
+
+### SQLite data queries
+
+When using the SQLite storage backend (`SMM_STORAGE_TYPE=sqlite`), you can open the database directly with any SQLite client (e.g. `sqlite3 smm.sqlite`) to inspect or fix data issues. The database file lives in `SMM_STORE_DATA_AT`.
+
+**List all tables**
+
+```sql
+SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name;
+```
+
+**Check which migrations have been applied**
+
+```sql
+SELECT * FROM smm_schema_migrations ORDER BY applied_at;
+```
+
+**Inspect namespaces and record counts per table**
+
+```sql
+-- Generic / singleton records
+SELECT namespace, COUNT(*) AS count FROM repository_records GROUP BY namespace ORDER BY namespace;
+
+-- Pull requests
+SELECT namespace, COUNT(*) AS count FROM pull_requests GROUP BY namespace ORDER BY namespace;
+
+-- Pull request comments
+SELECT namespace, COUNT(*) AS count FROM pull_request_comments GROUP BY namespace ORDER BY namespace;
+
+-- Commits
+SELECT namespace, COUNT(*) AS count FROM commits GROUP BY namespace ORDER BY namespace;
+
+-- Workflow runs
+SELECT namespace, COUNT(*) AS count FROM workflow_runs GROUP BY namespace ORDER BY namespace;
+
+-- Workflow jobs
+SELECT namespace, COUNT(*) AS count FROM workflow_jobs GROUP BY namespace ORDER BY namespace;
+```
+
+**Check the most recent records stored for a namespace**
+
+```sql
+-- Replace '<your-namespace>' with the namespace value shown above
+SELECT id, state, created_at, merged_at, stored_at
+FROM pull_requests
+WHERE namespace = '<your-namespace>'
+ORDER BY stored_at DESC
+LIMIT 20;
+
+SELECT hash, author, timestamp, stored_at
+FROM commits
+WHERE namespace = '<your-namespace>'
+ORDER BY stored_at DESC
+LIMIT 20;
+```
+
+**Find duplicate or stale records**
+
+```sql
+-- Duplicate pull requests by number within a namespace
+SELECT namespace, number, COUNT(*) AS cnt
+FROM pull_requests
+GROUP BY namespace, number
+HAVING cnt > 1;
+
+-- Workflow runs with no conclusion (still in progress / stuck)
+SELECT namespace, id, status, conclusion, run_started_at, stored_at
+FROM workflow_runs
+WHERE conclusion IS NULL OR conclusion = ''
+ORDER BY run_started_at DESC;
+```
+
+**Delete all records for a specific namespace (reset and re-fetch)**
+
+```sql
+-- Run the appropriate DELETE for the data type you want to reset:
+DELETE FROM repository_records       WHERE namespace = '<your-namespace>';
+DELETE FROM pull_requests            WHERE namespace = '<your-namespace>';
+DELETE FROM pull_request_comments    WHERE namespace = '<your-namespace>';
+DELETE FROM commits                  WHERE namespace = '<your-namespace>';
+DELETE FROM workflow_runs            WHERE namespace = '<your-namespace>';
+DELETE FROM workflow_jobs            WHERE namespace = '<your-namespace>';
+```
+
+After deleting, re-run the relevant CLI fetch command to repopulate:
+
+```bash
+SMM_STORE_DATA_AT=./.data smm prs fetch
+SMM_STORE_DATA_AT=./.data smm pipelines fetch
+```
+
+**Inspect CodeMaat tables**
+
+```sql
+SELECT COUNT(*), MIN(fetched_at), MAX(fetched_at) FROM codemaat_code_churn;
+SELECT COUNT(*), MIN(fetched_at), MAX(fetched_at) FROM codemaat_author_churn;
+SELECT COUNT(*), MIN(fetched_at), MAX(fetched_at) FROM codemaat_entity_churn;
+SELECT COUNT(*), MIN(fetched_at), MAX(fetched_at) FROM codemaat_file_coupling;
+SELECT COUNT(*), MIN(fetched_at), MAX(fetched_at) FROM codemaat_layered_coupling;
+SELECT COUNT(*), MIN(fetched_at), MAX(fetched_at) FROM codemaat_age;
+SELECT COUNT(*), MIN(fetched_at), MAX(fetched_at) FROM codemaat_entity_effort;
+SELECT COUNT(*), MIN(fetched_at), MAX(fetched_at) FROM codemaat_entity_ownership;
+```
+
+**Inspect SonarQube tables**
+
+```sql
+SELECT namespace, COUNT(*) AS count, MIN(fetched_at), MAX(fetched_at)
+FROM sonarqube_measures GROUP BY namespace;
+
+SELECT namespace, COUNT(*) AS count, MIN(fetched_at), MAX(fetched_at)
+FROM sonarqube_component_tree GROUP BY namespace;
+
+SELECT namespace, COUNT(*) AS count, MIN(fetched_at), MAX(fetched_at)
+FROM sonarqube_historical_measures GROUP BY namespace;
+```
+
+**Reset a failed migration (use with caution)**
+
+If a migration was partially applied and left the schema in a broken state, remove its entry so it runs again on the next startup:
+
+```sql
+DELETE FROM smm_schema_migrations WHERE migration_id = '<migration-id>';
 ```
 
 ## License

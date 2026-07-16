@@ -263,13 +263,7 @@ run_codemaat() {
     echo "Force mode: regenerating $outpath"
   fi
   echo "Running $action data extraction ..."
-  local codemaat_args=("-l" "$target_store_data/$git_log_file" "-c" "git")
-
-  if [ -s "$layers_file" ]; then
-    codemaat_args+=("-g" "$layers_file")
-  fi
-
-  codemaat_args+=("-a" "$action")
+  local codemaat_args=("-l" "$target_store_data/$git_log_file" "-c" "git" "-a" "$action")
 
   java -jar "$codemaat" "${codemaat_args[@]}" > "$outpath"
   echo "Done."
