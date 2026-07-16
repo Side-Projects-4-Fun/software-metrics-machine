@@ -86,7 +86,7 @@ assert_smm_file_contains() {
 
 create_smm_e2e_workspace() {
   local workspace
-  local tmp_root="${SMM_REPO_ROOT}/tmp"
+  local tmp_root="${SMM_REPO_ROOT}/tmp/e2e"
 
   mkdir -p "${tmp_root}"
   workspace="$(mktemp -d "${tmp_root}/smm-cli-e2e.XXXXXX")"
