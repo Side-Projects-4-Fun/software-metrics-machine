@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
 import { defaultFilters, parseDashboardFilters } from '@/components/filters/DashboardFilters';
 import {
   engineeringHealthAPI,
@@ -254,6 +255,64 @@ function groupByScope(
   }));
 }
 
+function isTargetMet(evaluation: EngineeringHealthEvaluation['evaluations'][number]): boolean {
+  const value = evaluation.value.value;
+  const target = evaluation.target;
+
+  if (value === null || typeof target.value !== 'number') {
+    return false;
+  }
+
+  if (target.operator === 'lt') return value < target.value;
+  if (target.operator === 'lte') return value <= target.value;
+  if (target.operator === 'gt') return value > target.value;
+  if (target.operator === 'gte') return value >= target.value;
+  if (target.operator === 'eq') return value === target.value;
+  return false;
+}
+
+function sortByLeadershipPriority(
+  evaluations: EngineeringHealthEvaluation['evaluations'],
+): EngineeringHealthEvaluation['evaluations'] {
+  const severity = { critical: 0, watch: 1, good: 2 } as const;
+
+  return [...evaluations].sort((left, right) => {
+    const levelDelta = severity[left.recommendation.level] - severity[right.recommendation.level];
+    if (levelDelta !== 0) {
+      return levelDelta;
+    }
+
+    const leftDelta = Math.abs(left.comparison.delta ?? 0);
+    const rightDelta = Math.abs(right.comparison.delta ?? 0);
+    return rightDelta - leftDelta;
+  });
+}
+
+function buildExecutiveSummary(data: EngineeringHealthEvaluation) {
+  const critical = data.evaluations.filter((evaluation) => evaluation.recommendation.level === 'critical').length;
+  const watch = data.evaluations.filter((evaluation) => evaluation.recommendation.level === 'watch').length;
+  const good = data.evaluations.filter((evaluation) => evaluation.recommendation.level === 'good').length;
+  const targetMet = data.evaluations.filter((evaluation) => isTargetMet(evaluation)).length;
+  const targetTotal = data.evaluations.filter((evaluation) => typeof evaluation.target.value === 'number').length;
+
+  const degrading = sortByLeadershipPriority(
+    data.evaluations.filter((evaluation) => evaluation.comparison.trend === 'degrading')
+  )[0];
+  const improving = sortByLeadershipPriority(
+    data.evaluations.filter((evaluation) => evaluation.comparison.trend === 'improving')
+  )[0];
+
+  return {
+    critical,
+    watch,
+    good,
+    targetMet,
+    targetTotal,
+    degrading,
+    improving,
+  };
+}
+
 export default async function EngineeringHealthPage({
   searchParams,
 }: {
@@ -286,6 +345,18 @@ export default async function EngineeringHealthPage({
   }
 
   const groupedEvaluations = groupByCategory(data);
+  const executiveSummary = buildExecutiveSummary(data);
+  const priorityScorecard = sortByLeadershipPriority(data.evaluations).slice(0, 8);
+  const keyDegradations = sortByLeadershipPriority(
+    data.evaluations.filter((evaluation) => evaluation.comparison.trend === 'degrading')
+  ).slice(0, 3);
+  const keyImprovements = sortByLeadershipPriority(
+    data.evaluations.filter((evaluation) => evaluation.comparison.trend === 'improving')
+  ).slice(0, 3);
+
+  const unknownComparisons = data.evaluations.filter((evaluation) => evaluation.comparison.trend === 'unknown').length;
+  const missingSampleSize = data.evaluations.filter((evaluation) => typeof evaluation.value.sampleSize !== 'number').length;
+  const withSeries = data.evaluations.filter((evaluation) => (evaluation.value.series?.length || 0) > 1).length;
 
   return (
     <div className="space-y-6">
@@ -316,6 +387,127 @@ export default async function EngineeringHealthPage({
               </p>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Executive Summary</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <p>
+            Total metrics reviewed: <span className="font-semibold">{data.evaluations.length}</span>.
+            Current risk distribution: <span className="font-semibold">{executiveSummary.critical} critical</span>,{' '}
+            <span className="font-semibold">{executiveSummary.watch} watch</span>,{' '}
+            <span className="font-semibold">{executiveSummary.good} on-track</span>.
+          </p>
+          <p>
+            Target compliance: <span className="font-semibold">{executiveSummary.targetMet}/{executiveSummary.targetTotal || data.evaluations.length}</span>{' '}
+            metrics are within target thresholds.
+          </p>
+          {executiveSummary.degrading ? (
+            <p>
+              Most relevant degradation: <span className="font-semibold">{executiveSummary.degrading.summary.title}</span>{' '}
+              ({executiveSummary.degrading.category}) with delta{' '}
+              <span className="font-semibold">{formatValue(executiveSummary.degrading.comparison.delta, executiveSummary.degrading.value.unit)}</span>.
+            </p>
+          ) : null}
+          {executiveSummary.improving ? (
+            <p>
+              Strongest improvement: <span className="font-semibold">{executiveSummary.improving.summary.title}</span>{' '}
+              ({executiveSummary.improving.category}) with delta{' '}
+              <span className="font-semibold">{formatValue(executiveSummary.improving.comparison.delta, executiveSummary.improving.value.unit)}</span>.
+            </p>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Scorecard</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+            {priorityScorecard.map((evaluation) => (
+              <div key={`${evaluation.id}-${evaluation.scope?.key || 'default'}-score`} className="rounded border p-3 space-y-1">
+                <p className="font-medium">{evaluation.summary.title}</p>
+                <p className="text-muted-foreground">{evaluation.category}</p>
+                <p>
+                  <span className="text-muted-foreground">Current:</span>{' '}
+                  <span className="font-semibold">{formatValue(evaluation.value.value, evaluation.value.unit)}</span>
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Delta:</span>{' '}
+                  {formatValue(evaluation.comparison.delta, evaluation.value.unit)}
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Status:</span>{' '}
+                  <span className={`font-medium ${trendClassName(evaluation.comparison.trend)}`}>{evaluation.recommendation.level}</span>
+                </p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Trend And Driver Analysis</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-sm">
+          <div className="space-y-2">
+            <p className="font-medium">Top degrading signals</p>
+            {keyDegradations.length === 0 ? (
+              <p className="text-muted-foreground">No degrading trend identified for this window.</p>
+            ) : (
+              keyDegradations.map((evaluation) => (
+                <p key={`${evaluation.id}-${evaluation.scope?.key || 'default'}-degrading`}>
+                  <span className="font-semibold">{evaluation.summary.title}</span> ({evaluation.category}):{' '}
+                  {evaluation.comparison.summary}
+                </p>
+              ))
+            )}
+          </div>
+          <div className="space-y-2">
+            <p className="font-medium">Top improving signals</p>
+            {keyImprovements.length === 0 ? (
+              <p className="text-muted-foreground">No improving trend identified for this window.</p>
+            ) : (
+              keyImprovements.map((evaluation) => (
+                <p key={`${evaluation.id}-${evaluation.scope?.key || 'default'}-improving`}>
+                  <span className="font-semibold">{evaluation.summary.title}</span> ({evaluation.category}):{' '}
+                  {evaluation.comparison.summary}
+                </p>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Data Confidence And References</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <p>
+            Comparison availability: <span className="font-semibold">{data.evaluations.length - unknownComparisons}/{data.evaluations.length}</span>{' '}
+            metrics have enough information to compute a trend.
+          </p>
+          <p>
+            Sample-size coverage: <span className="font-semibold">{data.evaluations.length - missingSampleSize}/{data.evaluations.length}</span>{' '}
+            metrics expose an explicit sample size.
+          </p>
+          <p>
+            Trend-chart coverage: <span className="font-semibold">{withSeries}/{data.evaluations.length}</span>{' '}
+            metrics provide a time series suitable for mini trend charts.
+          </p>
+          <p className="text-muted-foreground">
+            Metric definitions, thresholds, and supporting research references are available in{' '}
+            <Link href="/dashboard/references" className="underline">
+              References
+            </Link>
+            .
+          </p>
         </CardContent>
       </Card>
 

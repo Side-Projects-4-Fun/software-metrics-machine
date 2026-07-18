@@ -81,6 +81,13 @@ describe('EngineeringHealthPage', () => {
     expect(screen.getByText('Previous')).toBeInTheDocument();
     expect(screen.getByText('Trend chart')).toBeInTheDocument();
     expect(screen.getByLabelText('Metric trend over selected period')).toBeInTheDocument();
+    expect(screen.getByText('Executive Summary')).toBeInTheDocument();
+    expect(screen.getByText('Scorecard')).toBeInTheDocument();
+    expect(screen.getByText('Trend And Driver Analysis')).toBeInTheDocument();
+    expect(screen.getByText('Data Confidence And References')).toBeInTheDocument();
+    const referencesLink = screen.getByRole('link', { name: 'References' });
+    expect(referencesLink).toHaveAttribute('href', '/dashboard/references');
+    expect(screen.queryByText('Action Plan')).not.toBeInTheDocument();
   });
 
   it('does not render trend chart when series is missing or too short', async () => {
