@@ -25,10 +25,37 @@ function parseWebappSettings(value?: string): WebappSettings {
   }
 }
 
+function sanitizeApiEndpoint(endpoint: string): string {
+  const trimmed = endpoint.trim();
+
+  if (!trimmed) {
+    throw new Error('Invalid API endpoint');
+  }
+
+  // Disallow absolute/protocol-relative URLs to prevent SSRF.
+  if (trimmed.includes('://') || trimmed.startsWith('//')) {
+    throw new Error('Invalid API endpoint');
+  }
+
+  // Require absolute API path form.
+  if (!trimmed.startsWith('/')) {
+    throw new Error('Invalid API endpoint');
+  }
+
+  // Disallow dot-segments.
+  const segments = trimmed.split('/');
+  if (segments.some((segment) => segment === '.' || segment === '..')) {
+    throw new Error('Invalid API endpoint');
+  }
+
+  return trimmed;
+}
+
 export async function fetchAPI<T>(endpoint: string, params?: ApiParams): Promise<T> {
   const { smmRestBaseUrl } = getServerEnv();
   const apiBaseUrl = `${smmRestBaseUrl}/api/v1`;
-  const url = new URL(endpoint, apiBaseUrl);
+  const safeEndpoint = sanitizeApiEndpoint(endpoint);
+  const url = new URL(safeEndpoint, apiBaseUrl);
 
   // Append active project from cookie if set
   const cookieStore = await cookies();

@@ -48,4 +48,54 @@ describe('fetchAPI', () => {
       expect.objectContaining({ cache: 'no-store' })
     );
   });
+
+  describe('sanitizeApiEndpoint (SSRF prevention)', () => {
+    it('allows a valid absolute-path endpoint', async () => {
+      await expect(fetchAPI('/users')).resolves.toBeDefined();
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/users'),
+        expect.anything()
+      );
+    });
+
+    it('rejects an empty endpoint', async () => {
+      await expect(fetchAPI('')).rejects.toThrow('Invalid API endpoint');
+    });
+
+    it('rejects an endpoint with a protocol (http://)', async () => {
+      await expect(fetchAPI('http://evil.com/path')).rejects.toThrow('Invalid API endpoint');
+    });
+
+    it('rejects an endpoint with a protocol (https://)', async () => {
+      await expect(fetchAPI('https://evil.com/path')).rejects.toThrow('Invalid API endpoint');
+    });
+
+    it('rejects a protocol-relative URL (//evil.com)', async () => {
+      await expect(fetchAPI('//evil.com/path')).rejects.toThrow('Invalid API endpoint');
+    });
+
+    it('rejects an endpoint without a leading slash', async () => {
+      await expect(fetchAPI('relative/path')).rejects.toThrow('Invalid API endpoint');
+    });
+
+    it('rejects an endpoint containing a dot segment (/./)', async () => {
+      await expect(fetchAPI('/./foo')).rejects.toThrow('Invalid API endpoint');
+    });
+
+    it('rejects an endpoint containing a dot segment in the middle (/foo/./bar)', async () => {
+      await expect(fetchAPI('/foo/./bar')).rejects.toThrow('Invalid API endpoint');
+    });
+
+    it('rejects an endpoint containing a double-dot segment (/../)', async () => {
+      await expect(fetchAPI('/../foo')).rejects.toThrow('Invalid API endpoint');
+    });
+
+    it('rejects an endpoint containing a double-dot segment in the middle (/foo/../bar)', async () => {
+      await expect(fetchAPI('/foo/../bar')).rejects.toThrow('Invalid API endpoint');
+    });
+
+    it('rejects a whitespace-only endpoint', async () => {
+      await expect(fetchAPI('   ')).rejects.toThrow('Invalid API endpoint');
+    });
+  });
 });
