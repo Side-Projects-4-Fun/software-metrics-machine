@@ -1,13 +1,21 @@
 import { parseMetricCleaningOptions } from '../../domain/metric-samples';
-import type { PipelineFilters } from '../../domain/pipelines';
+import type { DeploymentFrequencyTarget, PipelineFilters } from '../../domain/pipelines';
 import { BaseMetric } from '../metric';
 import type { EngineeringHealthDependencies } from '../dependencies';
-import type { MetricCalculationInput, MetricTarget, MetricValue } from '../types';
+import type {
+  EngineeringHealthEvaluationInput,
+  MetricCalculationInput,
+  MetricScope,
+  MetricTarget,
+  MetricValue,
+} from '../types';
 
 function toPipelineFilters(input?: MetricCalculationInput): PipelineFilters {
   return {
     startDate: input?.startDate,
     endDate: input?.endDate,
+    workflowPath: input?.workflowPath,
+    jobName: input?.jobName,
     rawFilters: input?.rawFilters,
     cleaning: parseMetricCleaningOptions({
       weekends: input?.weekends,
@@ -16,13 +24,53 @@ function toPipelineFilters(input?: MetricCalculationInput): PipelineFilters {
   };
 }
 
-export class DeploymentFrequencyMetric extends BaseMetric {
-  readonly id = 'deployment-frequency' as const;
-  readonly category = 'delivery' as const;
+function createTargetScope(target: DeploymentFrequencyTarget): MetricScope {
+  return {
+    type: 'deployment-target',
+    key: `${target.pipeline}||${target.job}`,
+    label: `${target.job} (${target.pipeline})`,
+    deploymentTarget: target,
+  };
+}
 
-  constructor(private readonly dependencies: EngineeringHealthDependencies) {
+function withDeploymentTarget(
+  input: MetricCalculationInput | undefined,
+  target: DeploymentFrequencyTarget
+): MetricCalculationInput {
+  return {
+    ...input,
+    workflowPath: target.pipeline,
+    jobName: target.job,
+  };
+}
+
+abstract class TargetScopedDeliveryMetric extends BaseMetric {
+  constructor(protected readonly dependencies: EngineeringHealthDependencies) {
     super();
   }
+
+  async evaluate(input: EngineeringHealthEvaluationInput) {
+    if (this.dependencies.deploymentTargets.length === 0) {
+      return [];
+    }
+
+    return Promise.all(
+      this.dependencies.deploymentTargets.map((target) => {
+        const scope = createTargetScope(target);
+
+        return this.evaluateForScope(
+          withDeploymentTarget(input.current, target),
+          input.previous ? withDeploymentTarget(input.previous, target) : undefined,
+          scope
+        );
+      })
+    );
+  }
+}
+
+export class DeploymentFrequencyMetric extends TargetScopedDeliveryMetric {
+  readonly id = 'deployment-frequency' as const;
+  readonly category = 'delivery' as const;
 
   async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
     const period = input?.period || 'week';
@@ -31,7 +79,7 @@ export class DeploymentFrequencyMetric extends BaseMetric {
         toPipelineFilters(input)
       );
 
-    const groupedByTarget = new Map<string, number>();
+    const groupedByPeriod = new Map<string, number>();
 
     for (const row of rows) {
       const keyPeriod = period === 'day' ? row.days : period === 'month' ? row.months : row.weeks;
@@ -42,18 +90,11 @@ export class DeploymentFrequencyMetric extends BaseMetric {
             ? row.monthly_counts
             : row.weekly_counts;
 
-      const targetKey = `${row.pipeline}||${row.job}||${keyPeriod}`;
-      const existing = groupedByTarget.get(targetKey) || 0;
-      groupedByTarget.set(targetKey, Math.max(existing, keyCount));
+      const existing = groupedByPeriod.get(keyPeriod) || 0;
+      groupedByPeriod.set(keyPeriod, Math.max(existing, keyCount));
     }
 
-    const seriesMap = new Map<string, number>();
-    for (const [key, count] of groupedByTarget.entries()) {
-      const periodKey = key.split('||')[2];
-      seriesMap.set(periodKey, (seriesMap.get(periodKey) || 0) + count);
-    }
-
-    const series = Array.from(seriesMap.entries())
+    const series = Array.from(groupedByPeriod.entries())
       .map(([periodKey, count]) => ({ period: periodKey, value: count }))
       .sort((a, b) => a.period.localeCompare(b.period));
 
@@ -75,13 +116,9 @@ export class DeploymentFrequencyMetric extends BaseMetric {
   }
 }
 
-export class LeadTimeMetric extends BaseMetric {
+export class LeadTimeMetric extends TargetScopedDeliveryMetric {
   readonly id = 'lead-time' as const;
   readonly category = 'delivery' as const;
-
-  constructor(private readonly dependencies: EngineeringHealthDependencies) {
-    super();
-  }
 
   async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
     const dashboard = await this.dependencies.pipelineImplementation.dashboard(
@@ -107,13 +144,9 @@ export class LeadTimeMetric extends BaseMetric {
   }
 }
 
-export class PipelineDurationMetric extends BaseMetric {
+export class PipelineDurationMetric extends TargetScopedDeliveryMetric {
   readonly id = 'pipeline-duration' as const;
   readonly category = 'delivery' as const;
-
-  constructor(private readonly dependencies: EngineeringHealthDependencies) {
-    super();
-  }
 
   async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
     const metrics = await this.dependencies.pipelinesService.getMetrics(toPipelineFilters(input));
@@ -138,13 +171,9 @@ export class PipelineDurationMetric extends BaseMetric {
   }
 }
 
-export class FailureRateMetric extends BaseMetric {
+export class FailureRateMetric extends TargetScopedDeliveryMetric {
   readonly id = 'failure-rate' as const;
   readonly category = 'delivery' as const;
-
-  constructor(private readonly dependencies: EngineeringHealthDependencies) {
-    super();
-  }
 
   async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
     const metrics = await this.dependencies.pipelinesService.getMetrics(toPipelineFilters(input));

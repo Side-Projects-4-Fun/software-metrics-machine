@@ -3,6 +3,7 @@ export { pipelineAPI } from './pipeline';
 export { pullRequestAPI } from './pullRequest';
 export { sonarqubeAPI } from './sonarqube';
 export { architectureAPI } from './architecture';
+export { engineeringHealthAPI } from './engineeringHealth';
 export { configurationAPI, projectsAPI } from './configuration';
 export { fetchAPI, type ApiParams } from './client';
 

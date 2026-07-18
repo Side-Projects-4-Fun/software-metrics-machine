@@ -15,6 +15,7 @@ const sectionOrder: DashboardSection[] = [
   'pipelines',
   'pull-requests',
   'source-code',
+  'engineering-health',
   'architecture',
   'sonarqube',
 ];
@@ -24,6 +25,7 @@ const sectionLabels: Record<DashboardSection, string> = {
   pipelines: 'Pipelines',
   'pull-requests': 'Pull Requests',
   'source-code': 'Source Code',
+  'engineering-health': 'Engineering Health',
   architecture: 'Architecture',
   sonarqube: 'SonarQube',
 };

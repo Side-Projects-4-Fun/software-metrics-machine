@@ -10,6 +10,7 @@ const dashboardTabs = [
   { value: 'pipelines', label: 'Pipelines', href: '/dashboard/pipelines/' },
   { value: 'pull-requests', label: 'Pull Requests', href: '/dashboard/pull-requests/' },
   { value: 'source-code', label: 'Source Code', href: '/dashboard/source-code/' },
+  { value: 'engineering-health', label: 'Engineering Health', href: '/dashboard/engineering-health/' },
   { value: 'architecture', label: 'Architecture', href: '/dashboard/architecture/' },
   { value: 'sonarqube', label: 'SonarQube', href: '/dashboard/sonarqube/' },
 ];

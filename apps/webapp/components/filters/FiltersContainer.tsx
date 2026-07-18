@@ -3,7 +3,7 @@
 import { Box, Paper, Typography, Divider, Button, Stack, FormControlLabel } from "@mui/material";
 import { useFilters } from "@/components/filters/FiltersContext";
 import { usePathname } from "next/navigation";
-import DateRangePicker from "@/components/filters/DateRangePicker";
+import DateRangePicker, { FilterDateRangePicker } from "@/components/filters/DateRangePicker";
 import SelectFilter from "@/components/filters/SelectFilter";
 import MultiSelectFilter from "@/components/filters/MultiSelectFilter";
 import TextInputFilter from "@/components/filters/TextInputFilter";
@@ -64,7 +64,41 @@ const SECTION_FILTER_KEYS: Record<DashboardSection, (keyof DashboardFilters)[]> 
     'sonarqubeRemoveFolders',
     'topEntries',
   ],
+  'engineering-health': [
+    'metric',
+    'category',
+    'compareStartDate',
+    'compareEndDate',
+    'rawFilters',
+    'period',
+    'weekends',
+    'outlierMode',
+  ],
 };
+
+const ENGINEERING_HEALTH_METRICS = [
+  'deployment-frequency',
+  'lead-time',
+  'pipeline-duration',
+  'failure-rate',
+  'complexity',
+  'duplication',
+  'coverage',
+  'review-time',
+  'review-participation',
+  'pair-programming',
+  'knowledge-distribution',
+  'coupling',
+  'ownership',
+  'components',
+];
+
+const ENGINEERING_HEALTH_CATEGORIES = [
+  'delivery',
+  'quality',
+  'collaboration',
+  'architecture',
+];
 
 function areFiltersEqualForSection(
   left: DashboardFilters,
@@ -448,6 +482,61 @@ export default function FiltersContainer({ repository }: { repository: string })
               min={MIN_TOP_ENTRIES}
               max={TOP_ENTRIES_MAX}
               step={STEP}
+            />
+          </Stack>
+        </Box>
+      )}
+
+      {activeSection === 'engineering-health' && (
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+            Engineering Health Filters
+          </Typography>
+          <Stack direction="column" spacing={2} flexWrap="wrap">
+            <SelectFilter
+              label="Metric"
+              value={filters.metric}
+              options={ENGINEERING_HEALTH_METRICS}
+              onChange={(value) => updateFilter('metric', value)}
+            />
+            <SelectFilter
+              label="Category"
+              value={filters.category}
+              options={ENGINEERING_HEALTH_CATEGORIES}
+              onChange={(value) => updateFilter('category', value)}
+            />
+            <TextInputFilter
+              label="Raw Filters"
+              value={filters.rawFilters}
+              onChange={(value) => updateFilter('rawFilters', value)}
+              placeholder="e.g., workflow_path=ci.yml"
+            />
+            <FilterDateRangePicker
+              label="Compare date range"
+              startKey="compareStartDate"
+              endKey="compareEndDate"
+              startInputLabel="Compare start"
+              endInputLabel="Compare end"
+            />
+            <SelectFilter
+              label="Period"
+              value={filters.period}
+              options={['day', 'week', 'month']}
+              onChange={(value) => updateFilter('period', (value as 'day' | 'week' | 'month') || 'week')}
+            />
+            <SelectFilter
+              label="Weekends"
+              value={filters.weekends}
+              options={['include', 'exclude', 'weekends_only']}
+              onChange={(value) =>
+                updateFilter('weekends', value as 'include' | 'exclude' | 'weekends_only')
+              }
+            />
+            <SelectFilter
+              label="Outliers"
+              value={filters.outlierMode}
+              options={['include', 'flag', 'exclude']}
+              onChange={(value) => updateFilter('outlierMode', value as 'include' | 'flag' | 'exclude')}
             />
           </Stack>
         </Box>

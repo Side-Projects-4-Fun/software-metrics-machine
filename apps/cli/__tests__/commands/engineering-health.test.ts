@@ -155,4 +155,62 @@ describe('cli: Engineering Health Commands', () => {
     expect(output).toContain('"generatedAt": "2026-07-18T10:00:00.000Z"');
     expect(output).toContain('"id": "coverage"');
   });
+
+  it('prints deployment target information for target-scoped delivery evaluations', async () => {
+    evaluateMock.mockResolvedValueOnce({
+      generatedAt: '2026-07-18T10:00:00.000Z',
+      evaluations: [
+        {
+          id: 'pipeline-duration',
+          category: 'delivery',
+          scope: {
+            type: 'deployment-target',
+            key: '.github/workflows/release.yml||deploy-production',
+            label: 'deploy-production (.github/workflows/release.yml)',
+            deploymentTarget: {
+              pipeline: '.github/workflows/release.yml',
+              job: 'deploy-production',
+            },
+          },
+          value: {
+            value: 14,
+            unit: 'minutes',
+            direction: 'lower_is_better',
+          },
+          comparison: {
+            trend: 'unknown',
+            delta: null,
+            deltaPercentage: null,
+            current: 14,
+            previous: null,
+            summary: 'Insufficient data to compare periods.',
+          },
+          summary: {
+            title: 'pipeline-duration',
+            valueLabel: '14.00 minutes',
+            notes: ['Insufficient data to compare periods.'],
+          },
+          target: {
+            operator: 'lt',
+            value: 10,
+            description: 'Average pipeline duration below ten minutes.',
+          },
+          recommendation: {
+            level: 'critical',
+            summary: 'Metric is outside target and needs attention.',
+            actions: ['Investigate root causes and define a short-term corrective action plan.'],
+          },
+        },
+      ],
+    });
+
+    await program.parseAsync(['engineering-health', 'evaluate'], { from: 'user' });
+
+    const output = getOutput();
+
+    expect(output).toContain('Metric: pipeline-duration (delivery)');
+    expect(output).toContain(
+      'Deployment target: deploy-production (.github/workflows/release.yml)'
+    );
+  });
 });

@@ -101,8 +101,10 @@ describe('saved-filters-store', () => {
   it('maps pathname and section helpers', () => {
     expect(dashboardSectionFromPathname('/dashboard/pull-requests')).toBe('pull-requests');
     expect(dashboardSectionFromPathname('/dashboard/source-code')).toBe('source-code');
+    expect(dashboardSectionFromPathname('/dashboard/engineering-health')).toBe('engineering-health');
     expect(dashboardSectionFromPathname('/dashboard')).toBe('insights');
 
     expect(dashboardPathForSection('insights')).toBe('/dashboard/insights');
+    expect(dashboardPathForSection('engineering-health')).toBe('/dashboard/engineering-health');
   });
 });

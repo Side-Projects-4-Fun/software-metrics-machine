@@ -1,4 +1,5 @@
 import type { OutlierMode, WeekendsMode } from '../domain/metric-samples';
+import type { DeploymentFrequencyTarget } from '../domain/pipelines';
 
 export type MetricCategory = 'delivery' | 'quality' | 'collaboration' | 'architecture';
 
@@ -75,6 +76,15 @@ export interface MetricCalculationInput {
   includePatterns?: string | string[];
   ignorePatterns?: string | string[];
   top?: number;
+  workflowPath?: string;
+  jobName?: string;
+}
+
+export interface MetricScope {
+  type: 'deployment-target';
+  key: string;
+  label: string;
+  deploymentTarget: DeploymentFrequencyTarget;
 }
 
 export interface EngineeringHealthEvaluationInput {
@@ -87,6 +97,7 @@ export interface EngineeringHealthEvaluationInput {
 export interface MetricEvaluation {
   id: MetricId;
   category: MetricCategory;
+  scope?: MetricScope;
   value: MetricValue;
   comparison: MetricComparison;
   summary: MetricSummary;

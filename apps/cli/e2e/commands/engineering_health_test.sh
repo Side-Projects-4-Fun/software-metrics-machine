@@ -34,8 +34,10 @@ function test_engineering_health_evaluate_renders_text_output() {
   assert_smm_success
   assert_smm_output_contains "Engineering Health"
   assert_smm_output_contains "Metric: pipeline-duration (delivery)"
-  assert_smm_output_contains "Value:"
-  assert_smm_output_contains "Recommendation:"
+  assert_smm_output_contains "Value: 15.00 minutes"
+  assert_smm_output_contains "Trend: Insufficient data to compare periods."
+  assert_smm_output_contains "Target: Average pipeline duration below ten minutes."
+  assert_smm_output_contains "Recommendation: Metric is outside target and needs attention."
 }
 
 function test_engineering_health_evaluate_renders_json_output() {
@@ -52,5 +54,15 @@ function test_engineering_health_evaluate_renders_json_output() {
   assert_smm_output_contains '"generatedAt"'
   assert_smm_output_contains '"id": "pipeline-duration"'
   assert_smm_output_contains '"category": "delivery"'
-  assert_smm_output_contains '"comparison"'
+  assert_smm_output_contains '"value": 15'
+  assert_smm_output_contains '"unit": "minutes"'
+  assert_smm_output_contains '"sampleSize": 2'
+  assert_smm_output_contains '"trend": "degrading"'
+  assert_smm_output_contains '"delta": 15'
+  assert_smm_output_contains '"previous": 0'
+  assert_smm_output_contains '"summary": "Metric degraded by 15.00 minutes."'
+  assert_smm_output_contains '"operator": "lt"'
+  assert_smm_output_contains '"description": "Average pipeline duration below ten minutes."'
+  assert_smm_output_contains '"level": "critical"'
+  assert_smm_output_contains '"summary": "Metric is outside target and needs attention."'
 }

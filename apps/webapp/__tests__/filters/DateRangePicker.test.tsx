@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { FiltersProvider } from '@/components/filters/FiltersContext';
-import DateRangePicker from '@/components/filters/DateRangePicker';
+import DateRangePicker, { FilterDateRangePicker } from '@/components/filters/DateRangePicker';
 import { defaultFilters, DashboardFilters } from '@/components/filters/DashboardFilters';
 import dayjs from 'dayjs';
 
@@ -9,6 +9,18 @@ import dayjs from 'dayjs';
 const DateRangePickerWithProvider = ({ initialFilters }: { initialFilters?: DashboardFilters }) => (
   <FiltersProvider initialFilters={initialFilters}>
     <DateRangePicker />
+  </FiltersProvider>
+);
+
+const CompareDateRangePickerWithProvider = ({ initialFilters }: { initialFilters?: DashboardFilters }) => (
+  <FiltersProvider initialFilters={initialFilters}>
+    <FilterDateRangePicker
+      label="Compare date range"
+      startKey="compareStartDate"
+      endKey="compareEndDate"
+      startInputLabel="Compare start"
+      endInputLabel="Compare end"
+    />
   </FiltersProvider>
 );
 
@@ -63,5 +75,28 @@ describe('DateRangePicker', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
 
     expect(screen.getByLabelText('Date range')).toHaveValue('2026-01-05 08:30 - 2026-01-10 17:45');
+  });
+
+  it('supports a reusable compare date range picker', () => {
+    render(
+      <CompareDateRangePickerWithProvider
+        initialFilters={{
+          ...defaultFilters,
+          compareStartDate: '2026-02-01',
+          compareEndDate: '2026-02-28',
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByLabelText('Compare date range'));
+    fireEvent.change(screen.getByLabelText('Start date and time'), {
+      target: { value: '2026-02-03T09:15' },
+    });
+    fireEvent.change(screen.getByLabelText('End date and time'), {
+      target: { value: '2026-02-12T18:05' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+
+    expect(screen.getByLabelText('Compare date range')).toHaveValue('2026-02-03 09:15 - 2026-02-12 18:05');
   });
 });

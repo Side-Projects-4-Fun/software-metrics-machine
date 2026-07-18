@@ -117,6 +117,9 @@ export function createEngineeringHealthCommands(program: SmmCommand): void {
         result.evaluations.forEach((evaluation) => {
           screen.printLine('');
           screen.printLine(`Metric: ${evaluation.id} (${evaluation.category})`);
+          if (evaluation.scope?.type === 'deployment-target') {
+            screen.printLine(`Deployment target: ${evaluation.scope.label}`);
+          }
           screen.printLine(`Value: ${evaluation.summary.valueLabel}`);
           screen.printLine(`Trend: ${evaluation.comparison.summary}`);
           screen.printLine(`Target: ${evaluation.target.description}`);

@@ -5,6 +5,7 @@ export type DashboardSection =
   | 'pipelines'
   | 'pull-requests'
   | 'source-code'
+  | 'engineering-health'
   | 'architecture'
   | 'sonarqube';
 
@@ -110,6 +111,10 @@ export function dashboardSectionFromPathname(pathname: string): DashboardSection
 
   if (pathname.includes('/source-code')) {
     return 'source-code';
+  }
+
+  if (pathname.includes('/engineering-health')) {
+    return 'engineering-health';
   }
 
   if (pathname.includes('/architecture')) {

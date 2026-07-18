@@ -22,6 +22,7 @@ export function createEngineeringHealthDependencies(
   timeZoneProvider: TimeZoneProvider
 ): EngineeringHealthDependencies {
   const pipelineArtifacts = PipelineFactory.create(configuration, logger, timeZoneProvider);
+  const deploymentTargets = configuration.getDeploymentFrequencyTargets();
 
   const pipelinesService = new PipelinesService(
     pipelineArtifacts.pipelineRepository,
@@ -32,14 +33,14 @@ export function createEngineeringHealthDependencies(
 
   const deploymentFrequencyService = new DeploymentFrequencyService(
     pipelineArtifacts.pipelineRepository,
-    configuration.getDeploymentFrequencyTargets(),
+    deploymentTargets,
     logger,
     timeZoneProvider
   );
 
   const pipelineImplementation = new PipelineImplementation(
     pipelineArtifacts.pipelineRepository,
-    configuration.getDeploymentFrequencyTargets(),
+    deploymentTargets,
     logger,
     timeZoneProvider
   );
@@ -57,6 +58,7 @@ export function createEngineeringHealthDependencies(
   const architectureService = new ArchitectureService(configuration, logger);
 
   return {
+    deploymentTargets,
     pipelinesService,
     deploymentFrequencyService,
     pipelineImplementation,

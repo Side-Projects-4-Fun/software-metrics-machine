@@ -24,6 +24,14 @@ export interface DashboardFilters {
   weekends: 'include' | 'exclude' | 'weekends_only';
   outlierMode: 'include' | 'flag' | 'exclude';
 
+  // Engineering health filters
+  metric?: string;
+  category?: string;
+  compareStartDate: string;
+  compareEndDate: string;
+  rawFilters: string;
+  period: 'day' | 'week' | 'month';
+
   // Source code filters
   ignorePatternFiles: string;
   includePatternFiles: string;
@@ -62,6 +70,12 @@ export const DASHBOARD_FILTER_QUERY_KEYS = [
   'aggregateBy',
   'weekends',
   'outlierMode',
+  'metric',
+  'category',
+  'compareStartDate',
+  'compareEndDate',
+  'rawFilters',
+  'period',
   'sonarqubeRemoveFolders',
 ] as const;
 
@@ -82,6 +96,12 @@ export const defaultFilters: DashboardFilters = {
   aggregateBy: 'week',
   weekends: 'include',
   outlierMode: 'include',
+  metric: undefined,
+  category: undefined,
+  compareStartDate: '',
+  compareEndDate: '',
+  rawFilters: '',
+  period: 'week',
   ignorePatternFiles: '',
   includePatternFiles: '',
   authorSelectSourceCode: [],
@@ -167,6 +187,21 @@ export function parseDashboardFilters(
     aggregateBy: getSingleValue(searchParams.aggregateBy) || fallback.aggregateBy,
     weekends: parseWeekends(getSingleValue(searchParams.weekends), fallback.weekends),
     outlierMode: parseOutlierMode(getSingleValue(searchParams.outlierMode), fallback.outlierMode),
+    metric: getSingleValue(searchParams.metric) || fallback.metric,
+    category: getSingleValue(searchParams.category) || fallback.category,
+    compareStartDate:
+      getSingleValue(searchParams.compareStartDate) ||
+      getSingleValue(searchParams.compare_start_date) ||
+      fallback.compareStartDate,
+    compareEndDate:
+      getSingleValue(searchParams.compareEndDate) ||
+      getSingleValue(searchParams.compare_end_date) ||
+      fallback.compareEndDate,
+    rawFilters:
+      getSingleValue(searchParams.rawFilters) ||
+      getSingleValue(searchParams.raw_filters) ||
+      fallback.rawFilters,
+    period: parsePeriod(getSingleValue(searchParams.period), fallback.period),
     sonarqubeRemoveFolders: toBoolean(searchParams.sonarqubeRemoveFolders, fallback.sonarqubeRemoveFolders),
   };
 }
@@ -209,6 +244,14 @@ export function serializeDashboardFilters(filters: DashboardFilters): URLSearchP
   append('aggregateBy', filters.aggregateBy);
   append('weekends', filters.weekends);
   append('outlierMode', filters.outlierMode);
+  append('metric', filters.metric);
+  append('category', filters.category);
+  append('compareStartDate', filters.compareStartDate);
+  append('compareEndDate', filters.compareEndDate);
+  append('rawFilters', filters.rawFilters);
+  if (filters.period !== defaultFilters.period) {
+    append('period', filters.period);
+  }
   append('sonarqubeRemoveFolders', filters.sonarqubeRemoveFolders ? 'true' : 'false');
 
   return params;
@@ -228,4 +271,11 @@ function parseOutlierMode(
   fallback: DashboardFilters['outlierMode'],
 ): DashboardFilters['outlierMode'] {
   return value === 'flag' || value === 'exclude' || value === 'include' ? value : fallback;
+}
+
+function parsePeriod(
+  value: string | undefined,
+  fallback: DashboardFilters['period'],
+): DashboardFilters['period'] {
+  return value === 'day' || value === 'week' || value === 'month' ? value : fallback;
 }

@@ -33,12 +33,14 @@ import {
   PipelineFactory,
   PipelineImplementation,
   CodemaatFactory,
+  createEngineeringHealthOrchestrator,
 } from '@smmachine/core';
 import { PairingService } from '@smmachine/core/domain/code/pairing/pairing-service';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 import { Logger } from '@smmachine/utils';
 import { DeploymentFrequencyService } from '@smmachine/core/domain/pipelines/services/deployment-frequency-service';
 import { DoraController } from './controllers/dora.controller';
+import { EngineeringHealthController } from './controllers/engineering-health.controller';
 
 function buildDataDirectories(config: Configuration) {
   const baseDir = config.storeData || './outputs';
@@ -101,6 +103,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     ArchitectureController,
     PipelineDashboardController,
     DoraController,
+    EngineeringHealthController,
   ],
   providers: [
     // Configuration Repository (singleton — caches project list)
@@ -322,6 +325,18 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
         return new BigOService(config);
       },
       inject: [Configuration],
+    },
+    {
+      provide: 'EngineeringHealthOrchestrator',
+      scope: Scope.REQUEST,
+      useFactory: (configuration: Configuration, timeZoneProvider: TimeZoneProvider) => {
+        return createEngineeringHealthOrchestrator(
+          configuration,
+          createLogger(configuration, 'EngineeringHealthOrchestrator'),
+          timeZoneProvider
+        );
+      },
+      inject: [Configuration, TimeZoneProvider],
     },
     {
       provide: ArchitectureService,

@@ -1,7 +1,10 @@
 import {
+  EngineeringHealthEvaluationInput,
   MetricCalculationInput,
   MetricComparison,
+  MetricEvaluation,
   MetricRecommendation,
+  MetricScope,
   MetricSummary,
   MetricTarget,
   MetricValue,
@@ -12,6 +15,8 @@ import type { MetricCategory, MetricId } from './types';
 export interface Metric {
   readonly id: MetricId;
   readonly category: MetricCategory;
+
+  evaluate?(input: EngineeringHealthEvaluationInput): Promise<MetricEvaluation[]>;
 
   calculate(input?: MetricCalculationInput): Promise<MetricValue>;
   compare(current: MetricValue, previous?: MetricValue): MetricComparison;
@@ -24,8 +29,33 @@ export abstract class BaseMetric implements Metric {
   abstract readonly id: MetricId;
   abstract readonly category: MetricCategory;
 
+  async evaluate(input: EngineeringHealthEvaluationInput): Promise<MetricEvaluation[]> {
+    return [await this.evaluateForScope(input.current, input.previous)];
+  }
+
   abstract calculate(input?: MetricCalculationInput): Promise<MetricValue>;
   abstract target(): MetricTarget;
+
+  protected async evaluateForScope(
+    currentInput?: MetricCalculationInput,
+    previousInput?: MetricCalculationInput,
+    scope?: MetricScope
+  ): Promise<MetricEvaluation> {
+    const current = await this.calculate(currentInput);
+    const previous = previousInput ? await this.calculate(previousInput) : undefined;
+    const comparison = this.compare(current, previous);
+
+    return {
+      id: this.id,
+      category: this.category,
+      scope,
+      value: current,
+      comparison,
+      summary: this.summarize(current, comparison),
+      target: this.target(),
+      recommendation: this.recommendation(current, comparison),
+    };
+  }
 
   compare(current: MetricValue, previous?: MetricValue): MetricComparison {
     const currentValue = current.value;

@@ -16,19 +16,7 @@ export class EngineeringHealthOrchestrator {
     const evaluations: MetricEvaluation[] = [];
 
     for (const metric of metrics) {
-      const current = await metric.calculate(input.current);
-      const previous = input.previous ? await metric.calculate(input.previous) : undefined;
-      const comparison = metric.compare(current, previous);
-
-      evaluations.push({
-        id: metric.id,
-        category: metric.category,
-        value: current,
-        comparison,
-        summary: metric.summarize(current, comparison),
-        target: metric.target(),
-        recommendation: metric.recommendation(current, comparison),
-      });
+      evaluations.push(...(await this.evaluateMetricInstance(metric, input)));
     }
 
     return {
@@ -42,19 +30,38 @@ export class EngineeringHealthOrchestrator {
     input: EngineeringHealthEvaluationInput = {}
   ): Promise<MetricEvaluation> {
     const metric = this.registry.get(metricId);
+    const evaluations = await this.evaluateMetricInstance(metric, input);
+
+    if (evaluations.length === 0) {
+      throw new Error(`Engineering health metric produced no evaluations: ${metricId}`);
+    }
+
+    return evaluations[0];
+  }
+
+  private async evaluateMetricInstance(
+    metric: Metric,
+    input: EngineeringHealthEvaluationInput
+  ): Promise<MetricEvaluation[]> {
+    if (metric.evaluate) {
+      return metric.evaluate(input);
+    }
+
     const current = await metric.calculate(input.current);
     const previous = input.previous ? await metric.calculate(input.previous) : undefined;
     const comparison = metric.compare(current, previous);
 
-    return {
-      id: metric.id,
-      category: metric.category,
-      value: current,
-      comparison,
-      summary: metric.summarize(current, comparison),
-      target: metric.target(),
-      recommendation: metric.recommendation(current, comparison),
-    };
+    return [
+      {
+        id: metric.id,
+        category: metric.category,
+        value: current,
+        comparison,
+        summary: metric.summarize(current, comparison),
+        target: metric.target(),
+        recommendation: metric.recommendation(current, comparison),
+      },
+    ];
   }
 
   private selectMetrics(input: EngineeringHealthEvaluationInput): Metric[] {

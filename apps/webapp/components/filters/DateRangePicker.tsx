@@ -17,6 +17,7 @@ import { PickersDay, PickersDayProps } from '@mui/x-date-pickers/PickersDay';
 import dayjs, { Dayjs } from "dayjs";
 import { useMemo, useState } from 'react';
 import { useFilters } from './FiltersContext';
+import { DashboardFilters } from './DashboardFilters';
 
 interface PresetRange {
   label: string;
@@ -194,8 +195,35 @@ function RangePickersDay({
 }
 
 export default function DateRangePicker() {
+  return (
+    <FilterDateRangePicker
+      label="Date range"
+      startKey="startDate"
+      endKey="endDate"
+      startInputLabel="Start"
+      endInputLabel="End"
+    />
+  );
+}
+
+interface FilterDateRangePickerProps {
+  label: string;
+  startKey: keyof DashboardFilters;
+  endKey: keyof DashboardFilters;
+  startInputLabel?: string;
+  endInputLabel?: string;
+}
+
+export function FilterDateRangePicker({
+  label,
+  startKey,
+  endKey,
+  startInputLabel = 'Start',
+  endInputLabel = 'End',
+}: FilterDateRangePickerProps) {
   const { filters, updateFilter } = useFilters();
-  const { startDate, endDate } = filters;
+  const startDate = String(filters[startKey] || '');
+  const endDate = String(filters[endKey] || '');
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [tempStartDate, setTempStartDate] = useState<Dayjs | null>(parseFilterDate(startDate, 'start'));
   const [tempEndDate, setTempEndDate] = useState<Dayjs | null>(parseFilterDate(endDate, 'end'));
@@ -226,8 +254,8 @@ export default function DateRangePicker() {
   };
 
   const applyRange = (nextStartDate: Dayjs | null, nextEndDate: Dayjs | null) => {
-    updateFilter('startDate', formatDate(nextStartDate));
-    updateFilter('endDate', formatDate(nextEndDate));
+    updateFilter(startKey, formatDate(nextStartDate) as DashboardFilters[typeof startKey]);
+    updateFilter(endKey, formatDate(nextEndDate) as DashboardFilters[typeof endKey]);
     closePicker();
   };
 
@@ -256,7 +284,7 @@ export default function DateRangePicker() {
       <Box sx={{ my: 1, mx: 'auto', width: { xs: '100%', sm: 520 }, maxWidth: '100%' }}>
         <TextField
           fullWidth
-          label="Date range"
+          label={label}
           placeholder="Select date range"
           size="small"
           value={displayValue}
@@ -319,7 +347,7 @@ export default function DateRangePicker() {
               <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} sx={{ mb: 1 }}>
                 <TextField
                   fullWidth
-                  label="Start"
+                  label={startInputLabel}
                   size="small"
                   type="datetime-local"
                   value={formatInputDate(tempStartDate)}
@@ -329,7 +357,7 @@ export default function DateRangePicker() {
                 />
                 <TextField
                   fullWidth
-                  label="End"
+                  label={endInputLabel}
                   size="small"
                   type="datetime-local"
                   value={formatInputDate(tempEndDate)}
