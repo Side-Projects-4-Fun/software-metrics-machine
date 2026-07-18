@@ -20,7 +20,7 @@ function test_command_help_pages_render_successfully() {
   for command in "${commands[@]}"; do
     run_smm "${command}" --help
 
-    assert_smm_success
     assert_smm_output_contains "Usage:"
+    assert_smm_success
   done
 }
