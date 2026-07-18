@@ -3,8 +3,59 @@ import * as os from 'os';
 import * as path from 'path';
 import { describe, expect, it, vi } from 'vitest';
 import { GitHubPullRequestsFetchRepository, IGithubPrsClient } from '../../..';
+import { RepositoryFactory } from '../../../infrastructure/repository-factory';
 import { PullRequestCommentJsonResponse, PullRequestJsonResponse } from '../github-response-types';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
+
+function createSqliteConfig(providerDir: string): {
+  internal: { storageType: 'sqlite' };
+  getPathFromGitProvider: () => string;
+  getBaseDirectory: () => string;
+} {
+  return {
+    internal: { storageType: 'sqlite' },
+    getPathFromGitProvider: () => providerDir,
+    getBaseDirectory: () => providerDir,
+  };
+}
+
+async function seedPullRequests(
+  providerDir: string,
+  items: PullRequestJsonResponse[]
+): Promise<void> {
+  const config = createSqliteConfig(providerDir);
+  const repository = RepositoryFactory.create<PullRequestJsonResponse>(
+    `${providerDir}/prs.json`,
+    new MockLoggerBuilder().build(),
+    config as never
+  );
+  await repository.saveAll(items);
+}
+
+async function seedPullRequestComments(
+  providerDir: string,
+  items: PullRequestCommentJsonResponse[]
+): Promise<void> {
+  const config = createSqliteConfig(providerDir);
+  const repository = RepositoryFactory.create<PullRequestCommentJsonResponse>(
+    `${providerDir}/pr-comments.json`,
+    new MockLoggerBuilder().build(),
+    config as never
+  );
+  await repository.saveAll(items);
+}
+
+async function loadPullRequestComments(
+  providerDir: string
+): Promise<PullRequestCommentJsonResponse[]> {
+  const config = createSqliteConfig(providerDir);
+  const repository = RepositoryFactory.create<PullRequestCommentJsonResponse>(
+    `${providerDir}/pr-comments.json`,
+    new MockLoggerBuilder().build(),
+    config as never
+  );
+  return repository.loadAll();
+}
 
 function createPullRequest(
   overrides: Partial<PullRequestJsonResponse> = {}
@@ -118,7 +169,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
     ];
 
     // Pre-populate cache
-    await fs.writeFile(path.join(providerDir, 'prs.json'), JSON.stringify(cachedPrs));
+    await seedPullRequests(providerDir, cachedPrs);
 
     const newPrs = [
       createPullRequest({
@@ -133,9 +184,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
       fetchPRs,
       fetchPRComments: vi.fn(),
     };
-    const config = {
-      getPathFromGitProvider: () => providerDir,
-    };
+    const config = createSqliteConfig(providerDir);
 
     const repository = new GitHubPullRequestsFetchRepository(
       githubPrsClient,
@@ -192,7 +241,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
       createPullRequest({ id: '2', title: 'Untouched PR' }),
     ];
 
-    await fs.writeFile(path.join(providerDir, 'prs.json'), JSON.stringify(cachedPrs));
+    await seedPullRequests(providerDir, cachedPrs);
 
     const freshPrs = [createPullRequest({ id: '1', title: 'Fresh title' })];
 
@@ -201,9 +250,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
       fetchPRs,
       fetchPRComments: vi.fn(),
     };
-    const config = {
-      getPathFromGitProvider: () => providerDir,
-    };
+    const config = createSqliteConfig(providerDir);
 
     const repository = new GitHubPullRequestsFetchRepository(
       githubPrsClient,
@@ -235,9 +282,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
       fetchPRs,
       fetchPRComments: vi.fn(),
     };
-    const config = {
-      getPathFromGitProvider: () => providerDir,
-    };
+    const config = createSqliteConfig(providerDir);
 
     const repository = new GitHubPullRequestsFetchRepository(
       githubPrsClient,
@@ -260,16 +305,14 @@ describe('GitHubPullRequestsFetchRepository', () => {
   it('serves cached PRs directly when there is no date range or incrementalUpdate and forceRefresh is not set', async () => {
     const providerDir = await fs.mkdtemp(path.join(os.tmpdir(), 'smm-pr-cache-hit-'));
     const cachedPrs = [createPullRequest({ id: '1' }), createPullRequest({ id: '2' })];
-    await fs.writeFile(path.join(providerDir, 'prs.json'), JSON.stringify(cachedPrs));
+    await seedPullRequests(providerDir, cachedPrs);
 
     const fetchPRs = vi.fn().mockResolvedValue([]);
     const githubPrsClient: IGithubPrsClient = {
       fetchPRs,
       fetchPRComments: vi.fn(),
     };
-    const config = {
-      getPathFromGitProvider: () => providerDir,
-    };
+    const config = createSqliteConfig(providerDir);
 
     const repository = new GitHubPullRequestsFetchRepository(
       githubPrsClient,
@@ -282,11 +325,12 @@ describe('GitHubPullRequestsFetchRepository', () => {
     expect(fetchPRs).not.toHaveBeenCalled();
     expect(result).toEqual(cachedPrs);
 
-    const filterOptionsExist = await fs
-      .access(path.join(providerDir, 'pull-request-filter-options.json'))
-      .then(() => true)
-      .catch(() => false);
-    expect(filterOptionsExist).toBe(false);
+    const optionsRepository = RepositoryFactory.create<{
+      authors: string[];
+      labels: string[];
+    }>(`${providerDir}/pull-request-filter-options.json`, logger, config as never);
+    const options = await optionsRepository.load();
+    expect(options).toBeNull();
   });
 
   it('bypasses the date-range merge guard but not the incremental guard when forceRefresh and incrementalUpdate are both set', async () => {
@@ -297,7 +341,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
         updated_at: '2026-05-15T00:00:00Z',
       }),
     ];
-    await fs.writeFile(path.join(providerDir, 'prs.json'), JSON.stringify(cachedPrs));
+    await seedPullRequests(providerDir, cachedPrs);
 
     const freshPrs = [createPullRequest({ id: '2' })];
     const fetchPRs = vi.fn().mockResolvedValue(freshPrs);
@@ -305,9 +349,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
       fetchPRs,
       fetchPRComments: vi.fn(),
     };
-    const config = {
-      getPathFromGitProvider: () => providerDir,
-    };
+    const config = createSqliteConfig(providerDir);
 
     const repository = new GitHubPullRequestsFetchRepository(
       githubPrsClient,
@@ -349,9 +391,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
       ]),
       fetchPRComments: vi.fn(),
     };
-    const config = {
-      getPathFromGitProvider: () => providerDir,
-    };
+    const config = createSqliteConfig(providerDir);
 
     const repository = new GitHubPullRequestsFetchRepository(
       githubPrsClient,
@@ -361,9 +401,14 @@ describe('GitHubPullRequestsFetchRepository', () => {
 
     await repository.fetchPRs({ forceRefresh: true });
 
-    const options = JSON.parse(
-      await fs.readFile(path.join(providerDir, 'pull-request-filter-options.json'), 'utf-8')
-    );
+    const optionsRepository = RepositoryFactory.create<{
+      authors: string[];
+      labels: string[];
+    }>(`${providerDir}/pull-request-filter-options.json`, logger, config as never);
+    const options = await optionsRepository.load();
+    if (!options) {
+      throw new Error('Expected pull-request filter options to be cached in repository');
+    }
 
     expect(options).toEqual({
       authors: ['alice', 'bob'],
@@ -384,10 +429,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
         pull_request_url: 'https://api.github.com/repos/org/repo/pulls/2',
         updated_at: '2026-05-01T00:00:00Z',
       });
-      await fs.writeFile(
-        path.join(providerDir, 'pr-comments.json'),
-        JSON.stringify([cachedCommentForPR1, cachedCommentForOtherPR])
-      );
+      await seedPullRequestComments(providerDir, [cachedCommentForPR1, cachedCommentForOtherPR]);
 
       const staleFreshComment = {
         ...createComment({
@@ -421,9 +463,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
         fetchPRs: vi.fn(),
         fetchPRComments,
       };
-      const config = {
-        getPathFromGitProvider: () => providerDir,
-      };
+      const config = createSqliteConfig(providerDir);
 
       const repository = new GitHubPullRequestsFetchRepository(
         githubPrsClient,
@@ -439,9 +479,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
       expect(ids).toEqual([1, 2, 3]);
       expect(result.some((c) => c.body.includes('older than cached latest'))).toBe(false);
 
-      const saved = JSON.parse(
-        await fs.readFile(path.join(providerDir, 'pr-comments.json'), 'utf-8')
-      ) as PullRequestCommentJsonResponse[];
+      const saved = await loadPullRequestComments(providerDir);
       const savedForOtherPR = saved.find((c) => c.id === 99);
       expect(savedForOtherPR).toEqual(cachedCommentForOtherPR);
     });
@@ -452,10 +490,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
         id: 99,
         pull_request_url: 'https://api.github.com/repos/org/repo/pulls/2',
       });
-      await fs.writeFile(
-        path.join(providerDir, 'pr-comments.json'),
-        JSON.stringify([cachedCommentForOtherPR])
-      );
+      await seedPullRequestComments(providerDir, [cachedCommentForOtherPR]);
 
       const freshComment = createComment({
         id: 1,
@@ -466,9 +501,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
         fetchPRs: vi.fn(),
         fetchPRComments,
       };
-      const config = {
-        getPathFromGitProvider: () => providerDir,
-      };
+      const config = createSqliteConfig(providerDir);
 
       const repository = new GitHubPullRequestsFetchRepository(
         githubPrsClient,
@@ -488,19 +521,14 @@ describe('GitHubPullRequestsFetchRepository', () => {
         id: 1,
         pull_request_url: 'https://api.github.com/repos/org/repo/pulls/1',
       });
-      await fs.writeFile(
-        path.join(providerDir, 'pr-comments.json'),
-        JSON.stringify([cachedCommentForPR1])
-      );
+      await seedPullRequestComments(providerDir, [cachedCommentForPR1]);
 
       const fetchPRComments = vi.fn().mockResolvedValue([]);
       const githubPrsClient: IGithubPrsClient = {
         fetchPRs: vi.fn(),
         fetchPRComments,
       };
-      const config = {
-        getPathFromGitProvider: () => providerDir,
-      };
+      const config = createSqliteConfig(providerDir);
 
       const repository = new GitHubPullRequestsFetchRepository(
         githubPrsClient,
@@ -520,10 +548,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
         id: 99,
         pull_request_url: 'https://api.github.com/repos/org/repo/pulls/2',
       });
-      await fs.writeFile(
-        path.join(providerDir, 'pr-comments.json'),
-        JSON.stringify([cachedCommentForOtherPR])
-      );
+      await seedPullRequestComments(providerDir, [cachedCommentForOtherPR]);
 
       const freshComment = createComment({
         id: 1,
@@ -534,9 +559,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
         fetchPRs: vi.fn(),
         fetchPRComments,
       };
-      const config = {
-        getPathFromGitProvider: () => providerDir,
-      };
+      const config = createSqliteConfig(providerDir);
 
       const repository = new GitHubPullRequestsFetchRepository(
         githubPrsClient,
@@ -549,9 +572,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
       expect(fetchPRComments).toHaveBeenCalledWith(1);
       expect(result).toEqual([freshComment]);
 
-      const saved = JSON.parse(
-        await fs.readFile(path.join(providerDir, 'pr-comments.json'), 'utf-8')
-      ) as PullRequestCommentJsonResponse[];
+      const saved = await loadPullRequestComments(providerDir);
       const ids = saved.map((c) => c.id).sort();
       expect(ids).toEqual([1, 99]);
     });
@@ -563,10 +584,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
         pull_request_url: 'https://api.github.com/repos/org/repo/pulls/1',
         updated_at: '2026-05-10T00:00:00Z',
       });
-      await fs.writeFile(
-        path.join(providerDir, 'pr-comments.json'),
-        JSON.stringify([cachedCommentForPR1])
-      );
+      await seedPullRequestComments(providerDir, [cachedCommentForPR1]);
 
       const freshComment = createComment({
         id: 2,
@@ -578,9 +596,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
         fetchPRs: vi.fn(),
         fetchPRComments,
       };
-      const config = {
-        getPathFromGitProvider: () => providerDir,
-      };
+      const config = createSqliteConfig(providerDir);
 
       const repository = new GitHubPullRequestsFetchRepository(
         githubPrsClient,

@@ -17,7 +17,7 @@ function test_health_check_reports_all_datasets_as_errors_when_empty() {
   assert_smm_output_contains "Total datasets: 7"
   assert_smm_output_contains "Healthy: 0"
   assert_smm_output_contains "Errors: 7"
-  assert_smm_output_contains "Cache file not found"
+  assert_smm_output_contains "Dataset not found in SQLite cache"
 }
 
 function test_health_check_output_json_returns_valid_json() {

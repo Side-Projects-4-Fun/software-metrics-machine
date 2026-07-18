@@ -228,7 +228,7 @@ async function analyzeDataset(
   config: Configuration,
   maxGapDays: number
 ): Promise<DatasetCheck> {
-  const storageType = config.internal?.storageType ?? 'json';
+  const storageType = config.internal?.storageType ?? 'sqlite';
   if (storageType === 'sqlite') {
     return analyzeSqliteDataset(def, config, maxGapDays);
   }

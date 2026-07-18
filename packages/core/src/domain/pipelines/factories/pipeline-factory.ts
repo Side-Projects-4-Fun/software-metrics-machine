@@ -19,7 +19,6 @@ import {
 import { Logger } from '@smmachine/utils';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import { PipelinesRepository } from '../repositories/pipeline-repository';
-import { PipelinesRepositoryJson } from '..';
 import { PipelineFiltersRepositoryJson } from '../infrastructure/pipeline-filters-repository-json';
 
 export default class PipelineFactory {
@@ -74,15 +73,7 @@ export default class PipelineFactory {
       config
     );
 
-    const pipelineRepository =
-      config.internal?.storageType === 'sqlite'
-        ? new PipelinesSqliteRepository(config, logger, timeZoneProvider)
-        : new PipelinesRepositoryJson(
-            pipelineRunJsonRepository,
-            pipelineJobsJsonRepository,
-            logger,
-            timeZoneProvider
-          );
+    const pipelineRepository = new PipelinesSqliteRepository(config, logger, timeZoneProvider);
     const pipelineFiltersRepository = new PipelineFiltersRepositoryJson(
       pipelineRunJsonRepository,
       pipelineJobsJsonRepository,

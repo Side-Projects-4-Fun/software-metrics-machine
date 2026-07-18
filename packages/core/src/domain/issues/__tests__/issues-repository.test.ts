@@ -7,6 +7,8 @@ import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-buil
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import { Issue } from '../../../domain-types';
 import { IJiraIssuesClient } from '../../../providers';
+import { Configuration } from '../../../infrastructure/configuration';
+import { RepositoryFactory } from '../../../infrastructure/repository-factory';
 
 function createIssue(overrides: Partial<Issue> = {}): Issue {
   return {
@@ -28,6 +30,23 @@ function createJiraClient(overrides: Partial<IJiraIssuesClient> = {}): IJiraIssu
   };
 }
 
+function createSqliteConfig(baseDir: string): Configuration {
+  return {
+    internal: { storageType: 'sqlite' },
+    getBaseDirectory: () => baseDir,
+  } as never as Configuration;
+}
+
+async function seedIssues(baseDir: string, issues: Issue[]): Promise<void> {
+  const config = createSqliteConfig(baseDir);
+  const repo = RepositoryFactory.create<Issue>(
+    `${baseDir}/issues.json`,
+    new MockLoggerBuilder().build(),
+    config
+  );
+  await repo.saveAll(issues);
+}
+
 describe('IssuesRepository', () => {
   const logger = new MockLoggerBuilder().build();
   const timeZoneProvider = new TimeZoneProvider('UTC');
@@ -39,13 +58,19 @@ describe('IssuesRepository', () => {
         createIssue({ id: '1', createdAt: '2026-05-01T00:00:00.000Z' }),
         createIssue({ id: '2', createdAt: '2026-05-05T00:00:00.000Z' }),
       ];
-      await fs.writeFile(path.join(cacheDir, 'issues.json'), JSON.stringify(cachedIssues));
+      await seedIssues(cacheDir, cachedIssues);
 
       const freshIssue = createIssue({ id: '3', createdAt: '2026-05-20T00:00:00.000Z' });
       const fetchIssues = vi.fn().mockResolvedValue([freshIssue]);
       const jiraClient = createJiraClient({ fetchIssues });
 
-      const repository = new IssuesRepository(jiraClient, cacheDir, logger, timeZoneProvider);
+      const repository = new IssuesRepository(
+        jiraClient,
+        cacheDir,
+        logger,
+        timeZoneProvider,
+        createSqliteConfig(cacheDir)
+      );
 
       const result = await repository.refreshIssues({ incrementalUpdate: true });
 
@@ -65,7 +90,13 @@ describe('IssuesRepository', () => {
       const fetchIssues = vi.fn().mockResolvedValue(fresh);
       const jiraClient = createJiraClient({ fetchIssues });
 
-      const repository = new IssuesRepository(jiraClient, cacheDir, logger, timeZoneProvider);
+      const repository = new IssuesRepository(
+        jiraClient,
+        cacheDir,
+        logger,
+        timeZoneProvider,
+        createSqliteConfig(cacheDir)
+      );
 
       const options = { incrementalUpdate: true };
       const result = await repository.refreshIssues(options);
@@ -81,13 +112,19 @@ describe('IssuesRepository', () => {
     it('manual date range with a non-empty cache fetches for that range and merges with the cache', async () => {
       const cacheDir = await fs.mkdtemp(path.join(os.tmpdir(), 'smm-issues-range-'));
       const cachedIssue = createIssue({ id: '1', createdAt: '2026-04-01T00:00:00.000Z' });
-      await fs.writeFile(path.join(cacheDir, 'issues.json'), JSON.stringify([cachedIssue]));
+      await seedIssues(cacheDir, [cachedIssue]);
 
       const freshIssue = createIssue({ id: '2', createdAt: '2026-04-15T00:00:00.000Z' });
       const fetchIssues = vi.fn().mockResolvedValue([freshIssue]);
       const jiraClient = createJiraClient({ fetchIssues });
 
-      const repository = new IssuesRepository(jiraClient, cacheDir, logger, timeZoneProvider);
+      const repository = new IssuesRepository(
+        jiraClient,
+        cacheDir,
+        logger,
+        timeZoneProvider,
+        createSqliteConfig(cacheDir)
+      );
 
       const result = await repository.refreshIssues({
         startDate: '2026-04-01T00:00:00.000Z',
@@ -107,17 +144,20 @@ describe('IssuesRepository', () => {
       const cacheDir = await fs.mkdtemp(path.join(os.tmpdir(), 'smm-issues-datetime-range-'));
       const beforeRange = createIssue({ id: '1', createdAt: '2026-04-01T07:00:00.000Z' });
       const cachedInRange = createIssue({ id: '2', createdAt: '2026-04-01T08:00:00.000Z' });
-      await fs.writeFile(
-        path.join(cacheDir, 'issues.json'),
-        JSON.stringify([beforeRange, cachedInRange])
-      );
+      await seedIssues(cacheDir, [beforeRange, cachedInRange]);
 
       const freshInRange = createIssue({ id: '3', createdAt: '2026-04-01T16:00:00.000Z' });
       const afterRange = createIssue({ id: '4', createdAt: '2026-04-01T18:00:00.000Z' });
       const fetchIssues = vi.fn().mockResolvedValue([freshInRange, afterRange]);
       const jiraClient = createJiraClient({ fetchIssues });
 
-      const repository = new IssuesRepository(jiraClient, cacheDir, logger, timeZoneProvider);
+      const repository = new IssuesRepository(
+        jiraClient,
+        cacheDir,
+        logger,
+        timeZoneProvider,
+        createSqliteConfig(cacheDir)
+      );
 
       const result = await repository.refreshIssues({
         startDate: '2026-04-01T08:30:00+01:00',
@@ -133,7 +173,13 @@ describe('IssuesRepository', () => {
       const fetchIssues = vi.fn().mockResolvedValue(fresh);
       const jiraClient = createJiraClient({ fetchIssues });
 
-      const repository = new IssuesRepository(jiraClient, cacheDir, logger, timeZoneProvider);
+      const repository = new IssuesRepository(
+        jiraClient,
+        cacheDir,
+        logger,
+        timeZoneProvider,
+        createSqliteConfig(cacheDir)
+      );
 
       const options = {
         startDate: '2026-04-01T00:00:00.000Z',
@@ -148,12 +194,18 @@ describe('IssuesRepository', () => {
     it('returns cached issues directly without fetching when no date range or incremental flag is set', async () => {
       const cacheDir = await fs.mkdtemp(path.join(os.tmpdir(), 'smm-issues-cache-hit-'));
       const cachedIssues = [createIssue({ id: '1' }), createIssue({ id: '2' })];
-      await fs.writeFile(path.join(cacheDir, 'issues.json'), JSON.stringify(cachedIssues));
+      await seedIssues(cacheDir, cachedIssues);
 
       const fetchIssues = vi.fn();
       const jiraClient = createJiraClient({ fetchIssues });
 
-      const repository = new IssuesRepository(jiraClient, cacheDir, logger, timeZoneProvider);
+      const repository = new IssuesRepository(
+        jiraClient,
+        cacheDir,
+        logger,
+        timeZoneProvider,
+        createSqliteConfig(cacheDir)
+      );
 
       const result = await repository.refreshIssues();
 
@@ -164,13 +216,19 @@ describe('IssuesRepository', () => {
     it('forceRefresh does NOT bypass the incremental branch when incrementalUpdate is also set on a non-empty cache', async () => {
       const cacheDir = await fs.mkdtemp(path.join(os.tmpdir(), 'smm-issues-force-incr-'));
       const cachedIssue = createIssue({ id: '1', createdAt: '2026-05-01T00:00:00.000Z' });
-      await fs.writeFile(path.join(cacheDir, 'issues.json'), JSON.stringify([cachedIssue]));
+      await seedIssues(cacheDir, [cachedIssue]);
 
       const freshIssue = createIssue({ id: '2', createdAt: '2026-06-01T00:00:00.000Z' });
       const fetchIssues = vi.fn().mockResolvedValue([freshIssue]);
       const jiraClient = createJiraClient({ fetchIssues });
 
-      const repository = new IssuesRepository(jiraClient, cacheDir, logger, timeZoneProvider);
+      const repository = new IssuesRepository(
+        jiraClient,
+        cacheDir,
+        logger,
+        timeZoneProvider,
+        createSqliteConfig(cacheDir)
+      );
 
       const result = await repository.refreshIssues({
         incrementalUpdate: true,
@@ -197,7 +255,7 @@ describe('IssuesRepository', () => {
         status: 'Open',
         title: 'Stale title',
       });
-      await fs.writeFile(path.join(cacheDir, 'issues.json'), JSON.stringify([cachedIssue]));
+      await seedIssues(cacheDir, [cachedIssue]);
 
       const incomingIssue = createIssue({
         id: '1',
@@ -208,7 +266,13 @@ describe('IssuesRepository', () => {
       const fetchIssues = vi.fn().mockResolvedValue([incomingIssue]);
       const jiraClient = createJiraClient({ fetchIssues });
 
-      const repository = new IssuesRepository(jiraClient, cacheDir, logger, timeZoneProvider);
+      const repository = new IssuesRepository(
+        jiraClient,
+        cacheDir,
+        logger,
+        timeZoneProvider,
+        createSqliteConfig(cacheDir)
+      );
 
       const result = await repository.refreshIssues({ incrementalUpdate: true });
 
@@ -225,7 +289,13 @@ describe('IssuesRepository', () => {
       const fetchIssues = vi.fn().mockResolvedValue(fresh);
       const jiraClient = createJiraClient({ fetchIssues });
 
-      const repository = new IssuesRepository(jiraClient, cacheDir, logger, timeZoneProvider);
+      const repository = new IssuesRepository(
+        jiraClient,
+        cacheDir,
+        logger,
+        timeZoneProvider,
+        createSqliteConfig(cacheDir)
+      );
 
       const result = await repository.getIssues({ status: 'Open' });
 
@@ -245,7 +315,13 @@ describe('IssuesRepository', () => {
       const fetchIssueChanges = vi.fn().mockResolvedValue(changes);
       const jiraClient = createJiraClient({ fetchIssueChanges });
 
-      const repository = new IssuesRepository(jiraClient, cacheDir, logger, timeZoneProvider);
+      const repository = new IssuesRepository(
+        jiraClient,
+        cacheDir,
+        logger,
+        timeZoneProvider,
+        createSqliteConfig(cacheDir)
+      );
 
       const result = await repository.getIssueChanges('PROJ-1');
 
@@ -261,7 +337,13 @@ describe('IssuesRepository', () => {
       const fetchIssueComments = vi.fn().mockResolvedValue(comments);
       const jiraClient = createJiraClient({ fetchIssueComments });
 
-      const repository = new IssuesRepository(jiraClient, cacheDir, logger, timeZoneProvider);
+      const repository = new IssuesRepository(
+        jiraClient,
+        cacheDir,
+        logger,
+        timeZoneProvider,
+        createSqliteConfig(cacheDir)
+      );
 
       const result = await repository.getIssueComments('PROJ-1');
 

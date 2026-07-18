@@ -537,7 +537,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       this.getConfiguredStorageType(projectInternalConfig) ||
       this.getConfiguredStorageType(rootInternalConfig) ||
       this.getProjectEnv(repository, 'SMM_STORAGE_TYPE') ||
-      'json';
+      'sqlite';
 
     return storageType as StorageType;
   }

@@ -269,7 +269,7 @@ describe('ConfigurationRepository', () => {
       expect(config.sonarProject).toBeUndefined();
       expect(config.storeLogs).toBeUndefined();
       expect(config.timezone).toBe('UTC');
-      expect(config.internal.storageType).toBe('json');
+      expect(config.internal.storageType).toBe('sqlite');
     });
 
     it('should use project-specific GitHub token from environment', () => {

@@ -206,7 +206,7 @@ export class Configuration implements IConfiguration {
   sonarLocalRunnerToken?: string;
   storeLogs?: boolean;
   timezone?: string;
-  internal: InternalConfiguration = { storageType: 'json' };
+  internal: InternalConfiguration = { storageType: 'sqlite' };
 
   constructor(values: Partial<IConfiguration> = {}) {
     Object.assign(this, values);

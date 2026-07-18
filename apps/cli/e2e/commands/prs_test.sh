@@ -5,56 +5,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/support/bootstrap.sh"
 
 function seed_prs_workspace() {
   local workspace="$1"
-  local github_dir="${workspace}/github_acme_widgets/github"
-
-  mkdir -p "${github_dir}"
-
-  cat >"${github_dir}/prs.json" <<'JSON'
-[
-  {
-    "id": 101,
-    "number": 7,
-    "state": "closed",
-    "title": "Add checkout flow",
-    "body": "Checkout metrics implementation",
-    "user": { "id": 501, "login": "alice" },
-    "labels": [{ "id": 1, "name": "feature", "color": "0e8a16" }],
-    "created_at": "2026-01-05T09:00:00Z",
-    "updated_at": "2026-01-06T09:00:00Z",
-    "closed_at": "2026-01-07T09:00:00Z",
-    "merged_at": "2026-01-07T09:00:00Z",
-    "html_url": "https://github.com/acme/widgets/pull/7"
-  },
-  {
-    "id": 102,
-    "number": 8,
-    "state": "open",
-    "title": "Refine cart metrics",
-    "body": "Cart analytics improvements",
-    "user": { "id": 502, "login": "bob" },
-    "labels": [{ "id": 2, "name": "analytics", "color": "5319e7" }],
-    "created_at": "2026-01-12T09:00:00Z",
-    "updated_at": "2026-01-12T11:00:00Z",
-    "html_url": "https://github.com/acme/widgets/pull/8"
-  }
-]
-JSON
-
-  cat >"${github_dir}/pr-comments.json" <<'JSON'
-[
-  {
-    "id": 9001,
-    "url": "https://api.github.com/repos/acme/widgets/pulls/comments/9001",
-    "pull_request_url": "https://api.github.com/repos/acme/widgets/pulls/7",
-    "body": "Please add a checkout regression test.",
-    "user": { "id": 601, "login": "reviewer" },
-    "path": "src/cart.ts",
-    "created_at": "2026-01-05T13:00:00Z",
-    "updated_at": "2026-01-05T13:05:00Z",
-    "html_url": "https://github.com/acme/widgets/pull/7#discussion_r9001"
-  }
-]
-JSON
+  seed_sqlite_prs_fixture "${workspace}"
 }
 
 function test_prs_help_renders_successfully() {

@@ -633,31 +633,6 @@ Merge multiple JSON files into one.
 --pretty              pretty-print the output JSON
 ```
 
-#### `smm tools migrate`
-Migrate persisted metric data between storage backends.
-
-```text
---from <storage>      source backend
---to <storage>        target backend
-```
-
-Current support:
-
-- `--from json --to sqlite` only.
-- Migrates persisted project stores (git/provider/jira/architecture/sonarqube) and CodeMaat SQLite metrics.
-- Updates project configuration to `internal.storage_type=sqlite` after successful migration.
-
-Examples:
-
-```bash
-smm tools migrate --from json --to sqlite
-
-# For a single configured project
-smm --project owner/repo tools migrate --from json --to sqlite
-```
-
----
-
 ### `smm health-check`
 Analyze local cache data quality (missing, stale, invalid, coverage gaps).
 

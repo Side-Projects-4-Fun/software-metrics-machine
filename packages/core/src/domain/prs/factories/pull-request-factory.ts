@@ -1,9 +1,6 @@
 import { Configuration, IRepository, RepositoryFactory } from '../../../infrastructure';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
-import {
-  IReadPullRequestsRepository,
-  PullRequestsRepository,
-} from '../repositories/pull-requests-repository-json';
+import { IReadPullRequestsRepository } from '../repositories/pull-requests-repository-json';
 import { PullRequestsSqliteRepository } from '../repositories/pull-requests-repository-sqlite';
 import {
   PullRequestCommentJsonResponse,
@@ -18,19 +15,10 @@ import { Logger } from '@smmachine/utils';
 export class PullRequestFactory {
   static create(
     config: Configuration,
-    logger: Logger,
+    _logger: Logger,
     timeZoneProvider: TimeZoneProvider
   ): IReadPullRequestsRepository {
-    if (config.internal?.storageType === 'sqlite') {
-      return new PullRequestsSqliteRepository(config, timeZoneProvider);
-    }
-
-    const repositories = this.createRepositories(config, logger);
-    return new PullRequestsRepository(
-      repositories.pullRequestsJsonRepository,
-      repositories.pullRequestCommentsJsonRepository,
-      timeZoneProvider
-    );
+    return new PullRequestsSqliteRepository(config, timeZoneProvider);
   }
 
   static createFilters(config: Configuration, logger: Logger): PullRequestFiltersRepository {

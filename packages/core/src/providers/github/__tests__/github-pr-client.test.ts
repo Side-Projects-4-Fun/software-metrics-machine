@@ -4,6 +4,7 @@ import * as path from 'path';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import axios from 'axios';
 import { GithubPrsClient, GitHubPullRequestsFetchRepository, type IGithubPrsClient } from '..';
+import { RepositoryFactory } from '../../../infrastructure/repository-factory';
 import { PullRequestJsonResponseBuilder } from '../../../test/github/github-builders';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
@@ -288,9 +289,14 @@ describe('GitHubPullRequestsFetchRepository', () => {
 
     await repository.fetchPRs({ forceRefresh: true });
 
-    const options = JSON.parse(
-      await fs.readFile(path.join(providerDir, 'pull-request-filter-options.json'), 'utf-8')
-    );
+    const optionsRepository = RepositoryFactory.create<{
+      authors: string[];
+      labels: string[];
+    }>(`${providerDir}/pull-request-filter-options.json`, logger, config as never);
+    const options = await optionsRepository.load();
+    if (!options) {
+      throw new Error('Expected pull-request filter options to be cached in repository');
+    }
 
     expect(options).toEqual({
       authors: ['alice', 'bob'],

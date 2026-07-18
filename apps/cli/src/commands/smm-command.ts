@@ -1,4 +1,8 @@
 import { Command } from 'commander';
+import * as fs from 'fs';
+import * as path from 'path';
+import { DatabaseSync } from 'node:sqlite';
+import { applySqliteMigrations, RepositoryFactory } from '@smmachine/core';
 import type { Configuration } from '@smmachine/core/infrastructure/configuration';
 import { ConfigurationRepository } from '@smmachine/core/infrastructure/configuration-repository';
 import { Logger, type LogLevel } from '@smmachine/utils';
@@ -29,11 +33,29 @@ export class SmmCommand extends Command {
 
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   actionWithSmm(handler: (options: any, command: SmmCommand) => void | Promise<void>): this {
-    return this.action((options: unknown, command: Command) => {
+    return this.action(async (options: unknown, command: Command) => {
       const smmCommand = command as unknown as SmmCommand;
+      await smmCommand.autoMigrateIfNeeded();
       smmCommand.getConfigurationRepository();
-      return handler(options, smmCommand);
+      return await handler(options, smmCommand);
     });
+  }
+
+  private async autoMigrateIfNeeded(): Promise<void> {
+    if (!process.env.SMM_STORE_DATA_AT) {
+      return;
+    }
+
+    const configuration = this.getConfiguration();
+    const sqliteDbPath = RepositoryFactory.getSqliteDatabasePath(configuration);
+    fs.mkdirSync(path.dirname(sqliteDbPath), { recursive: true });
+    const db = new DatabaseSync(sqliteDbPath);
+
+    try {
+      applySqliteMigrations(db);
+    } finally {
+      db.close();
+    }
   }
 
   getGlobalOptions(): GlobalCliOptions {

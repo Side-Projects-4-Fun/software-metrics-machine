@@ -1,35 +1,26 @@
 import { SonarqubeComponentMeasure } from 'src';
-import {
-  Configuration,
-  IRepository,
-  JsonFileSystemRepository,
-  RepositoryFactory,
-  SqliteRepository,
-} from '../../../infrastructure';
+import { Configuration, IRepository, RepositoryFactory } from '../../../infrastructure';
 import { CodeMetric, SonarqubeComponentTreeMeasure, TimestampedStore } from '../../../providers';
 import { SonarqubeRepositoryJson as SonarqubeRepository } from '../../../providers/sonarqube/repositories/sonarqube-repository-json';
 import { Logger } from '@smmachine/utils';
 
 export class SonarqubeFactory {
   static create(configuration: Configuration, logger: Logger): SonarqubeRepository {
-    const storageType = configuration.internal?.storageType ?? 'json';
     const cacheDir = configuration.getSonarqubePath();
     const filePath = (name: string): string => `${cacheDir}/${name}`;
 
     const measuresRepository = this.createRepository<TimestampedStore<SonarqubeComponentMeasure>>(
       filePath('measures.json'),
       logger,
-      configuration,
-      storageType
+      configuration
     );
     const componentTreeRepository = this.createRepository<
       TimestampedStore<SonarqubeComponentTreeMeasure[]>
-    >(filePath('component-tree.json'), logger, configuration, storageType);
+    >(filePath('component-tree.json'), logger, configuration);
     const historicalMeasuresRepository = this.createRepository<TimestampedStore<CodeMetric[]>>(
       filePath('historical-measures.json'),
       logger,
-      configuration,
-      storageType
+      configuration
     );
 
     return new SonarqubeRepository(
@@ -42,16 +33,8 @@ export class SonarqubeFactory {
   private static createRepository<T>(
     filePath: string,
     logger: Logger,
-    configuration: Configuration,
-    storageType: string
+    configuration: Configuration
   ): IRepository<T> {
-    if (storageType === 'sqlite') {
-      return new SqliteRepository<T>(
-        RepositoryFactory.getSqliteDatabasePath(configuration),
-        RepositoryFactory.getSqliteNamespace(filePath, configuration),
-        logger
-      );
-    }
-    return new JsonFileSystemRepository<T>(filePath, logger);
+    return RepositoryFactory.create<T>(filePath, logger, configuration);
   }
 }

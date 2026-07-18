@@ -93,6 +93,7 @@ describe('CodemaatFetchRepository', () => {
       repository: '/explicit/repo/path',
       outputDirectory,
       stdout: `ran: /explicit/repo/path ${outputDirectory} 2026-01-01 2026-01-31 sub true \n`,
+      persistedRecords: 0,
     });
   });
 

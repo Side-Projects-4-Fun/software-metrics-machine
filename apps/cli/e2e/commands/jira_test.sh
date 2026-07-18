@@ -5,35 +5,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/support/bootstrap.sh"
 
 function seed_jira_workspace() {
   local workspace="$1"
-  local jira_dir="${workspace}/github_acme_widgets/jira"
-
-  mkdir -p "${jira_dir}"
-
-  cat >"${jira_dir}/issues.json" <<'JSON'
-[
-  {
-    "id": "KAN-123",
-    "key": "KAN-123",
-    "status": "In Progress",
-    "title": "Add checkout metrics",
-    "createdAt": "2026-01-09T12:00:00Z"
-  },
-  {
-    "id": "KAN-456",
-    "key": "KAN-456",
-    "status": "Done",
-    "title": "Refine cart logic",
-    "createdAt": "2026-01-10T09:00:00Z"
-  },
-  {
-    "id": "KAN-789",
-    "key": "KAN-789",
-    "status": "To Do",
-    "title": "Implement payment gateway",
-    "createdAt": "2026-01-11T14:00:00Z"
-  }
-]
-JSON
+  seed_sqlite_jira_fixture "${workspace}"
 }
 
 function test_jira_fetch_issues_renders_cached_issues() {

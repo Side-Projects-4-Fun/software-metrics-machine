@@ -34,9 +34,8 @@ function seed_code_analysis_workspace() {
   local workspace="$1"
   local project_dir="${workspace}/github_acme_widgets"
   local codemaat_dir="${project_dir}/codemaat"
-  local git_dir="${project_dir}/git"
 
-  mkdir -p "${workspace}/repo/src" "${codemaat_dir}" "${git_dir}"
+  mkdir -p "${workspace}/repo/src" "${codemaat_dir}"
 
   cat >"${workspace}/repo/src/nested.ts" <<'TS'
 export function pairs(rows: Array<{ columns: string[] }>) {
@@ -78,28 +77,7 @@ src/cart.ts,Alice,7,3
 src/checkout.ts,Bob,10,2
 CSV
 
-  cat >"${git_dir}/commits.json" <<'JSON'
-[
-  {
-    "hash": "1111111111111111111111111111111111111111",
-    "author": "Alice",
-    "email": "alice@example.com",
-    "subject": "Pair on cart flow",
-    "timestamp": "2026-03-03T10:00:00Z",
-    "coAuthors": ["Bob"],
-    "files": ["src/cart.ts"]
-  },
-  {
-    "hash": "2222222222222222222222222222222222222222",
-    "author": "Carol",
-    "email": "carol@example.com",
-    "subject": "Document checkout",
-    "timestamp": "2026-03-04T10:00:00Z",
-    "coAuthors": [],
-    "files": []
-  }
-]
-JSON
+  seed_sqlite_code_analysis_fixture "${workspace}"
 }
 
 
@@ -114,10 +92,10 @@ function test_code_fetch_commits_help_renders_successfully() {
 
 function test_code_fetch_commits_persists_commits_from_git_repository() {
   local workspace
-  local commits_file
+  local sqlite_db
 
   workspace="$(create_code_workspace)"
-  commits_file="${workspace}/github_acme_widgets/git/commits.json"
+  sqlite_db="${workspace}/github_acme_widgets/smm.sqlite"
   export SMM_STORE_DATA_AT="${workspace}"
 
   run_smm code fetch-commits --force --output json
@@ -126,10 +104,7 @@ function test_code_fetch_commits_persists_commits_from_git_repository() {
 
   assert_smm_success
   assert_smm_output_contains "\"commits\": 2"
-  assert_smm_file_exists "${commits_file}"
-  assert_smm_file_contains "${commits_file}" "\"author\": \"Alice\""
-  assert_smm_file_contains "${commits_file}" "\"author\": \"Bob\""
-  assert_smm_file_contains "${commits_file}" "\"subject\": \"Add checkout metrics\""
+  assert_smm_file_exists "${sqlite_db}"
 }
 
 function test_code_fetch_commits_filters_by_author() {

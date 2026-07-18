@@ -3,6 +3,9 @@ import * as os from 'os';
 import * as path from 'path';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  Configuration,
+  RepositoryFactory,
+  SqliteRepository,
   SonarqubeFetchMetricsRepository,
   type CodeMetric,
   type ISonarqubeMeasuresClient,
@@ -62,14 +65,39 @@ async function seedHistoricalCache(cacheDir: string, entries: CodeMetric[][]): P
   const store = {
     entries: entries.map((data) => ({ fetchedAt: new Date().toISOString(), data })),
   };
-  await fs.mkdir(cacheDir, { recursive: true });
-  await fs.writeFile(path.join(cacheDir, 'historical-measures.json'), JSON.stringify(store));
+  const configuration = createConfiguration(cacheDir);
+  const repo = createSqliteRepo<typeof store>(cacheDir, 'historical-measures.json', configuration);
+  await repo.save(store);
 }
 
 async function readHistoricalCache(cacheDir: string): Promise<{
   entries: Array<{ fetchedAt: string; data: CodeMetric[] }>;
 }> {
-  return JSON.parse(await fs.readFile(path.join(cacheDir, 'historical-measures.json'), 'utf-8'));
+  const configuration = createConfiguration(cacheDir);
+  const repo = createSqliteRepo<{
+    entries: Array<{ fetchedAt: string; data: CodeMetric[] }>;
+  }>(cacheDir, 'historical-measures.json', configuration);
+  return (await repo.load()) || { entries: [] };
+}
+
+function createConfiguration(cacheDir: string): Configuration {
+  return {
+    internal: { storageType: 'sqlite' },
+    getSonarqubePath: () => cacheDir,
+  } as never as Configuration;
+}
+
+function createSqliteRepo<T>(
+  cacheDir: string,
+  fileName: string,
+  configuration: Configuration
+): SqliteRepository<T> {
+  const filePath = path.join(cacheDir, fileName);
+  return new SqliteRepository<T>(
+    RepositoryFactory.getSqliteDatabasePath(configuration),
+    RepositoryFactory.getSqliteNamespace(filePath, configuration),
+    new MockLoggerBuilder().build()
+  );
 }
 
 describe('SonarqubeFetchMetricsRepository', () => {
@@ -81,7 +109,7 @@ describe('SonarqubeFetchMetricsRepository', () => {
       const measures = createComponentMeasure();
       const fetchComponentMeasures = vi.fn().mockResolvedValue(measures);
       const sonarqubeClient = createSonarqubeClient({ fetchComponentMeasures });
-      const configuration = { getSonarqubePath: () => cacheDir };
+      const configuration = createConfiguration(cacheDir);
 
       const repository = new SonarqubeFetchMetricsRepository(
         sonarqubeClient,
@@ -94,7 +122,12 @@ describe('SonarqubeFetchMetricsRepository', () => {
       expect(fetchComponentMeasures).toHaveBeenCalledWith({ metrics: ['coverage'] });
       expect(result).toEqual(measures);
 
-      const stored = JSON.parse(await fs.readFile(path.join(cacheDir, 'measures.json'), 'utf-8'));
+      const stored = await createSqliteRepo<{
+        entries: Array<{ fetchedAt: string; data: SonarqubeComponentMeasure }>;
+      }>(cacheDir, 'measures.json', configuration).load();
+      if (!stored) {
+        throw new Error('Expected measures cache entry to be stored');
+      }
       expect(stored.entries).toHaveLength(1);
       expect(stored.entries[0].data).toEqual(measures);
       expect(typeof stored.entries[0].fetchedAt).toBe('string');
@@ -107,7 +140,7 @@ describe('SonarqubeFetchMetricsRepository', () => {
       const tree = [createComponentTreeMeasure()];
       const fetchComponentTree = vi.fn().mockResolvedValue(tree);
       const sonarqubeClient = createSonarqubeClient({ fetchComponentTree });
-      const configuration = { getSonarqubePath: () => cacheDir };
+      const configuration = createConfiguration(cacheDir);
 
       const repository = new SonarqubeFetchMetricsRepository(
         sonarqubeClient,
@@ -128,9 +161,12 @@ describe('SonarqubeFetchMetricsRepository', () => {
       });
       expect(result).toEqual(tree);
 
-      const stored = JSON.parse(
-        await fs.readFile(path.join(cacheDir, 'component-tree.json'), 'utf-8')
-      );
+      const stored = await createSqliteRepo<{
+        entries: Array<{ fetchedAt: string; data: SonarqubeComponentTreeMeasure[] }>;
+      }>(cacheDir, 'component-tree.json', configuration).load();
+      if (!stored) {
+        throw new Error('Expected component tree cache entry to be stored');
+      }
       expect(stored.entries).toHaveLength(1);
       expect(stored.entries[0].data).toEqual(tree);
     });
@@ -139,7 +175,7 @@ describe('SonarqubeFetchMetricsRepository', () => {
       const cacheDir = await fs.mkdtemp(path.join(os.tmpdir(), 'smm-sq-tree-err-'));
       const fetchComponentTree = vi.fn().mockRejectedValue(new Error('network down'));
       const sonarqubeClient = createSonarqubeClient({ fetchComponentTree });
-      const configuration = { getSonarqubePath: () => cacheDir };
+      const configuration = createConfiguration(cacheDir);
 
       const repository = new SonarqubeFetchMetricsRepository(
         sonarqubeClient,
@@ -159,7 +195,7 @@ describe('SonarqubeFetchMetricsRepository', () => {
       const fresh = [createCodeMetric()];
       const fetchHistoricalMeasures = vi.fn().mockResolvedValue(fresh);
       const sonarqubeClient = createSonarqubeClient({ fetchHistoricalMeasures });
-      const configuration = { getSonarqubePath: () => cacheDir };
+      const configuration = createConfiguration(cacheDir);
 
       const repository = new SonarqubeFetchMetricsRepository(
         sonarqubeClient,
@@ -196,7 +232,7 @@ describe('SonarqubeFetchMetricsRepository', () => {
       });
       const fetchHistoricalMeasures = vi.fn().mockResolvedValue([freshDuplicate, freshNew]);
       const sonarqubeClient = createSonarqubeClient({ fetchHistoricalMeasures });
-      const configuration = { getSonarqubePath: () => cacheDir };
+      const configuration = createConfiguration(cacheDir);
 
       const repository = new SonarqubeFetchMetricsRepository(
         sonarqubeClient,
@@ -230,7 +266,7 @@ describe('SonarqubeFetchMetricsRepository', () => {
       const fresh = [createCodeMetric()];
       const fetchHistoricalMeasures = vi.fn().mockResolvedValue(fresh);
       const sonarqubeClient = createSonarqubeClient({ fetchHistoricalMeasures });
-      const configuration = { getSonarqubePath: () => cacheDir };
+      const configuration = createConfiguration(cacheDir);
 
       const repository = new SonarqubeFetchMetricsRepository(
         sonarqubeClient,
@@ -261,7 +297,7 @@ describe('SonarqubeFetchMetricsRepository', () => {
       });
       const fetchHistoricalMeasures = vi.fn().mockResolvedValue([freshMetric]);
       const sonarqubeClient = createSonarqubeClient({ fetchHistoricalMeasures });
-      const configuration = { getSonarqubePath: () => cacheDir };
+      const configuration = createConfiguration(cacheDir);
 
       const repository = new SonarqubeFetchMetricsRepository(
         sonarqubeClient,
@@ -293,7 +329,7 @@ describe('SonarqubeFetchMetricsRepository', () => {
       const fresh = [createCodeMetric()];
       const fetchHistoricalMeasures = vi.fn().mockResolvedValue(fresh);
       const sonarqubeClient = createSonarqubeClient({ fetchHistoricalMeasures });
-      const configuration = { getSonarqubePath: () => cacheDir };
+      const configuration = createConfiguration(cacheDir);
 
       const repository = new SonarqubeFetchMetricsRepository(
         sonarqubeClient,
@@ -327,7 +363,7 @@ describe('SonarqubeFetchMetricsRepository', () => {
       ];
       const fetchHistoricalMeasures = vi.fn().mockResolvedValue(fresh);
       const sonarqubeClient = createSonarqubeClient({ fetchHistoricalMeasures });
-      const configuration = { getSonarqubePath: () => cacheDir };
+      const configuration = createConfiguration(cacheDir);
 
       const repository = new SonarqubeFetchMetricsRepository(
         sonarqubeClient,
@@ -357,7 +393,7 @@ describe('SonarqubeFetchMetricsRepository', () => {
       const cacheDir = await fs.mkdtemp(path.join(os.tmpdir(), 'smm-sq-hist-err-'));
       const fetchHistoricalMeasures = vi.fn().mockRejectedValue(new Error('timeout'));
       const sonarqubeClient = createSonarqubeClient({ fetchHistoricalMeasures });
-      const configuration = { getSonarqubePath: () => cacheDir };
+      const configuration = createConfiguration(cacheDir);
 
       const repository = new SonarqubeFetchMetricsRepository(
         sonarqubeClient,

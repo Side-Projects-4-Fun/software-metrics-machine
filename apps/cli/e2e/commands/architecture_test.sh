@@ -5,44 +5,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/support/bootstrap.sh"
 
 function seed_architecture_workspace() {
   local workspace="$1"
-  local arch_dir="${workspace}/github_acme_widgets/architecture"
-
-  mkdir -p "${arch_dir}"
-
-  cat >"${arch_dir}/snapshots.json" <<'JSON'
-[
-  {
-    "snapshotId": "snap-1",
-    "project": "acme/widgets",
-    "generatedAt": "2026-01-15T10:00:00Z",
-    "commitCount": 42,
-    "views": [
-      {
-        "id": "container-view",
-        "level": "container",
-        "title": "Container View",
-        "nodes": [
-          { "id": "webapp", "kind": "container", "name": "Web Application", "technology": "Next.js" },
-          { "id": "api", "kind": "container", "name": "REST API", "technology": "NestJS" }
-        ],
-        "edges": [
-          { "id": "e1", "source": "webapp", "target": "api", "kind": "uses", "description": "HTTP", "confidence": 1 }
-        ]
-      },
-      {
-        "id": "context-view",
-        "level": "context",
-        "title": "Context View",
-        "nodes": [
-          { "id": "developer", "kind": "person", "name": "Developer" },
-          { "id": "system", "kind": "system", "name": "Software Metrics Machine" }
-        ],
-        "edges": []
-      }
-    ]
-  }
-]
-JSON
+  seed_sqlite_architecture_fixture "${workspace}"
 }
 
 function test_architecture_list_snapshots_renders_empty_when_no_snapshots() {

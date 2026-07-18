@@ -13,7 +13,7 @@ export class CodemaatFactory {
     return CodemaatFactory.createReadRepository(
       configuration,
       logger,
-      configuration.internal?.storageType ?? 'json'
+      configuration.internal?.storageType ?? 'sqlite'
     );
   }
 
@@ -24,7 +24,7 @@ export class CodemaatFactory {
     return CodemaatFactory.createWriteRepositoryForStorage(
       configuration,
       logger,
-      configuration.internal?.storageType ?? 'json'
+      configuration.internal?.storageType ?? 'sqlite'
     );
   }
 
