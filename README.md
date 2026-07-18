@@ -4,6 +4,7 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=marabesi_software-metrics-machine&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=marabesi_software-metrics-machine)
 ![NPM Downloads](https://img.shields.io/npm/dw/%40smmachine%2Flauncher)
 ![NPM Version](https://img.shields.io/npm/v/%40smmachine%2Flauncher)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Side-Projects-4-Fun/software-metrics-machine/badge)](https://scorecard.dev/viewer/?uri=github.com/Side-Projects-4-Fun/software-metrics-machine)
 
 <img width="60%" alt="Screenshot 2026-07-12 at 21 33 18" src="https://github.com/user-attachments/assets/e53f06c1-6f7b-4594-9724-fd980521cec0" />
 
