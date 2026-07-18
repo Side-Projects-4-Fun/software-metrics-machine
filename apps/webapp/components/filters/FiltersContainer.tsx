@@ -67,6 +67,7 @@ const SECTION_FILTER_KEYS: Record<DashboardSection, (keyof DashboardFilters)[]> 
   'engineering-health': [
     'metric',
     'category',
+    'labelSelector',
     'compareStartDate',
     'compareEndDate',
     'rawFilters',
@@ -504,6 +505,12 @@ export default function FiltersContainer({ repository }: { repository: string })
               value={filters.category}
               options={ENGINEERING_HEALTH_CATEGORIES}
               onChange={(value) => updateFilter('category', value)}
+            />
+            <MultiSelectFilter
+              label="PR Labels"
+              values={filters.labelSelector}
+              options={labelOptions}
+              onChange={(values) => updateFilter('labelSelector', values)}
             />
             <TextInputFilter
               label="Raw Filters"

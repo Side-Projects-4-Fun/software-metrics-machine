@@ -11,12 +11,19 @@ import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-buil
 describe('CodemaatFetchRepository', () => {
   const logger = new MockLoggerBuilder().build();
 
+  const createCsvConfiguration = (values: Partial<Configuration> = {}) =>
+    new Configuration({
+      gitRepositoryLocation: '/some/path',
+      internal: { storageType: 'json' },
+      ...values,
+    });
+
   afterEach(() => {
     vi.useRealTimers();
   });
 
   it('throws when startDate is missing', () => {
-    const configuration = new Configuration({ gitRepositoryLocation: '/some/path' });
+    const configuration = createCsvConfiguration();
     const repository = new CodemaatFetchRepository(configuration, logger);
 
     expect(() => repository.fetch({ startDate: '' })).toThrow(
@@ -25,7 +32,7 @@ describe('CodemaatFetchRepository', () => {
   });
 
   it('throws when no repository path is configured', () => {
-    const configuration = new Configuration({ gitRepositoryLocation: '' });
+    const configuration = createCsvConfiguration({ gitRepositoryLocation: '' });
     const repository = new CodemaatFetchRepository(configuration, logger);
 
     expect(() => repository.fetch({ startDate: '2026-01-01' })).toThrow(
@@ -34,7 +41,7 @@ describe('CodemaatFetchRepository', () => {
   });
 
   it('throws when the configured scriptPath does not exist', () => {
-    const configuration = new Configuration({ gitRepositoryLocation: '/some/path' });
+    const configuration = createCsvConfiguration();
     const repository = new CodemaatFetchRepository(configuration, logger);
     const missingScriptPath = path.join(os.tmpdir(), 'smm-codemaat-missing-script.sh');
 
@@ -48,7 +55,7 @@ describe('CodemaatFetchRepository', () => {
   });
 
   it('throws when no scriptPath is given and the default fetch-codemaat.sh cannot be located', () => {
-    const configuration = new Configuration({ gitRepositoryLocation: '/some/path' });
+    const configuration = createCsvConfiguration();
     const repository = new CodemaatFetchRepository(configuration, logger);
     const expectedDefaultScriptPath = path.resolve(
       __dirname,
@@ -64,7 +71,7 @@ describe('CodemaatFetchRepository', () => {
   });
 
   it('fetches successfully using a real script with default grouping depth, creating the output directory and returning its stdout', () => {
-    const configuration = new Configuration({ gitRepositoryLocation: '/some/path' });
+    const configuration = createCsvConfiguration();
     const repository = new CodemaatFetchRepository(configuration, logger);
 
     const scriptDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'smm-codemaat-script-'));
@@ -93,12 +100,11 @@ describe('CodemaatFetchRepository', () => {
       repository: '/explicit/repo/path',
       outputDirectory,
       stdout: `ran: /explicit/repo/path ${outputDirectory} 2026-01-01 2026-01-31 sub true \n`,
-      persistedRecords: 0,
     });
   });
 
   it('passes groupDepth override to the fetch script', () => {
-    const configuration = new Configuration({ gitRepositoryLocation: '/some/path' });
+    const configuration = createCsvConfiguration();
     const repository = new CodemaatFetchRepository(configuration, logger);
 
     const scriptDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'smm-codemaat-script-'));

@@ -20,6 +20,19 @@ function parseMetricIds(value?: string): MetricId[] | undefined {
     .filter((item) => item.length > 0) as MetricId[];
 }
 
+function parseList(value?: string): string[] | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = value
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+
+  return parsed.length > 0 ? parsed : undefined;
+}
+
 function parseCategory(value?: string): MetricCategory | undefined {
   if (!value) {
     return undefined;
@@ -43,6 +56,7 @@ function buildEvaluationInput(options: {
   period?: 'day' | 'week' | 'month';
   weekends?: 'include' | 'exclude' | 'weekends_only';
   outlierMode?: 'include' | 'flag' | 'exclude';
+  prLabels?: string;
   compareStartDate?: string;
   compareEndDate?: string;
 }): EngineeringHealthEvaluationInput {
@@ -54,6 +68,7 @@ function buildEvaluationInput(options: {
     current: {
       startDate: options.startDate,
       endDate: options.endDate,
+      prLabels: parseList(options.prLabels),
       rawFilters: options.rawFilters,
       period: options.period,
       weekends: options.weekends,
@@ -63,6 +78,7 @@ function buildEvaluationInput(options: {
       ? {
           startDate: options.compareStartDate,
           endDate: options.compareEndDate,
+          prLabels: parseList(options.prLabels),
           rawFilters: options.rawFilters,
           period: options.period,
           weekends: options.weekends,
@@ -87,6 +103,7 @@ export function createEngineeringHealthCommands(program: SmmCommand): void {
     .option('--end-date <date>', 'Current window end date (YYYY-MM-DD)')
     .option('--compare-start-date <date>', 'Previous window start date (YYYY-MM-DD)')
     .option('--compare-end-date <date>', 'Previous window end date (YYYY-MM-DD)')
+    .option('--pr-labels <labels>', 'Comma-separated PR labels filter (PR metrics only)')
     .option('--raw-filters <filters>', 'Raw provider filters string')
     .option('--period <period>', 'Time period (day|week|month)', 'week')
     .option('--weekends <mode>', 'Weekend handling: include|exclude|weekends_only', 'include')

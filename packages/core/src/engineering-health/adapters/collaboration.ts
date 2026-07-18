@@ -7,6 +7,7 @@ function toPrFilters(input?: MetricCalculationInput): PRFilters {
   return {
     startDate: input?.startDate,
     endDate: input?.endDate,
+    labels: input?.prLabels,
     rawFilters: input?.rawFilters,
   };
 }

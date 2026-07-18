@@ -15,6 +15,7 @@ interface EngineeringHealthQuery {
   end_date?: string;
   compare_start_date?: string;
   compare_end_date?: string;
+  pr_labels?: string;
   raw_filters?: string;
   period?: 'day' | 'week' | 'month';
   weekends?: 'include' | 'exclude' | 'weekends_only';
@@ -53,6 +54,7 @@ export class EngineeringHealthController {
       current: {
         startDate: query.start_date,
         endDate: query.end_date,
+        prLabels: query.pr_labels,
         rawFilters: query.raw_filters,
         period: query.period,
         weekends: query.weekends,
@@ -63,6 +65,7 @@ export class EngineeringHealthController {
           ? {
               startDate: query.compare_start_date,
               endDate: query.compare_end_date,
+              prLabels: query.pr_labels,
               rawFilters: query.raw_filters,
               period: query.period,
               weekends: query.weekends,

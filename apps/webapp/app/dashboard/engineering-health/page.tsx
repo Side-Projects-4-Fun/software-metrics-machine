@@ -72,6 +72,10 @@ function toQueryParams(filters: ReturnType<typeof parseDashboardFilters>) {
     params.category = filters.category;
   }
 
+  if (filters.labelSelector.length > 0) {
+    params.pr_labels = filters.labelSelector.join(',');
+  }
+
   if (filters.compareStartDate) {
     params.compare_start_date = filters.compareStartDate;
   }
@@ -101,6 +105,114 @@ function trendClassName(trend: EngineeringHealthEvaluation['evaluations'][number
   if (trend === 'degrading') return 'text-red-600';
   if (trend === 'stable') return 'text-amber-600';
   return 'text-muted-foreground';
+}
+
+function buildComparisonBars(
+  evaluation: EngineeringHealthEvaluation['evaluations'][number],
+): Array<{ label: string; value: number | null; width: number; tone: 'current' | 'previous' }> {
+  const current = evaluation.comparison.current;
+  const previous = evaluation.comparison.previous;
+  const numericValues = [current, previous].filter((value): value is number => value !== null);
+  const max = numericValues.length > 0 ? Math.max(...numericValues) : 0;
+
+  const toWidth = (value: number | null): number => {
+    if (value === null || max <= 0) {
+      return 0;
+    }
+
+    return Math.max(8, Math.round((value / max) * 100));
+  };
+
+  return [
+    {
+      label: 'Current',
+      value: current,
+      width: toWidth(current),
+      tone: 'current',
+    },
+    {
+      label: 'Previous',
+      value: previous,
+      width: toWidth(previous),
+      tone: 'previous',
+    },
+  ];
+}
+
+function renderSeriesSparkline(
+  series?: Array<{ period: string; value: number }>,
+) {
+  if (!series || series.length < 2) {
+    return null;
+  }
+
+  const width = 220;
+  const height = 70;
+  const padding = 6;
+  const values = series.map((point) => point.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const yRange = max - min || 1;
+
+  const points = series
+    .map((point, index) => {
+      const x = padding + (index * (width - padding * 2)) / (series.length - 1);
+      const normalizedY = (point.value - min) / yRange;
+      const y = height - padding - normalizedY * (height - padding * 2);
+      return `${x},${y}`;
+    })
+    .join(' ');
+
+  return (
+    <div>
+      <p className="text-sm text-muted-foreground">Trend chart</p>
+      <svg
+        role="img"
+        aria-label="Metric trend over selected period"
+        viewBox={`0 0 ${width} ${height}`}
+        className="w-full max-w-[260px]"
+      >
+        <line
+          x1={padding}
+          y1={height - padding}
+          x2={width - padding}
+          y2={height - padding}
+          stroke="currentColor"
+          strokeOpacity="0.2"
+          strokeWidth="1"
+        />
+        <polyline
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          points={points}
+          className="text-primary"
+        />
+      </svg>
+      <p className="text-xs text-muted-foreground">
+        {series[0]?.period} to {series[series.length - 1]?.period}
+      </p>
+    </div>
+  );
+}
+
+function formatWindow(startDate?: string, endDate?: string): string {
+  const start = startDate?.trim();
+  const end = endDate?.trim();
+
+  if (start && end) {
+    return `${start} to ${end}`;
+  }
+
+  if (start) {
+    return `From ${start}`;
+  }
+
+  if (end) {
+    return `Until ${end}`;
+  }
+
+  return 'Not set';
 }
 
 function groupByCategory(data: EngineeringHealthEvaluation) {
@@ -181,8 +293,29 @@ export default async function EngineeringHealthPage({
         <CardHeader>
           <CardTitle>Engineering Health Overview</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">Generated at: {data.generatedAt}</p>
+          <div className="rounded-md border bg-muted/30 p-3 space-y-2">
+            <p className="text-sm font-medium">How comparison works</p>
+            <p className="text-sm text-muted-foreground">
+              The selected date range is the current period. The compare date range is the previous
+              period used as the baseline. We compare current period values against previous period values.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Example: if current is June 1 to June 30 and compare is May 1 to May 31, June is compared
+              against May.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+              <p>
+                <span className="text-muted-foreground">Current period:</span>{' '}
+                {formatWindow(filters.startDate, filters.endDate)}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Comparison period:</span>{' '}
+                {formatWindow(filters.compareStartDate, filters.compareEndDate)}
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -234,6 +367,26 @@ export default async function EngineeringHealthPage({
                         <span className="text-sm text-muted-foreground">Delta</span>
                         <span>{formatValue(evaluation.comparison.delta, evaluation.value.unit)}</span>
                       </div>
+
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">Comparison chart</p>
+                        {buildComparisonBars(evaluation).map((bar) => (
+                          <div key={bar.label} className="space-y-1">
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <span>{bar.label}</span>
+                              <span>{formatValue(bar.value, evaluation.value.unit)}</span>
+                            </div>
+                            <div className="h-2 rounded bg-muted overflow-hidden">
+                              <div
+                                className={`h-full rounded ${bar.tone === 'current' ? 'bg-blue-500' : 'bg-slate-400'}`}
+                                style={{ width: `${bar.width}%` }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {renderSeriesSparkline(evaluation.value.series)}
 
                       <div>
                         <p className="text-sm text-muted-foreground">Comparison summary</p>

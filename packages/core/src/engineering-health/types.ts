@@ -69,6 +69,7 @@ export interface MetricRecommendation {
 export interface MetricCalculationInput {
   startDate?: string;
   endDate?: string;
+  prLabels?: string | string[];
   rawFilters?: string;
   period?: 'day' | 'week' | 'month';
   weekends?: WeekendsMode;

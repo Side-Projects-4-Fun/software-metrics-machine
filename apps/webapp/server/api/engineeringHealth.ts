@@ -41,6 +41,7 @@ export interface EngineeringHealthEvaluation {
       unit: string;
       direction: 'higher_is_better' | 'lower_is_better' | 'neutral';
       sampleSize?: number;
+      series?: Array<{ period: string; value: number }>;
       details?: Record<string, unknown>;
     };
     comparison: {

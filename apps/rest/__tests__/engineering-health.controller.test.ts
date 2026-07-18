@@ -13,6 +13,7 @@ describe('EngineeringHealthController', () => {
       end_date: '2026-07-31',
       compare_start_date: '2026-06-01',
       compare_end_date: '2026-06-30',
+      pr_labels: 'bug,frontend',
       raw_filters: 'status=success',
       period: 'month',
       weekends: 'exclude',
@@ -25,6 +26,7 @@ describe('EngineeringHealthController', () => {
       current: {
         startDate: '2026-07-01',
         endDate: '2026-07-31',
+        prLabels: 'bug,frontend',
         rawFilters: 'status=success',
         period: 'month',
         weekends: 'exclude',
@@ -33,6 +35,7 @@ describe('EngineeringHealthController', () => {
       previous: {
         startDate: '2026-06-01',
         endDate: '2026-06-30',
+        prLabels: 'bug,frontend',
         rawFilters: 'status=success',
         period: 'month',
         weekends: 'exclude',
@@ -58,6 +61,7 @@ describe('EngineeringHealthController', () => {
       current: {
         startDate: '2026-07-01',
         endDate: '2026-07-31',
+        prLabels: undefined,
         rawFilters: undefined,
         period: 'week',
         weekends: undefined,

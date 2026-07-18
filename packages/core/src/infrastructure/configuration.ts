@@ -232,7 +232,11 @@ export class Configuration implements IConfiguration {
   }
 
   getBaseDirectory(): string {
-    const baseDir = this.storeData || './outputs';
+    if (!this.storeData) {
+      throw new Error('STORE_DATA_AT is not set');
+    }
+
+    const baseDir = this.storeData;
     const gitProvider = this.gitProvider || 'github';
     const repoSlug = (this.githubRepository || '').replace('/', '_');
     return path.join(baseDir, `${gitProvider}_${repoSlug}`);
