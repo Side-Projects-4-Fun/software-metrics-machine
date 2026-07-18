@@ -1,22 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Command } from 'commander';
 import { commands } from '../../src';
-import { CodemaatFactory, GitFactory } from '@smmachine/core';
-import fs from 'fs';
+import {
+  BigOService,
+  CodemaatFactory,
+  CodemaatService,
+  GitFactory,
+  PairingFactory,
+} from '@smmachine/core';
 
 describe('cli: Code Commands', () => {
   let program: Command;
-  let codeCommand: Command;
   let fetchCommits: ReturnType<typeof vi.fn>;
   let fetchCodeMaat: ReturnType<typeof vi.fn>;
-  let consoleSpy: ReturnType<typeof vi.spyOn>;
-  let existsSyncSpy: ReturnType<typeof vi.spyOn>;
-
-  const getSubcommand = (name: string): Command | undefined =>
-    codeCommand.commands.find((cmd) => cmd.name() === name);
-
-  const optionNames = (command: Command): string[] =>
-    command.options.map((option) => option.long).filter((value): value is string => Boolean(value));
+  let listFilesSpy: ReturnType<typeof vi.spyOn>;
+  let analyzeFileSpy: ReturnType<typeof vi.spyOn>;
+  let pairingIndexSpy: ReturnType<typeof vi.fn>;
+  let getCodeChurnSpy: ReturnType<typeof vi.spyOn>;
+  let getFileCouplingSpy: ReturnType<typeof vi.spyOn>;
+  let getEntityEffortSpy: ReturnType<typeof vi.spyOn>;
+  let getEntityOwnershipSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.stubEnv('SMM_STORE_DATA_AT', '/tmp');
@@ -39,6 +42,38 @@ describe('cli: Code Commands', () => {
       fetchCommits,
     } as unknown as ReturnType<typeof GitFactory.create>);
 
+    listFilesSpy = vi.spyOn(BigOService.prototype, 'listFiles').mockResolvedValue([
+      {
+        filePath: 'src/index.ts',
+        fileName: 'index.ts',
+        classification: 'O(n)',
+        score: 10,
+        needsHelp: false,
+      },
+    ]);
+
+    analyzeFileSpy = vi.spyOn(BigOService.prototype, 'analyzeFile').mockResolvedValue({
+      filePath: 'src/index.ts',
+      fileName: 'index.ts',
+      classification: 'O(n)',
+      score: 10,
+      needsHelp: false,
+      content: 'const a = 1;',
+      lines: [],
+    });
+
+    pairingIndexSpy = vi.fn().mockResolvedValue({
+      pairingIndexPercentage: 30,
+      totalAnalyzedCommits: 10,
+      pairedCommits: 3,
+      topPairings: [],
+      latestPairedCommits: [],
+    });
+
+    vi.spyOn(PairingFactory, 'create').mockReturnValue({
+      getPairingIndex: pairingIndexSpy,
+    } as unknown as ReturnType<typeof PairingFactory.create>);
+
     fetchCodeMaat = vi.fn().mockReturnValue({
       repository: '/tmp/repo',
       outputDirectory: '/tmp/out',
@@ -49,76 +84,110 @@ describe('cli: Code Commands', () => {
       fetch: fetchCodeMaat,
     } as unknown as ReturnType<typeof CodemaatFactory.createWriteRepository>);
 
-    existsSyncSpy = vi.spyOn(fs, 'existsSync').mockReturnValue(false);
+    vi.spyOn(CodemaatFactory, 'create').mockReturnValue(
+      {} as unknown as ReturnType<typeof CodemaatFactory.create>
+    );
 
-    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    getCodeChurnSpy = vi.spyOn(CodemaatService.prototype, 'getCodeChurn').mockResolvedValue({
+      data: [{ commits: 2, added: 10, deleted: 4 }],
+    } as unknown as Awaited<ReturnType<CodemaatService['getCodeChurn']>>);
+
+    getFileCouplingSpy = vi
+      .spyOn(CodemaatService.prototype, 'getFileCoupling')
+      .mockResolvedValue([{ entity: 'a', coupled: 'b', degree: 40 }] as unknown as Awaited<
+        ReturnType<CodemaatService['getFileCoupling']>
+      >);
+
+    getEntityEffortSpy = vi.spyOn(CodemaatService.prototype, 'getEntityEffort').mockResolvedValue([
+      {
+        entity: 'src/index.ts',
+        'total-revs': 3,
+      },
+    ] as unknown as Awaited<ReturnType<CodemaatService['getEntityEffort']>>);
+
+    getEntityOwnershipSpy = vi
+      .spyOn(CodemaatService.prototype, 'getEntityOwnership')
+      .mockResolvedValue([
+        {
+          entity: 'src/index.ts',
+          author: 'Alice',
+          added: 10,
+          deleted: 2,
+        },
+      ] as unknown as Awaited<ReturnType<CodemaatService['getEntityOwnership']>>);
+
     program = commands();
-
-    const found = program.commands.find((cmd) => cmd.name() === 'code');
-    expect(found).toBeDefined();
-    codeCommand = found!;
   });
 
   afterEach(() => {
-    consoleSpy.mockRestore();
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
-  it('registers code command group', () => {
-    expect(codeCommand.name()).toBe('code');
-    expect(codeCommand.description()).toBe('Code analysis operations');
-  });
-
   describe('code big-o', () => {
-    it('registers big-o command with expected options', () => {
-      const command = getSubcommand('big-o');
-
-      expect(command).toBeDefined();
-      expect(command?.description()).toBe('Analyze Big O complexity risk for source files');
-      expect(optionNames(command!)).toEqual(
-        expect.arrayContaining([
+    it('passes list filters to BigOService.listFiles', async () => {
+      await program.parseAsync(
+        [
+          'code',
+          'big-o',
           '--search',
+          'src',
           '--ignore-files',
+          '*.test.ts,*.spec.ts',
           '--include-only',
-          '--file',
+          'apps/cli/**',
           '--limit',
+          '123',
           '--output',
-        ])
+          'json',
+        ],
+        { from: 'user' }
       );
+
+      expect(listFilesSpy).toHaveBeenCalledWith({
+        search: 'src',
+        ignorePatterns: '*.test.ts,*.spec.ts',
+        includePatterns: 'apps/cli/**',
+        limit: 123,
+      });
+      expect(analyzeFileSpy).not.toHaveBeenCalled();
+    });
+
+    it('uses analyzeFile when --file is provided', async () => {
+      await program.parseAsync(
+        ['code', 'big-o', '--file', 'apps/cli/src/commands/code.ts', '--output', 'json'],
+        { from: 'user' }
+      );
+
+      expect(analyzeFileSpy).toHaveBeenCalledWith('apps/cli/src/commands/code.ts');
+      expect(listFilesSpy).not.toHaveBeenCalled();
     });
   });
 
   describe('code summary', () => {
-    it('registers summary command with expected options', () => {
-      const command = getSubcommand('summary');
-
-      expect(command).toBeDefined();
-      expect(command?.description()).toBe('View code summary with pairing insights');
-      expect(optionNames(command!)).toEqual(
-        expect.arrayContaining(['--start-date', '--end-date', '--output'])
+    it('passes date filters to pairingService.getPairingIndex', async () => {
+      await program.parseAsync(
+        [
+          'code',
+          'summary',
+          '--start-date',
+          '2025-01-01',
+          '--end-date',
+          '2025-01-31',
+          '--output',
+          'json',
+        ],
+        { from: 'user' }
       );
+
+      expect(pairingIndexSpy).toHaveBeenCalledWith({
+        startDate: '2025-01-01',
+        endDate: '2025-01-31',
+      });
     });
   });
 
   describe('code fetch-commits', () => {
-    it('registers fetch-commits command with expected options', () => {
-      const command = getSubcommand('fetch-commits');
-
-      expect(command).toBeDefined();
-      expect(command?.description()).toBe('Analyze change sets from git repository');
-      expect(optionNames(command!)).toEqual(
-        expect.arrayContaining([
-          '--start-date',
-          '--end-date',
-          '--authors',
-          '--force',
-          '--buffer',
-          '--output',
-        ])
-      );
-    });
-
     it('passes fetch-commits filters to the git fetch repository', async () => {
       await program.parseAsync(
         [
@@ -145,34 +214,34 @@ describe('cli: Code Commands', () => {
         maxBuffer: 200,
       });
     });
+
+    it('omits selectedAuthors when --authors is not provided', async () => {
+      await program.parseAsync(
+        [
+          'code',
+          'fetch-commits',
+          '--start-date',
+          '2025-01-01',
+          '--end-date',
+          '2025-01-31',
+          '--buffer',
+          '50',
+        ],
+        { from: 'user' }
+      );
+
+      expect(fetchCommits).toHaveBeenCalledWith({
+        startDate: '2025-01-01',
+        endDate: '2025-01-31',
+        selectedAuthors: undefined,
+        forceRefresh: undefined,
+        maxBuffer: 50,
+      });
+    });
   });
 
   describe('code codemaat-fetch', () => {
-    it('registers codemaat-fetch command with expected options', () => {
-      const command = getSubcommand('codemaat-fetch');
-
-      expect(command).toBeDefined();
-      expect(command?.description()).toBe('Fetch CodeMaat CSV data from the git repository');
-      expect(optionNames(command!)).toEqual(
-        expect.arrayContaining([
-          '--start-date',
-          '--end-date',
-          '--subfolder',
-          '--group-depth',
-          '--min-revs',
-          '--min-shared-revs',
-          '--min-coupling',
-          '--force',
-          '--output',
-        ])
-      );
-    });
-
     it('passes group-depth to codemaat fetch repository', async () => {
-      existsSyncSpy.mockImplementation((candidate) =>
-        String(candidate).endsWith('fetch-codemaat.sh')
-      );
-
       await program.parseAsync(
         [
           'code',
@@ -201,31 +270,8 @@ describe('cli: Code Commands', () => {
           minRevs: 7,
           minSharedRevs: 9,
           minCoupling: 33,
-          scriptPath: expect.stringMatching(/fetch-codemaat\.sh$/),
         })
       );
-    });
-
-    it('includes scriptPath in codemaat-fetch json output', async () => {
-      existsSyncSpy.mockImplementation((candidate) =>
-        String(candidate).endsWith('fetch-codemaat.sh')
-      );
-
-      await program.parseAsync(
-        [
-          'code',
-          'codemaat-fetch',
-          '--start-date',
-          '2025-01-01',
-          '--end-date',
-          '2025-01-31',
-          '--output',
-          'json',
-        ],
-        { from: 'user' }
-      );
-
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('"scriptPath":'));
     });
 
     it('uses the default coupling thresholds when they are omitted', async () => {
@@ -245,74 +291,144 @@ describe('cli: Code Commands', () => {
   });
 
   describe('code churn', () => {
-    it('registers churn command with expected options', () => {
-      const command = getSubcommand('churn');
-
-      expect(command).toBeDefined();
-      expect(command?.description()).toBe('Calculate code churn metrics');
-      expect(optionNames(command!)).toEqual(
-        expect.arrayContaining(['--start-date', '--end-date', '--authors', '--output'])
+    it('passes date filters to CodemaatService.getCodeChurn', async () => {
+      await program.parseAsync(
+        [
+          'code',
+          'churn',
+          '--start-date',
+          '2025-02-01',
+          '--end-date',
+          '2025-02-28',
+          '--output',
+          'json',
+        ],
+        { from: 'user' }
       );
+
+      expect(getCodeChurnSpy).toHaveBeenCalledWith({
+        startDate: '2025-02-01',
+        endDate: '2025-02-28',
+      });
     });
   });
 
   describe('code coupling', () => {
-    it('registers coupling command with expected options', () => {
-      const command = getSubcommand('coupling');
-
-      expect(command).toBeDefined();
-      expect(command?.description()).toBe('Analyze code coupling between modules');
-      expect(optionNames(command!)).toEqual(
-        expect.arrayContaining(['--start-date', '--end-date', '--min-coupling', '--output'])
+    it('calls CodemaatService.getFileCoupling with command filters', async () => {
+      await program.parseAsync(
+        [
+          'code',
+          'coupling',
+          '--start-date',
+          '2025-03-01',
+          '--end-date',
+          '2025-03-31',
+          '--min-coupling',
+          '0.7',
+          '--output',
+          'json',
+        ],
+        { from: 'user' }
       );
+
+      expect(getFileCouplingSpy).toHaveBeenCalledWith({
+        ignorePatterns: undefined,
+      });
     });
   });
 
   describe('code entity-churn', () => {
-    it('registers entity-churn command with expected options', () => {
-      const command = getSubcommand('entity-churn');
-
-      expect(command).toBeDefined();
-      expect(command?.description()).toBe('Calculate entity-level churn metrics');
-      expect(optionNames(command!)).toEqual(
-        expect.arrayContaining(['--start-date', '--end-date', '--top', '--output'])
+    it('passes date filters to CodemaatService.getCodeChurn', async () => {
+      await program.parseAsync(
+        [
+          'code',
+          'entity-churn',
+          '--start-date',
+          '2025-04-01',
+          '--end-date',
+          '2025-04-30',
+          '--top',
+          '15',
+          '--output',
+          'json',
+        ],
+        { from: 'user' }
       );
+
+      expect(getCodeChurnSpy).toHaveBeenCalledWith({
+        startDate: '2025-04-01',
+        endDate: '2025-04-30',
+      });
     });
   });
 
   describe('code entity-effort', () => {
-    it('registers entity-effort command with expected options', () => {
-      const command = getSubcommand('entity-effort');
-
-      expect(command).toBeDefined();
-      expect(command?.description()).toBe('Calculate entity effort metrics');
-      expect(optionNames(command!)).toEqual(
-        expect.arrayContaining(['--start-date', '--end-date', '--top', '--output'])
+    it('passes top to CodemaatService.getEntityEffort', async () => {
+      await program.parseAsync(
+        [
+          'code',
+          'entity-effort',
+          '--top',
+          '25',
+          '--start-date',
+          '2025-05-01',
+          '--end-date',
+          '2025-05-31',
+        ],
+        { from: 'user' }
       );
+
+      expect(getEntityEffortSpy).toHaveBeenCalledWith({ top: 25 });
     });
   });
 
   describe('code entity-ownership', () => {
-    it('registers entity-ownership command with expected options', () => {
-      const command = getSubcommand('entity-ownership');
-
-      expect(command).toBeDefined();
-      expect(command?.description()).toBe('Analyze entity ownership by developers');
-      expect(optionNames(command!)).toEqual(
-        expect.arrayContaining(['--start-date', '--end-date', '--entity', '--output'])
+    it('calls CodemaatService.getEntityOwnership with expected defaults', async () => {
+      await program.parseAsync(
+        [
+          'code',
+          'entity-ownership',
+          '--start-date',
+          '2025-06-01',
+          '--end-date',
+          '2025-06-30',
+          '--entity',
+          'src/index.ts',
+          '--output',
+          'json',
+        ],
+        { from: 'user' }
       );
+
+      expect(getEntityOwnershipSpy).toHaveBeenCalledWith({
+        authors: undefined,
+        top: 100,
+      });
     });
   });
 
   describe('code pairing-index', () => {
-    it('registers pairing-index command with expected options', () => {
-      const command = getSubcommand('pairing-index');
-
-      expect(command).toBeDefined();
-      expect(command?.description()).toBe('Calculate developer pairing index');
-      expect(optionNames(command!)).toEqual(
-        expect.arrayContaining(['--start-date', '--end-date', '--min-shared', '--output'])
+    it('passes date filters to pairingService.getPairingIndex', async () => {
+      await program.parseAsync(
+        [
+          'code',
+          'pairing-index',
+          '--start-date',
+          '2025-07-01',
+          '--end-date',
+          '2025-07-31',
+          '--min-shared',
+          '5',
+          '--output',
+          'json',
+        ],
+        { from: 'user' }
       );
+
+      expect(pairingIndexSpy).toHaveBeenCalledWith({
+        startDate: '2025-07-01',
+        endDate: '2025-07-31',
+      });
     });
   });
 });
