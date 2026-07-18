@@ -82,8 +82,16 @@ describe('fetchAPI', () => {
       await expect(fetchAPI('/./foo')).rejects.toThrow('Invalid API endpoint');
     });
 
+    it('rejects an endpoint containing a dot segment in the middle (/foo/./bar)', async () => {
+      await expect(fetchAPI('/foo/./bar')).rejects.toThrow('Invalid API endpoint');
+    });
+
     it('rejects an endpoint containing a double-dot segment (/../)', async () => {
       await expect(fetchAPI('/../foo')).rejects.toThrow('Invalid API endpoint');
+    });
+
+    it('rejects an endpoint containing a double-dot segment in the middle (/foo/../bar)', async () => {
+      await expect(fetchAPI('/foo/../bar')).rejects.toThrow('Invalid API endpoint');
     });
 
     it('rejects a whitespace-only endpoint', async () => {
