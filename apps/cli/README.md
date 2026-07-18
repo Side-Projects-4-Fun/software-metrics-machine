@@ -607,6 +607,59 @@ Fetch historical measures from SonarQube.
 
 ---
 
+### `smm engineering-health` — Cross-metric progress over time
+
+Use this command to compare delivery, quality, collaboration, and architecture signals across two windows.
+It is useful for tech leaders tracking whether engineering practices are improving sprint over sprint,
+month by month, and quarter by quarter.
+
+#### `smm engineering-health evaluate`
+
+```
+--metric <ids>                comma-separated metric ids (optional)
+--category <name>             delivery|quality|collaboration|architecture (optional)
+--start-date <date>           current window start date (YYYY-MM-DD)
+--end-date <date>             current window end date (YYYY-MM-DD)
+--compare-start-date <date>   previous window start date (YYYY-MM-DD)
+--compare-end-date <date>     previous window end date (YYYY-MM-DD)
+--period <period>             day|week|month  (default: week)
+--weekends <mode>             include|exclude|weekends_only  (default: include)
+--outlier-mode <mode>         include|flag|exclude  (default: include)
+--output <format>             text|json  (default: text)
+```
+
+Examples for leadership reviews:
+
+```bash
+# Sprint over sprint (2 weeks vs previous 2 weeks)
+smm engineering-health evaluate \
+  --category delivery \
+  --start-date 2026-07-01 --end-date 2026-07-14 \
+  --compare-start-date 2026-06-17 --compare-end-date 2026-06-30 \
+  --period week
+
+# Month by month (current month vs previous month)
+smm engineering-health evaluate \
+  --metric coverage,duplication,complexity,review-time,pair-programming \
+  --start-date 2026-07-01 --end-date 2026-07-31 \
+  --compare-start-date 2026-06-01 --compare-end-date 2026-06-30 \
+  --period month \
+  --weekends exclude \
+  --outlier-mode flag
+
+# Quarter by quarter (Q3 vs Q2)
+smm engineering-health evaluate \
+  --category collaboration \
+  --start-date 2026-07-01 --end-date 2026-09-30 \
+  --compare-start-date 2026-04-01 --compare-end-date 2026-06-30 \
+  --period month \
+  --output json
+```
+
+Tip: use `--output json` in leadership reviews to store results and build a recurring trend report pipeline.
+
+---
+
 ### `smm dashboard` — Dashboard operations
 
 #### `smm dashboard serve`

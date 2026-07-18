@@ -6,12 +6,12 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/support/bootstrap.sh"
 function test_tools_json_merge_help_renders_successfully() {
   run_smm tools json-merge --help
 
-  assert_smm_success
   assert_smm_output_contains "Usage:"
   assert_smm_output_contains "json-merge"
   assert_smm_output_contains "--input"
   assert_smm_output_contains "--output"
   assert_smm_output_contains "--pretty"
+  assert_smm_success
 }
 
 function test_tools_json_merge_merges_object_json_files_into_one() {
@@ -40,12 +40,12 @@ JSON
 
   unset SMM_STORE_DATA_AT
 
-  assert_smm_success
   assert_smm_output_contains "Merged JSON saved to:"
   assert_smm_output_contains "Total items: 4"
   assert_smm_file_exists "${workspace}/merged.json"
   assert_smm_file_contains "${workspace}/merged.json" "Alice"
   assert_smm_file_contains "${workspace}/merged.json" "Acme"
+  assert_smm_success
 }
 
 function test_tools_json_merge_merges_array_json_files_into_one() {
@@ -74,11 +74,11 @@ JSON
 
   unset SMM_STORE_DATA_AT
 
-  assert_smm_success
   assert_smm_output_contains "Merged JSON saved to:"
   assert_smm_output_contains "Total items: 3"
   assert_smm_file_exists "${workspace}/merged-array.json"
   assert_smm_file_contains "${workspace}/merged-array.json" "Alice"
   assert_smm_file_contains "${workspace}/merged-array.json" "Charlie"
+  assert_smm_success
 }
 

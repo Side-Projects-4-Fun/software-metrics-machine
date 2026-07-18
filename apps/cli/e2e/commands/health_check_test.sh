@@ -13,11 +13,11 @@ function test_health_check_reports_all_datasets_as_errors_when_empty() {
 
   unset SMM_STORE_DATA_AT
 
-  assert_smm_success
   assert_smm_output_contains "Total datasets: 7"
   assert_smm_output_contains "Healthy: 0"
   assert_smm_output_contains "Errors: 7"
   assert_smm_output_contains "Dataset not found in SQLite cache"
+  assert_smm_success
 }
 
 function test_health_check_output_json_returns_valid_json() {
@@ -30,11 +30,11 @@ function test_health_check_output_json_returns_valid_json() {
 
   unset SMM_STORE_DATA_AT
 
-  assert_smm_success
   assert_smm_output_contains '"totalDatasets": 7'
   assert_smm_output_contains '"errorDatasets": 7'
   assert_smm_output_contains '"summary"'
   assert_smm_output_contains '"datasets"'
+  assert_smm_success
 }
 
 function test_health_check_provider_github_filters_datasets() {
@@ -47,8 +47,8 @@ function test_health_check_provider_github_filters_datasets() {
 
   unset SMM_STORE_DATA_AT
 
-  assert_smm_success
   assert_smm_output_contains "github.prs"
   assert_smm_output_not_contains "jira.issues"
   assert_smm_output_not_contains "sonarqube"
+  assert_smm_success
 }
