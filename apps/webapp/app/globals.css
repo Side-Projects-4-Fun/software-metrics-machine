@@ -171,4 +171,68 @@
     width: 100% !important;
     padding: 0 !important;
   }
+
+  /* Engineering health report print tuning */
+  .eh-report {
+    font-size: 10pt;
+    line-height: 1.25;
+  }
+
+  .eh-report p,
+  .eh-report li,
+  .eh-report span,
+  .eh-report a {
+    font-size: 9pt !important;
+    line-height: 1.25 !important;
+  }
+
+  .eh-report h2,
+  .eh-report h3 {
+    margin-top: 8pt !important;
+    margin-bottom: 4pt !important;
+  }
+
+  .eh-report .MuiPaper-root,
+  .eh-report [class*="Paper-root"] {
+    margin-bottom: 12px !important;
+    padding: 10px !important;
+  }
+
+  .eh-print-section {
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  .eh-print-keep {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 8px !important;
+  }
+
+  .eh-scorecard-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .eh-scorecard-item {
+    padding: 8px !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .eh-metric-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    align-items: start !important;
+  }
+
+  .eh-report details > div {
+    max-width: 320px !important;
+  }
+
+  @page {
+    margin: 10mm;
+  }
 }
