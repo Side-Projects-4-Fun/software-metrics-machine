@@ -29,6 +29,7 @@ The dashboard provides the following features:
 - **Saved Views**: Save frequently used filters per project and dashboard section.
 - **Project Switching**: Move between configured repositories from the project drawer.
 - **Cross-domain Insights**: PRs, pipelines, source code, and SonarQube.
+- **Engineering Health Report**: leadership scorecards across delivery, quality, collaboration, and architecture in the dashboard or CLI.
 - **References and Targets**: Review the sources used to define metric targets and recommendations.
 
 See [Dashboard](./features/dashboard.md) for the shared dashboard behavior.
@@ -73,6 +74,7 @@ Each feature has its own page:
 
 - [Insights](./features/insights.md)
 - [Dashboard](./features/dashboard.md)
+- [Engineering Health](./features/engineering-health.md)
 - [Source Code](./features/code.md)
 - [Architecture](./features/architecture.md)
 - [Pull Requests](./features/prs.md)

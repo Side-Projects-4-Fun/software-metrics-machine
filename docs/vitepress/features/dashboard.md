@@ -17,6 +17,7 @@ Then open `http://localhost:3000`. The `/dashboard` route opens the Insights tab
 The dashboard is split into these tabs:
 
 - **Insights**: cross-domain recommendations, deployment frequency, pairing index, pipeline summary, and pull request summary.
+- **Engineering Health**: leadership report for delivery, quality, collaboration, and architecture signals.
 - **Pipelines**: workflow run duration, job duration, job status, reruns, and job step analysis.
 - **Pull Requests**: review time, comment activity, PR throughput, themes, and PR statistics.
 - **Source Code**: churn, effort, ownership, coupling, pairing, paired commits, and Big O classification.
@@ -24,6 +25,9 @@ The dashboard is split into these tabs:
 - **SonarQube**: quality ratings, measurements, component metrics, and historical trends.
 
 The current tab keeps the active query-string filters when you move between dashboard sections.
+
+See [Engineering Health](./engineering-health.md) for the report page that combines these signals into scorecards,
+trend analysis, deployment-target delivery views, and printable report references.
 
 ## Navigation and utilities
 

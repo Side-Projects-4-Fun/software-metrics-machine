@@ -74,6 +74,7 @@ export default withMermaid(
           items: [
             { text: 'Features', link: '/features' },
             { text: 'Insights', link: '/features/insights' },
+            { text: 'Engineering Health', link: '/features/engineering-health' },
             { text: 'Pull requests', link: '/features/prs' },
             { text: 'Pipelines', link: '/features/pipelines' },
             { text: 'Source code', link: '/features/code' },
