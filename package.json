@@ -43,6 +43,8 @@
     "typecheck": "turbo run type-check",
     "cli": "cd ./apps/cli && pnpm run dev",
     "cli:e2e": "cd ./apps/cli && pnpm run test:e2e",
+    "webapp:e2e": "cd ./apps/webapp && pnpm run cy:run",
+    "webapp:e2e:open": "cd ./apps/webapp && pnpm run cy:open",
     "prepack": "pnpm run build:npm",
     "prepare": "husky"
   },

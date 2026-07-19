@@ -8,7 +8,10 @@
     "lint": "eslint .",
     "test": "jest",
     "watch": "next dev",
-    "clean": "rm -rf .next"
+    "clean": "rm -rf .next",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "test:e2e": "cypress run"
   },
   "dependencies": {
     "@emotion/cache": "catalog:",
@@ -33,6 +36,7 @@
     "tailwind-merge": "catalog:"
   },
   "devDependencies": {
+    "@cypress/webpack-preprocessor": "^7.1.1",
     "@smmachine/core": "workspace:*",
     "@smmachine/utils": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
@@ -43,10 +47,12 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "cypress": "^15.18.1",
     "eslint": "catalog:",
     "eslint-config-next": "catalog:",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
+    "msw": "catalog:",
     "tailwindcss": "catalog:",
     "ts-node": "catalog:",
     "typescript": "catalog:"
