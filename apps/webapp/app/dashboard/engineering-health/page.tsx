@@ -68,6 +68,8 @@ type ResultWrapper<T> = {
   result: T;
 };
 
+type HealthEvaluation = EngineeringHealthEvaluation['evaluations'][number];
+
 function unwrapResult<T>(data: T | ResultWrapper<T>): T {
   if (typeof data === 'object' && data !== null && 'result' in data) {
     return data.result;
@@ -410,6 +412,23 @@ function sortByLeadershipPriority(
   });
 }
 
+function buildScorecardGroups(groupedEvaluations: ReturnType<typeof groupByCategory>) {
+  return groupedEvaluations.map((group) => ({
+    category: group.category,
+    buckets: group.category === 'delivery'
+      ? groupByScope(group.evaluations).map((scopeGroup) => ({
+          key: scopeGroup.key,
+          label: scopeGroup.label || 'Unscoped delivery metrics',
+          evaluations: sortByLeadershipPriority(scopeGroup.evaluations),
+        }))
+      : [{
+          key: group.category,
+          label: undefined,
+          evaluations: sortByLeadershipPriority(group.evaluations),
+        }],
+  }));
+}
+
 function buildExecutiveSummary(data: EngineeringHealthEvaluation) {
   const critical = data.evaluations.filter((evaluation) => evaluation.recommendation.level === 'critical').length;
   const watch = data.evaluations.filter((evaluation) => evaluation.recommendation.level === 'watch').length;
@@ -534,6 +553,104 @@ function renderInlineCitations(metricId: string, referenceIndex: Map<string, num
   );
 }
 
+function renderMetricAppendixRow(
+  evaluation: HealthEvaluation,
+  referenceIndex: Map<string, number>,
+) {
+  return (
+    <article
+      key={`${evaluation.id}-${evaluation.scope?.key || 'default'}`}
+      className={`eh-print-keep rounded-2xl border border-l-4 ${CATEGORY_METADATA[evaluation.category].color.accent} border-slate-200 bg-white p-4 shadow-sm`}
+    >
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="space-y-1">
+          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Metric</p>
+          <h3 className="text-base font-semibold tracking-tight text-slate-950">
+            {formatMetricLabel(evaluation.summary.title)}
+            {renderInlineCitations(evaluation.id, referenceIndex)}
+          </h3>
+          {evaluation.scope?.type === 'deployment-target' ? (
+            <p className="text-xs text-slate-500">Deployment target: {evaluation.scope.label}</p>
+          ) : null}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <span className={`inline-flex rounded-full border px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] ${CATEGORY_METADATA[evaluation.category].color.border} ${CATEGORY_METADATA[evaluation.category].color.badge} ${CATEGORY_METADATA[evaluation.category].color.text}`}>
+            {evaluation.category}
+          </span>
+          <span className={`inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] ring-1 ${recommendationBadgeClass(evaluation.recommendation.level)}`}>
+            {evaluation.recommendation.level}
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-4">
+        <div>
+          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Current</p>
+          <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
+            {formatValue(evaluation.value.value, evaluation.value.unit)}
+          </p>
+        </div>
+        <div>
+          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Delta</p>
+          <p className={`mt-1 text-lg font-semibold tracking-tight ${trendClassName(evaluation.comparison.trend)}`}>
+            {formatValue(evaluation.comparison.delta, evaluation.value.unit)}
+          </p>
+        </div>
+        <div>
+          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Trend</p>
+          <span className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] ring-1 ${trendBadgeClass(evaluation.comparison.trend)}`}>
+            {evaluation.comparison.trend}
+          </span>
+        </div>
+        <div>
+          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Sample</p>
+          <p className="mt-1 text-sm text-slate-700">
+            {typeof evaluation.value.sampleSize === 'number' ? evaluation.value.sampleSize : 'Not reported'}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(220px,0.7fr)]">
+        <div className="space-y-3 text-sm leading-6 text-slate-700">
+          <p>
+            <span className="font-medium text-slate-900">Comparison:</span>{' '}
+            {evaluation.comparison.summary}
+          </p>
+          <p>
+            <span className="font-medium text-slate-900">Target:</span>{' '}
+            {evaluation.target.description}
+            {renderInlineCitations(evaluation.id, referenceIndex)}
+          </p>
+          <p>
+            <span className="font-medium text-slate-900">Recommendation:</span>{' '}
+            {evaluation.recommendation.summary}
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <p className="text-sm font-medium text-slate-900">Comparison chart</p>
+          <div className="mt-3 space-y-2">
+            {buildComparisonBars(evaluation).map((bar) => (
+              <div key={bar.label} className="space-y-1">
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span>{bar.label}</span>
+                  <span>{formatValue(bar.value, evaluation.value.unit)}</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className={`h-full rounded-full ${bar.tone === 'current' ? 'bg-sky-600' : 'bg-slate-400'}`}
+                    style={{ width: `${bar.width}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3">{renderSeriesSparkline(evaluation.value.series)}</div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default async function EngineeringHealthPage({
   searchParams,
 }: {
@@ -567,10 +684,7 @@ export default async function EngineeringHealthPage({
 
   const groupedEvaluations = groupByCategory(data);
   const executiveSummary = buildExecutiveSummary(data);
-  const scorecardGroups = groupedEvaluations.map((group) => ({
-    category: group.category,
-    evaluations: sortByLeadershipPriority(group.evaluations),
-  }));
+  const scorecardGroups = buildScorecardGroups(groupedEvaluations);
   const keyDegradations = sortByLeadershipPriority(
     data.evaluations.filter((evaluation) => evaluation.comparison.trend === 'degrading')
   ).slice(0, 3);
@@ -668,7 +782,9 @@ export default async function EngineeringHealthPage({
               Most relevant degradation: <span className="font-semibold">{executiveSummary.degrading.summary.title}</span>{' '}
               {renderInlineCitations(executiveSummary.degrading.id, referenceIndex)}{' '}
               ({executiveSummary.degrading.category}) with delta{' '}
-              <span className="font-semibold">{formatValue(executiveSummary.degrading.comparison.delta, executiveSummary.degrading.value.unit)}</span>.
+              <span className={`font-semibold ${trendClassName(executiveSummary.degrading.comparison.trend)}`}>
+                {formatValue(executiveSummary.degrading.comparison.delta, executiveSummary.degrading.value.unit)}
+              </span>.
             </p>
           ) : null}
           {executiveSummary.improving ? (
@@ -676,7 +792,9 @@ export default async function EngineeringHealthPage({
               Strongest improvement: <span className="font-semibold">{executiveSummary.improving.summary.title}</span>{' '}
               {renderInlineCitations(executiveSummary.improving.id, referenceIndex)}
               ({executiveSummary.improving.category}) with delta{' '}
-              <span className="font-semibold">{formatValue(executiveSummary.improving.comparison.delta, executiveSummary.improving.value.unit)}</span>.
+              <span className={`font-semibold ${trendClassName(executiveSummary.improving.comparison.trend)}`}>
+                {formatValue(executiveSummary.improving.comparison.delta, executiveSummary.improving.value.unit)}
+              </span>.
             </p>
           ) : null}
         </CardContent>
@@ -707,45 +825,62 @@ export default async function EngineeringHealthPage({
                     <p className="text-xs text-slate-500">Sorted by risk level, then largest movement.</p>
                   </div>
                 </div>
-                <div className="eh-scorecard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {group.evaluations.map((evaluation) => (
+                <div className="space-y-4">
+                  {group.buckets.map((bucket) => (
                     <div
-                      key={`${evaluation.id}-${evaluation.scope?.key || 'default'}-score`}
-                      role="article"
-                      aria-label={`${formatMetricLabel(evaluation.summary.title)} scorecard`}
-                      className={`eh-scorecard-item rounded-2xl border border-l-4 ${CATEGORY_METADATA[evaluation.category].color.accent} border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4 space-y-3 shadow-[0_8px_24px_rgba(15,23,42,0.06)]`}
+                      key={`${group.category}-${bucket.key}-scorecard-bucket`}
+                      role={group.category === 'delivery' ? 'region' : undefined}
+                      aria-label={group.category === 'delivery' ? `${bucket.label} delivery target scorecards` : undefined}
+                      className="space-y-3"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="font-medium text-slate-900">
-                            {formatMetricLabel(evaluation.summary.title)}
-                            {renderInlineCitations(evaluation.id, referenceIndex)}
-                          </p>
-                          <p className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs font-medium uppercase tracking-[0.16em] ${CATEGORY_METADATA[evaluation.category].color.border} ${CATEGORY_METADATA[evaluation.category].color.badge} ${CATEGORY_METADATA[evaluation.category].color.text}`}>
-                            {evaluation.category}
-                          </p>
+                      {group.category === 'delivery' ? (
+                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Deployment target</p>
+                          <p className="mt-1 text-sm font-medium text-slate-900">{bucket.label}</p>
                         </div>
-                        <span className={`inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] ring-1 ${recommendationBadgeClass(evaluation.recommendation.level)}`}>
-                          {evaluation.recommendation.level}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Current</p>
-                        <p className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
-                          {formatValue(evaluation.value.value, evaluation.value.unit)}
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Delta</p>
-                          <p className="mt-1 text-sm text-slate-700">{formatValue(evaluation.comparison.delta, evaluation.value.unit)}</p>
-                        </div>
-                        <div>
-                          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Trend</p>
-                          <span className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] ring-1 ${trendBadgeClass(evaluation.comparison.trend)}`}>
-                            {evaluation.comparison.trend}
-                          </span>
-                        </div>
+                      ) : null}
+                      <div className="eh-scorecard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                        {bucket.evaluations.map((evaluation) => (
+                          <div
+                            key={`${evaluation.id}-${evaluation.scope?.key || 'default'}-score`}
+                            role="article"
+                            aria-label={`${formatMetricLabel(evaluation.summary.title)} scorecard`}
+                            className={`eh-scorecard-item rounded-2xl border border-l-4 ${CATEGORY_METADATA[evaluation.category].color.accent} border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4 space-y-3 shadow-[0_8px_24px_rgba(15,23,42,0.06)]`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="font-medium text-slate-900">
+                                  {formatMetricLabel(evaluation.summary.title)}
+                                  {renderInlineCitations(evaluation.id, referenceIndex)}
+                                </p>
+                                <p className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs font-medium uppercase tracking-[0.16em] ${CATEGORY_METADATA[evaluation.category].color.border} ${CATEGORY_METADATA[evaluation.category].color.badge} ${CATEGORY_METADATA[evaluation.category].color.text}`}>
+                                  {evaluation.category}
+                                </p>
+                              </div>
+                              <span className={`inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] ring-1 ${recommendationBadgeClass(evaluation.recommendation.level)}`}>
+                                {evaluation.recommendation.level}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Current</p>
+                              <p className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
+                                {formatValue(evaluation.value.value, evaluation.value.unit)}
+                              </p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Delta</p>
+                                <p className="mt-1 text-sm text-slate-700">{formatValue(evaluation.comparison.delta, evaluation.value.unit)}</p>
+                              </div>
+                              <div>
+                                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Trend</p>
+                                <span className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] ring-1 ${trendBadgeClass(evaluation.comparison.trend)}`}>
+                                  {evaluation.comparison.trend}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
@@ -855,95 +990,8 @@ export default async function EngineeringHealthPage({
                 </div>
               ) : null}
 
-              <div className="eh-metric-grid grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {scopeGroup.evaluations.map((evaluation) => (
-                  <Card key={`${evaluation.id}-${evaluation.scope?.key || 'default'}`} className="eh-print-keep border-slate-200 bg-white shadow-sm">
-                    <CardHeader className="!mb-0 !pb-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Metric</p>
-                          <CardTitle className="!mt-1 !text-slate-950">
-                            {formatMetricLabel(evaluation.summary.title)}
-                            {renderInlineCitations(evaluation.id, referenceIndex)}
-                          </CardTitle>
-                        </div>
-                        <span className={`inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] ring-1 ${recommendationBadgeClass(evaluation.recommendation.level)}`}>
-                          {evaluation.recommendation.level}
-                        </span>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {evaluation.scope?.type === 'deployment-target' ? (
-                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Deployment target</p>
-                          <p className="mt-1 text-sm text-slate-800">{evaluation.scope.label}</p>
-                        </div>
-                      ) : null}
-
-                      <div className="grid gap-3 md:grid-cols-3">
-                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
-                          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Current value</p>
-                          <p className="mt-1 text-xl font-semibold tracking-tight text-slate-950">{formatValue(evaluation.value.value, evaluation.value.unit)}</p>
-                        </div>
-                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
-                          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Trend</p>
-                          <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] ring-1 ${trendBadgeClass(evaluation.comparison.trend)}`}>
-                            {evaluation.comparison.trend}
-                          </span>
-                        </div>
-                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
-                          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Delta</p>
-                          <p className="mt-1 text-xl font-semibold tracking-tight text-slate-950">{formatValue(evaluation.comparison.delta, evaluation.value.unit)}</p>
-                        </div>
-                      </div>
-
-                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3">
-                        <p className="text-sm font-medium text-slate-900">Comparison chart</p>
-                        {buildComparisonBars(evaluation).map((bar) => (
-                          <div key={bar.label} className="space-y-1">
-                            <div className="flex items-center justify-between text-xs text-slate-500">
-                              <span>{bar.label}</span>
-                              <span>{formatValue(bar.value, evaluation.value.unit)}</span>
-                            </div>
-                            <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full ${bar.tone === 'current' ? 'bg-sky-600' : 'bg-slate-400'}`}
-                                style={{ width: `${bar.width}%` }}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {renderSeriesSparkline(evaluation.value.series)}
-
-                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <p className="text-sm font-medium text-slate-900">Comparison summary</p>
-                        <p className="mt-2 text-sm leading-6 text-slate-700">{evaluation.comparison.summary}</p>
-                      </div>
-
-                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <p className="text-sm font-medium text-slate-900">Target</p>
-                        <p className="mt-2 text-sm leading-6 text-slate-700">
-                          {evaluation.target.description}
-                          {renderInlineCitations(evaluation.id, referenceIndex)}
-                        </p>
-                      </div>
-
-                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <p className="text-sm font-medium text-slate-900">Recommendation</p>
-                        <p className="mt-2 text-sm font-medium text-slate-800">{evaluation.recommendation.summary}</p>
-                        {evaluation.recommendation.actions.length > 0 ? (
-                          <ul className="mt-2 list-disc pl-5 text-sm leading-6 text-slate-600">
-                            {evaluation.recommendation.actions.map((action) => (
-                              <li key={action}>{action}</li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              <div className="space-y-3">
+                {scopeGroup.evaluations.map((evaluation) => renderMetricAppendixRow(evaluation, referenceIndex))}
               </div>
             </div>
           ))}

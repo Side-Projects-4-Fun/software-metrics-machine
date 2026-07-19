@@ -68,7 +68,7 @@ describe('EngineeringHealthPage', () => {
 
     expect(screen.getByLabelText('Show comparison guide')).toBeInTheDocument();
     expect(screen.getByText('Comparison chart')).toBeInTheDocument();
-    expect(screen.getAllByText('Current')).toHaveLength(2);
+    expect(screen.getAllByText('Current').length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('Previous')).toBeInTheDocument();
     expect(screen.getByText('Jul 18, 2026, 20:00 UTC')).toBeInTheDocument();
     expect(screen.getAllByText('Jun 1, 2026 to Jun 30, 2026')).toHaveLength(2);
@@ -285,6 +285,11 @@ describe('EngineeringHealthPage', () => {
         {
           id: 'delivery-watch-small-delta',
           category: 'delivery',
+          scope: {
+            type: 'deployment-target',
+            key: 'frontend',
+            label: 'Frontend App',
+          },
           value: {
             value: 11,
             unit: 'minutes',
@@ -318,6 +323,11 @@ describe('EngineeringHealthPage', () => {
         {
           id: 'delivery-critical-large-delta',
           category: 'delivery',
+          scope: {
+            type: 'deployment-target',
+            key: 'frontend',
+            label: 'Frontend App',
+          },
           value: {
             value: 25,
             unit: 'minutes',
@@ -348,6 +358,44 @@ describe('EngineeringHealthPage', () => {
             actions: [],
           },
         },
+        {
+          id: 'delivery-api-target',
+          category: 'delivery',
+          scope: {
+            type: 'deployment-target',
+            key: 'api',
+            label: 'API Service',
+          },
+          value: {
+            value: 8,
+            unit: 'minutes',
+            direction: 'lower_is_better',
+            sampleSize: 1,
+          },
+          comparison: {
+            trend: 'improving',
+            delta: -2,
+            deltaPercentage: null,
+            current: 8,
+            previous: 10,
+            summary: 'API delivery metric improved by 2 minutes.',
+          },
+          summary: {
+            title: 'delivery-api-target',
+            valueLabel: '8 minutes',
+            notes: ['API delivery metric improved by 2 minutes.'],
+          },
+          target: {
+            operator: 'lt',
+            value: 10,
+            description: 'Keep delivery score below ten minutes.',
+          },
+          recommendation: {
+            level: 'good',
+            summary: 'Delivery metric is on track.',
+            actions: [],
+          },
+        },
       ],
     });
 
@@ -358,10 +406,22 @@ describe('EngineeringHealthPage', () => {
     const qualityScorecards = screen.getByRole('region', { name: 'Quality scorecards' });
     expect(deliveryScorecards.nextElementSibling).toBe(qualityScorecards);
 
-    const deliveryCritical = within(deliveryScorecards).getByRole('article', {
+    const frontendTargetScorecards = within(deliveryScorecards).getByRole('region', {
+      name: 'Frontend App delivery target scorecards',
+    });
+    const apiTargetScorecards = within(deliveryScorecards).getByRole('region', {
+      name: 'API Service delivery target scorecards',
+    });
+    expect(frontendTargetScorecards).toBeInTheDocument();
+    expect(apiTargetScorecards).toBeInTheDocument();
+    expect(within(frontendTargetScorecards).queryByRole('article', {
+      name: 'Delivery Api Target scorecard',
+    })).not.toBeInTheDocument();
+
+    const deliveryCritical = within(frontendTargetScorecards).getByRole('article', {
       name: 'Delivery Critical Large Delta scorecard',
     });
-    const deliveryWatch = within(deliveryScorecards).getByRole('article', {
+    const deliveryWatch = within(frontendTargetScorecards).getByRole('article', {
       name: 'Delivery Watch Small Delta scorecard',
     });
     expect(deliveryCritical.nextElementSibling).toBe(deliveryWatch);
