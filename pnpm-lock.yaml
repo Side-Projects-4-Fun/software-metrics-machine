@@ -16,7 +16,7 @@ catalogs:
       specifier: ^11.14.1
       version: 11.14.1
     '@fontsource/roboto':
-      specifier: ^5.2.10
+      specifier: ^5.3.0
       version: 5.2.10
     '@mui/icons-material':
       specifier: ^7.3.11
@@ -208,7 +208,7 @@ importers:
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react@19.2.3)
       '@fontsource/roboto':
         specifier: 'catalog:'
-        version: 5.2.10
+        version: 5.3.0
       '@mui/icons-material':
         specifier: 'catalog:'
         version: 7.3.11(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@types/react@19.2.14)(react@19.2.3)
@@ -341,7 +341,7 @@ importers:
         version: 4.2.0
       tsup:
         specifier: 'catalog:'
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.19)(tsx@4.23.1)(typescript@6.0.3)
+        version: 8.5.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.23.1)(typescript@6.0.3)
       tsx:
         specifier: 'catalog:'
         version: 4.23.1
@@ -405,7 +405,7 @@ importers:
         version: 4.2.0
       tsup:
         specifier: 'catalog:'
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.19)(tsx@4.22.4)(typescript@6.0.3)
+        version: 8.5.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.22.4)(typescript@6.0.3)
       tsx:
         specifier: 'catalog:'
         version: 4.22.4
@@ -444,7 +444,7 @@ importers:
         version: 5.5.6(eslint-config-prettier@10.1.8(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))(prettier@3.8.3)
       tsup:
         specifier: 'catalog:'
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.19)(tsx@4.22.4)(typescript@6.0.3)
+        version: 8.5.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.22.4)(typescript@6.0.3)
       tsx:
         specifier: 'catalog:'
         version: 4.22.4
@@ -1562,6 +1562,9 @@ packages:
 
   '@fontsource/roboto@5.2.10':
     resolution: {integrity: sha512-8HlA5FtSfz//oFSr2eL7GFXAiE7eIkcGOtx7tjsLKq+as702x9+GU7K95iDeWFapHC4M2hv9RrpXKRTGGBI8Zg==}
+
+  '@fontsource/roboto@5.3.0':
+    resolution: {integrity: sha512-BapRJOWYP+LZ21zp+wBQjfpPYKRoxc4LspJ/RLuI+HSMBD5u/X4O+ESDrSvEqDSy0rAl7GwBJ+09mdc16cVQ1Q==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -6562,8 +6565,8 @@ packages:
     resolution: {integrity: sha512-SoSL4+OSEtR99LHFZQiJLkT59C5B1amGO1NzTwj7TT1qCUgUO6hxOvzkOYxD+vMrXBM3XJIKzokoERdqQq/Zmg==}
     engines: {node: ^10 || ^12 || >=14}
 
-  postcss@8.5.19:
-    resolution: {integrity: sha512-Mz8SaolMd8nB+G13WkORcxQKHZ/NE4xXevtkJHVuG+guo9/wYKlIMTKAqGdEmYOXR2ijPjTYNHssizdaVSUNdQ==}
+  postcss@8.5.20:
+    resolution: {integrity: sha512-lW616l85ucIQL+FocMmL7pQFPqBmwejrCMg+iPxyImlrANNJG9NHq/RkyCZopDhd8C3LA03PHRJDjkbGu8vvug==}
     engines: {node: ^10 || ^12 || >=14}
 
   prelude-ls@1.2.1:
@@ -8478,6 +8481,8 @@ snapshots:
       levn: 0.4.1
 
   '@fontsource/roboto@5.2.10': {}
+
+  '@fontsource/roboto@5.3.0': {}
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -14351,20 +14356,20 @@ snapshots:
 
   possible-typed-array-names@1.1.0: {}
 
-  postcss-load-config@6.0.1(jiti@2.6.1)(postcss@8.5.19)(tsx@4.22.4):
+  postcss-load-config@6.0.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.22.4):
     dependencies:
       lilconfig: 3.1.3
     optionalDependencies:
       jiti: 2.6.1
-      postcss: 8.5.19
+      postcss: 8.5.20
       tsx: 4.22.4
 
-  postcss-load-config@6.0.1(jiti@2.6.1)(postcss@8.5.19)(tsx@4.23.1):
+  postcss-load-config@6.0.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.23.1):
     dependencies:
       lilconfig: 3.1.3
     optionalDependencies:
       jiti: 2.6.1
-      postcss: 8.5.19
+      postcss: 8.5.20
       tsx: 4.23.1
 
   postcss@8.5.10:
@@ -14379,7 +14384,7 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  postcss@8.5.19:
+  postcss@8.5.20:
     dependencies:
       nanoid: 3.3.16
       picocolors: 1.1.1
@@ -15268,7 +15273,7 @@ snapshots:
 
   tslib@2.8.1: {}
 
-  tsup@8.5.1(jiti@2.6.1)(postcss@8.5.19)(tsx@4.22.4)(typescript@6.0.3):
+  tsup@8.5.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.22.4)(typescript@6.0.3):
     dependencies:
       bundle-require: 5.1.0(esbuild@0.27.7)
       cac: 6.7.14
@@ -15279,7 +15284,7 @@ snapshots:
       fix-dts-default-cjs-exports: 1.0.1
       joycon: 3.1.1
       picocolors: 1.1.1
-      postcss-load-config: 6.0.1(jiti@2.6.1)(postcss@8.5.19)(tsx@4.22.4)
+      postcss-load-config: 6.0.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.22.4)
       resolve-from: 5.0.0
       rollup: 4.62.2
       source-map: 0.7.6
@@ -15288,7 +15293,7 @@ snapshots:
       tinyglobby: 0.2.17
       tree-kill: 1.2.2
     optionalDependencies:
-      postcss: 8.5.19
+      postcss: 8.5.20
       typescript: 6.0.3
     transitivePeerDependencies:
       - jiti
@@ -15296,7 +15301,7 @@ snapshots:
       - tsx
       - yaml
 
-  tsup@8.5.1(jiti@2.6.1)(postcss@8.5.19)(tsx@4.23.1)(typescript@6.0.3):
+  tsup@8.5.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.23.1)(typescript@6.0.3):
     dependencies:
       bundle-require: 5.1.0(esbuild@0.27.7)
       cac: 6.7.14
@@ -15307,7 +15312,7 @@ snapshots:
       fix-dts-default-cjs-exports: 1.0.1
       joycon: 3.1.1
       picocolors: 1.1.1
-      postcss-load-config: 6.0.1(jiti@2.6.1)(postcss@8.5.19)(tsx@4.23.1)
+      postcss-load-config: 6.0.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.23.1)
       resolve-from: 5.0.0
       rollup: 4.62.2
       source-map: 0.7.6
@@ -15316,7 +15321,7 @@ snapshots:
       tinyglobby: 0.2.17
       tree-kill: 1.2.2
     optionalDependencies:
-      postcss: 8.5.19
+      postcss: 8.5.20
       typescript: 6.0.3
     transitivePeerDependencies:
       - jiti
@@ -15513,7 +15518,7 @@ snapshots:
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.5
-      postcss: 8.5.19
+      postcss: 8.5.20
       rolldown: 1.0.0-rc.12(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.2)
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -15530,7 +15535,7 @@ snapshots:
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.5
-      postcss: 8.5.19
+      postcss: 8.5.20
       rolldown: 1.0.0-rc.12(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.2)
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -15547,7 +15552,7 @@ snapshots:
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.5
-      postcss: 8.5.19
+      postcss: 8.5.20
       rolldown: 1.0.0-rc.12(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.2)
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -15564,7 +15569,7 @@ snapshots:
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.5
-      postcss: 8.5.19
+      postcss: 8.5.20
       rolldown: 1.0.0-rc.12(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.2)
       tinyglobby: 0.2.17
     optionalDependencies:
