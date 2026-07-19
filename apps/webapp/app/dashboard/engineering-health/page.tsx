@@ -11,23 +11,56 @@ const CATEGORY_ORDER = ['delivery', 'quality', 'collaboration', 'architecture'] 
 
 const CATEGORY_METADATA: Record<
   EngineeringHealthEvaluation['evaluations'][number]['category'],
-  { title: string; description: string }
+  {
+    title: string;
+    description: string;
+    color: {
+      accent: string;
+      border: string;
+      badge: string;
+      text: string;
+    };
+  }
 > = {
   delivery: {
     title: 'Delivery',
     description: 'Pipeline speed, deployment flow, and release reliability metrics.',
+    color: {
+      accent: 'border-l-sky-500',
+      border: 'border-sky-200',
+      badge: 'bg-sky-50',
+      text: 'text-sky-800',
+    },
   },
   quality: {
     title: 'Quality',
     description: 'Code health signals such as complexity, duplication, and coverage.',
+    color: {
+      accent: 'border-l-teal-500',
+      border: 'border-teal-200',
+      badge: 'bg-teal-50',
+      text: 'text-teal-800',
+    },
   },
   collaboration: {
     title: 'Collaboration',
     description: 'Review flow, participation, and shared knowledge indicators.',
+    color: {
+      accent: 'border-l-amber-500',
+      border: 'border-amber-200',
+      badge: 'bg-amber-50',
+      text: 'text-amber-800',
+    },
   },
   architecture: {
     title: 'Architecture',
     description: 'Structural ownership, coupling, and component health metrics.',
+    color: {
+      accent: 'border-l-indigo-500',
+      border: 'border-indigo-200',
+      badge: 'bg-indigo-50',
+      text: 'text-indigo-800',
+    },
   },
 };
 
@@ -534,7 +567,10 @@ export default async function EngineeringHealthPage({
 
   const groupedEvaluations = groupByCategory(data);
   const executiveSummary = buildExecutiveSummary(data);
-  const priorityScorecard = sortByLeadershipPriority(data.evaluations).slice(0, 8);
+  const scorecardGroups = groupedEvaluations.map((group) => ({
+    category: group.category,
+    evaluations: sortByLeadershipPriority(group.evaluations),
+  }));
   const keyDegradations = sortByLeadershipPriority(
     data.evaluations.filter((evaluation) => evaluation.comparison.trend === 'degrading')
   ).slice(0, 3);
@@ -654,41 +690,65 @@ export default async function EngineeringHealthPage({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="eh-scorecard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-            {priorityScorecard.map((evaluation) => (
+          <div className="space-y-5 text-sm">
+            {scorecardGroups.map((group) => (
               <div
-                key={`${evaluation.id}-${evaluation.scope?.key || 'default'}-score`}
-                className="eh-scorecard-item rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4 space-y-3 shadow-[0_8px_24px_rgba(15,23,42,0.06)]"
+                key={`${group.category}-scorecards`}
+                role="region"
+                aria-label={`${CATEGORY_METADATA[group.category].title} scorecards`}
+                className="space-y-3"
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className={`h-3 w-3 rounded-full ${CATEGORY_METADATA[group.category].color.badge} ring-1 ${CATEGORY_METADATA[group.category].color.border}`} />
                   <div>
-                    <p className="font-medium text-slate-900">
-                      {formatMetricLabel(evaluation.summary.title)}
-                      {renderInlineCitations(evaluation.id, referenceIndex)}
+                    <p className={`text-sm font-semibold ${CATEGORY_METADATA[group.category].color.text}`}>
+                      {CATEGORY_METADATA[group.category].title}
                     </p>
-                    <p className="mt-1 text-xs font-medium uppercase tracking-[0.16em] text-slate-500">{evaluation.category}</p>
+                    <p className="text-xs text-slate-500">Sorted by risk level, then largest movement.</p>
                   </div>
-                  <span className={`inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] ring-1 ${recommendationBadgeClass(evaluation.recommendation.level)}`}>
-                    {evaluation.recommendation.level}
-                  </span>
                 </div>
-                <div>
-                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Current</p>
-                  <p className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
-                    {formatValue(evaluation.value.value, evaluation.value.unit)}
-                  </p>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Delta</p>
-                    <p className="mt-1 text-sm text-slate-700">{formatValue(evaluation.comparison.delta, evaluation.value.unit)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Trend</p>
-                    <span className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] ring-1 ${trendBadgeClass(evaluation.comparison.trend)}`}>
-                      {evaluation.comparison.trend}
-                    </span>
-                  </div>
+                <div className="eh-scorecard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {group.evaluations.map((evaluation) => (
+                    <div
+                      key={`${evaluation.id}-${evaluation.scope?.key || 'default'}-score`}
+                      role="article"
+                      aria-label={`${formatMetricLabel(evaluation.summary.title)} scorecard`}
+                      className={`eh-scorecard-item rounded-2xl border border-l-4 ${CATEGORY_METADATA[evaluation.category].color.accent} border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4 space-y-3 shadow-[0_8px_24px_rgba(15,23,42,0.06)]`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-medium text-slate-900">
+                            {formatMetricLabel(evaluation.summary.title)}
+                            {renderInlineCitations(evaluation.id, referenceIndex)}
+                          </p>
+                          <p className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs font-medium uppercase tracking-[0.16em] ${CATEGORY_METADATA[evaluation.category].color.border} ${CATEGORY_METADATA[evaluation.category].color.badge} ${CATEGORY_METADATA[evaluation.category].color.text}`}>
+                            {evaluation.category}
+                          </p>
+                        </div>
+                        <span className={`inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] ring-1 ${recommendationBadgeClass(evaluation.recommendation.level)}`}>
+                          {evaluation.recommendation.level}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Current</p>
+                        <p className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
+                          {formatValue(evaluation.value.value, evaluation.value.unit)}
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Delta</p>
+                          <p className="mt-1 text-sm text-slate-700">{formatValue(evaluation.comparison.delta, evaluation.value.unit)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Trend</p>
+                          <span className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.14em] ring-1 ${trendBadgeClass(evaluation.comparison.trend)}`}>
+                            {evaluation.comparison.trend}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
@@ -776,11 +836,11 @@ export default async function EngineeringHealthPage({
 
       {groupedEvaluations.map((group) => (
         <section key={group.category} className="space-y-4 eh-print-section">
-          <div className="space-y-2 border-b border-slate-200 pb-3">
-            <div className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-slate-600">
+          <div className={`space-y-2 border-b pb-3 ${CATEGORY_METADATA[group.category].color.border}`}>
+            <div className={`inline-flex rounded-full border px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.18em] ${CATEGORY_METADATA[group.category].color.border} ${CATEGORY_METADATA[group.category].color.badge} ${CATEGORY_METADATA[group.category].color.text}`}>
               {group.category}
             </div>
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-950">{CATEGORY_METADATA[group.category].title}</h2>
+            <h2 className={`text-2xl font-semibold tracking-tight ${CATEGORY_METADATA[group.category].color.text}`}>{CATEGORY_METADATA[group.category].title}</h2>
             <p className="max-w-3xl text-sm leading-6 text-slate-600">
               {CATEGORY_METADATA[group.category].description}
             </p>

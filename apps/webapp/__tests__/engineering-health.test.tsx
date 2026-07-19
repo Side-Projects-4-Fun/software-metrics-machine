@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import EngineeringHealthPage from '@/app/dashboard/engineering-health/page';
 import { engineeringHealthAPI } from '@/server/api/engineeringHealth';
 
@@ -68,11 +68,11 @@ describe('EngineeringHealthPage', () => {
 
     expect(screen.getByLabelText('Show comparison guide')).toBeInTheDocument();
     expect(screen.getByText('Comparison chart')).toBeInTheDocument();
-    expect(screen.getByText('Current')).toBeInTheDocument();
+    expect(screen.getAllByText('Current')).toHaveLength(2);
     expect(screen.getByText('Previous')).toBeInTheDocument();
     expect(screen.getByText('Jul 18, 2026, 20:00 UTC')).toBeInTheDocument();
-    expect(screen.getByText('Jun 1, 2026 to Jun 30, 2026')).toBeInTheDocument();
-    expect(screen.getByText('May 1, 2026 to May 31, 2026')).toBeInTheDocument();
+    expect(screen.getAllByText('Jun 1, 2026 to Jun 30, 2026')).toHaveLength(2);
+    expect(screen.getAllByText('May 1, 2026 to May 31, 2026')).toHaveLength(2);
     expect(screen.getByText('Trend chart')).toBeInTheDocument();
     expect(screen.getByLabelText('Metric trend over selected period')).toBeInTheDocument();
     expect(screen.getByText('Executive Summary')).toBeInTheDocument();
@@ -84,13 +84,13 @@ describe('EngineeringHealthPage', () => {
     expect(screen.getByText('Report References')).toBeInTheDocument();
     expect(
       screen.getByRole('link', {
-        name: /Accelerate \(Lead time elite benchmark: < 1 hour\)/,
+        name: /^\[1\] Forsgren et al\. \(2018\)/,
       })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('link', {
+      screen.getAllByRole('link', {
         name: /Reference 1:/,
-      })
+      })[0]
     ).toBeInTheDocument();
     expect(screen.queryByText('Action Plan')).not.toBeInTheDocument();
   });
@@ -243,5 +243,127 @@ describe('EngineeringHealthPage', () => {
     render(ui);
 
     expect(screen.getByText(/Jul 19, 2026, 01:30/)).toBeInTheDocument();
+  });
+
+  it('groups scorecards by category before sorting each category by risk and movement', async () => {
+    mockEngineeringHealthAPI.evaluate.mockResolvedValue({
+      generatedAt: '2026-07-18T20:00:00.000Z',
+      evaluations: [
+        {
+          id: 'quality-watch-small-delta',
+          category: 'quality',
+          value: {
+            value: 12,
+            unit: 'points',
+            direction: 'lower_is_better',
+            sampleSize: 1,
+          },
+          comparison: {
+            trend: 'stable',
+            delta: 2,
+            deltaPercentage: null,
+            current: 12,
+            previous: 10,
+            summary: 'Quality watch metric moved by 2 points.',
+          },
+          summary: {
+            title: 'quality-watch-small-delta',
+            valueLabel: '12 points',
+            notes: ['Quality watch metric moved by 2 points.'],
+          },
+          target: {
+            operator: 'lt',
+            value: 10,
+            description: 'Keep quality score below ten points.',
+          },
+          recommendation: {
+            level: 'watch',
+            summary: 'Quality metric needs monitoring.',
+            actions: [],
+          },
+        },
+        {
+          id: 'delivery-watch-small-delta',
+          category: 'delivery',
+          value: {
+            value: 11,
+            unit: 'minutes',
+            direction: 'lower_is_better',
+            sampleSize: 1,
+          },
+          comparison: {
+            trend: 'stable',
+            delta: 1,
+            deltaPercentage: null,
+            current: 11,
+            previous: 10,
+            summary: 'Delivery watch metric moved by 1 minute.',
+          },
+          summary: {
+            title: 'delivery-watch-small-delta',
+            valueLabel: '11 minutes',
+            notes: ['Delivery watch metric moved by 1 minute.'],
+          },
+          target: {
+            operator: 'lt',
+            value: 10,
+            description: 'Keep delivery score below ten minutes.',
+          },
+          recommendation: {
+            level: 'watch',
+            summary: 'Delivery metric needs monitoring.',
+            actions: [],
+          },
+        },
+        {
+          id: 'delivery-critical-large-delta',
+          category: 'delivery',
+          value: {
+            value: 25,
+            unit: 'minutes',
+            direction: 'lower_is_better',
+            sampleSize: 1,
+          },
+          comparison: {
+            trend: 'degrading',
+            delta: 15,
+            deltaPercentage: null,
+            current: 25,
+            previous: 10,
+            summary: 'Delivery critical metric moved by 15 minutes.',
+          },
+          summary: {
+            title: 'delivery-critical-large-delta',
+            valueLabel: '25 minutes',
+            notes: ['Delivery critical metric moved by 15 minutes.'],
+          },
+          target: {
+            operator: 'lt',
+            value: 10,
+            description: 'Keep delivery score below ten minutes.',
+          },
+          recommendation: {
+            level: 'critical',
+            summary: 'Delivery metric needs attention.',
+            actions: [],
+          },
+        },
+      ],
+    });
+
+    const ui = await EngineeringHealthPage({ searchParams: Promise.resolve({}) });
+    render(ui);
+
+    const deliveryScorecards = screen.getByRole('region', { name: 'Delivery scorecards' });
+    const qualityScorecards = screen.getByRole('region', { name: 'Quality scorecards' });
+    expect(deliveryScorecards.nextElementSibling).toBe(qualityScorecards);
+
+    const deliveryCritical = within(deliveryScorecards).getByRole('article', {
+      name: 'Delivery Critical Large Delta scorecard',
+    });
+    const deliveryWatch = within(deliveryScorecards).getByRole('article', {
+      name: 'Delivery Watch Small Delta scorecard',
+    });
+    expect(deliveryCritical.nextElementSibling).toBe(deliveryWatch);
   });
 });
