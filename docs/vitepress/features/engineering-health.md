@@ -138,7 +138,7 @@ Engineering Health uses the shared dashboard date and timezone behavior document
 Important filters include:
 
 | Dashboard filter | CLI option | Backend query parameter | Purpose |
-| --- | --- | --- |
+| ---- | --- | --- | --- |
 | Current date range | `--start-date`, `--end-date` | `start_date`, `end_date` | Defines the period being evaluated. |
 | Comparison date range | `--compare-start-date`, `--compare-end-date` | `compare_start_date`, `compare_end_date` | Defines the baseline period used for movement and trend. |
 | Period | `--period` | `period` | Groups evolution by period. The CLI supports `day`, `week`, and `month`. |
