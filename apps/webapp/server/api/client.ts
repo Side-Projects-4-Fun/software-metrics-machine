@@ -25,6 +25,14 @@ function parseWebappSettings(value?: string): WebappSettings {
   }
 }
 
+const ALLOWED_API_ENDPOINTS = new Set<string>([
+  // Add all valid API endpoints used by this webapp.
+  // Examples:
+  // '/projects',
+  // '/metrics',
+  // '/users/me',
+]);
+
 function sanitizeApiEndpoint(endpoint: string): string {
   const trimmed = endpoint.trim();
 
@@ -45,6 +53,10 @@ function sanitizeApiEndpoint(endpoint: string): string {
   // Disallow dot-segments.
   const segments = trimmed.split('/');
   if (segments.some((segment) => segment === '.' || segment === '..')) {
+    throw new Error('Invalid API endpoint');
+  }
+
+  if (!ALLOWED_API_ENDPOINTS.has(trimmed)) {
     throw new Error('Invalid API endpoint');
   }
 
