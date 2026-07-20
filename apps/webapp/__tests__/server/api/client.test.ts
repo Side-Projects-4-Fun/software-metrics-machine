@@ -51,11 +51,15 @@ describe('fetchAPI', () => {
 
   describe('sanitizeApiEndpoint (SSRF prevention)', () => {
     it('allows a valid absolute-path endpoint', async () => {
-      await expect(fetchAPI('/users')).resolves.toBeDefined();
+      await expect(fetchAPI('/projects')).resolves.toBeDefined();
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/users'),
+        expect.stringContaining('/projects'),
         expect.anything()
       );
+    });
+
+    it('rejects an absolute-path endpoint that is not allow-listed', async () => {
+      await expect(fetchAPI('/users')).rejects.toThrow('Invalid API endpoint');
     });
 
     it('rejects an empty endpoint', async () => {
