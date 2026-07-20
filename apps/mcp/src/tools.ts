@@ -1,5 +1,6 @@
 import { ConfigurationRepository } from '@smmachine/core';
 import { Logger } from '@smmachine/utils';
+import { toolLogger } from './mcp-logger';
 import { createMcpMetricsReader } from './metrics-reader';
 import type { JsonObject, McpToolDefinition, McpToolResult } from './mcp-types';
 import {
@@ -58,6 +59,7 @@ export const tools: RegisteredTool[] = [
       properties: {},
     },
     async handler() {
+      toolLogger.debug('smm_list_projects: loading project list from smm_config.json');
       const repository = new ConfigurationRepository(
         process.env,
         undefined,
@@ -67,6 +69,7 @@ export const tools: RegisteredTool[] = [
         github_repository: project.github_repository,
         git_provider: project.git_provider,
       }));
+      toolLogger.debug(`smm_list_projects: found ${projects.length} projects`);
 
       return asToolResult({ projects });
     },
@@ -81,6 +84,7 @@ export const tools: RegisteredTool[] = [
       properties: {},
     },
     async handler() {
+      toolLogger.debug('smm_list_engineering_health_metrics: returning metric catalog');
       return asToolResult({
         categories: ['delivery', 'quality', 'collaboration', 'architecture'],
         metrics: listEngineeringHealthMetricCatalog(),

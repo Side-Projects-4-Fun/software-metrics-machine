@@ -1,6 +1,7 @@
 import { createInterface } from 'node:readline';
-import { getApplicationVersion, Logger } from '@smmachine/utils';
+import { getApplicationVersion } from '@smmachine/utils';
 import type { JsonObject, JsonRpcRequest, JsonRpcResponse, JsonValue } from './mcp-types';
+import { configureMcpLogging, redirectConsoleToStderr, transportLogger } from './mcp-logger';
 import { getPrompt, prompts } from './prompts';
 import { listResources, listResourceTemplates, readResource } from './resources';
 import { findTool, tools } from './tools';
@@ -12,8 +13,7 @@ const SERVER_INFO = {
 
 type McpLog = (message: string) => void;
 
-const mcpLogger = new Logger('SmmMcpServer', process.env.DEBUG ? 'DEBUG' : 'CRITICAL');
-const log: McpLog = (message) => mcpLogger.info(message);
+const log: McpLog = (message) => transportLogger.info(message);
 
 function isJsonRpcRequest(value: unknown): value is JsonRpcRequest {
   return (
@@ -115,11 +115,17 @@ async function handleRequestWithLogging(
           return error(request.id, -32602, `Unknown tool: ${name || '<missing>'}`);
         }
 
+        const toolStartedAt = Date.now();
         log?.(`Running tool: ${name}`);
-        const result = await selectedTool.handler(request.params?.arguments);
-        log?.(`Completed tool: ${name}`);
-
-        return ok(request.id, result);
+        try {
+          const result = await selectedTool.handler(request.params?.arguments);
+          log?.(`Completed tool: ${name} in ${Date.now() - toolStartedAt}ms`);
+          return ok(request.id, result);
+        } catch (toolError) {
+          const toolMessage = toolError instanceof Error ? toolError.message : String(toolError);
+          log?.(`Failed tool: ${name} after ${Date.now() - toolStartedAt}ms (${toolMessage})`);
+          throw toolError;
+        }
       }
 
       case 'resources/list':
@@ -141,8 +147,20 @@ async function handleRequestWithLogging(
           return error(request.id, -32602, 'resources/read requires a uri parameter');
         }
 
+        const resourceStartedAt = Date.now();
         log?.(`Reading resource: ${uri}`);
-        return ok(request.id, await readResource(uri));
+        try {
+          const resourceResult = await readResource(uri);
+          log?.(`Read resource: ${uri} in ${Date.now() - resourceStartedAt}ms`);
+          return ok(request.id, resourceResult);
+        } catch (resourceError) {
+          const resourceMessage =
+            resourceError instanceof Error ? resourceError.message : String(resourceError);
+          log?.(
+            `Failed resource: ${uri} after ${Date.now() - resourceStartedAt}ms (${resourceMessage})`
+          );
+          throw resourceError;
+        }
       }
 
       case 'prompts/list':
@@ -177,7 +195,23 @@ async function handleRequestWithLogging(
   }
 }
 
-export async function startMcpServer(): Promise<void> {
+export type StartMcpServerOptions = {
+  /**
+   * Enables DEBUG-level logging for transport, operation, tool, resource, and
+   * prompt loggers. Mirrors the CLI `--debug` global flag so callers that start
+   * the server through the CLI do not need to also set the DEBUG env var.
+   */
+  debug?: boolean;
+};
+
+export async function startMcpServer(options: StartMcpServerOptions = {}): Promise<void> {
+  // MCP uses stdout as the JSON-RPC transport. Ensure logs go to stderr even
+  // when the server is started through the CLI (smm mcp server start) which
+  // imports this module directly instead of the bin entry point.
+  redirectConsoleToStderr();
+  // Apply the CLI --debug flag (or env fallback) before any logs are emitted.
+  configureMcpLogging({ debug: options.debug });
+
   log(`Starting Software Metrics Machine MCP server v${SERVER_INFO.version} over stdio`);
   log(`Configuration directory: ${process.env.SMM_STORE_DATA_AT || '<not set>'}`);
   log(`Available tools: ${tools.map((tool) => tool.name).join(', ')}`);

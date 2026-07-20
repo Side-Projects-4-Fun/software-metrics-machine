@@ -1,3 +1,4 @@
+import { promptLogger } from './mcp-logger';
 import type { McpPromptDefinition, McpPromptResult } from './mcp-types';
 
 export const prompts: McpPromptDefinition[] = [
@@ -113,6 +114,8 @@ function optional(value: string | undefined): string {
 }
 
 export async function getPrompt(name: string, argumentsValue: unknown): Promise<McpPromptResult> {
+  promptLogger.debug(`Building prompt ${name}`, { arguments: argumentsValue });
+
   const values: PromptArgumentValues =
     argumentsValue && typeof argumentsValue === 'object' && !Array.isArray(argumentsValue)
       ? (argumentsValue as PromptArgumentValues)

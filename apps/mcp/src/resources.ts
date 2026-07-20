@@ -1,5 +1,6 @@
 import { ConfigurationRepository } from '@smmachine/core';
 import { Logger } from '@smmachine/utils';
+import { resourceLogger } from './mcp-logger';
 import { createMcpMetricsReader } from './metrics-reader';
 import type { JsonValue, McpResourceDefinition, McpResourceTemplateDefinition } from './mcp-types';
 import { redactSecrets } from './redaction';
@@ -119,58 +120,87 @@ export function listResources(): McpResourceDefinition[] {
 }
 
 export async function readResource(uri: string): Promise<ResourceReadResult> {
+  const resourceStartedAt = Date.now();
+  resourceLogger.debug(`Reading resource ${uri}`);
   const repository = getConfigurationRepository();
 
   if (uri === 'smm://projects') {
-    return jsonResource(uri, {
+    resourceLogger.debug('Listing projects for resource smm://projects');
+    const result = jsonResource(uri, {
       projects: repository.getAllProjects().map((project) => ({
         github_repository: project.github_repository,
         git_provider: project.git_provider,
       })),
     });
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
   }
 
   if (uri === 'smm://engineering-health/metrics') {
-    return jsonResource(uri, {
+    resourceLogger.debug('Returning engineering health metric catalog');
+    const result = jsonResource(uri, {
       categories: ['delivery', 'quality', 'collaboration', 'architecture'],
       metrics: listEngineeringHealthMetricCatalog(),
     } as unknown as JsonValue);
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
   }
 
   const match = uri.match(
     /^smm:\/\/project\/([^/]+)\/(configuration|report|engineering-health|dora|architecture\/snapshots)$/
   );
   if (!match) {
+    resourceLogger.warn(`Unknown MCP resource requested: ${uri}`);
     throw new Error(`Unknown MCP resource: ${uri}`);
   }
 
   const projectName = decodeProject(match[1]);
   const resourceType = match[2];
+  resourceLogger.debug(`Resolved resource ${uri}`, { projectName, resourceType });
+
   const project = repository.getProjectByName(projectName);
   if (!project) {
+    resourceLogger.warn(`Unknown project for resource ${uri}: ${projectName}`);
     throw new Error(`Unknown project: ${projectName}`);
   }
 
   if (resourceType === 'configuration') {
-    return jsonResource(uri, redactSecrets(project as JsonValue));
+    resourceLogger.debug(`Returning redacted configuration for ${projectName}`);
+    const result = jsonResource(uri, redactSecrets(project as JsonValue));
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
   }
 
   const reader = createMcpMetricsReader({ project: projectName });
 
   if (resourceType === 'report') {
-    return jsonResource(uri, (await reader.getFullReport()) as JsonValue);
+    const result = jsonResource(uri, (await reader.getFullReport()) as JsonValue);
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
   }
 
   if (resourceType === 'engineering-health') {
-    return jsonResource(
+    const result = jsonResource(
       uri,
       (await reader.getEngineeringHealthEvaluation({ project: projectName })) as JsonValue
     );
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
   }
 
   if (resourceType === 'dora') {
-    return jsonResource(uri, (await reader.getDoraMetrics({ project: projectName })) as JsonValue);
+    const result = jsonResource(
+      uri,
+      (await reader.getDoraMetrics({ project: projectName })) as JsonValue
+    );
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
   }
 
-  return jsonResource(uri, (await reader.listArchitectureSnapshots()) as JsonValue);
+  const snapshotsResult = jsonResource(
+    uri,
+    (await reader.listArchitectureSnapshots()) as JsonValue
+  );
+  resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+  return snapshotsResult;
 }

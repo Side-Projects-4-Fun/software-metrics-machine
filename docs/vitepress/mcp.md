@@ -328,23 +328,28 @@ Example `prompts/get` request:
 
 ## Logging
 
-The MCP server has two logging layers.
+The MCP server uses stdout as the JSON-RPC transport channel, so all log output is redirected to **stderr**. This keeps
+the logs visible in the MCP client output panel (e.g. VS Code MCP Output view) without corrupting the protocol.
 
-### Transport logging
+By default the server is quiet (matching the rest of the SMM CLI). Enable logging with the shared `--debug` flag so you
+can see what the server is doing behind the scenes while it serves requests:
 
-The server writes transport-level logs (startup, JSON-RPC requests, errors, shutdown) using the SMM Logger. The level is
-controlled by the `DEBUG` environment variable:
-
-- `DEBUG=true` — all transport messages visible (INFO level)
-- No `DEBUG` — transport logs suppressed (CRITICAL level)
-
-These logs appear in the MCP client output panel (e.g. VS Code MCP Output view).
+| Source | Behavior |
+| ------ | -------- |
+| _none_ | Quiet (CRITICAL level) — matches the default for all `smm` commands. |
+| `smm --debug` | Enables transport and operation logs at DEBUG level (startup, request lifecycle, tool/resource call timing, sub-query steps). Reuses the same `--debug` flag available to all other `smm` commands. |
+| `DEBUG=true` | Same as `--debug`, used when running the server standalone via `smm-mcp` (e.g. an MCP client `env` block where there is no CLI flag). |
 
 ```bash
-DEBUG=true smm mcp server start
+# Default: quiet (no operation logs)
+SMM_STORE_DATA_AT=/path/to/smm-data smm mcp server start
+
+# Verbose: reuse the shared CLI --debug flag (no env var needed)
+SMM_STORE_DATA_AT=/path/to/smm-data smm --debug mcp server start
 ```
 
-Or in your MCP client configuration:
+When configuring an MCP client (Copilot Chat, Claude Desktop, etc.) that launches the server through an `env` block
+rather than the `smm` CLI, use the `DEBUG` env var instead since there is no CLI flag in that path:
 
 ```json
 {
@@ -361,6 +366,32 @@ Or in your MCP client configuration:
 }
 ```
 
+### Transport logging
+
+Transport-level logs cover startup, JSON-RPC request lifecycle, tool/resource call timing, errors, and shutdown. They
+are tagged with the `SmmMcpServer` logger name. Example output:
+
+```text
+[INFO] [SmmMcpServer] Received request: tools/call
+[INFO] [SmmMcpServer] Running tool: smm_get_engineering_health
+[INFO] [SmmMcpServer] Completed tool: smm_get_engineering_health in 1234ms
+```
+
+### Operation logging
+
+Operation logs (`SmmMcpOperation`, `SmmMcpTool`, `SmmMcpResource`, `SmmMcpPrompt`) trace the behind-the-scenes work
+performed for each MCP request, including which sub-queries are executed and how long they take. They are visible at
+DEBUG level. Example output with `DEBUG=true`:
+
+```text
+[DEBUG] [SmmMcpTool] smm_list_projects: loading project list from smm_config.json
+[DEBUG] [SmmMcpTool] smm_list_projects: found 2 projects
+[DEBUG] [SmmMcpOperation] Started getEngineeringHealthEvaluation (project, category, ...)
+[DEBUG] [SmmMcpOperation] getEngineeringHealthEvaluation: evaluating orchestrator (metricCount=2)
+[DEBUG] [SmmMcpOperation] Completed getEngineeringHealthEvaluation (durationMs=1180)
+[DEBUG] [SmmMcpResource] Reading resource smm://project/owner/repo/dora
+```
+
 ### Domain service logging
 
 Metric readers and data access services use the SMM Logger and respect the project's configured `log_level`,
@@ -368,8 +399,8 @@ Metric readers and data access services use the SMM Logger and respect the proje
 enabled in the project's `smm_config.json`.
 
 ```{tip}
-Transport logs are independent of `smm_config.json` because the server may not have a project loaded at the time startup
-messages are written. Domain service logs always use the project's log level settings.
+Transport and operation logs are independent of `smm_config.json` because the server may not have a project loaded at the
+time startup messages are written. Domain service logs always use the project's log level settings.
 ```
 
 ## Security notes

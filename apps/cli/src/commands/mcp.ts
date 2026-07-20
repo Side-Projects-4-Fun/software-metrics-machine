@@ -14,7 +14,16 @@ export function createMcpCommands(program: SmmCommand): void {
   serverGroup
     .subcommand('start')
     .description('Start the Software Metrics Machine MCP stdio server')
-    .action(async () => {
+    .action(async (_options, command) => {
+      // Honor the existing global --debug flag instead of requiring a separate
+      // DEBUG env var. When run through the CLI (smm --debug mcp server start)
+      // the flag is propagated to all subcommands via optsWithGlobals().
+      const { debug } = command.getGlobalOptions();
+      if (debug) {
+        await startMcpServer({ debug });
+        return;
+      }
+
       await startMcpServer();
     });
 }

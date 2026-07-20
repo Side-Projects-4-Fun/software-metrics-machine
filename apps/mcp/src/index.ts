@@ -1,9 +1,11 @@
 export { startMcpServer, handleRequest } from './server';
+export type { StartMcpServerOptions } from './server';
 export { tools, findTool } from './tools';
 export type { RegisteredTool } from './tools';
 export { listResources, listResourceTemplates, readResource } from './resources';
 export { prompts, getPrompt } from './prompts';
 export { createMcpMetricsReader, McpMetricsReader } from './metrics-reader';
 export { redactSecrets } from './redaction';
+export { configureMcpLogging, redirectConsoleToStderr, resolveMcpLogLevel } from './mcp-logger';
 export * from './validation';
 export * from './mcp-types';
