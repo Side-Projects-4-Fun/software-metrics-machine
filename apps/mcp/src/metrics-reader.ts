@@ -1,5 +1,8 @@
 import {
+  ArchitectureService,
   Configuration,
+  createEngineeringHealthOrchestrator,
+  DeploymentFrequencyService,
   IssuesRepository,
   JiraIssuesClient,
   PairingFactory,
@@ -10,14 +13,25 @@ import {
   SonarqubeFactory,
   type CodeMaatChurnOptions,
   type CodeMaatEntityFilterOptions,
+  type EngineeringHealthEvaluationInput,
+  type MetricCategory,
+  type MetricId,
   type PipelineFilters,
   type PRFilters,
   TimeZoneProvider,
   ConfigurationRepository,
   PipelineFactory,
   CodemaatFactory,
+  parseMetricCleaningOptions,
+  type ArchitectureViewLevel,
 } from '@smmachine/core';
 import { Logger, type LogLevel } from '@smmachine/utils';
+import type {
+  ArchitectureViewArguments,
+  DoraMetricsArguments,
+  EngineeringHealthArguments,
+} from './validation';
+import { parseCsvList } from './validation';
 
 type MetricsReaderOptions = {
   project?: string;
@@ -27,6 +41,14 @@ type MetricsReaderOptions = {
 type MetricFilters = {
   startDate?: string;
   endDate?: string;
+};
+
+type CodeMetricFilters = MetricFilters & {
+  authors?: string;
+};
+
+type IssueMetricFilters = MetricFilters & {
+  status?: string;
 };
 
 function createLogger(configuration: Configuration, name: string): Logger {
@@ -52,6 +74,14 @@ export class McpMetricsReader {
     this.timeZoneProvider = new TimeZoneProvider(
       options.timezone || this.configuration.timezone || 'UTC'
     );
+  }
+
+  getConfiguration(): Configuration {
+    return this.configuration;
+  }
+
+  getTimeZoneProvider(): TimeZoneProvider {
+    return this.timeZoneProvider;
   }
 
   async getPRMetrics(filters: MetricFilters): Promise<unknown> {
@@ -94,7 +124,7 @@ export class McpMetricsReader {
     };
   }
 
-  async getCodeMetrics(filters: MetricFilters): Promise<unknown> {
+  async getCodeMetrics(filters: CodeMetricFilters = {}): Promise<unknown> {
     const codeRepository = CodemaatFactory.create(
       this.configuration,
       createLogger(this.configuration, 'CodeMetricsRepository')
@@ -107,7 +137,10 @@ export class McpMetricsReader {
 
     const pairing = await pairingService.getPairingIndex(filters);
     const churn = await codeRepository.getCodeChurn(filters as CodeMaatChurnOptions);
-    const coupling = await codeRepository.getFileCoupling(filters as CodeMaatEntityFilterOptions);
+    const coupling = await codeRepository.getFileCoupling({
+      authors: filters.authors ? parseCsvList(filters.authors, 'authors') : undefined,
+      ...(filters as CodeMaatEntityFilterOptions),
+    });
 
     return {
       pairingIndex: pairing,
@@ -116,7 +149,7 @@ export class McpMetricsReader {
     };
   }
 
-  async getIssueMetrics(filters: MetricFilters): Promise<unknown> {
+  async getIssueMetrics(filters: IssueMetricFilters = {}): Promise<unknown> {
     const client = new JiraIssuesClient(
       this.configuration.jiraUrl || '',
       this.configuration.jiraEmail || '',
@@ -169,6 +202,135 @@ export class McpMetricsReader {
       issues,
       quality,
       filters,
+    };
+  }
+
+  async getEngineeringHealthEvaluation(args: EngineeringHealthArguments): Promise<unknown> {
+    const orchestrator = createEngineeringHealthOrchestrator(
+      this.configuration,
+      createLogger(this.configuration, 'EngineeringHealthOrchestrator'),
+      this.timeZoneProvider
+    );
+
+    const metricIds = parseCsvList(args.metric, 'metric') as MetricId[] | undefined;
+    const category = args.category as MetricCategory | undefined;
+    const hasPrevious = Boolean(args.compareStartDate || args.compareEndDate);
+
+    const input: EngineeringHealthEvaluationInput = {
+      metrics: metricIds,
+      category,
+      current: {
+        startDate: args.startDate,
+        endDate: args.endDate,
+        prLabels: parseCsvList(args.prLabels, 'prLabels'),
+        rawFilters: args.rawFilters,
+        period: args.period,
+        weekends: args.weekends,
+        outlierMode: args.outlierMode,
+      },
+      previous: hasPrevious
+        ? {
+            startDate: args.compareStartDate,
+            endDate: args.compareEndDate,
+            prLabels: parseCsvList(args.prLabels, 'prLabels'),
+            rawFilters: args.rawFilters,
+            period: args.period,
+            weekends: args.weekends,
+            outlierMode: args.outlierMode,
+          }
+        : undefined,
+    };
+
+    return orchestrator.evaluate(input);
+  }
+
+  async getDoraMetrics(args: DoraMetricsArguments): Promise<unknown> {
+    const pipelineArtifacts = PipelineFactory.create(
+      this.configuration,
+      createLogger(this.configuration, 'DoraPipelineRepository'),
+      this.timeZoneProvider
+    );
+
+    const cleaning = parseMetricCleaningOptions({
+      weekends: args.weekends,
+      outlierMode: args.outlierMode,
+    });
+
+    const baseFilters = {
+      startDate: args.startDate,
+      endDate: args.endDate,
+      workflowPath: args.workflowPath,
+      status: args.status,
+      conclusion: args.conclusion,
+      targetBranch: args.branch,
+      jobName: args.jobName,
+      event: args.event,
+      cleaning,
+    };
+
+    const pipelinesService = new PipelinesService(
+      pipelineArtifacts.pipelineRepository,
+      this.configuration,
+      createLogger(this.configuration, 'DoraPipelinesService'),
+      this.timeZoneProvider
+    );
+
+    const deploymentFrequencyService = new DeploymentFrequencyService(
+      pipelineArtifacts.pipelineRepository,
+      this.configuration.getDeploymentFrequencyTargets(),
+      createLogger(this.configuration, 'DeploymentFrequencyService'),
+      this.timeZoneProvider
+    );
+
+    const [deploymentFrequency, pipelineMetrics, jobMetrics] = await Promise.all([
+      deploymentFrequencyService.getDeploymentFrequencyWithAllIntervals(baseFilters),
+      pipelinesService.getMetrics(baseFilters),
+      pipelinesService.getJobMetrics(baseFilters),
+    ]);
+
+    return {
+      timestamp: new Date().toISOString(),
+      deploymentFrequency,
+      pipelineMetrics,
+      jobMetrics,
+      filters: baseFilters,
+    };
+  }
+
+  async listArchitectureSnapshots(): Promise<unknown> {
+    const service = new ArchitectureService(
+      this.configuration,
+      createLogger(this.configuration, 'ArchitectureService')
+    );
+
+    return service.listSnapshots();
+  }
+
+  async getArchitectureView(args: ArchitectureViewArguments): Promise<unknown> {
+    const service = new ArchitectureService(
+      this.configuration,
+      createLogger(this.configuration, 'ArchitectureService')
+    );
+
+    const level = (args.level || 'container') as ArchitectureViewLevel;
+    const view = await service.getView(level, args.snapshotId, {
+      ignorePatterns: args.ignorePatterns,
+      includePatterns: args.includePatterns,
+    });
+
+    const snapshot = await service.getSnapshot(args.snapshotId);
+
+    return {
+      view,
+      snapshot: snapshot
+        ? {
+            snapshotId: snapshot.snapshotId,
+            generatedAt: snapshot.generatedAt,
+            project: snapshot.project,
+            branch: snapshot.branch,
+            commitCount: snapshot.commitCount,
+          }
+        : null,
     };
   }
 }

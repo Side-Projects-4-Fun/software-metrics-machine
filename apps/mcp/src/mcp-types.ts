@@ -51,3 +51,35 @@ export type McpResourceDefinition = {
   description: string;
   mimeType: string;
 };
+
+export type McpResourceTemplateDefinition = {
+  uriTemplate: string;
+  name: string;
+  description: string;
+  mimeType?: string;
+};
+
+export type McpPromptArgument = {
+  name: string;
+  description: string;
+  required?: boolean;
+};
+
+export type McpPromptDefinition = {
+  name: string;
+  description: string;
+  arguments?: McpPromptArgument[];
+};
+
+export type McpPromptMessage = {
+  role: 'user' | 'assistant';
+  content: {
+    type: 'text';
+    text: string;
+  };
+};
+
+export type McpPromptResult = {
+  description?: string;
+  messages: McpPromptMessage[];
+};

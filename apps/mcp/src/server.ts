@@ -1,7 +1,8 @@
 import { createInterface } from 'node:readline';
 import { getApplicationVersion, Logger } from '@smmachine/utils';
 import type { JsonObject, JsonRpcRequest, JsonRpcResponse, JsonValue } from './mcp-types';
-import { listResources, readResource } from './resources';
+import { getPrompt, prompts } from './prompts';
+import { listResources, listResourceTemplates, readResource } from './resources';
 import { findTool, tools } from './tools';
 
 const SERVER_INFO = {
@@ -82,7 +83,16 @@ async function handleRequestWithLogging(
           protocolVersion: '2025-06-18',
           capabilities: {
             tools: {},
-            resources: {},
+            resources: {
+              list: true,
+              read: true,
+              listChanged: false,
+            },
+            prompts: {
+              list: true,
+              get: true,
+              listChanged: false,
+            },
           },
           serverInfo: SERVER_INFO,
         });
@@ -118,6 +128,12 @@ async function handleRequestWithLogging(
           resources: listResources(),
         });
 
+      case 'resources/templates/list':
+        log?.('Listing MCP resource templates');
+        return ok(request.id, {
+          resourceTemplates: listResourceTemplates(),
+        });
+
       case 'resources/read': {
         const uri = getStringParam(request.params, 'uri');
         if (!uri) {
@@ -130,8 +146,25 @@ async function handleRequestWithLogging(
       }
 
       case 'prompts/list':
-        log?.('Listing MCP prompts');
-        return ok(request.id, { prompts: [] });
+        log?.(`Listing ${prompts.length} MCP prompts`);
+        return ok(request.id, { prompts });
+
+      case 'prompts/get': {
+        const name = getStringParam(request.params, 'name');
+        if (!name) {
+          log?.('Rejected prompts/get request without name');
+          return error(request.id, -32602, 'prompts/get requires a name parameter');
+        }
+
+        const knownPrompt = prompts.find((prompt) => prompt.name === name);
+        if (!knownPrompt) {
+          log?.(`Rejected unknown prompt: ${name}`);
+          return error(request.id, -32602, `Unknown prompt: ${name}`);
+        }
+
+        log?.(`Reading prompt: ${name}`);
+        return ok(request.id, await getPrompt(name, request.params?.arguments));
+      }
 
       default:
         log?.(`Rejected unknown method: ${request.method}`);
