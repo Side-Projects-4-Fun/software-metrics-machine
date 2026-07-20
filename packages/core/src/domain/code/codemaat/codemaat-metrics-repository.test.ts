@@ -435,30 +435,25 @@ layer-c,layer-d,78,5`;
 
   it('does not perform extra persistence for CSV storage', async () => {
     const logger = new MockLoggerBuilder().build();
-    const csvConfig = new Configuration({
-      storeData: '/tmp/smm',
-      gitProvider: 'github',
-      githubRepository: 'owner/repo',
-      gitRepositoryLocation: '/tmp/repo',
-      internal: { storageType: 'json' },
-    });
-    await expect(
-      CodemaatFactory.createWriteRepository(csvConfig, logger).persistFetchedMetrics()
-    ).resolves.toEqual({
+    const csvRepository = new CodemaatFetchCsvRepository(
+      new Configuration({
+        storeData: '/tmp/smm',
+        gitProvider: 'github',
+        githubRepository: 'owner/repo',
+        gitRepositoryLocation: '/tmp/repo',
+        internal: { storageType: 'json' },
+      }),
+      logger
+    );
+
+    await expect(csvRepository.persistFetchedMetrics()).resolves.toEqual({
       persisted: false,
       records: 0,
     });
   });
 
-  it('creates storage-specific repository implementations from the factory', () => {
+  it('creates SQLite repository implementations from the factory', () => {
     const logger = new MockLoggerBuilder().build();
-    const csvConfig = new Configuration({
-      storeData: '/tmp/smm',
-      gitProvider: 'github',
-      githubRepository: 'owner/repo',
-      gitRepositoryLocation: '/tmp/repo',
-      internal: { storageType: 'json' },
-    });
     const sqliteConfig = new Configuration({
       storeData: '/tmp/smm',
       gitProvider: 'github',
@@ -467,12 +462,8 @@ layer-c,layer-d,78,5`;
       internal: { storageType: 'sqlite' },
     });
 
-    expect(CodemaatFactory.create(csvConfig, logger)).toBeInstanceOf(CodeMaatMetricsCsvRepository);
     expect(CodemaatFactory.create(sqliteConfig, logger)).toBeInstanceOf(
       CodeMaatMetricsSqliteRepository
-    );
-    expect(CodemaatFactory.createWriteRepository(csvConfig, logger)).toBeInstanceOf(
-      CodemaatFetchCsvRepository
     );
     expect(CodemaatFactory.createWriteRepository(sqliteConfig, logger)).toBeInstanceOf(
       CodemaatFetchSqliteRepository

@@ -17,17 +17,9 @@ export class RepositoryFactory {
    * @param filePath - Path to the storage location. For sqlite, this path becomes the
    * namespace inside the project database.
    * @param logger - Logger instance
-   * @param config - Configuration containing internal.storageType
    * @returns An IRepository<T> implementation
    */
   static create<T>(filePath: string, logger: Logger, config: Configuration): IRepository<T> {
-    const storageType = config.internal?.storageType ?? 'sqlite';
-    if (storageType !== 'sqlite') {
-      throw new Error(
-        `Unsupported storage type: ${storageType}. Only sqlite repositories are supported.`
-      );
-    }
-
     return new SqliteRepository<T>(
       RepositoryFactory.getSqliteDatabasePath(config),
       RepositoryFactory.getSqliteNamespace(filePath, config),

@@ -30,10 +30,14 @@ describe('PairingFactory', () => {
     });
   }
 
-  it('rejects JSON storage type for repository-backed pairing data', () => {
-    expect(() =>
-      PairingFactory.create(createConfiguration('json'), logger, timeZoneProvider)
-    ).toThrow('Unsupported storage type: json. Only sqlite repositories are supported.');
+  it('creates a pairing service backed by SQLite storage even when legacy JSON storage is configured', async () => {
+    const service = PairingFactory.create(createConfiguration('json'), logger, timeZoneProvider);
+
+    await expect(service.getPairingIndex()).resolves.toMatchObject({
+      pairingIndexPercentage: 0,
+      totalAnalyzedCommits: 0,
+      pairedCommits: 0,
+    });
   });
 
   it('creates a pairing service backed by SQLite storage when storage type is sqlite', async () => {

@@ -482,7 +482,7 @@ describe('sqlite repository implementations', () => {
   describe('RepositoryFactory', () => {
     const logger = new Logger('RepositoryFactoryTest', 'CRITICAL');
 
-    it('creates SQLite repositories when storageType is sqlite', () => {
+    it('creates SQLite repositories', () => {
       const config = new Configuration({
         storeData: '/tmp/smm',
         gitProvider: 'github',

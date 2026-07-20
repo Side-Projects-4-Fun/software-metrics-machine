@@ -1,6 +1,5 @@
 import { Logger } from '@smmachine/utils';
 import { Configuration } from '../../infrastructure';
-import { CodemaatFetchCsvRepository } from './codemaat-fetch-repository-csv';
 import { CodemaatFetchSqliteRepository } from './codemaat-fetch-repository-sqlite';
 
 export interface CodemaatFetchOptions {
@@ -38,10 +37,7 @@ export class CodemaatFetchRepository implements ICodeMaatFetchRepository {
   private readonly delegate: ICodeMaatFetchRepository;
 
   constructor(configuration: Configuration, logger: Logger) {
-    this.delegate =
-      configuration.internal?.storageType === 'sqlite'
-        ? new CodemaatFetchSqliteRepository(configuration, logger)
-        : new CodemaatFetchCsvRepository(configuration, logger);
+    this.delegate = new CodemaatFetchSqliteRepository(configuration, logger);
   }
 
   fetch(options: CodemaatFetchOptions): CodemaatFetchResult {
