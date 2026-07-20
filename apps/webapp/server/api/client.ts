@@ -25,6 +25,54 @@ function parseWebappSettings(value?: string): WebappSettings {
   }
 }
 
+const ALLOWED_API_ENDPOINTS = new Set<string>([
+  '/architecture/snapshots',
+  '/architecture/summary',
+  '/architecture/view',
+  '/code/authors',
+  '/code/big-o',
+  '/code/code-churn',
+  '/code/coupling',
+  '/code/entity-churn',
+  '/code/entity-effort',
+  '/code/entity-ownership',
+  '/code/layered-coupling',
+  '/code/pairing-index',
+  '/configuration',
+  '/dora/deployment-frequency',
+  '/engineering-health/evaluate',
+  '/pipelines/by-status',
+  '/pipelines/dashboard',
+  '/pipelines/filter-options',
+  '/pipelines/jobs',
+  '/pipelines/jobs-average-time',
+  '/pipelines/jobs-average-time-by-day',
+  '/pipelines/jobs-by-status',
+  '/pipelines/jobs-duration-by-workflow',
+  '/pipelines/jobs-reruns-by-day',
+  '/pipelines/jobs-steps-average-time',
+  '/pipelines/jobs-steps-average-time-by-day',
+  '/pipelines/jobs-summary',
+  '/pipelines/runs-by',
+  '/pipelines/runs-duration',
+  '/pipelines/summary',
+  '/projects',
+  '/pull-requests/average-comments',
+  '/pull-requests/average-open-by',
+  '/pull-requests/average-review-time',
+  '/pull-requests/by-author',
+  '/pull-requests/comments-by-author',
+  '/pull-requests/filter-options',
+  '/pull-requests/first-comment-time',
+  '/pull-requests/summary',
+  '/pull-requests/through-time',
+  '/sonarqube/component-tree',
+  '/sonarqube/component-tree/history',
+  '/sonarqube/measurements',
+  '/sonarqube/measurements/history',
+  '/sonarqube/quality',
+]);
+
 function sanitizeApiEndpoint(endpoint: string): string {
   const trimmed = endpoint.trim();
 
@@ -45,6 +93,10 @@ function sanitizeApiEndpoint(endpoint: string): string {
   // Disallow dot-segments.
   const segments = trimmed.split('/');
   if (segments.some((segment) => segment === '.' || segment === '..')) {
+    throw new Error('Invalid API endpoint');
+  }
+
+  if (!ALLOWED_API_ENDPOINTS.has(trimmed)) {
     throw new Error('Invalid API endpoint');
   }
 
