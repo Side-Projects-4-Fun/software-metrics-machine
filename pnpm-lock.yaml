@@ -139,8 +139,8 @@ catalogs:
       specifier: ^2.14.6
       version: 2.14.6
     next:
-      specifier: 16.3.0-preview.5
-      version: 16.3.0-preview.5
+      specifier: 16.3.0-preview.7
+      version: 16.3.0-preview.7
     ora:
       specifier: ^9.4.1
       version: 9.4.1
@@ -151,7 +151,7 @@ catalogs:
       specifier: 19.2.3
       version: 19.2.3
     recharts:
-      specifier: ^3.9.2
+      specifier: ^3.10.0
       version: 3.8.1
     reflect-metadata:
       specifier: ^0.1.14
@@ -217,7 +217,7 @@ importers:
         version: 7.3.11(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@mui/material-nextjs':
         specifier: 'catalog:'
-        version: 7.3.10(@emotion/cache@11.14.0)(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(next@16.3.0-preview.5(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
+        version: 7.3.10(@emotion/cache@11.14.0)(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(next@16.3.0-preview.7(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
       '@mui/x-date-pickers':
         specifier: 'catalog:'
         version: 8.29.2(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react@19.2.3))(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@mui/system@7.3.11(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(date-fns@4.4.0)(dayjs@1.11.21)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -259,7 +259,7 @@ importers:
         version: 1.11.21
       next:
         specifier: 'catalog:'
-        version: 16.3.0-preview.5(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 16.3.0-preview.7(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react:
         specifier: 'catalog:'
         version: 19.2.3
@@ -268,7 +268,7 @@ importers:
         version: 19.2.3(react@19.2.3)
       recharts:
         specifier: 'catalog:'
-        version: 3.9.2(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react-is@19.2.7)(react@19.2.3)(redux@5.0.1)
+        version: 3.10.0(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react-is@19.2.8)(react@19.2.3)(redux@5.0.1)
       reflect-metadata:
         specifier: 'catalog:'
         version: 0.1.14
@@ -341,7 +341,7 @@ importers:
         version: 4.2.0
       tsup:
         specifier: 'catalog:'
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.23.1)(typescript@6.0.3)
+        version: 8.5.1(jiti@2.6.1)(postcss@8.5.21)(tsx@4.23.1)(typescript@6.0.3)
       tsx:
         specifier: 'catalog:'
         version: 4.23.1
@@ -405,7 +405,7 @@ importers:
         version: 4.2.0
       tsup:
         specifier: 'catalog:'
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.22.4)(typescript@6.0.3)
+        version: 8.5.1(jiti@2.6.1)(postcss@8.5.21)(tsx@4.22.4)(typescript@6.0.3)
       tsx:
         specifier: 'catalog:'
         version: 4.22.4
@@ -444,7 +444,7 @@ importers:
         version: 5.5.6(eslint-config-prettier@10.1.8(eslint@9.39.4(jiti@2.6.1)))(eslint@9.39.4(jiti@2.6.1))(prettier@3.8.3)
       tsup:
         specifier: 'catalog:'
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.22.4)(typescript@6.0.3)
+        version: 8.5.1(jiti@2.6.1)(postcss@8.5.21)(tsx@4.22.4)(typescript@6.0.3)
       tsx:
         specifier: 'catalog:'
         version: 4.22.4
@@ -565,7 +565,7 @@ importers:
         version: 7.3.11(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@mui/material-nextjs':
         specifier: 'catalog:'
-        version: 7.3.10(@emotion/cache@11.14.0)(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(next@16.3.0-preview.5(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
+        version: 7.3.10(@emotion/cache@11.14.0)(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(next@16.3.0-preview.7(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
       '@mui/x-date-pickers':
         specifier: 'catalog:'
         version: 8.28.7(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react@19.2.3))(@mui/material@7.3.11(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@mui/system@7.3.11(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(date-fns@4.4.0)(dayjs@1.11.21)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -592,7 +592,7 @@ importers:
         version: 11.16.0
       next:
         specifier: 'catalog:'
-        version: 16.3.0-preview.5(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 16.3.0-preview.7(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react:
         specifier: 'catalog:'
         version: 19.2.3
@@ -601,14 +601,14 @@ importers:
         version: 19.2.3(react@19.2.3)
       recharts:
         specifier: 'catalog:'
-        version: 3.8.1(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react-is@19.2.7)(react@19.2.3)(redux@5.0.1)
+        version: 3.8.1(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react-is@19.2.8)(react@19.2.3)(redux@5.0.1)
       tailwind-merge:
         specifier: 'catalog:'
         version: 2.6.1
     devDependencies:
       '@cypress/webpack-preprocessor':
         specifier: ^7.1.1
-        version: 7.1.1(@babel/core@7.29.0)(@babel/preset-env@7.29.7(@babel/core@7.29.0))(babel-loader@10.1.1(@babel/core@7.29.0)(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.20)))(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.20))
+        version: 7.1.1(@babel/core@7.29.0)(@babel/preset-env@7.29.7(@babel/core@7.29.0))(babel-loader@10.1.1(@babel/core@7.29.0)(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.21)))(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.21))
       '@smmachine/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -2840,60 +2840,60 @@ packages:
       '@nestjs/platform-express':
         optional: true
 
-  '@next/env@16.3.0-preview.5':
-    resolution: {integrity: sha512-XqdVR0utAWMsVc1OIyO48D32vrdmC4/uAgI3Ds088YlOO4vfGKXXVyvkGFkOZkOK0xg7bNYNfJAarX4A0tYqGg==}
+  '@next/env@16.3.0-preview.7':
+    resolution: {integrity: sha512-L4l37Q4lHtW7FuLUVBIGnjAdMDHLr307fRwePV4dLrwtMPM+jp7u+uUSqtNIT9d0xtaPn3a2UovTXBinaUTKiw==}
 
   '@next/eslint-plugin-next@16.1.1':
     resolution: {integrity: sha512-Ovb/6TuLKbE1UiPcg0p39Ke3puyTCIKN9hGbNItmpQsp+WX3qrjO3WaMVSi6JHr9X1NrmthqIguVHodMJbh/dw==}
 
-  '@next/swc-darwin-arm64@16.3.0-preview.5':
-    resolution: {integrity: sha512-PPWAJGoIkzVpz5hOD9V/qGNdkBuWj3QXhjQU8BQ1FXlMy6xsy4+aD/3UoasKy/HYInW4h1LqdQtDhiQkLYrrMA==}
+  '@next/swc-darwin-arm64@16.3.0-preview.7':
+    resolution: {integrity: sha512-3pcFoHJhDP3ZZka5SsxA4J4bdafJXfBb4WzJwLwq0Z8I/wSlHbYnOC1Jr7rEVG1gdNVDynvr7RbKqF/NTvdhQw==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [darwin]
 
-  '@next/swc-darwin-x64@16.3.0-preview.5':
-    resolution: {integrity: sha512-UPN/RS1H+kr9fgJrbFoH7bs1b9q2/G5cFe+uUf0nP4Hlgfl8NzfTBHEJKTfLAGqi1Qemwuyd29pvRy2vwEjL5g==}
+  '@next/swc-darwin-x64@16.3.0-preview.7':
+    resolution: {integrity: sha512-FOKCHUUOIe0YnuFwydNg4iaWFb3+sOyj+XvzkhTmxrGo9QRYHodwY9ULjMDPxmOa+jhbWhqoN+87ttJI+8g0TA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [darwin]
 
-  '@next/swc-linux-arm64-gnu@16.3.0-preview.5':
-    resolution: {integrity: sha512-kh+bKgk9ZIlmxMkEPnQZXtKc7/AyUyIS9jXgbKt4hWyxXEEZVDmXhiU2bh1zZpthMr/l09wz9z6CvfXtCWUJBA==}
+  '@next/swc-linux-arm64-gnu@16.3.0-preview.7':
+    resolution: {integrity: sha512-sq0vNgZjOLElKUhCRIJWmX+boSDn1Bhm69JzT5unp5he4t7JhIU094irHe5yceTMMyd7XitlBp5Huh7hMxlmWA==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@next/swc-linux-arm64-musl@16.3.0-preview.5':
-    resolution: {integrity: sha512-m09/acXFGhlp+U6m7Wn0AqsmLqars3qI9eBXDpPJm4h/XVS9HPHNzWGy2BI7F1iLoFX59Uy0tcau9ey7JVud3w==}
+  '@next/swc-linux-arm64-musl@16.3.0-preview.7':
+    resolution: {integrity: sha512-SXHJ2ORP6HSglvSRVgswO9wsR3b3kHRH+yV3zwwrpvAwafTsGqnREZNfzDuRF4TxWlw7AHl/fogPe3sbdLe4fQ==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@next/swc-linux-x64-gnu@16.3.0-preview.5':
-    resolution: {integrity: sha512-/EBiqRjLZJWJo6Keq9upJfhrP+tNpePy1beBfOL+tUn68inwNiJEjx+0Lgve99Zur8kSk9TgSmDmwgQxX4iM+g==}
+  '@next/swc-linux-x64-gnu@16.3.0-preview.7':
+    resolution: {integrity: sha512-Jo9yTcEFINkxBmVaW6xYksDKBDQijrMHlHbL8CHE2DGOWHbznEHfOjs6uoWLVhl+75Dry5x2MC5G92i+M4hBxQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@next/swc-linux-x64-musl@16.3.0-preview.5':
-    resolution: {integrity: sha512-lUCiPFoecSGkM8aeY6UAgQDiJjR3DhPsI036mznlHFg89ZLoeRdo521N4nmk6EpbPpNzRujgiboBkbuyexDgCg==}
+  '@next/swc-linux-x64-musl@16.3.0-preview.7':
+    resolution: {integrity: sha512-L7ukl/p/2//HR/nDd6U1JMHGazKGFMAHFKx9VTQHpNyip7Cgk6lD5+p0lzd0ckg5Q5cK7uLGQpMidqEtUYwYGg==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@next/swc-win32-arm64-msvc@16.3.0-preview.5':
-    resolution: {integrity: sha512-Nr4e3dRB86gElIgysL/L7dr9tuRLIq3looK8hLxnYDLUvLza2Tu/7Ik/X6DSRGejIrbZsYjnH3S4xYeAAf7Prw==}
+  '@next/swc-win32-arm64-msvc@16.3.0-preview.7':
+    resolution: {integrity: sha512-Z/cfDrEKWh+EwH4snaTxYiws6zHsz0VL4Jl+DG9XkR+SiyRT+DyTRB1pB6DamSMlQAbZkvqNwAya648uYkgEEA==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [win32]
 
-  '@next/swc-win32-x64-msvc@16.3.0-preview.5':
-    resolution: {integrity: sha512-Svg+VCRUbyNsBuh96hN+1ael8dNXqVQVZqOe9tqFlF4mUzIk5CQFcn5VsZPrz8GNP9HCxJfrfy3PM0cXoSXliw==}
+  '@next/swc-win32-x64-msvc@16.3.0-preview.7':
+    resolution: {integrity: sha512-WtkGrEmQIPiViZiQLo0OzMQj9psnNeGme40Y5IG6riUBP50zjYR7cMuFHkwPvF6i8iVtf0SxWWsVmxzb7ec8QQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
@@ -4790,13 +4790,8 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
 
-  baseline-browser-mapping@2.10.43:
-    resolution: {integrity: sha512-AjYpR78kDWAY3Efj+cDTFH9t9SCoL7OoTp1BOb0mQV7S+6CiLwnWM3FyxhJtdPufDFKzmCSFoUncKjWgJEZTCQ==}
-    engines: {node: '>=6.0.0'}
-    hasBin: true
-
-  baseline-browser-mapping@2.10.44:
-    resolution: {integrity: sha512-T3ghW+sl/ZJ8w1v/yQx3qvJ9040DWoLBz8JT/CILbAKcFyG9b2MRe75v6W5uXjv6uH1lumK2Kv46y2zSkcej0Q==}
+  baseline-browser-mapping@2.11.0:
+    resolution: {integrity: sha512-oCu2wfipvX3AePSgmOuKkIywOu+8n9psz7hXYmk56ghpu3+7KzNIBopaOs4c9BrtdnTtW30unG9GTfHo7EwERQ==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -4835,8 +4830,8 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
 
-  browserslist@4.28.6:
-    resolution: {integrity: sha512-FQBYNK15VMslhLHpA7+n+n1GOlF1kId2xcCg7/j95f24AOF6VDYMNH4mFxF7KuaTdv627faazpOAjFzMrfJOUw==}
+  browserslist@4.28.7:
+    resolution: {integrity: sha512-JxV13hNrFxqjOc8alRbq9dK1MM79NEXYpma2B2J4wAtpWS5zIEIKqWPGCl7N4o7Uc7B7itylh7SuDujATRyyTw==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
 
@@ -5455,8 +5450,8 @@ packages:
   electron-to-chromium@1.5.328:
     resolution: {integrity: sha512-QNQ5l45DzYytThO21403XN3FvK0hOkWDG8viNf6jqS42msJ8I4tGDSpBCgvDRRPnkffafiwAym2X2eHeGD2V0w==}
 
-  electron-to-chromium@1.5.393:
-    resolution: {integrity: sha512-kiDJdIUawuEIcp9XoICKp1iTYDEbgguIPq526N1Q7jIQDeQ3CqoMx71025PI/7E48Ddtw2HuWsVjY7afEgNxmg==}
+  electron-to-chromium@1.5.394:
+    resolution: {integrity: sha512-Wmt2Gm0o8JWBuGgmc4XZ0u9s1RaCRqhxP47phplmfg04+qypTUurpeJGP45A7Fhv7jdrrVH44PLlR9qXo37cVQ==}
 
   emittery@0.13.1:
     resolution: {integrity: sha512-DeWwawk6r5yR9jFgnDKYt4sLS0LmHJJi3ZOnb5/JdbYwj3nW+FxQnHIjhBKz8YLC7oRNPVM9NQ47I3CVx34eqQ==}
@@ -7265,8 +7260,8 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  next@16.3.0-preview.5:
-    resolution: {integrity: sha512-I5rVC4VcvAL1FPr6AY5WEQUSe6o1Bt0Oa/qH5hfPhci4FRMCPeAQ95tgxFOgJDk2wME1K009k0bjS17nQ0Bq1w==}
+  next@16.3.0-preview.7:
+    resolution: {integrity: sha512-YHCUQr9YX8qFYvcgXehf0GZXF58H6+F8F6Jnmz+ZFkbZbAFy6U5EekxGPVwVpsY35DNkOdwoxSBlhdwHZMPfFQ==}
     engines: {node: '>=20.9.0'}
     hasBin: true
     peerDependencies:
@@ -7552,8 +7547,8 @@ packages:
     resolution: {integrity: sha512-SoSL4+OSEtR99LHFZQiJLkT59C5B1amGO1NzTwj7TT1qCUgUO6hxOvzkOYxD+vMrXBM3XJIKzokoERdqQq/Zmg==}
     engines: {node: ^10 || ^12 || >=14}
 
-  postcss@8.5.20:
-    resolution: {integrity: sha512-lW616l85ucIQL+FocMmL7pQFPqBmwejrCMg+iPxyImlrANNJG9NHq/RkyCZopDhd8C3LA03PHRJDjkbGu8vvug==}
+  postcss@8.5.21:
+    resolution: {integrity: sha512-v4sDNP3fdNiWMfabO7OwOQdOX8TiQSztKyT1Wj0w+j7LDallJThJRBBBmzVGyYj0crMh7jlV4zepPkiNu9UwDQ==}
     engines: {node: ^10 || ^12 || >=14}
 
   prelude-ls@1.2.1:
@@ -7660,6 +7655,9 @@ packages:
   react-is@19.2.7:
     resolution: {integrity: sha512-kZFnouyVv7eP/Phmrlo9FK+zcAdriZJvzxXHF1Sl1P377WSGe2G/JxVolhTrB/jeV47lKImhNUsijjHAAbcl/A==}
 
+  react-is@19.2.8:
+    resolution: {integrity: sha512-s5un28nYxKJw5gvUHyW5PCC28CvBqLu9r3cWgzHT4Vo/5fqqkFcdRYsGcKf50WMPpjjFZS5d76fn3YCo2njKwQ==}
+
   react-redux@9.3.0:
     resolution: {integrity: sha512-KQopgqFo/p/fgmAs5qz6p5RWaNAzq40WAu7fJIXnQpYxFPbJYtsJPWvGeF2rOBaY/kEuV77AVsX8TsQzKm+A/g==}
     peerDependencies:
@@ -7690,16 +7688,16 @@ packages:
     resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
     engines: {node: '>= 14.18.0'}
 
-  recharts@3.8.1:
-    resolution: {integrity: sha512-mwzmO1s9sFL0TduUpwndxCUNoXsBw3u3E/0+A+cLcrSfQitSG62L32N69GhqUrrT5qKcAE3pCGVINC6pqkBBQg==}
+  recharts@3.10.0:
+    resolution: {integrity: sha512-wulMvfncpIlmu2uFtRU/mE5/+NiVtASXkw2KdwJTdHs3WsASX0WxZlX+rpKgyn5BDbIhkPtCpUKkB9XNK5KE0w==}
     engines: {node: '>=18'}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-is: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
-  recharts@3.9.2:
-    resolution: {integrity: sha512-G4fy+Pk46RaXgwWMh+Nzhyo/lbFAVqXo9gtetlyehe6Ehge9CsgDuOTwQDD+i1+llaLktNBiNq4bhnGlDRXFtw==}
+  recharts@3.8.1:
+    resolution: {integrity: sha512-mwzmO1s9sFL0TduUpwndxCUNoXsBw3u3E/0+A+cLcrSfQitSG62L32N69GhqUrrT5qKcAE3pCGVINC6pqkBBQg==}
     engines: {node: '>=18'}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
@@ -9041,7 +9039,7 @@ snapshots:
     dependencies:
       '@babel/compat-data': 7.29.7
       '@babel/helper-validator-option': 7.29.7
-      browserslist: 4.28.6
+      browserslist: 4.28.7
       lru-cache: 5.1.1
       semver: 6.3.1
 
@@ -9826,16 +9824,16 @@ snapshots:
       tough-cookie: 5.1.2
       tunnel-agent: 0.6.0
 
-  '@cypress/webpack-preprocessor@7.1.1(@babel/core@7.29.0)(@babel/preset-env@7.29.7(@babel/core@7.29.0))(babel-loader@10.1.1(@babel/core@7.29.0)(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.20)))(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.20))':
+  '@cypress/webpack-preprocessor@7.1.1(@babel/core@7.29.0)(@babel/preset-env@7.29.7(@babel/core@7.29.0))(babel-loader@10.1.1(@babel/core@7.29.0)(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.21)))(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.21))':
     dependencies:
       '@babel/core': 7.29.0
       '@babel/preset-env': 7.29.7(@babel/core@7.29.0)
-      babel-loader: 10.1.1(@babel/core@7.29.0)(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.20))
+      babel-loader: 10.1.1(@babel/core@7.29.0)(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.21))
       bluebird: 3.7.1
       debug: 4.4.3(supports-color@8.1.1)
       lodash: 4.17.21
       semver: 7.8.5
-      webpack: 5.108.4(esbuild@0.27.7)(postcss@8.5.20)
+      webpack: 5.108.4(esbuild@0.27.7)(postcss@8.5.21)
     transitivePeerDependencies:
       - supports-color
 
@@ -10969,11 +10967,11 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.14
 
-  '@mui/material-nextjs@7.3.10(@emotion/cache@11.14.0)(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(next@16.3.0-preview.5(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)':
+  '@mui/material-nextjs@7.3.10(@emotion/cache@11.14.0)(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.3))(@types/react@19.2.14)(next@16.3.0-preview.7(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)':
     dependencies:
       '@babel/runtime': 7.29.7
       '@emotion/react': 11.14.0(@types/react@19.2.14)(react@19.2.3)
-      next: 16.3.0-preview.5(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      next: 16.3.0-preview.7(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react: 19.2.3
     optionalDependencies:
       '@emotion/cache': 11.14.0
@@ -10993,7 +10991,7 @@ snapshots:
       prop-types: 15.8.1
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
-      react-is: 19.2.7
+      react-is: 19.2.8
       react-transition-group: 4.4.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
     optionalDependencies:
       '@emotion/react': 11.14.0(@types/react@19.2.14)(react@19.2.3)
@@ -11205,34 +11203,34 @@ snapshots:
     optionalDependencies:
       '@nestjs/platform-express': 10.4.22(@nestjs/common@10.4.22(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@10.4.22)
 
-  '@next/env@16.3.0-preview.5': {}
+  '@next/env@16.3.0-preview.7': {}
 
   '@next/eslint-plugin-next@16.1.1':
     dependencies:
       fast-glob: 3.3.1
 
-  '@next/swc-darwin-arm64@16.3.0-preview.5':
+  '@next/swc-darwin-arm64@16.3.0-preview.7':
     optional: true
 
-  '@next/swc-darwin-x64@16.3.0-preview.5':
+  '@next/swc-darwin-x64@16.3.0-preview.7':
     optional: true
 
-  '@next/swc-linux-arm64-gnu@16.3.0-preview.5':
+  '@next/swc-linux-arm64-gnu@16.3.0-preview.7':
     optional: true
 
-  '@next/swc-linux-arm64-musl@16.3.0-preview.5':
+  '@next/swc-linux-arm64-musl@16.3.0-preview.7':
     optional: true
 
-  '@next/swc-linux-x64-gnu@16.3.0-preview.5':
+  '@next/swc-linux-x64-gnu@16.3.0-preview.7':
     optional: true
 
-  '@next/swc-linux-x64-musl@16.3.0-preview.5':
+  '@next/swc-linux-x64-musl@16.3.0-preview.7':
     optional: true
 
-  '@next/swc-win32-arm64-msvc@16.3.0-preview.5':
+  '@next/swc-win32-arm64-msvc@16.3.0-preview.7':
     optional: true
 
-  '@next/swc-win32-x64-msvc@16.3.0-preview.5':
+  '@next/swc-win32-x64-msvc@16.3.0-preview.7':
     optional: true
 
   '@noble/hashes@1.8.0': {}
@@ -13110,12 +13108,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  babel-loader@10.1.1(@babel/core@7.29.0)(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.20)):
+  babel-loader@10.1.1(@babel/core@7.29.0)(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.21)):
     dependencies:
       '@babel/core': 7.29.0
       find-up: 5.0.0
     optionalDependencies:
-      webpack: 5.108.4(esbuild@0.27.7)(postcss@8.5.20)
+      webpack: 5.108.4(esbuild@0.27.7)(postcss@8.5.21)
 
   babel-plugin-istanbul@6.1.1:
     dependencies:
@@ -13221,9 +13219,7 @@ snapshots:
 
   baseline-browser-mapping@2.10.29: {}
 
-  baseline-browser-mapping@2.10.43: {}
-
-  baseline-browser-mapping@2.10.44: {}
+  baseline-browser-mapping@2.11.0: {}
 
   bcrypt-pbkdf@1.0.2:
     dependencies:
@@ -13277,13 +13273,13 @@ snapshots:
       node-releases: 2.0.36
       update-browserslist-db: 1.2.3(browserslist@4.28.1)
 
-  browserslist@4.28.6:
+  browserslist@4.28.7:
     dependencies:
-      baseline-browser-mapping: 2.10.44
+      baseline-browser-mapping: 2.11.0
       caniuse-lite: 1.0.30001806
-      electron-to-chromium: 1.5.393
+      electron-to-chromium: 1.5.394
       node-releases: 2.0.51
-      update-browserslist-db: 1.2.3(browserslist@4.28.6)
+      update-browserslist-db: 1.2.3(browserslist@4.28.7)
 
   bs-logger@0.2.6:
     dependencies:
@@ -13491,7 +13487,7 @@ snapshots:
 
   core-js-compat@3.49.0:
     dependencies:
-      browserslist: 4.28.6
+      browserslist: 4.28.7
 
   core-util-is@1.0.2: {}
 
@@ -13927,7 +13923,7 @@ snapshots:
 
   electron-to-chromium@1.5.328: {}
 
-  electron-to-chromium@1.5.393: {}
+  electron-to-chromium@1.5.394: {}
 
   emittery@0.13.1: {}
 
@@ -16255,16 +16251,16 @@ snapshots:
 
   minimist@1.2.8: {}
 
-  minimizer-webpack-plugin@5.6.1(esbuild@0.27.7)(postcss@8.5.20)(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.20)):
+  minimizer-webpack-plugin@5.6.1(esbuild@0.27.7)(postcss@8.5.21)(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.21)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
       schema-utils: 4.3.3
       terser: 5.49.0
-      webpack: 5.108.4(esbuild@0.27.7)(postcss@8.5.20)
+      webpack: 5.108.4(esbuild@0.27.7)(postcss@8.5.21)
     optionalDependencies:
       esbuild: 0.27.7
-      postcss: 8.5.20
+      postcss: 8.5.21
 
   minipass@7.1.3: {}
 
@@ -16390,25 +16386,25 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  next@16.3.0-preview.5(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+  next@16.3.0-preview.7(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
     dependencies:
-      '@next/env': 16.3.0-preview.5
+      '@next/env': 16.3.0-preview.7
       '@swc/helpers': 0.5.15
-      baseline-browser-mapping: 2.10.43
+      baseline-browser-mapping: 2.11.0
       caniuse-lite: 1.0.30001806
       postcss: 8.5.10
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
       styled-jsx: 5.1.6(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(react@19.2.3)
     optionalDependencies:
-      '@next/swc-darwin-arm64': 16.3.0-preview.5
-      '@next/swc-darwin-x64': 16.3.0-preview.5
-      '@next/swc-linux-arm64-gnu': 16.3.0-preview.5
-      '@next/swc-linux-arm64-musl': 16.3.0-preview.5
-      '@next/swc-linux-x64-gnu': 16.3.0-preview.5
-      '@next/swc-linux-x64-musl': 16.3.0-preview.5
-      '@next/swc-win32-arm64-msvc': 16.3.0-preview.5
-      '@next/swc-win32-x64-msvc': 16.3.0-preview.5
+      '@next/swc-darwin-arm64': 16.3.0-preview.7
+      '@next/swc-darwin-x64': 16.3.0-preview.7
+      '@next/swc-linux-arm64-gnu': 16.3.0-preview.7
+      '@next/swc-linux-arm64-musl': 16.3.0-preview.7
+      '@next/swc-linux-x64-gnu': 16.3.0-preview.7
+      '@next/swc-linux-x64-musl': 16.3.0-preview.7
+      '@next/swc-win32-arm64-msvc': 16.3.0-preview.7
+      '@next/swc-win32-x64-msvc': 16.3.0-preview.7
       babel-plugin-react-compiler: 1.0.0
       sharp: 0.34.5
     transitivePeerDependencies:
@@ -16638,20 +16634,20 @@ snapshots:
 
   possible-typed-array-names@1.1.0: {}
 
-  postcss-load-config@6.0.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.22.4):
+  postcss-load-config@6.0.1(jiti@2.6.1)(postcss@8.5.21)(tsx@4.22.4):
     dependencies:
       lilconfig: 3.1.3
     optionalDependencies:
       jiti: 2.6.1
-      postcss: 8.5.20
+      postcss: 8.5.21
       tsx: 4.22.4
 
-  postcss-load-config@6.0.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.23.1):
+  postcss-load-config@6.0.1(jiti@2.6.1)(postcss@8.5.21)(tsx@4.23.1):
     dependencies:
       lilconfig: 3.1.3
     optionalDependencies:
       jiti: 2.6.1
-      postcss: 8.5.20
+      postcss: 8.5.21
       tsx: 4.23.1
 
   postcss@8.5.10:
@@ -16666,7 +16662,7 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  postcss@8.5.20:
+  postcss@8.5.21:
     dependencies:
       nanoid: 3.3.16
       picocolors: 1.1.1
@@ -16770,6 +16766,8 @@ snapshots:
 
   react-is@19.2.7: {}
 
+  react-is@19.2.8: {}
+
   react-redux@9.3.0(@types/react@19.2.14)(react@19.2.3)(redux@5.0.1):
     dependencies:
       '@types/use-sync-external-store': 0.0.6
@@ -16798,27 +16796,7 @@ snapshots:
 
   readdirp@4.1.2: {}
 
-  recharts@3.8.1(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react-is@19.2.7)(react@19.2.3)(redux@5.0.1):
-    dependencies:
-      '@reduxjs/toolkit': 2.12.0(react-redux@9.3.0(@types/react@19.2.14)(react@19.2.3)(redux@5.0.1))(react@19.2.3)
-      clsx: 2.1.1
-      decimal.js-light: 2.5.1
-      es-toolkit: 1.47.0
-      eventemitter3: 5.0.4
-      immer: 10.2.0
-      react: 19.2.3
-      react-dom: 19.2.3(react@19.2.3)
-      react-is: 19.2.7
-      react-redux: 9.3.0(@types/react@19.2.14)(react@19.2.3)(redux@5.0.1)
-      reselect: 5.1.1
-      tiny-invariant: 1.3.3
-      use-sync-external-store: 1.6.0(react@19.2.3)
-      victory-vendor: 37.3.6
-    transitivePeerDependencies:
-      - '@types/react'
-      - redux
-
-  recharts@3.9.2(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react-is@19.2.7)(react@19.2.3)(redux@5.0.1):
+  recharts@3.10.0(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react-is@19.2.8)(react@19.2.3)(redux@5.0.1):
     dependencies:
       '@reduxjs/toolkit': 2.12.0(react-redux@9.3.0(@types/react@19.2.14)(react@19.2.3)(redux@5.0.1))(react@19.2.3)
       clsx: 2.1.1
@@ -16828,9 +16806,29 @@ snapshots:
       immer: 11.1.15
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
-      react-is: 19.2.7
+      react-is: 19.2.8
       react-redux: 9.3.0(@types/react@19.2.14)(react@19.2.3)(redux@5.0.1)
       reselect: 5.2.0
+      tiny-invariant: 1.3.3
+      use-sync-external-store: 1.6.0(react@19.2.3)
+      victory-vendor: 37.3.6
+    transitivePeerDependencies:
+      - '@types/react'
+      - redux
+
+  recharts@3.8.1(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react-is@19.2.8)(react@19.2.3)(redux@5.0.1):
+    dependencies:
+      '@reduxjs/toolkit': 2.12.0(react-redux@9.3.0(@types/react@19.2.14)(react@19.2.3)(redux@5.0.1))(react@19.2.3)
+      clsx: 2.1.1
+      decimal.js-light: 2.5.1
+      es-toolkit: 1.47.0
+      eventemitter3: 5.0.4
+      immer: 10.2.0
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+      react-is: 19.2.8
+      react-redux: 9.3.0(@types/react@19.2.14)(react@19.2.3)(redux@5.0.1)
+      reselect: 5.1.1
       tiny-invariant: 1.3.3
       use-sync-external-store: 1.6.0(react@19.2.3)
       victory-vendor: 37.3.6
@@ -17663,7 +17661,7 @@ snapshots:
 
   tslib@2.8.1: {}
 
-  tsup@8.5.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.22.4)(typescript@6.0.3):
+  tsup@8.5.1(jiti@2.6.1)(postcss@8.5.21)(tsx@4.22.4)(typescript@6.0.3):
     dependencies:
       bundle-require: 5.1.0(esbuild@0.27.7)
       cac: 6.7.14
@@ -17674,7 +17672,7 @@ snapshots:
       fix-dts-default-cjs-exports: 1.0.1
       joycon: 3.1.1
       picocolors: 1.1.1
-      postcss-load-config: 6.0.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.22.4)
+      postcss-load-config: 6.0.1(jiti@2.6.1)(postcss@8.5.21)(tsx@4.22.4)
       resolve-from: 5.0.0
       rollup: 4.62.2
       source-map: 0.7.6
@@ -17683,7 +17681,7 @@ snapshots:
       tinyglobby: 0.2.17
       tree-kill: 1.2.2
     optionalDependencies:
-      postcss: 8.5.20
+      postcss: 8.5.21
       typescript: 6.0.3
     transitivePeerDependencies:
       - jiti
@@ -17691,7 +17689,7 @@ snapshots:
       - tsx
       - yaml
 
-  tsup@8.5.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.23.1)(typescript@6.0.3):
+  tsup@8.5.1(jiti@2.6.1)(postcss@8.5.21)(tsx@4.23.1)(typescript@6.0.3):
     dependencies:
       bundle-require: 5.1.0(esbuild@0.27.7)
       cac: 6.7.14
@@ -17702,7 +17700,7 @@ snapshots:
       fix-dts-default-cjs-exports: 1.0.1
       joycon: 3.1.1
       picocolors: 1.1.1
-      postcss-load-config: 6.0.1(jiti@2.6.1)(postcss@8.5.20)(tsx@4.23.1)
+      postcss-load-config: 6.0.1(jiti@2.6.1)(postcss@8.5.21)(tsx@4.23.1)
       resolve-from: 5.0.0
       rollup: 4.62.2
       source-map: 0.7.6
@@ -17711,7 +17709,7 @@ snapshots:
       tinyglobby: 0.2.17
       tree-kill: 1.2.2
     optionalDependencies:
-      postcss: 8.5.20
+      postcss: 8.5.21
       typescript: 6.0.3
     transitivePeerDependencies:
       - jiti
@@ -17886,9 +17884,9 @@ snapshots:
       escalade: 3.2.0
       picocolors: 1.1.1
 
-  update-browserslist-db@1.2.3(browserslist@4.28.6):
+  update-browserslist-db@1.2.3(browserslist@4.28.7):
     dependencies:
-      browserslist: 4.28.6
+      browserslist: 4.28.7
       escalade: 3.2.0
       picocolors: 1.1.1
 
@@ -17945,7 +17943,7 @@ snapshots:
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.5
-      postcss: 8.5.20
+      postcss: 8.5.21
       rolldown: 1.0.0-rc.12(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.2)
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -17963,7 +17961,7 @@ snapshots:
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.5
-      postcss: 8.5.20
+      postcss: 8.5.21
       rolldown: 1.0.0-rc.12(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.2)
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -17981,7 +17979,7 @@ snapshots:
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.5
-      postcss: 8.5.20
+      postcss: 8.5.21
       rolldown: 1.0.0-rc.12(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.2)
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -17999,7 +17997,7 @@ snapshots:
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.5
-      postcss: 8.5.20
+      postcss: 8.5.21
       rolldown: 1.0.0-rc.12(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.2)
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -18149,7 +18147,7 @@ snapshots:
 
   webpack-sources@3.5.1: {}
 
-  webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.20):
+  webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.21):
     dependencies:
       '@types/estree': 1.0.9
       '@types/json-schema': 7.0.15
@@ -18158,7 +18156,7 @@ snapshots:
       '@webassemblyjs/wasm-parser': 1.14.1
       acorn: 8.17.0
       acorn-import-phases: 1.0.4(acorn@8.17.0)
-      browserslist: 4.28.6
+      browserslist: 4.28.7
       chrome-trace-event: 1.0.4
       enhanced-resolve: 5.24.3
       es-module-lexer: 2.3.1
@@ -18167,7 +18165,7 @@ snapshots:
       graceful-fs: 4.2.11
       loader-runner: 4.3.2
       mime-db: 1.54.0
-      minimizer-webpack-plugin: 5.6.1(esbuild@0.27.7)(postcss@8.5.20)(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.20))
+      minimizer-webpack-plugin: 5.6.1(esbuild@0.27.7)(postcss@8.5.21)(webpack@5.108.4(esbuild@0.27.7)(postcss@8.5.21))
       neo-async: 2.6.2
       schema-utils: 4.3.3
       tapable: 2.3.3
