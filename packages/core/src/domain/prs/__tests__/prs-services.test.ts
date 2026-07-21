@@ -234,8 +234,10 @@ describe('PRsService', () => {
     const metrics = await prsService.getMetricsByWeek();
 
     expect(metrics).toEqual([
-      expect.objectContaining({ period: '2024-W53', count: 1, averageOpenDays: 2 }),
+      // 2025-01-03 (Fri) is in ISO week 2025-W01 (the week containing Jan 4th);
+      // 2025-01-08 (Wed) is in ISO week 2025-W02.
       expect.objectContaining({ period: '2025-W01', count: 1, averageOpenDays: 2 }),
+      expect.objectContaining({ period: '2025-W02', count: 1, averageOpenDays: 2 }),
     ]);
   });
 

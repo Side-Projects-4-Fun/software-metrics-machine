@@ -40,6 +40,10 @@ export class TimeZoneProvider {
 
   /**
    * Returns the ISO-8601 week key "YYYY-Www" for a date in the configured timezone.
+   *
+   * Uses the official ISO 8601 definition: the ISO year is the calendar year of
+   * the Thursday of the current week, and the week number is counted from the
+   * Monday of week 1 (the week containing January 4th).
    */
   getWeekKey(date: string | Date): string {
     const d = typeof date === 'string' ? new Date(date) : date;
@@ -50,21 +54,27 @@ export class TimeZoneProvider {
 
     // Reconstruct a UTC date from the timezone-local components so that
     // the ISO-week calculation below operates on the correct calendar day.
+    // Noon is used to avoid DST boundary issues.
     const localUtc = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
 
-    // ISO week calculation (same algorithm used elsewhere in the codebase)
-    const temp = new Date(localUtc);
-    const dayOfWeek = temp.getUTCDay();
-    const diff = temp.getUTCDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-    const firstDay = new Date(temp.setUTCDate(diff));
+    // ISO weeks start on Monday. Find the Monday of the current ISO week.
+    const dayOfWeek = localUtc.getUTCDay(); // 0 = Sunday ... 6 = Saturday
+    const monday = new Date(localUtc);
+    monday.setUTCDate(localUtc.getUTCDate() - ((dayOfWeek + 6) % 7));
 
-    const week = Math.ceil(
-      (firstDay.getTime() - new Date(Date.UTC(firstDay.getUTCFullYear(), 0, 1)).getTime()) /
-        604800000
-    );
-    const isoYear = firstDay.getUTCFullYear();
+    // The ISO year is determined by the Thursday of the current week.
+    const thursday = new Date(monday);
+    thursday.setUTCDate(monday.getUTCDate() + 3);
+    const isoYear = thursday.getUTCFullYear();
 
-    return `${isoYear}-W${String(week).padStart(2, '0')}`;
+    // January 4th is always in ISO week 1. Find the Monday of week 1.
+    const jan4 = new Date(Date.UTC(isoYear, 0, 4, 12, 0, 0));
+    const week1Monday = new Date(jan4);
+    week1Monday.setUTCDate(jan4.getUTCDate() - ((jan4.getUTCDay() + 6) % 7));
+
+    const weekNumber = Math.floor((monday.getTime() - week1Monday.getTime()) / 604800000) + 1;
+
+    return `${isoYear}-W${String(weekNumber).padStart(2, '0')}`;
   }
 
   // ---------------------------------------------------------------------------

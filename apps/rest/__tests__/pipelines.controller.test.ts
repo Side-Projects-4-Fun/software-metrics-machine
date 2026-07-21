@@ -61,7 +61,10 @@ describe('PipelinesController', () => {
 
     const result = await controller.runsBy(undefined, {});
 
-    expect(result).toEqual([{ period: '2026-W01', workflow: 'ci.yml', runs: 2 }]);
+    // 2026-01-05 (Mon) and 2026-01-06 (Tue) both fall in ISO week 2026-W02:
+    // week 1 of 2026 contains 2026-01-01 (the first Thursday), so week 2 starts
+    // on Monday 2026-01-05.
+    expect(result).toEqual([{ period: '2026-W02', workflow: 'ci.yml', runs: 2 }]);
   });
 
   it('aggregates by month when aggregate_by is month', async () => {

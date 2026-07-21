@@ -123,7 +123,9 @@ describe('PipelinesService behavior', () => {
 
     const frequency = await service.getDeploymentFrequency('week');
 
-    expect(frequency).toEqual([{ period: '2024-W53', count: 2 }]);
+    // 2025-01-01 (Wed) and 2025-01-03 (Fri) both fall in ISO week 2025-W01,
+    // which is the week containing January 4th.
+    expect(frequency).toEqual([{ period: '2025-W01', count: 2 }]);
   });
 
   it('aggregates deployment frequency by month', async () => {
