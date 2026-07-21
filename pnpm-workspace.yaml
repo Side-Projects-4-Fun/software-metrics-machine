@@ -3,6 +3,7 @@ packages:
   - 'apps/*'
 
 catalog:
+  '@cypress/webpack-preprocessor': ^7.1.1
   '@emotion/cache': ^11.14.0
   '@emotion/react': ^11.14.0
   '@emotion/styled': ^11.14.1
@@ -32,6 +33,7 @@ catalog:
   '@typescript-eslint/parser': ^8.65.0
   '@vitest/coverage-v8': ^4.1.10
   axios: ^1.18.1
+  babel-plugin-react-compiler: ^1.0.0
   chalk: ^5.6.2
   class-transformer: ^0.5.1
   class-validator: ^0.14.4
@@ -39,13 +41,19 @@ catalog:
   clsx: ^2.1.1
   commander: ^14.0.3
   concurrently: ^9.2.4
+  cypress: ^15.18.1
   date-fns: ^4.4.0
   dayjs: ^1.11.21
+  dependency-cruiser: ^17.4.3
   eslint: ^9.39.5
   eslint-config-next: 16.1.1
   eslint-config-prettier: ^10.1.8
   eslint-plugin-prettier: ^5.5.6
+  husky: ^9.1.7
   inquirer: ^13.4.3
+  jest: ^30.2.0
+  jest-environment-jsdom: ^30.2.0
+  mermaid: ^11.16.0
   msw: ^2.14.6
   next: 16.3.0-preview.7
   ora: ^9.4.1
@@ -53,11 +61,14 @@ catalog:
   react-dom: 19.2.3
   recharts: ^3.10.0
   reflect-metadata: ^0.1.14
+  rimraf: ^6.1.3
   rxjs: ^7.8.2
+  sqlite: ^5.1.1
   supertest: ^6.3.3
   swagger-ui-express: ^5.0.1
   tailwind-merge: ^2.6.1
   tailwindcss: ^4
+  ts-jest: ^29.1.0
   ts-node: ^10.9.2
   tsconfig-paths: ^4.2.0
   tsup: ^8.5.1
