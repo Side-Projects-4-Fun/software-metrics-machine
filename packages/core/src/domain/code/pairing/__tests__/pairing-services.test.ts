@@ -36,9 +36,11 @@ describe('PairingService', () => {
   it('should calculate pairing index correctly', async () => {
     const result = await pairingService.getPairingIndex();
 
-    expect(result.totalAnalyzedCommits).toBeGreaterThan(0);
-    expect(result.pairingIndexPercentage).toBeGreaterThanOrEqual(0);
-    expect(result.pairingIndexPercentage).toBeLessThanOrEqual(100);
+    expect(result.totalAnalyzedCommits).toBe(2);
+    expect(result.pairedCommits).toBe(2);
+    expect(result.pairingIndexPercentage).toBe(100);
+    expect(result.topPairings).toEqual([]);
+    expect(result.latestPairedCommits).toEqual([]);
   });
 
   it('should return 0 for pairing index when no commits', async () => {
@@ -59,8 +61,9 @@ describe('PairingService', () => {
       selectedAuthors: ['Alice'],
     });
 
-    expect(result).toBeDefined();
-    expect(typeof result.pairingIndexPercentage).toBe('number');
+    expect(result.totalAnalyzedCommits).toBe(1);
+    expect(result.pairedCommits).toBe(1);
+    expect(result.pairingIndexPercentage).toBe(100);
   });
 
   it('should filter commits by exclude authors', async () => {
@@ -68,8 +71,9 @@ describe('PairingService', () => {
       excludeAuthors: 'Bob',
     });
 
-    expect(result).toBeDefined();
-    expect(result.totalAnalyzedCommits).toBeGreaterThanOrEqual(0);
+    expect(result.totalAnalyzedCommits).toBe(1);
+    expect(result.pairedCommits).toBe(1);
+    expect(result.pairingIndexPercentage).toBe(100);
   });
 
   it('should round pairing index to 2 decimal places', async () => {

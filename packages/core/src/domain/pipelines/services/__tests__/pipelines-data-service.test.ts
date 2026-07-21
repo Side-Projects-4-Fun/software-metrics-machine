@@ -67,26 +67,26 @@ describe('PipelinesDataService', () => {
   }
 
   beforeEach(() => {
-    const now = new Date();
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
-
     runs = [
       new PipelineRunBuilder()
+        .withId('success-run')
         .withNumber(1)
         .withStatus('completed')
         .withConclusion('success')
-        .withCreatedAt(oneWeekAgo.toISOString())
-        .withStartedAt(oneWeekAgo.toISOString())
-        .withCompletedAt(twoDaysAgo.toISOString())
+        .withCreatedAt('2025-01-01T10:00:00Z')
+        .withStartedAt('2025-01-01T10:00:00Z')
+        .withCompletedAt('2025-01-01T10:15:00Z')
         .withBranch('main')
         .build(),
       new PipelineRunBuilder()
+        .withId('failure-run')
         .withNumber(2)
         .withStatus('completed')
         .withConclusion('failure')
-        .withCreatedAt(new Date().toISOString())
-        .withStartedAt(new Date().toISOString())
+        .withCreatedAt('2025-01-02T10:00:00Z')
+        .withStartedAt('2025-01-02T10:00:00Z')
+        .withCompletedAt('2025-01-02T10:20:00Z')
+        .withBranch('develop')
         .withConclusion('failure')
         .build(),
     ];
@@ -97,55 +97,174 @@ describe('PipelinesDataService', () => {
   it('should calculate overall metrics', async () => {
     const metrics = await dataService.getMetrics();
 
-    expect(metrics.totalRuns).toBeGreaterThan(0);
-    expect(metrics.successfulRuns).toBeGreaterThanOrEqual(0);
-    expect(metrics.failedRuns).toBeGreaterThanOrEqual(0);
-    expect(metrics.successRate).toBeGreaterThanOrEqual(0);
-    expect(metrics.successRate).toBeLessThanOrEqual(100);
+    expect(metrics.totalRuns).toBe(2);
+    expect(metrics.successfulRuns).toBe(1);
+    expect(metrics.failedRuns).toBe(1);
+    expect(metrics.successRate).toBe(50);
+    expect(metrics.averageDurationMinutes).toBe(0);
   });
 
   it('should get deployment frequency by day', async () => {
+    dataService = new PipelinesDataService(
+      [
+        buildDeployRun({
+          id: 'deploy-1',
+          number: 1,
+          createdAt: '2025-01-01T08:00:00Z',
+          updatedAt: '2025-01-01T08:15:00Z',
+          path: '.github/workflows/release.yml',
+          jobId: 'job-1',
+          jobName: 'deploy-production',
+          jobStartedAt: '2025-01-01T08:05:00Z',
+          jobCompletedAt: '2025-01-01T08:15:00Z',
+        }),
+        buildDeployRun({
+          id: 'deploy-3',
+          number: 2,
+          createdAt: '2025-01-03T08:00:00Z',
+          updatedAt: '2025-01-03T08:15:00Z',
+          path: '.github/workflows/release.yml',
+          jobId: 'job-3',
+          jobName: 'deploy-production',
+          jobStartedAt: '2025-01-03T08:05:00Z',
+          jobCompletedAt: '2025-01-03T08:15:00Z',
+        }),
+      ],
+      [{ pipeline: '.github/workflows/release.yml', job: 'deploy-production' }],
+      logger,
+      new TimeZoneProvider('UTC')
+    );
+
     const freq = await dataService.getDeploymentFrequency('day');
 
-    expect(Array.isArray(freq)).toBe(true);
-    for (const day of freq) {
-      expect(day.period).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-      expect(day.count).toBeGreaterThanOrEqual(0);
-    }
+    expect(freq).toEqual([
+      { period: '2025-01-01', count: 1 },
+      { period: '2025-01-02', count: 0 },
+      { period: '2025-01-03', count: 1 },
+    ]);
   });
 
   it('should get deployment frequency by week', async () => {
+    dataService = new PipelinesDataService(
+      [
+        buildDeployRun({
+          id: 'deploy-1',
+          number: 1,
+          createdAt: '2025-01-01T08:00:00Z',
+          updatedAt: '2025-01-01T08:15:00Z',
+          path: '.github/workflows/release.yml',
+          jobId: 'job-1',
+          jobName: 'deploy-production',
+          jobStartedAt: '2025-01-01T08:05:00Z',
+          jobCompletedAt: '2025-01-01T08:15:00Z',
+        }),
+        buildDeployRun({
+          id: 'deploy-3',
+          number: 2,
+          createdAt: '2025-01-03T08:00:00Z',
+          updatedAt: '2025-01-03T08:15:00Z',
+          path: '.github/workflows/release.yml',
+          jobId: 'job-3',
+          jobName: 'deploy-production',
+          jobStartedAt: '2025-01-03T08:05:00Z',
+          jobCompletedAt: '2025-01-03T08:15:00Z',
+        }),
+      ],
+      [{ pipeline: '.github/workflows/release.yml', job: 'deploy-production' }],
+      logger,
+      new TimeZoneProvider('UTC')
+    );
+
     const freq = await dataService.getDeploymentFrequency('week');
 
-    expect(Array.isArray(freq)).toBe(true);
-    for (const week of freq) {
-      expect(week.period).toMatch(/^\d{4}-W\d{2}$/);
-      expect(week.count).toBeGreaterThanOrEqual(0);
-    }
+    expect(freq).toEqual([{ period: '2024-W53', count: 2 }]);
   });
 
   it('should get deployment frequency by month', async () => {
+    dataService = new PipelinesDataService(
+      [
+        buildDeployRun({
+          id: 'deploy-1',
+          number: 1,
+          createdAt: '2025-01-01T08:00:00Z',
+          updatedAt: '2025-01-01T08:15:00Z',
+          path: '.github/workflows/release.yml',
+          jobId: 'job-1',
+          jobName: 'deploy-production',
+          jobStartedAt: '2025-01-01T08:05:00Z',
+          jobCompletedAt: '2025-01-01T08:15:00Z',
+        }),
+        buildDeployRun({
+          id: 'deploy-3',
+          number: 2,
+          createdAt: '2025-01-03T08:00:00Z',
+          updatedAt: '2025-01-03T08:15:00Z',
+          path: '.github/workflows/release.yml',
+          jobId: 'job-3',
+          jobName: 'deploy-production',
+          jobStartedAt: '2025-01-03T08:05:00Z',
+          jobCompletedAt: '2025-01-03T08:15:00Z',
+        }),
+      ],
+      [{ pipeline: '.github/workflows/release.yml', job: 'deploy-production' }],
+      logger,
+      new TimeZoneProvider('UTC')
+    );
+
     const freq = await dataService.getDeploymentFrequency('month');
 
-    expect(Array.isArray(freq)).toBe(true);
-    for (const month of freq) {
-      expect(month.period).toMatch(/^\d{4}-\d{2}$/);
-      expect(month.count).toBeGreaterThanOrEqual(0);
-    }
+    expect(freq).toEqual([{ period: '2025-01', count: 2 }]);
   });
 
   it('should get job metrics', async () => {
+    dataService = new PipelinesDataService(
+      [
+        new PipelineRunBuilder()
+          .withId('success-run')
+          .withNumber(1)
+          .withPath('.github/workflows/ci.yml')
+          .withJobs([
+            new PipelineJobBuilder()
+              .withName('test')
+              .withConclusion('success')
+              .withStartedAt('2025-01-01T10:00:00Z')
+              .withCompletedAt('2025-01-01T10:05:00Z')
+              .build(),
+          ])
+          .build(),
+        new PipelineRunBuilder()
+          .withId('failure-run')
+          .withNumber(2)
+          .withPath('.github/workflows/ci.yml')
+          .withJobs([
+            new PipelineJobBuilder()
+              .withName('test')
+              .withConclusion('failure')
+              .withStartedAt('2025-01-02T10:00:00Z')
+              .withCompletedAt('2025-01-02T10:10:00Z')
+              .build(),
+          ])
+          .build(),
+      ],
+      [],
+      logger,
+      new TimeZoneProvider('UTC')
+    );
+
     const jobMetrics = await dataService.getJobMetrics();
 
-    expect(Array.isArray(jobMetrics)).toBe(true);
-    for (const job of jobMetrics) {
-      expect(job.jobName).toBeDefined();
-      expect(job.totalRuns).toBeGreaterThanOrEqual(0);
-      expect(job.successRate).toBeGreaterThanOrEqual(0);
-      expect(job.successRate).toBeLessThanOrEqual(100);
-      expect(job.failureRate).toBeGreaterThanOrEqual(0);
-      expect(job.failureRate).toBeLessThanOrEqual(100);
-    }
+    expect(jobMetrics).toEqual([
+      expect.objectContaining({
+        jobName: 'test',
+        workflowName: '.github/workflows/ci.yml',
+        totalRuns: 2,
+        successCount: 1,
+        failureCount: 1,
+        successRate: 50,
+        failureRate: 50,
+        averageDurationMinutes: 7.5,
+      }),
+    ]);
   });
 
   it('should filter runs by branch', async () => {
@@ -153,8 +272,10 @@ describe('PipelinesDataService', () => {
       targetBranch: 'main',
     });
 
-    expect(metrics).toBeDefined();
-    expect(metrics.totalRuns).toBeGreaterThanOrEqual(0);
+    expect(metrics.totalRuns).toBe(1);
+    expect(metrics.successfulRuns).toBe(1);
+    expect(metrics.failedRuns).toBe(0);
+    expect(metrics.successRate).toBe(100);
   });
 
   it('should exclude weekend runs when weekends filter is set to exclude', async () => {

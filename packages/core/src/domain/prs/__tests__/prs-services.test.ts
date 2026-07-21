@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { IReadPullRequestsRepository } from '..';
 import { PRsService } from '..';
 import { PullRequestBuilder } from '../../../test/domain/domain-builders';
@@ -13,23 +13,21 @@ describe('PRsService', () => {
   let mockPrRepo: IReadPullRequestsRepository;
 
   beforeEach(() => {
-    const now = new Date();
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
-
     const prs = [
       new PullRequestBuilder()
+        .withId(1)
         .withAuthor('Alice')
         .withTitle('Feature A')
-        .withCreatedAt(oneWeekAgo.toISOString())
-        .withMergedAt(twoDaysAgo.toISOString())
+        .withCreatedAt('2025-01-01T00:00:00Z')
+        .withMergedAt('2025-01-03T00:00:00Z')
         .withComments(5)
         .withLabels([{ name: 'enhancement' }])
         .build(),
       new PullRequestBuilder()
+        .withId(2)
         .withAuthor('Bob')
         .withTitle('Fix bug B')
-        .withCreatedAt(new Date().toISOString())
+        .withCreatedAt('2025-01-15T00:00:00Z')
         .withComments(2)
         .withLabels([{ name: 'bugfix' }])
         .build(),
@@ -43,10 +41,27 @@ describe('PRsService', () => {
   it('should calculate overall metrics', async () => {
     const metrics = await prsService.getMetrics();
 
-    expect(metrics.totalPRs).toBeGreaterThan(0);
-    expect(metrics.averageOpenDays).toBeGreaterThanOrEqual(0);
-    expect(metrics.averageComments).toBeGreaterThanOrEqual(0);
-    expect(metrics.mergedPRs).toBeGreaterThanOrEqual(0);
+    expect(metrics.totalPRs).toBe(2);
+    expect(metrics.mergedPRs).toBe(1);
+    expect(metrics.closedPRs).toBe(0);
+    expect(metrics.openPRs).toBe(1);
+    expect(metrics.averageOpenDays).toBe(2);
+    expect(metrics.leadTime).toBe(2);
+    expect(metrics.averageComments).toBe(3.5);
+    expect(metrics.most_commented_prs).toEqual([
+      {
+        pull_request_id: 1,
+        pull_request_title: 'Feature A',
+        pull_request_url: 'https://github.com/example/pr/1',
+        comments_count: 5,
+      },
+      {
+        pull_request_id: 2,
+        pull_request_title: 'Fix bug B',
+        pull_request_url: 'https://github.com/example/pr/1',
+        comments_count: 2,
+      },
+    ]);
   });
 
   it('should calculate PR summary for CLI and REST consumers', async () => {
@@ -169,52 +184,134 @@ describe('PRsService', () => {
   });
 
   it('should get metrics by month', async () => {
+    const januaryPr = new PullRequestBuilder()
+      .withId(1)
+      .withTitle('January PR')
+      .withCreatedAt('2025-01-01T00:00:00Z')
+      .withMergedAt('2025-01-03T00:00:00Z')
+      .build();
+    const februaryPr = new PullRequestBuilder()
+      .withId(2)
+      .withTitle('February PR')
+      .withCreatedAt('2025-02-01T00:00:00Z')
+      .withMergedAt('2025-02-04T00:00:00Z')
+      .build();
+
+    prsService = new PRsService(
+      new ReadPullRequestsRepositoryBuilder().withPullRequests([januaryPr, februaryPr]).build(),
+      new TimeZoneProvider('UTC'),
+      logger
+    );
+
     const metrics = await prsService.getMetricsByMonth();
 
-    expect(Array.isArray(metrics)).toBe(true);
-    for (const month of metrics) {
-      expect(month.period).toMatch(/^\d{4}-\d{2}$/); // YYYY-MM format
-      expect(month.count).toBeGreaterThanOrEqual(0);
-      expect(month.averageOpenDays).toBeGreaterThanOrEqual(0);
-    }
+    expect(metrics).toEqual([
+      expect.objectContaining({ period: '2025-01', count: 1, averageOpenDays: 2 }),
+      expect.objectContaining({ period: '2025-02', count: 1, averageOpenDays: 3 }),
+    ]);
   });
 
   it('should get metrics by week', async () => {
+    const firstPr = new PullRequestBuilder()
+      .withId(1)
+      .withTitle('First merged PR')
+      .withCreatedAt('2025-01-01T00:00:00Z')
+      .withMergedAt('2025-01-03T00:00:00Z')
+      .build();
+    const secondPr = new PullRequestBuilder()
+      .withId(2)
+      .withTitle('Second merged PR')
+      .withCreatedAt('2025-01-06T00:00:00Z')
+      .withMergedAt('2025-01-08T00:00:00Z')
+      .build();
+
+    prsService = new PRsService(
+      new ReadPullRequestsRepositoryBuilder().withPullRequests([firstPr, secondPr]).build(),
+      new TimeZoneProvider('UTC'),
+      logger
+    );
+
     const metrics = await prsService.getMetricsByWeek();
 
-    expect(Array.isArray(metrics)).toBe(true);
-    for (const week of metrics) {
-      expect(week.period).toMatch(/^\d{4}-W\d{2}$/); // YYYY-Wxx format
-      expect(week.count).toBeGreaterThanOrEqual(0);
-    }
+    expect(metrics).toEqual([
+      expect.objectContaining({ period: '2024-W53', count: 1, averageOpenDays: 2 }),
+      expect.objectContaining({ period: '2025-W01', count: 1, averageOpenDays: 2 }),
+    ]);
   });
 
   it('should get label summaries', async () => {
+    const enhancementPr = new PullRequestBuilder()
+      .withId(1)
+      .withTitle('Enhancement PR')
+      .withCreatedAt('2025-01-01T00:00:00Z')
+      .withMergedAt('2025-01-03T00:00:00Z')
+      .withLabels([{ name: 'enhancement' }])
+      .build();
+    const bugfixPr = new PullRequestBuilder()
+      .withId(2)
+      .withTitle('Bugfix PR')
+      .withCreatedAt('2025-01-02T00:00:00Z')
+      .withClosedAt('2025-01-06T00:00:00Z')
+      .withLabels([{ name: 'bugfix' }])
+      .build();
+
+    prsService = new PRsService(
+      new ReadPullRequestsRepositoryBuilder().withPullRequests([enhancementPr, bugfixPr]).build(),
+      new TimeZoneProvider('UTC'),
+      logger
+    );
+
     const labels = await prsService.getLabelSummaries();
 
-    expect(Array.isArray(labels)).toBe(true);
-    for (const label of labels) {
-      expect(label.label).toBeDefined();
-      expect(label.count).toBeGreaterThan(0);
-      expect(label.averageOpenDays).toBeGreaterThanOrEqual(0);
-    }
+    expect(labels).toEqual([
+      { label: 'enhancement', count: 1, averageOpenDays: 2, outliers: undefined },
+      { label: 'bugfix', count: 1, averageOpenDays: 4, outliers: undefined },
+    ]);
   });
 
   it('should filter PRs by author', async () => {
+    const alicePr = new PullRequestBuilder()
+      .withId(1)
+      .withAuthor('Alice')
+      .withCreatedAt('2025-01-01T00:00:00Z')
+      .withMergedAt('2025-01-03T00:00:00Z')
+      .withComments(5)
+      .build();
+    const loadPrsWithFilters = vi.fn().mockResolvedValue([alicePr]);
+
+    prsService = new PRsService({ loadPrsWithFilters }, new TimeZoneProvider('UTC'), logger);
+
     const metrics = await prsService.getMetrics({
       authors: ['Alice'],
     });
 
-    expect(metrics).toBeDefined();
-    expect(metrics.totalPRs).toBeGreaterThanOrEqual(0);
+    expect(loadPrsWithFilters).toHaveBeenCalledWith({ authors: ['Alice'] });
+    expect(metrics.totalPRs).toBe(1);
+    expect(metrics.mergedPRs).toBe(1);
+    expect(metrics.openPRs).toBe(0);
+    expect(metrics.averageComments).toBe(5);
   });
 
   it('should filter PRs by state merged', async () => {
+    const mergedPr = new PullRequestBuilder()
+      .withId(1)
+      .withCreatedAt('2025-01-01T00:00:00Z')
+      .withMergedAt('2025-01-03T00:00:00Z')
+      .build();
+    const loadPrsWithFilters = vi.fn().mockResolvedValue([mergedPr]);
+
+    prsService = new PRsService({ loadPrsWithFilters }, new TimeZoneProvider('UTC'), logger);
+
     const metrics = await prsService.getMetrics({
       state: 'merged',
     });
 
-    expect(metrics.mergedPRs).toBeGreaterThanOrEqual(0);
+    expect(loadPrsWithFilters).toHaveBeenCalledWith({ state: 'merged' });
+    expect(metrics.totalPRs).toBe(1);
+    expect(metrics.mergedPRs).toBe(1);
+    expect(metrics.closedPRs).toBe(0);
+    expect(metrics.openPRs).toBe(0);
+    expect(metrics.averageOpenDays).toBe(2);
   });
 
   describe('getMetrics', () => {
