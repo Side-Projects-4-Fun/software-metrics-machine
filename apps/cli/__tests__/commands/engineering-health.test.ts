@@ -15,6 +15,7 @@ import { createEngineeringHealthOrchestrator } from '@smmachine/core';
 describe('cli: Engineering Health Commands', () => {
   let program: Command;
   let consoleSpy: ReturnType<typeof vi.spyOn>;
+  let exitSpy: ReturnType<typeof vi.spyOn>;
   let evaluateMock: ReturnType<typeof vi.fn>;
 
   const getOutput = () =>
@@ -73,11 +74,15 @@ describe('cli: Engineering Health Commands', () => {
     } as never);
 
     consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    exitSpy = vi.spyOn(process, 'exit').mockImplementation((code?: number) => {
+      throw new Error(`process.exit(${code ?? 0})`);
+    });
     program = commands();
   });
 
   afterEach(() => {
     consoleSpy.mockRestore();
+    exitSpy.mockRestore();
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
@@ -216,5 +221,16 @@ describe('cli: Engineering Health Commands', () => {
     expect(output).toContain(
       'Deployment target: deploy-production (.github/workflows/release.yml)'
     );
+  });
+
+  it('exits with an error when --category is invalid', async () => {
+    await expect(
+      program.parseAsync(['engineering-health', 'evaluate', '--category', 'invalid-category'], {
+        from: 'user',
+      })
+    ).rejects.toThrow('process.exit(1)');
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(evaluateMock).not.toHaveBeenCalled();
   });
 });

@@ -22,6 +22,7 @@ vi.mock('fs', async (importActual) => {
 describe('cli: Dashboard Commands', () => {
   let program: Command;
   let consoleSpy: ReturnType<typeof vi.spyOn>;
+  let exitSpy: ReturnType<typeof vi.spyOn>;
   let originalSigintListeners: NodeJS.SignalsListener[];
   let originalSigtermListeners: NodeJS.SignalsListener[];
 
@@ -48,6 +49,9 @@ describe('cli: Dashboard Commands', () => {
     mocks.spawn.mockImplementation(() => fakeChildProcess() as never);
 
     consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    exitSpy = vi.spyOn(process, 'exit').mockImplementation((code?: number) => {
+      throw new Error(`process.exit(${code ?? 0})`);
+    });
 
     originalSigintListeners = process.listeners('SIGINT');
     originalSigtermListeners = process.listeners('SIGTERM');
@@ -59,6 +63,7 @@ describe('cli: Dashboard Commands', () => {
 
   afterEach(() => {
     consoleSpy.mockRestore();
+    exitSpy.mockRestore();
     vi.restoreAllMocks();
     vi.unstubAllEnvs();
     process.removeAllListeners('SIGINT');
@@ -198,6 +203,17 @@ describe('cli: Dashboard Commands', () => {
       expect(output).toContain('Host: localhost');
       expect(output).toContain('REST API: http://localhost:4001');
       expect(output).toContain('Webapp: http://localhost:3000');
+    });
+
+    it('exits with an error when bundled services cannot be located', async () => {
+      mocks.existsSync.mockReturnValue(false);
+
+      await expect(program.parseAsync(['dashboard', 'serve'], { from: 'user' })).rejects.toThrow(
+        'process.exit(1)'
+      );
+
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(mocks.spawn).not.toHaveBeenCalled();
     });
   });
 });

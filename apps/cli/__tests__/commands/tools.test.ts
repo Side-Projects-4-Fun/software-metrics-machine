@@ -180,5 +180,24 @@ describe('cli: Tools Commands', () => {
       expect(output).toContain('✅ Merged JSON saved to: out.json');
       expect(output).toContain('Total items: 2');
     });
+
+    it('skips invalid JSON files and still writes merged output from valid files', async () => {
+      mocks.readdirSync.mockReturnValue(['bad.json', 'good.json']);
+      mocks.readFileSync.mockImplementation((file: unknown) => {
+        if (file === 'bad.json') {
+          return '{"broken":';
+        }
+        return '{"ok":true}';
+      });
+
+      await program.parseAsync(['tools', 'json-merge', '--output', 'out.json'], { from: 'user' });
+
+      const output = getOutput();
+
+      expect(output).toContain('❌ Failed to merge: bad.json');
+      expect(output).toContain('✅ Merged: good.json');
+      expect(mocks.writeFileSync).toHaveBeenCalledWith('out.json', '{"ok":true}', 'utf-8');
+      expect(exitSpy).not.toHaveBeenCalled();
+    });
   });
 });

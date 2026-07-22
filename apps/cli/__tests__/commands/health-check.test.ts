@@ -21,6 +21,7 @@ vi.mock('../../src/services/health-check-report', () => ({
 describe('cli: Health Check Command', () => {
   let program: Command;
   let consoleSpy: ReturnType<typeof vi.spyOn>;
+  let exitSpy: ReturnType<typeof vi.spyOn>;
   let tempDir: string;
 
   beforeEach(() => {
@@ -42,6 +43,9 @@ describe('cli: Health Check Command', () => {
 
     vi.stubEnv('SMM_STORE_DATA_AT', tempDir);
     consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    exitSpy = vi.spyOn(process, 'exit').mockImplementation((code?: number) => {
+      throw new Error(`process.exit(${code ?? 0})`);
+    });
     mocks.build.mockResolvedValue({
       generatedAt: '2026-07-18T00:00:00.000Z',
       baseDirectory: '/tmp/base',
@@ -59,6 +63,7 @@ describe('cli: Health Check Command', () => {
 
   afterEach(() => {
     consoleSpy.mockRestore();
+    exitSpy.mockRestore();
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
     rmSync(tempDir, { recursive: true, force: true });
@@ -81,5 +86,14 @@ describe('cli: Health Check Command', () => {
       'jira',
       5
     );
+  });
+
+  it('exits with an error when --max-gap-days is not a positive integer', async () => {
+    await expect(
+      program.parseAsync(['health-check', '--max-gap-days', '0'], { from: 'user' })
+    ).rejects.toThrow('process.exit(1)');
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(mocks.build).not.toHaveBeenCalled();
   });
 });
