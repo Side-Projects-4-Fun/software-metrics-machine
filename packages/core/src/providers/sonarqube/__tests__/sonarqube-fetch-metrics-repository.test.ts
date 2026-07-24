@@ -2,8 +2,8 @@ import * as fs from 'fs/promises';
 import * as os from 'os';
 import * as path from 'path';
 import { describe, expect, it, vi } from 'vitest';
+import type { Configuration } from '../../..';
 import {
-  Configuration,
   RepositoryFactory,
   SqliteRepository,
   SonarqubeFetchMetricsRepository,

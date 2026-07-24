@@ -79,8 +79,8 @@ export const FiltersProvider = ({
   const lastUrlSyncKey = useRef(urlSyncKey);
 
   useEffect(() => {
-    if (shouldSyncToUrl.current) return;
-    if (lastUrlSyncKey.current === urlSyncKey) return;
+    if (shouldSyncToUrl.current) {return;}
+    if (lastUrlSyncKey.current === urlSyncKey) {return;}
     lastUrlSyncKey.current = urlSyncKey;
 
     const urlFilters = applyBrowserTimezone(parseDashboardFilters(Object.fromEntries(searchParams.entries()), initialFilters));
@@ -93,7 +93,7 @@ export const FiltersProvider = ({
   }, [initialFilters, searchParams, urlSyncKey]);
 
   useEffect(() => {
-    if (!shouldSyncToUrl.current) return;
+    if (!shouldSyncToUrl.current) {return;}
 
     shouldSyncToUrl.current = false;
     const nextParams = serializeDashboardFilters(filters);

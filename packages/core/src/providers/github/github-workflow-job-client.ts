@@ -1,12 +1,13 @@
-import axios, { AxiosInstance } from 'axios';
-import { Logger } from '@smmachine/utils';
-import {
+import type { AxiosInstance } from 'axios';
+import axios from 'axios';
+import type { Logger } from '@smmachine/utils';
+import type {
   GitHubWorkflowJobFilters,
   GitHubWorkflowJobResponse,
   IGithubWorkflowJobClient,
 } from './workflow-types';
-import { GitHubRateLimitManager } from './github-rate-limit-manager';
-import { WorkflowJobJsonResponse } from './github-response-types';
+import type { GitHubRateLimitManager } from './github-rate-limit-manager';
+import type { WorkflowJobJsonResponse } from './github-response-types';
 import { GithubClientRetriable } from './github-client-retriable';
 import { RawFiltersParser } from './raw-filters-parser';
 

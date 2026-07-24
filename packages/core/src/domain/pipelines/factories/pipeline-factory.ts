@@ -1,6 +1,7 @@
 import { PipelinesSqliteRepository } from '../infrastructure/pipelines-repository-sqlite';
-import { Configuration, RepositoryFactory } from '../../../infrastructure';
-import {
+import type { Configuration } from '../../../infrastructure';
+import { RepositoryFactory } from '../../../infrastructure';
+import type {
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
 } from '../../../providers/github/github-response-types';
@@ -12,13 +13,13 @@ import {
   GitHubRateLimitManager,
 } from '../../../providers';
 import { PipelinesJobFetchRepository } from '../../../providers/github/pipelines-job-fetch-repository-json';
-import {
+import type {
   PipelineFiltersRepository,
   PipelineFilterOptions,
 } from '../repositories/pipeline-filters-repository';
-import { Logger } from '@smmachine/utils';
-import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
-import { PipelinesRepository } from '../repositories/pipeline-repository';
+import type { Logger } from '@smmachine/utils';
+import type { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
+import type { PipelinesRepository } from '../repositories/pipeline-repository';
 import { PipelineFiltersRepositoryJson } from '../infrastructure/pipeline-filters-repository-json';
 
 export default class PipelineFactory {

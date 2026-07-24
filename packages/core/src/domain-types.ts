@@ -3,7 +3,7 @@
  * Migrated from: api/src/software_metrics_machine/core/code_types.py
  */
 
-import { PipelineStep } from './domain';
+import type { PipelineStep } from './domain';
 
 /**
  * Represents a Git commit

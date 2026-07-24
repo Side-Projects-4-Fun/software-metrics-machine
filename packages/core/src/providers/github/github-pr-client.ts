@@ -1,7 +1,11 @@
-import axios, { AxiosInstance } from 'axios';
-import { Logger } from '@smmachine/utils';
-import { PullRequestCommentJsonResponse, PullRequestJsonResponse } from './github-response-types';
-import { GitHubRateLimitManager } from './github-rate-limit-manager';
+import type { AxiosInstance } from 'axios';
+import axios from 'axios';
+import type { Logger } from '@smmachine/utils';
+import type {
+  PullRequestCommentJsonResponse,
+  PullRequestJsonResponse,
+} from './github-response-types';
+import type { GitHubRateLimitManager } from './github-rate-limit-manager';
 import { GithubClientRetriable } from './github-client-retriable';
 import { RawFiltersParser } from './raw-filters-parser';
 

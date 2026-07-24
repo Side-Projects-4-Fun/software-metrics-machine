@@ -1,6 +1,7 @@
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { Logger } from '@smmachine/utils';
-import { GitHubRateLimitManager } from './github-rate-limit-manager';
+import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios from 'axios';
+import type { Logger } from '@smmachine/utils';
+import type { GitHubRateLimitManager } from './github-rate-limit-manager';
 
 export class GithubClientRetriable {
   logger: Logger;

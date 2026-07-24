@@ -1,7 +1,8 @@
-import { Commit } from '../../../domain-types';
+import type { Commit } from '../../../domain-types';
 import { PairingService } from './pairing-service';
-import { Configuration, RepositoryFactory, TimeZoneProvider } from '../../../infrastructure';
-import { Logger } from '@smmachine/utils';
+import type { Configuration, TimeZoneProvider } from '../../../infrastructure';
+import { RepositoryFactory } from '../../../infrastructure';
+import type { Logger } from '@smmachine/utils';
 
 export class PairingFactory {
   static create(

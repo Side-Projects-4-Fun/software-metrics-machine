@@ -1,8 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Logger } from '@smmachine/utils';
-import {
-  Configuration,
+import type { Logger } from '@smmachine/utils';
+import type {
   ConfigurableDeploymentFrequencyTarget,
   IConfiguration,
   ISmmConfigFile,
@@ -10,6 +9,7 @@ import {
   JsonObject,
   StorageType,
 } from './configuration';
+import { Configuration } from './configuration';
 
 /**
  * Repository interface for accessing project configurations.

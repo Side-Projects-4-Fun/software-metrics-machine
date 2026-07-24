@@ -1,11 +1,11 @@
-import { Logger } from '@smmachine/utils';
+import type { Logger } from '@smmachine/utils';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Configuration, IRepository } from '../../infrastructure';
+import type { Configuration, IRepository } from '../../infrastructure';
 import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
 import { type IGithubWorkflowClient } from '../index';
-import { WorkflowJsonResponse } from './github-response-types';
-import { PipelineFiltersRepository } from '../../domain/pipelines/repositories/pipeline-filters-repository';
+import type { WorkflowJsonResponse } from './github-response-types';
+import type { PipelineFiltersRepository } from '../../domain/pipelines/repositories/pipeline-filters-repository';
 import { buildCreatedFilter } from './github-date-utils';
 
 interface WorkflowsProgress {

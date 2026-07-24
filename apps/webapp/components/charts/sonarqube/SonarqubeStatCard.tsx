@@ -5,10 +5,10 @@ import { TargetInfo } from '@/components/charts/TargetInfo';
 
 function getMetricKey(title: string): string {
   const t = title.toLowerCase();
-  if (t.includes('reliability')) return 'sonarqube-reliability';
-  if (t.includes('security')) return 'sonarqube-security';
-  if (t.includes('maintainability')) return 'sonarqube-maintainability';
-  if (t.includes('duplication')) return 'sonarqube-duplication';
+  if (t.includes('reliability')) {return 'sonarqube-reliability';}
+  if (t.includes('security')) {return 'sonarqube-security';}
+  if (t.includes('maintainability')) {return 'sonarqube-maintainability';}
+  if (t.includes('duplication')) {return 'sonarqube-duplication';}
   return 'sonarqube-coverage';
 }
 

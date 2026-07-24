@@ -1,6 +1,7 @@
-import axios, { AxiosInstance } from 'axios';
-import { Issue } from '../../domain-types';
-import { Logger } from '@smmachine/utils';
+import type { AxiosInstance } from 'axios';
+import axios from 'axios';
+import type { Issue } from '../../domain-types';
+import type { Logger } from '@smmachine/utils';
 
 function toJiraDateBoundary(value: string): string {
   const match = value.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);

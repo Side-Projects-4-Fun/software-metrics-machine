@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { IReadPullRequestsRepository } from '..';
+import type { IReadPullRequestsRepository } from '..';
 import { PRsService } from '..';
 import { PullRequestBuilder } from '../../../test/domain/domain-builders';
 import { ReadPullRequestsRepositoryBuilder } from '../../../test/repositories/repository-builders';

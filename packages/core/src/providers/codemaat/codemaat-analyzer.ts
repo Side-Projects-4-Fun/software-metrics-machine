@@ -1,4 +1,4 @@
-import { Configuration } from '../../infrastructure';
+import type { Configuration } from '../../infrastructure';
 import type { Logger } from '@smmachine/utils';
 import { CodeMaatMetricsCsvRepository } from '../../domain/code/codemaat/infrastructure/codemaat-metrics-repository-csv';
 

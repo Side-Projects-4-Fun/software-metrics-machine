@@ -1,6 +1,10 @@
-import { PipelineFilterOptions, PipelineFilterOptionsQuery, PipelineFiltersRepository } from '..';
-import { IRepository } from '../../../infrastructure';
-import {
+import type {
+  PipelineFilterOptions,
+  PipelineFilterOptionsQuery,
+  PipelineFiltersRepository,
+} from '..';
+import type { IRepository } from '../../../infrastructure';
+import type {
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
 } from '../../../providers/github/github-response-types';

@@ -1,9 +1,5 @@
-import {
-  JobMetrics,
-  PipelineAverageOutlier,
-  type PipelineFilters,
-  PipelineMetrics,
-} from './pipeline-types';
+import type { JobMetrics, PipelineAverageOutlier, PipelineMetrics } from './pipeline-types';
+import { type PipelineFilters } from './pipeline-types';
 
 export type PipelineDateFields = {
   createdAt?: string;

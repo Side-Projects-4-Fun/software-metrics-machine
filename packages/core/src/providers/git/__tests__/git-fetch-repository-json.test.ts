@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { type ICommitTraverser } from '../../..';
-import { Commit } from '../../../domain-types';
+import type { Commit } from '../../../domain-types';
 import { InMemoryRepository } from '../../../test/repositories/in-memory-repository';
 import { GitFetchRepository } from '../git-fetch-repository-json';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';

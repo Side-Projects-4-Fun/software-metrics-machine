@@ -1,5 +1,5 @@
-import { Logger } from '@smmachine/utils';
-import { Configuration } from '../../infrastructure';
+import type { Logger } from '@smmachine/utils';
+import type { Configuration } from '../../infrastructure';
 import { CodemaatFetchSqliteRepository } from './codemaat-fetch-repository-sqlite';
 
 export interface CodemaatFetchOptions {

@@ -1,5 +1,5 @@
-import { Configuration } from '../../../infrastructure';
-import { Logger } from '@smmachine/utils';
+import type { Configuration } from '../../../infrastructure';
+import type { Logger } from '@smmachine/utils';
 import type { ICodeMetricsRepository } from './repositories/codemaat-metrics-repository';
 import { CodeMaatMetricsSqliteRepository } from './infrastructure/codemaat-metrics-repository-sqlite';
 import type { ICodeMaatFetchRepository } from '../../../providers/codemaat/codemaat-fetch-repository';

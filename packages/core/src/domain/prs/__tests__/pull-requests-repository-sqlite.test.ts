@@ -9,7 +9,7 @@ import {
   SqliteRepository,
   TimeZoneProvider,
 } from '../../../infrastructure';
-import {
+import type {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
 } from '../../../providers/github/github-response-types';

@@ -1,8 +1,13 @@
-import { SonarqubeComponentMeasure } from 'src';
-import { Configuration, IRepository, RepositoryFactory } from '../../../infrastructure';
-import { CodeMetric, SonarqubeComponentTreeMeasure, TimestampedStore } from '../../../providers';
+import type { SonarqubeComponentMeasure } from 'src';
+import type { Configuration, IRepository } from '../../../infrastructure';
+import { RepositoryFactory } from '../../../infrastructure';
+import type {
+  CodeMetric,
+  SonarqubeComponentTreeMeasure,
+  TimestampedStore,
+} from '../../../providers';
 import { SonarqubeRepositoryJson as SonarqubeRepository } from '../../../providers/sonarqube/repositories/sonarqube-repository-json';
-import { Logger } from '@smmachine/utils';
+import type { Logger } from '@smmachine/utils';
 
 export class SonarqubeFactory {
   static create(configuration: Configuration, logger: Logger): SonarqubeRepository {

@@ -1,7 +1,7 @@
-import { Logger } from '@smmachine/utils';
+import type { Logger } from '@smmachine/utils';
 import * as path from 'path';
-import { IRepository } from './repository';
-import { Configuration } from './configuration';
+import type { IRepository } from './repository';
+import type { Configuration } from './configuration';
 import { SqliteRepository } from './sqlite-repository';
 
 /**

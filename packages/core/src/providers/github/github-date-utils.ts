@@ -1,4 +1,4 @@
-import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
+import type { TimeZoneProvider } from '../../infrastructure/timezone-provider';
 
 /**
  * Attempts to extract year, month, day from a date string in common formats.

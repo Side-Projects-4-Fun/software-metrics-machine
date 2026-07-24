@@ -1,4 +1,4 @@
-import { Logger } from '@smmachine/utils';
+import type { Logger } from '@smmachine/utils';
 
 /**
  * Tracks GitHub API rate limit state from response headers and provides

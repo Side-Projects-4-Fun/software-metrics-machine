@@ -1,6 +1,6 @@
-import { Logger } from '@smmachine/utils';
-import { IRepository, TimeZoneProvider } from '../../../infrastructure';
-import {
+import type { Logger } from '@smmachine/utils';
+import type { IRepository, TimeZoneProvider } from '../../../infrastructure';
+import type {
   Commit,
   PairingIndexResult,
   PairedCommitSummary,

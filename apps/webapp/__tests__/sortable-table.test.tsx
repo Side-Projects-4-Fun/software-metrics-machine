@@ -173,8 +173,8 @@ describe('SortableTable', () => {
         label: 'Status',
         compare: (a: TestRow, b: TestRow) => {
           // Sort active before inactive
-          if (a.status === 'active' && b.status !== 'active') return -1;
-          if (a.status !== 'active' && b.status === 'active') return 1;
+          if (a.status === 'active' && b.status !== 'active') {return -1;}
+          if (a.status !== 'active' && b.status === 'active') {return 1;}
           return 0;
         },
       },

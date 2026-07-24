@@ -4,14 +4,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Logger } from '@smmachine/utils';
-import {
-  Configuration,
-  IRepository,
-  RepositoryFactory,
-  SqliteRepository,
-  applySqliteMigrations,
-} from '..';
-import { Commit } from '../../domain-types';
+import type { IRepository } from '..';
+import { Configuration, RepositoryFactory, SqliteRepository, applySqliteMigrations } from '..';
+import type { Commit } from '../../domain-types';
 import { CommitBuilder } from '../../test/domain/domain-builders';
 import {
   PullRequestCommentJsonResponseBuilder,
@@ -19,7 +14,7 @@ import {
   PipelineGitHubJobBuilder,
   PipelineGitHubRunBuilder,
 } from '../../test/github/github-builders';
-import {
+import type {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
   WorkflowJobJsonResponse,

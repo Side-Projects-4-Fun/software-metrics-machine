@@ -1,7 +1,7 @@
-import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
+import type { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import { shouldIncludeTimestampForWeekendsMode } from '../../metric-samples';
-import { PRDetails, PRFilters } from '../pr-types';
-import {
+import type { PRDetails, PRFilters } from '../pr-types';
+import type {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
   PullRequestLabelJsonResponse,

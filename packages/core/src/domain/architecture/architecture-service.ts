@@ -1,16 +1,16 @@
-import { Logger } from '@smmachine/utils';
+import type { Logger } from '@smmachine/utils';
 import * as fs from 'fs/promises';
-import { Dirent } from 'fs';
+import type { Dirent } from 'fs';
 import * as path from 'path';
-import { Commit } from '../../domain-types';
-import { Configuration } from '../../infrastructure';
+import type { Commit } from '../../domain-types';
+import type { Configuration } from '../../infrastructure';
 import { RepositoryFactory } from '../../infrastructure';
 import {
   createPathMatchers,
   matchesAnyPathPattern,
   matchesIncludePatterns,
 } from '../code/pattern-filters';
-import {
+import type {
   ArchitectureNode,
   ArchitectureRelationship,
   ArchitectureSnapshot,

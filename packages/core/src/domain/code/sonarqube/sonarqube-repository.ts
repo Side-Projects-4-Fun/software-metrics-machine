@@ -1,5 +1,5 @@
-import { SonarqubeComponentMeasure } from '../../..';
-import {
+import type { SonarqubeComponentMeasure } from '../../..';
+import type {
   CodeMetric,
   SonarqubeComponentTreeMeasure,
   SonarqubeMeasure,

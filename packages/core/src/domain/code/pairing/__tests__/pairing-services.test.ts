@@ -2,8 +2,9 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { PairingService } from '../pairing-service';
 import { CommitBuilder } from '../../../../test/domain/domain-builders';
 import { RepositoryBuilder } from '../../../../test/repositories/repository-builders';
-import { Commit } from '../../../../domain-types';
-import { IRepository, TimeZoneProvider } from '../../../../infrastructure';
+import type { Commit } from '../../../../domain-types';
+import type { IRepository } from '../../../../infrastructure';
+import { TimeZoneProvider } from '../../../../infrastructure';
 import { MockLoggerBuilder } from '../../../../test/infrastructure/mock-logger-builder';
 
 const logger = new MockLoggerBuilder().build();

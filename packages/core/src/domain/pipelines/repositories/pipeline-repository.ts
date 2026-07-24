@@ -1,4 +1,4 @@
-import { PipelineJob, PipelineRun } from '../pipeline-types';
+import type { PipelineJob, PipelineRun } from '../pipeline-types';
 import { type WeekendsMode } from '../../metric-samples';
 
 export type LoadPipelinesOptions = {

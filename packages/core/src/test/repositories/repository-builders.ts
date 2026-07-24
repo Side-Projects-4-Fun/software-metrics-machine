@@ -7,7 +7,7 @@ import type {
   PRFilters,
 } from '../../index';
 import type { IRepository } from '../../index';
-import {
+import type {
   PipelinesRepository,
   LoadPipelinesOptions,
 } from 'src/domain/pipelines/repositories/pipeline-repository';

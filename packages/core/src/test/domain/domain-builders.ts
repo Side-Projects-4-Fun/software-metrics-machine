@@ -1,4 +1,4 @@
-import { Commit, CodeChange } from '../../domain-types';
+import type { Commit, CodeChange } from '../../domain-types';
 import type {
   PipelineJob,
   PipelineRun,

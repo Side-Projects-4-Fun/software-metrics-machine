@@ -1,21 +1,22 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { DatabaseSync } from 'node:sqlite';
-import { Logger } from '@smmachine/utils';
-import { Configuration } from '../../../infrastructure/configuration';
+import type { Logger } from '@smmachine/utils';
+import type { Configuration } from '../../../infrastructure/configuration';
 import { RepositoryFactory } from '../../../infrastructure/repository-factory';
-import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
+import type { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import { applySqliteMigrations } from '../../../infrastructure/sqlite-migrations';
-import {
+import type {
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
 } from '../../../providers/github/github-response-types';
-import { PipelineJob, PipelineRun } from '../pipeline-types';
-import { PipelinesRepository, LoadPipelinesOptions } from '../repositories/pipeline-repository';
-import {
-  ParseRawFiltersRepository,
-  RawFilter,
-} from '../../../infrastructure/parse-raw-filters-repository';
+import type { PipelineJob, PipelineRun } from '../pipeline-types';
+import type {
+  PipelinesRepository,
+  LoadPipelinesOptions,
+} from '../repositories/pipeline-repository';
+import type { RawFilter } from '../../../infrastructure/parse-raw-filters-repository';
+import { ParseRawFiltersRepository } from '../../../infrastructure/parse-raw-filters-repository';
 import { PipelineMapToDomainRepository } from '../../../providers/github/pipeline-map-to-domain-repository';
 import { shouldIncludeTimestampForWeekendsMode } from '../../metric-samples';
 

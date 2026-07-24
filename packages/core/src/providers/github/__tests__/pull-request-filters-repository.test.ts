@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { PullRequestFilterOptions, PullRequestFiltersRepository } from '../../..';
-import { PullRequestCommentJsonResponse, PullRequestJsonResponse } from '../github-response-types';
+import type { PullRequestFilterOptions } from '../../..';
+import { PullRequestFiltersRepository } from '../../..';
+import type {
+  PullRequestCommentJsonResponse,
+  PullRequestJsonResponse,
+} from '../github-response-types';
 import { InMemoryRepository } from '../../../test/repositories/in-memory-repository';
 import {
   PullRequestJsonResponseBuilder,

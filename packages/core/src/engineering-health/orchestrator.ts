@@ -1,5 +1,5 @@
 import type { Metric } from './metric';
-import { EngineeringHealthRegistry } from './registry';
+import type { EngineeringHealthRegistry } from './registry';
 import type {
   EngineeringHealthEvaluation,
   EngineeringHealthEvaluationInput,

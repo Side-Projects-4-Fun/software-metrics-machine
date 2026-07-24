@@ -1,8 +1,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { DatabaseSync } from 'node:sqlite';
-import { Logger } from '@smmachine/utils';
-import { IRepository } from './repository';
+import type { Logger } from '@smmachine/utils';
+import type { IRepository } from './repository';
 import { applySqliteMigrations } from './sqlite-migrations';
 
 type PayloadRow = {

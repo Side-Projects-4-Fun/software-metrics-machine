@@ -1,8 +1,9 @@
 import { CommitTraverser } from '../../../providers';
-import { Commit } from '../../../domain-types';
-import { Configuration, RepositoryFactory } from '../../../infrastructure';
+import type { Commit } from '../../../domain-types';
+import type { Configuration } from '../../../infrastructure';
+import { RepositoryFactory } from '../../../infrastructure';
 import { GitFetchRepository } from '../../../providers/git/git-fetch-repository-json';
-import { Logger } from '@smmachine/utils';
+import type { Logger } from '@smmachine/utils';
 
 export class GitFactory {
   static create(configuration: Configuration, logger: Logger): GitFetchRepository {

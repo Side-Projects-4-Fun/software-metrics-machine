@@ -1,6 +1,6 @@
-import { PipelineStep } from '../../domain';
-import { PipelineRun, PipelineJob } from '../../domain/pipelines/pipeline-types';
-import {
+import type { PipelineStep } from '../../domain';
+import type { PipelineRun, PipelineJob } from '../../domain/pipelines/pipeline-types';
+import type {
   WorkflowJsonResponse,
   WorkflowJobJsonResponse,
   WorkflowJobStepJsonResponse,

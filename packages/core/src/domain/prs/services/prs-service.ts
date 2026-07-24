@@ -1,5 +1,5 @@
-import { Logger } from '@smmachine/utils';
-import {
+import type { Logger } from '@smmachine/utils';
+import type {
   PRDetails,
   PRFilters,
   PRMetrics,
@@ -11,16 +11,11 @@ import {
   PRSummaryResponse,
   PRAverageOutlierItem,
 } from '../pr-types';
-import { IReadPullRequestsRepository } from '../repositories';
-import { TimeZoneProvider } from '../../../infrastructure';
+import type { IReadPullRequestsRepository } from '../repositories';
+import type { TimeZoneProvider } from '../../../infrastructure';
 import { stopWords } from './stop-words';
-import {
-  averageMetricSamples,
-  cleanMetricSamples,
-  MetricCleaningOptions,
-  MetricOutlier,
-  MetricSample,
-} from '../../metric-samples';
+import type { MetricCleaningOptions, MetricOutlier, MetricSample } from '../../metric-samples';
+import { averageMetricSamples, cleanMetricSamples } from '../../metric-samples';
 
 export interface IPRsService {
   getMetrics(filters?: PRFilters): Promise<PRMetrics>;

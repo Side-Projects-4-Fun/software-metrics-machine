@@ -1,5 +1,6 @@
-import { Logger } from '@smmachine/utils';
-import { Configuration, TimeZoneProvider } from '../infrastructure';
+import type { Logger } from '@smmachine/utils';
+import type { Configuration } from '../infrastructure';
+import { TimeZoneProvider } from '../infrastructure';
 import { PipelineFactory } from '../domain/pipelines/factories';
 import { PipelinesService } from '../domain/pipelines/services/pipelines-service';
 import { DeploymentFrequencyService } from '../domain/pipelines/services/deployment-frequency-service';

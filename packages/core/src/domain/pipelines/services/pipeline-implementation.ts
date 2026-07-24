@@ -1,14 +1,13 @@
-import { Logger } from '@smmachine/utils';
-import { PipelinesRepository } from '../repositories';
-import { DeploymentFrequencyTarget } from '../service';
+import type { Logger } from '@smmachine/utils';
+import type { PipelinesRepository } from '../repositories';
+import type { DeploymentFrequencyTarget } from '../service';
 import { PipelinesDataService } from './pipelines-data-service';
-import { TimeZoneProvider } from '../../../infrastructure';
+import type { TimeZoneProvider } from '../../../infrastructure';
+import type { MetricCleaningOptions, MetricSample } from '../../metric-samples';
 import {
   parseMetricCleaningOptions,
   cleanMetricSamples,
   averageMetricSamples,
-  MetricCleaningOptions,
-  MetricSample,
 } from '../../metric-samples';
 import type {
   PipelineRun,

@@ -1,19 +1,18 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { DatabaseSync } from 'node:sqlite';
-import { Configuration, RepositoryFactory } from '../../../infrastructure';
+import type { Configuration } from '../../../infrastructure';
+import { RepositoryFactory } from '../../../infrastructure';
 import { applySqliteMigrations } from '../../../infrastructure/sqlite-migrations';
-import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
-import {
-  ParseRawFiltersRepository,
-  RawFilter,
-} from '../../../infrastructure/parse-raw-filters-repository';
-import { PRDetails, PRFilters } from '../pr-types';
-import {
+import type { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
+import type { RawFilter } from '../../../infrastructure/parse-raw-filters-repository';
+import { ParseRawFiltersRepository } from '../../../infrastructure/parse-raw-filters-repository';
+import type { PRDetails, PRFilters } from '../pr-types';
+import type {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
 } from '../../../providers/github/github-response-types';
-import { IReadPullRequestsRepository } from './pull-requests-repository-json';
+import type { IReadPullRequestsRepository } from './pull-requests-repository-json';
 import {
   applyPayloadPrFilters,
   mapPullRequestToDetails,

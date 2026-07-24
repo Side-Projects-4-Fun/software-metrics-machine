@@ -1,11 +1,7 @@
-import { Logger } from '@smmachine/utils';
-import {
-  IRepository,
-  RepositoryFactory,
-  Configuration,
-  TimeZoneProvider,
-} from '../../infrastructure';
-import { Issue } from '../../domain-types';
+import type { Logger } from '@smmachine/utils';
+import type { IRepository, TimeZoneProvider } from '../../infrastructure';
+import { RepositoryFactory, Configuration } from '../../infrastructure';
+import type { Issue } from '../../domain-types';
 import { type IJiraIssuesClient } from '../../providers/jira';
 
 export interface IssueFilters {

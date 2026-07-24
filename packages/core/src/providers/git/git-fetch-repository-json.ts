@@ -1,6 +1,6 @@
-import { Logger } from '@smmachine/utils';
-import { ICommitTraverser, IRepository } from 'src';
-import { Commit } from 'src/domain-types';
+import type { Logger } from '@smmachine/utils';
+import type { ICommitTraverser, IRepository } from 'src';
+import type { Commit } from 'src/domain-types';
 
 export class GitFetchRepository {
   constructor(

@@ -1,8 +1,8 @@
-import { Logger } from '@smmachine/utils';
-import { PipelineFilters, PipelineRun } from '../pipeline-types';
-import { TimeZoneProvider } from '../../../infrastructure';
-import { PipelinesRepository } from '../repositories';
-import { DeploymentFrequencyRow, DeploymentFrequencyTarget } from '../service';
+import type { Logger } from '@smmachine/utils';
+import type { PipelineFilters, PipelineRun } from '../pipeline-types';
+import type { TimeZoneProvider } from '../../../infrastructure';
+import type { PipelinesRepository } from '../repositories';
+import type { DeploymentFrequencyRow, DeploymentFrequencyTarget } from '../service';
 
 export class DeploymentFrequencyService {
   private tz: TimeZoneProvider;

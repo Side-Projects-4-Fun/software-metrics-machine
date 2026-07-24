@@ -1,13 +1,13 @@
-import { SonarqubeComponentMeasure } from '../../..';
-import { IRepository } from '../../../infrastructure';
-import {
+import type { SonarqubeComponentMeasure } from '../../..';
+import type { IRepository } from '../../../infrastructure';
+import type {
   CodeMetric,
   SonarqubeComponentTreeMeasure,
   SonarqubeMeasure,
   TimestampedEntry,
   TimestampedStore,
-  extractLatestData,
 } from '../types';
+import { extractLatestData } from '../types';
 import { matchesPathPattern, normalizePatternList } from '../../../domain/code/pattern-filters';
 
 type StoredMeasure = {

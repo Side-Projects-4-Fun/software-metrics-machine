@@ -1,9 +1,10 @@
-import axios, { AxiosInstance } from 'axios';
-import { Logger } from '@smmachine/utils';
-import { PipelineRun } from '../../domain';
-import { GitHubWorkflowResponse, IGithubWorkflowClient } from './workflow-types';
-import { WorkflowJsonResponse } from './github-response-types';
-import { GitHubRateLimitManager } from './github-rate-limit-manager';
+import type { AxiosInstance } from 'axios';
+import axios from 'axios';
+import type { Logger } from '@smmachine/utils';
+import type { PipelineRun } from '../../domain';
+import type { GitHubWorkflowResponse, IGithubWorkflowClient } from './workflow-types';
+import type { WorkflowJsonResponse } from './github-response-types';
+import type { GitHubRateLimitManager } from './github-rate-limit-manager';
 import { buildCreatedFilter, toISODateString } from './github-date-utils';
 import { GithubClientRetriable } from './github-client-retriable';
 import { RawFiltersParser } from './raw-filters-parser';

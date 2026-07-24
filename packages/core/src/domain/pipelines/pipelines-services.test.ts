@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PipelineRun, PipelinesRepository } from '../..';
+import type { PipelineRun, PipelinesRepository } from '../..';
 import { PipelinesService } from '../..';
 import { PipelineJobBuilder, PipelineRunBuilder, PipelineStepBuilder } from '../../test/domain';
 import { PipelinesRepositoryBuilder } from '../../test/repositories/repository-builders';

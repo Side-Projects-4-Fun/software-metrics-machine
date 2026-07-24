@@ -1,12 +1,10 @@
-import { Logger } from '@smmachine/utils';
-import {
-  SonarqubeComponentMeasure,
-  SonarqubeComponentTreeMeasure,
-  CodeMetric,
-  type ISonarqubeMeasuresClient,
-} from '..';
-import { Configuration, IRepository, RepositoryFactory } from '../../../infrastructure';
-import { TimestampedStore, extractLatestData } from '../types';
+import type { Logger } from '@smmachine/utils';
+import type { SonarqubeComponentMeasure, SonarqubeComponentTreeMeasure, CodeMetric } from '..';
+import { type ISonarqubeMeasuresClient } from '..';
+import type { Configuration, IRepository } from '../../../infrastructure';
+import { RepositoryFactory } from '../../../infrastructure';
+import type { TimestampedStore } from '../types';
+import { extractLatestData } from '../types';
 
 export interface IQualityMetricsRepository {
   fetchQualityMetrics(options?: { metrics?: string[] }): Promise<SonarqubeComponentMeasure>;

@@ -1,8 +1,8 @@
 import { execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Logger } from '@smmachine/utils';
-import { Configuration } from '../../infrastructure';
+import type { Logger } from '@smmachine/utils';
+import type { Configuration } from '../../infrastructure';
 import type {
   CodemaatFetchOptions,
   CodemaatFetchResult,

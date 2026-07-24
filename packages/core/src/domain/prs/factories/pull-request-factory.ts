@@ -1,16 +1,15 @@
-import { Configuration, IRepository, RepositoryFactory } from '../../../infrastructure';
-import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
-import { IReadPullRequestsRepository } from '../repositories/pull-requests-repository-json';
+import type { Configuration, IRepository } from '../../../infrastructure';
+import { RepositoryFactory } from '../../../infrastructure';
+import type { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
+import type { IReadPullRequestsRepository } from '../repositories/pull-requests-repository-json';
 import { PullRequestsSqliteRepository } from '../repositories/pull-requests-repository-sqlite';
-import {
+import type {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
 } from '../../../providers/github/github-response-types';
-import {
-  PullRequestFilterOptions,
-  PullRequestFiltersRepository,
-} from '../repositories/pull-request-filters-repository-json';
-import { Logger } from '@smmachine/utils';
+import type { PullRequestFilterOptions } from '../repositories/pull-request-filters-repository-json';
+import { PullRequestFiltersRepository } from '../repositories/pull-request-filters-repository-json';
+import type { Logger } from '@smmachine/utils';
 
 export class PullRequestFactory {
   static create(

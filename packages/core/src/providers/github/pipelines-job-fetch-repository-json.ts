@@ -1,11 +1,11 @@
-import { Logger } from '@smmachine/utils';
+import type { Logger } from '@smmachine/utils';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Configuration, IRepository } from '../../infrastructure';
+import type { Configuration, IRepository } from '../../infrastructure';
 import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
-import { WorkflowJobJsonResponse, WorkflowJsonResponse } from './github-response-types';
-import { IGithubWorkflowJobClient } from './workflow-types';
-import { PipelineFiltersRepository } from '../../domain/pipelines/repositories/pipeline-filters-repository';
+import type { WorkflowJobJsonResponse, WorkflowJsonResponse } from './github-response-types';
+import type { IGithubWorkflowJobClient } from './workflow-types';
+import type { PipelineFiltersRepository } from '../../domain/pipelines/repositories/pipeline-filters-repository';
 
 interface JobsProgress {
   processedRunIds: string[];

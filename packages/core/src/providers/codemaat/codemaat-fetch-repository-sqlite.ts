@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { DatabaseSync } from 'node:sqlite';
-import { Logger } from '@smmachine/utils';
-import { Configuration } from '../../infrastructure';
+import type { Logger } from '@smmachine/utils';
+import type { Configuration } from '../../infrastructure';
 import { applySqliteMigrations } from '../../infrastructure/sqlite-migrations';
 import { RepositoryFactory } from '../../infrastructure/repository-factory';
 import { CodemaatFetchCsvRepository } from './codemaat-fetch-repository-csv';

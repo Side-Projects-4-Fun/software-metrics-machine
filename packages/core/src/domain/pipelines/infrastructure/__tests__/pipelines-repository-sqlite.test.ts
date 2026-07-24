@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { TimeZoneProvider, Configuration, SqliteRepository, RepositoryFactory } from '../../../..';
-import {
+import type {
   WorkflowJsonResponse,
   WorkflowJobJsonResponse,
 } from '../../../../providers/github/github-response-types';

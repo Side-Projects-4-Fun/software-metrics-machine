@@ -74,7 +74,7 @@ export default async function PipelinesPage({
     const runsByDayMap: Map<string, number> = Array.isArray(data.runs_by)
       ? data.runs_by.reduce((acc, item) => {
           const day = item.period || '';
-          if (!day) return acc;
+          if (!day) {return acc;}
           acc.set(day, (acc.get(day) || 0) + Number(item.runs || 0));
           return acc;
         }, new Map<string, number>())

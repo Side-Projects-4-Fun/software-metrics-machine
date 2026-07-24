@@ -5,9 +5,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { IssuesRepository } from '../../../domain/issues/issues-repository-json';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
-import { Issue } from '../../../domain-types';
-import { IJiraIssuesClient } from '../../../providers';
-import { Configuration } from '../../../infrastructure/configuration';
+import type { Issue } from '../../../domain-types';
+import type { IJiraIssuesClient } from '../../../providers';
+import type { Configuration } from '../../../infrastructure/configuration';
 import { RepositoryFactory } from '../../../infrastructure/repository-factory';
 
 function createIssue(overrides: Partial<Issue> = {}): Issue {

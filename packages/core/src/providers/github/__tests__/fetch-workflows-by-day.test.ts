@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { PipelineGitHubRunBuilder } from '../../../test/github/github-builders';
 import { InMemoryRepository } from '../../../test/repositories/in-memory-repository';
-import { IGithubWorkflowClient } from '../../..';
-import { WorkflowJsonResponse } from '../github-response-types';
+import type { IGithubWorkflowClient } from '../../..';
+import type { WorkflowJsonResponse } from '../github-response-types';
 import { PipelinesFetchRepository } from '../pipelines-fetch-repository-json';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 

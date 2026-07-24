@@ -1,4 +1,4 @@
-import { DatabaseSync } from 'node:sqlite';
+import type { DatabaseSync } from 'node:sqlite';
 
 type SqliteMigration = {
   id: string;

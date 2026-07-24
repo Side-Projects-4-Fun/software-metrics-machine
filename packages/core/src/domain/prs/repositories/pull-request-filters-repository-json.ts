@@ -1,5 +1,5 @@
-import { IRepository } from '../../../infrastructure';
-import {
+import type { IRepository } from '../../../infrastructure';
+import type {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
 } from '../../../providers/github/github-response-types';

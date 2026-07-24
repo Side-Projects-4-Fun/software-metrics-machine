@@ -4,7 +4,7 @@ import { TimeZoneProvider } from '../../../../infrastructure/timezone-provider';
 import { PipelineJobBuilder, PipelineRunBuilder } from '../../../../test/domain/domain-builders';
 import { MockLoggerBuilder } from '../../../../test/infrastructure/mock-logger-builder';
 import { PipelinesRepositoryBuilder } from '../../../../test/repositories/repository-builders';
-import { PipelinesRepository } from '../../repositories/pipeline-repository';
+import type { PipelinesRepository } from '../../repositories/pipeline-repository';
 
 describe('DeploymentFrequencyService', () => {
   it('should warn and return empty array when no deployment targets are configured', async () => {

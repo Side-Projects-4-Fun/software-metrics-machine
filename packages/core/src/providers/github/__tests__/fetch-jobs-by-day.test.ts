@@ -4,8 +4,8 @@ import {
   PipelineGitHubRunBuilder,
 } from '../../../test/github/github-builders';
 import { InMemoryRepository } from '../../../test/repositories/in-memory-repository';
-import { IGithubWorkflowJobClient } from '../..';
-import { WorkflowJobJsonResponse, WorkflowJsonResponse } from '../github-response-types';
+import type { IGithubWorkflowJobClient } from '../..';
+import type { WorkflowJobJsonResponse, WorkflowJsonResponse } from '../github-response-types';
 import { PipelinesJobFetchRepository } from '../pipelines-job-fetch-repository-json';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 

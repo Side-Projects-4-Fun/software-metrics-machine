@@ -138,24 +138,24 @@ function formatValue(value: number | null, unit: string): string {
 }
 
 function trendClassName(trend: EngineeringHealthEvaluation['evaluations'][number]['comparison']['trend']): string {
-  if (trend === 'improving') return 'text-emerald-600';
-  if (trend === 'degrading') return 'text-red-600';
-  if (trend === 'stable') return 'text-amber-600';
+  if (trend === 'improving') {return 'text-emerald-600';}
+  if (trend === 'degrading') {return 'text-red-600';}
+  if (trend === 'stable') {return 'text-amber-600';}
   return 'text-muted-foreground';
 }
 
 function trendBadgeClass(trend: EngineeringHealthEvaluation['evaluations'][number]['comparison']['trend']): string {
-  if (trend === 'improving') return 'bg-emerald-50 text-emerald-700 ring-emerald-200';
-  if (trend === 'degrading') return 'bg-red-50 text-red-700 ring-red-200';
-  if (trend === 'stable') return 'bg-amber-50 text-amber-700 ring-amber-200';
+  if (trend === 'improving') {return 'bg-emerald-50 text-emerald-700 ring-emerald-200';}
+  if (trend === 'degrading') {return 'bg-red-50 text-red-700 ring-red-200';}
+  if (trend === 'stable') {return 'bg-amber-50 text-amber-700 ring-amber-200';}
   return 'bg-slate-100 text-slate-600 ring-slate-200';
 }
 
 function recommendationBadgeClass(
   level: EngineeringHealthEvaluation['evaluations'][number]['recommendation']['level'],
 ): string {
-  if (level === 'good') return 'bg-emerald-50 text-emerald-700 ring-emerald-200';
-  if (level === 'watch') return 'bg-amber-50 text-amber-700 ring-amber-200';
+  if (level === 'good') {return 'bg-emerald-50 text-emerald-700 ring-emerald-200';}
+  if (level === 'watch') {return 'bg-amber-50 text-amber-700 ring-amber-200';}
   return 'bg-rose-50 text-rose-700 ring-rose-200';
 }
 
@@ -387,11 +387,11 @@ function isTargetMet(evaluation: EngineeringHealthEvaluation['evaluations'][numb
     return false;
   }
 
-  if (target.operator === 'lt') return value < target.value;
-  if (target.operator === 'lte') return value <= target.value;
-  if (target.operator === 'gt') return value > target.value;
-  if (target.operator === 'gte') return value >= target.value;
-  if (target.operator === 'eq') return value === target.value;
+  if (target.operator === 'lt') {return value < target.value;}
+  if (target.operator === 'lte') {return value <= target.value;}
+  if (target.operator === 'gt') {return value > target.value;}
+  if (target.operator === 'gte') {return value >= target.value;}
+  if (target.operator === 'eq') {return value === target.value;}
   return false;
 }
 

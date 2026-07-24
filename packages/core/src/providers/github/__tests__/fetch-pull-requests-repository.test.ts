@@ -2,9 +2,13 @@ import * as fs from 'fs/promises';
 import * as os from 'os';
 import * as path from 'path';
 import { describe, expect, it, vi } from 'vitest';
-import { GitHubPullRequestsFetchRepository, IGithubPrsClient } from '../../..';
+import type { IGithubPrsClient } from '../../..';
+import { GitHubPullRequestsFetchRepository } from '../../..';
 import { RepositoryFactory } from '../../../infrastructure/repository-factory';
-import { PullRequestCommentJsonResponse, PullRequestJsonResponse } from '../github-response-types';
+import type {
+  PullRequestCommentJsonResponse,
+  PullRequestJsonResponse,
+} from '../github-response-types';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 function createSqliteConfig(providerDir: string): {

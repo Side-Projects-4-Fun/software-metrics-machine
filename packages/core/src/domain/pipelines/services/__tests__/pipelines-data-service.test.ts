@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PipelineRun } from '../../..';
+import type { PipelineRun } from '../../..';
 import { PipelinesDataService } from '../../..';
 import {
   PipelineJobBuilder,

@@ -1,20 +1,20 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { Logger } from '@smmachine/utils';
-import {
+import type { Logger } from '@smmachine/utils';
+import type {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
 } from '../github/github-response-types';
-import {
+import type {
   GitHubWorkflowJobResponse,
   GitHubWorkflowResponse,
   IGithubWorkflowClient,
   IGithubWorkflowJobClient,
 } from '../github/workflow-types';
-import { IGithubPrsClient } from '../github/github-pr-client';
-import { PipelineRun } from '../../domain';
+import type { IGithubPrsClient } from '../github/github-pr-client';
+import type { PipelineRun } from '../../domain';
 import { RawFiltersParser } from '../github/raw-filters-parser';
 
 const execFileAsync = promisify(execFile);

@@ -1,5 +1,5 @@
-import { Logger } from '@smmachine/utils';
-import {
+import type { Logger } from '@smmachine/utils';
+import type {
   JobMetrics,
   PipelineAverageOutlier,
   PipelineAverageOutlierItem,
@@ -8,16 +8,12 @@ import {
   PipelineMetrics,
   PipelineRun,
 } from '../pipeline-types';
-import { Configuration } from '../../..';
-import { TimeZoneProvider } from '../../../infrastructure';
-import {
-  averageMetricSamples,
-  cleanMetricSamples,
-  MetricCleaningOptions,
-  MetricSample,
-} from '../../metric-samples';
-import { PipelinesRepository } from '../repositories';
-import {
+import type { Configuration } from '../../..';
+import type { TimeZoneProvider } from '../../../infrastructure';
+import type { MetricCleaningOptions, MetricSample } from '../../metric-samples';
+import { averageMetricSamples, cleanMetricSamples } from '../../metric-samples';
+import type { PipelinesRepository } from '../repositories';
+import type {
   DeploymentFrequencyRow,
   DeploymentFrequencyTarget,
   IPipelinesService,

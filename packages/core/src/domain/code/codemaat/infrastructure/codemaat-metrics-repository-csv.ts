@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { Logger } from '@smmachine/utils';
+import type { Logger } from '@smmachine/utils';
 import type {
   CodeChurn,
   CodeChurnResult,
@@ -13,7 +13,7 @@ import type {
   LayeredCoupling,
   FileCoupling,
 } from '../../../../providers/codemaat/types';
-import { Configuration } from '../../../../infrastructure/configuration';
+import type { Configuration } from '../../../../infrastructure/configuration';
 import path from 'path';
 import { matchesPathPattern, normalizePatternList } from '../../../../domain/code/pattern-filters';
 import type {

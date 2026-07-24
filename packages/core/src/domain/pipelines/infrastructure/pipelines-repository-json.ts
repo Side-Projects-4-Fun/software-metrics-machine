@@ -1,17 +1,18 @@
-import { IRepository } from '../../../infrastructure';
-import { Logger } from '@smmachine/utils';
-import {
+import type { IRepository } from '../../../infrastructure';
+import type { Logger } from '@smmachine/utils';
+import type {
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
 } from '../../../providers/github/github-response-types';
-import { PipelineJob, PipelineRun } from '../pipeline-types';
+import type { PipelineJob, PipelineRun } from '../pipeline-types';
 import { shouldIncludeTimestampForWeekendsMode } from '../../metric-samples';
-import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
-import {
-  ParseRawFiltersRepository,
-  RawFilter,
-} from '../../../infrastructure/parse-raw-filters-repository';
-import { PipelinesRepository, LoadPipelinesOptions } from '../repositories/pipeline-repository';
+import type { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
+import type { RawFilter } from '../../../infrastructure/parse-raw-filters-repository';
+import { ParseRawFiltersRepository } from '../../../infrastructure/parse-raw-filters-repository';
+import type {
+  PipelinesRepository,
+  LoadPipelinesOptions,
+} from '../repositories/pipeline-repository';
 import { PipelineMapToDomainRepository } from '../../../providers/github/pipeline-map-to-domain-repository';
 
 export class PipelinesRepositoryJson

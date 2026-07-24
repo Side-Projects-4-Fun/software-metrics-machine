@@ -1,6 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
-import { Logger } from '@smmachine/utils';
-import { Configuration } from '../../../../infrastructure/configuration';
+import type { Logger } from '@smmachine/utils';
+import type { Configuration } from '../../../../infrastructure/configuration';
 import type {
   CodeChurnResult,
   CodeMaatCodeChurnEntry,

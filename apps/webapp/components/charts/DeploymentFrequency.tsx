@@ -85,7 +85,7 @@ export function DeploymentFrequency({ deploymentFrequency }: { deploymentFrequen
   const ClickDot = useCallback((granularity: Granularity, targetLabel: string) => {
     const DotComponent = (props: { cx?: number; cy?: number; payload?: { period?: string } }) => {
       const { cx, cy, payload } = props;
-      if (!cx || !cy) return null;
+      if (!cx || !cy) {return null;}
       return (
         <g onClick={() => handleClick(payload?.period ?? '', granularity, targetLabel)} style={{ pointerEvents: 'auto' }}>
           <rect

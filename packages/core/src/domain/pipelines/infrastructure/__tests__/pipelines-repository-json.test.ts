@@ -5,7 +5,7 @@ import {
 } from '../../../../test/github/github-builders';
 import { PipelinesRepositoryJson } from '../pipelines-repository-json';
 import { InMemoryRepository } from '../../../../test/repositories/in-memory-repository';
-import {
+import type {
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
 } from '../../../../providers/github/github-response-types';

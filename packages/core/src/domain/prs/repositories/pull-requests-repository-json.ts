@@ -1,11 +1,9 @@
-import { IRepository } from '../../../infrastructure';
-import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
-import { PRDetails, PRFilters } from '../pr-types';
-import {
-  ParseRawFiltersRepository,
-  RawFilter,
-} from '../../../infrastructure/parse-raw-filters-repository';
-import {
+import type { IRepository } from '../../../infrastructure';
+import type { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
+import type { PRDetails, PRFilters } from '../pr-types';
+import type { RawFilter } from '../../../infrastructure/parse-raw-filters-repository';
+import { ParseRawFiltersRepository } from '../../../infrastructure/parse-raw-filters-repository';
+import type {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
 } from '../../../providers/github/github-response-types';

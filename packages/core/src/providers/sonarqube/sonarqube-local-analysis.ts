@@ -3,8 +3,8 @@ import { rimrafSync } from 'rimraf';
 import path, { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { Logger } from '@smmachine/utils';
-import { Configuration } from '../../infrastructure/configuration';
+import type { Logger } from '@smmachine/utils';
+import type { Configuration } from '../../infrastructure/configuration';
 import type { IConfigurationRepository } from '../../infrastructure/configuration-repository';
 
 type CommandExecutionResult = {

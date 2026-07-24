@@ -36,9 +36,9 @@ export interface SortableTableProps<T> {
 }
 
 function compareValues(a: unknown, b: unknown): number {
-  if (a == null && b == null) return 0;
-  if (a == null) return -1;
-  if (b == null) return 1;
+  if (a == null && b == null) {return 0;}
+  if (a == null) {return -1;}
+  if (b == null) {return 1;}
 
   if (typeof a === 'number' && typeof b === 'number') {
     return a - b;
@@ -66,7 +66,7 @@ export function SortableTable<T>({
   };
 
   const sortedRows = useMemo(() => {
-    if (!sortKey) return rows;
+    if (!sortKey) {return rows;}
 
     const column = columns.find((c) => c.key === sortKey);
     const comparator = column?.compare ?? ((a: T, b: T) => {

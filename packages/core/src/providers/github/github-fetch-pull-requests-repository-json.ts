@@ -1,12 +1,14 @@
-import { Logger } from '@smmachine/utils';
-import { IRepository, RepositoryFactory } from '../../infrastructure';
+import type { Logger } from '@smmachine/utils';
+import type { IRepository } from '../../infrastructure';
+import { RepositoryFactory } from '../../infrastructure';
 import { type IGithubPrsClient } from '.';
-import { PullRequestCommentJsonResponse, PullRequestJsonResponse } from './github-response-types';
-import { Configuration } from '../../';
-import {
-  PullRequestFilterOptions,
-  PullRequestFiltersRepository,
-} from '../../domain/prs/repositories/pull-request-filters-repository-json';
+import type {
+  PullRequestCommentJsonResponse,
+  PullRequestJsonResponse,
+} from './github-response-types';
+import type { Configuration } from '../../';
+import type { PullRequestFilterOptions } from '../../domain/prs/repositories/pull-request-filters-repository-json';
+import { PullRequestFiltersRepository } from '../../domain/prs/repositories/pull-request-filters-repository-json';
 
 export interface IPullRequestsRepository {
   fetchPRs(options?: {
