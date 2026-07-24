@@ -1,16 +1,14 @@
 import type { SmmCommand } from './smm-command';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
+import type { PRFilters, PRSummary, IReadPullRequestsRepository } from '@smmachine/core';
 import {
   GithubPrsClient,
   GitlabMrClient,
   GitHubRateLimitManager,
   GitHubPullRequestsFetchRepository,
   parseMetricCleaningOptions,
-  PRFilters,
-  PRSummary,
   PRsService,
   PullRequestFactory,
-  IReadPullRequestsRepository,
 } from '@smmachine/core';
 
 function createPRsOrchestratorRead(command: SmmCommand): IReadPullRequestsRepository {

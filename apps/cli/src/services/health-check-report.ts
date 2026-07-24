@@ -1,4 +1,4 @@
-import { Configuration } from '@smmachine/core/infrastructure/configuration';
+import type { Configuration } from '@smmachine/core/infrastructure/configuration';
 import { RepositoryFactory } from '@smmachine/core/infrastructure/repository-factory';
 import { applySqliteMigrations } from '@smmachine/core/infrastructure/sqlite-migrations';
 import * as fs from 'fs/promises';

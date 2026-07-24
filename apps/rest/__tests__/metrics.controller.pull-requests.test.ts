@@ -1,7 +1,8 @@
-import { INestApplication } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { createMetricsTestApp, MockedMetricsServices } from './helpers/metrics-test-app';
+import type { MockedMetricsServices } from './helpers/metrics-test-app';
+import { createMetricsTestApp } from './helpers/metrics-test-app';
 
 describe('MetricsController - Pull Request Metrics', () => {
   let app: INestApplication;

@@ -22,6 +22,7 @@
     "watch": "tsup --watch",
     "prepack": "pnpm run build:deps && pnpm run build",
     "test": "vitest --watch=false",
+    "test:coverage": "vitest run --coverage",
     "test:ci": "vitest run ./__tests__",
     "test:e2e": "pnpm run build && bash e2e/run.sh",
     "clean": "rm -rf dist",

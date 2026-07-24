@@ -7,6 +7,7 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "watch": "next dev",
     "clean": "rm -rf .next",
     "cy:open": "cypress open",

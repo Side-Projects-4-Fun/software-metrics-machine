@@ -16,6 +16,7 @@
     "build": "tsc --noEmit && tsup",
     "dev": "tsx src/index.ts",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:ci": "vitest run",
     "clean": "rm -rf dist",
     "lint": "eslint .",

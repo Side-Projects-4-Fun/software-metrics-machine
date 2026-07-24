@@ -1,11 +1,11 @@
 import type { SmmCommand } from './smm-command';
+import type { PipelineDashboardRunsByItem } from '@smmachine/core';
 import {
   parseMetricCleaningOptions,
   PipelineImplementation,
   PipelinesService,
   type PipelineFilters,
   PipelineFactory,
-  PipelineDashboardRunsByItem,
 } from '@smmachine/core';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 import { DeploymentFrequencyService } from '@smmachine/core/domain/pipelines/services/deployment-frequency-service';

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Command } from 'commander';
+import type { Command } from 'commander';
 import { commands } from '../../src';
 import {
   BigOService,

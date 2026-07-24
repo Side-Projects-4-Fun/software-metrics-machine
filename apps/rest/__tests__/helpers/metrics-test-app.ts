@@ -1,5 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe, BadRequestException } from '@nestjs/common';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+import type { INestApplication } from '@nestjs/common';
+import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { MetricsController } from '../../src/metrics.controller';
 import { HttpExceptionFilter, AllExceptionsFilter } from '../../src/filters/http-exception.filter';
 import {

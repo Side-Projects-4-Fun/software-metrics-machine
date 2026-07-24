@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { Command } from 'commander';
+import type { Command } from 'commander';
 import { commands } from '../../src';
 
 // Mock at the deepest importable level to prevent any real HTTP calls.

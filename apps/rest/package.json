@@ -9,6 +9,7 @@
     "dev": "PORT=8000 ts-node src/main.ts",
     "watch": "tsc -p tsconfig.json --watch",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:ci": "vitest run",
     "clean": "rm -rf dist",
     "lint": "eslint ."

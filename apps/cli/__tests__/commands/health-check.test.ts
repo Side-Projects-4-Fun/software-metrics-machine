@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
-import { Command } from 'commander';
+import type { Command } from 'commander';
 import { commands } from '../../src';
 
 const mocks = vi.hoisted(() => ({

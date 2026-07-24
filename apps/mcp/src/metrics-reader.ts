@@ -1,6 +1,6 @@
+import type { Configuration } from '@smmachine/core';
 import {
   ArchitectureService,
-  Configuration,
   createEngineeringHealthOrchestrator,
   DeploymentFrequencyService,
   IssuesRepository,

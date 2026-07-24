@@ -1,5 +1,6 @@
-import { LoggerService } from '@nestjs/common';
-import { Logger as SmmLogger, LogLevel } from '@smmachine/utils';
+import type { LoggerService } from '@nestjs/common';
+import type { LogLevel } from '@smmachine/utils';
+import { Logger as SmmLogger } from '@smmachine/utils';
 
 export class SmmNestLogger implements LoggerService {
   private readonly logger: SmmLogger;

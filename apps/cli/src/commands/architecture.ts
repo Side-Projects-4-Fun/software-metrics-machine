@@ -1,4 +1,5 @@
-import { ArchitectureService, ArchitectureView } from '@smmachine/core';
+import type { ArchitectureView } from '@smmachine/core';
+import { ArchitectureService } from '@smmachine/core';
 import type { SmmCommand } from './smm-command';
 
 function toMermaid(view: ArchitectureView): string {

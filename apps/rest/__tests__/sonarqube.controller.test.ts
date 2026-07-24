@@ -1,11 +1,14 @@
-import { BadRequestException, INestApplication, ValidationPipe } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import type { INestApplication } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { SonarqubeRepository } from '@smmachine/core';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SonarqubeController } from '../src/controllers/sonarqube.controller';
 import { HttpExceptionFilter, AllExceptionsFilter } from '../src/filters/http-exception.filter';
-import { createMetricsTestApp, MockedMetricsServices } from './helpers/metrics-test-app';
+import type { MockedMetricsServices } from './helpers/metrics-test-app';
+import { createMetricsTestApp } from './helpers/metrics-test-app';
 
 describe('Sonarqube', () => {
   let app: INestApplication;
