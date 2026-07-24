@@ -29,6 +29,7 @@ catalog:
   '@types/react': ^19
   '@types/react-dom': ^19
   '@types/supertest': ^2.0.12
+  '@swc/core': ^1.13.5
   '@typescript-eslint/eslint-plugin': ^8.65.0
   '@typescript-eslint/parser': ^8.65.0
   '@vitest/coverage-v8': ^4.1.10

@@ -24,6 +24,7 @@
   "devDependencies": {
     "@smmachine/core": "workspace:*",
     "@smmachine/utils": "workspace:*",
+    "@swc/core": "catalog:",
     "@types/node": "catalog:",
     "@typescript-eslint/eslint-plugin": "catalog:",
     "@typescript-eslint/parser": "catalog:",
