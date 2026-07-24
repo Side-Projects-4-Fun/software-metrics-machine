@@ -175,6 +175,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Set Environment Variables
+        uses: tw3lveparsecs/github-actions-setvars@v0.2
+        with:
+          envFilePath: ./envvars.for.actions
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Collect merged coverage
+        run: pnpm run coverage:all
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
         env:
