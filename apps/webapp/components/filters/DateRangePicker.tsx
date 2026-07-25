@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar, LocalizationProvider } from "@mui/x-date-pickers";
-import { PickersDay, PickersDayProps } from '@mui/x-date-pickers/PickersDay';
+import { PickerDay, PickerDayProps } from '@mui/x-date-pickers/PickerDay';
 import dayjs, { Dayjs } from "dayjs";
 import { useMemo, useState } from 'react';
 import { useFilters } from './FiltersContext';
@@ -24,7 +24,7 @@ interface PresetRange {
   getRange: () => [Dayjs, Dayjs];
 }
 
-interface RangePickersDayProps extends PickersDayProps {
+interface RangePickerDayProps extends PickerDayProps {
   rangeStart?: Dayjs | null;
   rangeEnd?: Dayjs | null;
   previewEnd?: Dayjs | null;
@@ -160,14 +160,14 @@ function withDateBoundary(date: Dayjs, boundary: 'start' | 'end'): Dayjs {
   return boundary === 'start' ? date.startOf('day') : date.endOf('day');
 }
 
-function RangePickersDay({
+function RangePickerDay({
   day,
   rangeStart,
   rangeEnd,
   previewEnd,
   selected,
   ...other
-}: RangePickersDayProps) {
+}: RangePickerDayProps) {
   const effectiveEnd = rangeEnd || previewEnd || null;
   const isStart = isSameDay(day, rangeStart);
   const isEnd = isSameDay(day, effectiveEnd);
@@ -175,7 +175,7 @@ function RangePickersDay({
   const isSingleDay = isStart && isEnd;
 
   return (
-    <PickersDay
+    <PickerDay
       {...other}
       day={day}
       selected={selected || isStart || isEnd}
@@ -289,13 +289,15 @@ export function FilterDateRangePicker({
           size="small"
           value={displayValue}
           onClick={openPicker}
-          inputProps={{ readOnly: true }}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <CalendarToday fontSize="small" />
-              </InputAdornment>
-            ),
+          slotProps={{
+            htmlInput: { readOnly: true },
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <CalendarToday fontSize="small" />
+                </InputAdornment>
+              ),
+            },
           }}
         />
 
@@ -352,8 +354,10 @@ export function FilterDateRangePicker({
                   type="datetime-local"
                   value={formatInputDate(tempStartDate)}
                   onChange={(event) => setTempStartDate(parseInputDate(event.target.value))}
-                  InputLabelProps={{ shrink: true }}
-                  inputProps={{ step: 60, 'aria-label': 'Start date and time' }}
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                    htmlInput: { step: 60, 'aria-label': 'Start date and time' },
+                  }}
                 />
                 <TextField
                   fullWidth
@@ -362,8 +366,10 @@ export function FilterDateRangePicker({
                   type="datetime-local"
                   value={formatInputDate(tempEndDate)}
                   onChange={(event) => setTempEndDate(parseInputDate(event.target.value))}
-                  InputLabelProps={{ shrink: true }}
-                  inputProps={{ step: 60, 'aria-label': 'End date and time' }}
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                    htmlInput: { step: 60, 'aria-label': 'End date and time' },
+                  }}
                 />
               </Stack>
 
@@ -371,20 +377,20 @@ export function FilterDateRangePicker({
                 value={calendarValue}
                 onChange={handleCalendarChange}
                 showDaysOutsideCurrentMonth
-                slots={{ day: RangePickersDay }}
+                slots={{ day: RangePickerDay }}
                 slotProps={{
                   day: {
                     rangeStart: tempStartDate,
                     rangeEnd: tempEndDate,
                     previewEnd: tempStartDate && !tempEndDate ? hoveredDate : null,
                     onMouseEnter: (_event, day) => setHoveredDate(day as Dayjs),
-                  } as Partial<RangePickersDayProps>,
+                  } as Partial<RangePickerDayProps>,
                 }}
                 sx={{ mx: 'auto' }}
               />
 
               <Divider sx={{ my: 1 }} />
-              <Stack direction="row" spacing={1} justifyContent="space-between">
+              <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between' }}>
                 <Button
                   size="small"
                   onClick={() => {

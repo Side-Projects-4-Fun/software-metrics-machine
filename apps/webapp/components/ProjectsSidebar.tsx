@@ -43,10 +43,12 @@ export default function ProjectsSidebar() {
             </ListItemIcon>
             <ListItemText
               primary={project.github_repository}
-              primaryTypographyProps={{
-                variant: 'body2',
-                noWrap: true,
-                title: project.github_repository,
+              slotProps={{
+                primary: {
+                  variant: 'body2',
+                  noWrap: true,
+                  title: project.github_repository,
+                },
               }}
             />
           </ListItemButton>

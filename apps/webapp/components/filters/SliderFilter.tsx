@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { Box, Slider, Typography } from '@mui/material';
 
 interface SliderFilterProps {
@@ -24,7 +23,7 @@ export default function SliderFilter({
 }: SliderFilterProps) {
   return (
     <Box sx={{ m: 1, minWidth: 200 }}>
-      <Typography variant="caption" display="block" sx={{ mb: 1 }}>
+      <Typography variant="caption" sx={{ display: 'block', mb: 1 }}>
         {label}: {value}
       </Typography>
       <Slider

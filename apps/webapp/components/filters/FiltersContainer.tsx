@@ -278,7 +278,7 @@ export default function FiltersContainer({ repository }: { repository: string })
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
             Pipeline Filters
           </Typography>
-          <Stack direction="column" spacing={2} flexWrap="wrap">
+          <Stack direction="column" spacing={2}>
             <SelectFilter
               label="Pipeline"
               value={filters.workflowSelector}
@@ -341,7 +341,7 @@ export default function FiltersContainer({ repository }: { repository: string })
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
             Pull Request Filters
           </Typography>
-          <Stack direction="column" spacing={2} flexWrap="wrap">
+          <Stack direction="column" spacing={2}>
             <MultiSelectFilter
               label="Authors"
               values={filters.authorSelect}
@@ -405,7 +405,7 @@ export default function FiltersContainer({ repository }: { repository: string })
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
             {activeSection === 'architecture' ? 'Architecture Filters' : 'Source Code Filters'}
           </Typography>
-          <Stack direction="column" spacing={2} flexWrap="wrap">
+          <Stack direction="column" spacing={2}>
             <TextInputFilter
               label="Ignore Pattern Files"
               value={filters.ignorePatternFiles}
@@ -451,7 +451,7 @@ export default function FiltersContainer({ repository }: { repository: string })
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
             SonarQube Filters
           </Typography>
-          <Stack direction="column" spacing={2} flexWrap="wrap">
+          <Stack direction="column" spacing={2}>
             <TextInputFilter
               label="Ignore Pattern Files"
               value={filters.ignorePatternFiles}
@@ -493,7 +493,7 @@ export default function FiltersContainer({ repository }: { repository: string })
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
             Engineering Health Filters
           </Typography>
-          <Stack direction="column" spacing={2} flexWrap="wrap">
+          <Stack direction="column" spacing={2}>
             <SelectFilter
               label="Metric"
               value={filters.metric}

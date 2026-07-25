@@ -1,11 +1,11 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "module": "node16",
+    "module": "ESNext",
     "types": ["node"],
     "outDir": "./dist",
     "rootDir": "./src",
-    "moduleResolution": "node16",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "baseUrl": "../..",
     "paths": {

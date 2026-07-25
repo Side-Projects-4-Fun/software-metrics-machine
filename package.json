@@ -24,7 +24,7 @@
   "license": "MIT",
   "scripts": {
     "build:local": "pnpm run lint -- --fix; pnpm run build; pnpm run test; pnpm run docs:build",
-    "build": "turbo run build",
+    "build": "turbo run build --force",
     "clean": "turbo run clean",
     "coverage:clean": "rm -rf coverage apps/*/coverage packages/*/coverage",
     "coverage:collect": "pnpm --filter @smmachine/utils test:coverage && pnpm --filter @smmachine/core test:coverage && pnpm --filter @smmachine/cli test:coverage && pnpm --filter @smmachine/mcp test:coverage && pnpm --filter @smmachine/rest test:coverage && pnpm --filter @smmachine/webapp test:coverage",
@@ -41,7 +41,7 @@
     "clean:install": "pnpm run clean:full && pnpm install",
     "build:npm": "turbo run clean && pnpm --filter @smmachine/utils build && pnpm --filter @smmachine/core build && pnpm --filter @smmachine/rest build && pnpm --filter @smmachine/webapp build && pnpm --filter @smmachine/mcp build && pnpm exec tsup",
     "dev": "turbo run dev --filter=./apps/*",
-    "build:packages": "turbo run build --filter=@smmachine/utils --filter=@smmachine/core",
+    "build:packages": "turbo run build --force --filter=@smmachine/utils --filter=@smmachine/core",
     "test": "turbo run test",
     "test:cli:acceptance": "cd apps/cli && pnpm run test:e2e",
     "test:cli:acceptance:full": "bash scripts/simulate-and-test-publish.sh build cli-e2e",

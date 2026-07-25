@@ -110,11 +110,10 @@ export function BigOAnalysisCard({ files, search }: BigOAnalysisCardProps) {
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
           spacing={2}
-          justifyContent="space-between"
-          alignItems={{ xs: 'stretch', sm: 'center' }}
+          sx={{ justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' } }}
         >
           <Box>
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <CardTitle>Big O Classification</CardTitle>
               <TargetInfo metric="big-o-classification" />
             </Stack>
@@ -175,7 +174,7 @@ export function BigOAnalysisCard({ files, search }: BigOAnalysisCardProps) {
                     <Chip size="small" label={file.classification} />
                   </TableCell>
                   <TableCell align="right">
-                    <Stack direction="row" spacing={1} justifyContent="flex-end" alignItems="center">
+                    <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end', alignItems: 'center' }}>
                       <Typography variant="body2">{file.score}</Typography>
                       {file.needsHelp ? (
                         <Chip size="small" color="warning" label="Needs help" />
@@ -217,7 +216,7 @@ export function BigOAnalysisCard({ files, search }: BigOAnalysisCardProps) {
           {error && <Alert severity="error">{error}</Alert>}
           {analysis && (
             <Stack spacing={2}>
-              <Stack direction="row" spacing={1} alignItems="center">
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                 <Chip label={analysis.classification} />
                 <Chip label={`Score ${analysis.score}`} />
                 {analysis.needsHelp && <Chip color="warning" label="Needs performance attention" />}

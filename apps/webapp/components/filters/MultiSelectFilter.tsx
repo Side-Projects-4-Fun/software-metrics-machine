@@ -32,10 +32,11 @@ export default function MultiSelectFilter({
       disabled={disabled}
       sx={{ m: 1, minWidth: 250 }}
       renderInput={(params) => <TextField {...params} label={label} />}
-      renderTags={(value, getTagProps) =>
-        value.map((option, index) => (
-          <Chip label={option} size="small" {...getTagProps({ index })} key={option + index} />
-        ))
+      renderValue={(value, getItemProps) =>
+        value.map((option, index) => {
+          const { key, ...tagProps } = getItemProps({ index });
+          return <Chip label={option} size="small" {...tagProps} key={key} />;
+        })
       }
     />
   );
