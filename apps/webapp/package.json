@@ -33,8 +33,7 @@
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "recharts": "catalog:",
-    "tailwind-merge": "catalog:"
+    "recharts": "catalog:"
   },
   "devDependencies": {
     "@cypress/webpack-preprocessor": "catalog:",

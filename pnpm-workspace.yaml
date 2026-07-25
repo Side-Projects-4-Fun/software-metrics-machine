@@ -19,6 +19,7 @@ catalog:
   '@nestjs/testing': ^11.1.28
   '@radix-ui/react-slot': ^1.3.3
   '@radix-ui/react-tabs': ^1.1.21
+  '@swc/core': ^1.13.5
   '@tailwindcss/postcss': ^4
   '@testing-library/dom': ^10.4.1
   '@testing-library/jest-dom': ^6.9.1
@@ -29,7 +30,6 @@ catalog:
   '@types/react': ^19
   '@types/react-dom': ^19
   '@types/supertest': ^7.2.1
-  '@swc/core': ^1.13.5
   '@typescript-eslint/eslint-plugin': ^8.65.0
   '@typescript-eslint/parser': ^8.65.0
   '@vitest/coverage-v8': ^4.1.10
@@ -60,21 +60,20 @@ catalog:
   ora: ^9.4.1
   react: 19.2.8
   react-dom: 19.2.8
-  recharts: ^3.10.0
+  recharts: ^3.10.1
   reflect-metadata: ^0.2.2
   rimraf: ^6.1.3
   rxjs: ^7.8.2
   sqlite: ^5.1.1
   supertest: ^7.2.2
   swagger-ui-express: ^5.0.1
-  tailwind-merge: ^3.6.0
   tailwindcss: ^4
   ts-jest: ^29.1.0
   ts-node: ^10.9.2
   tsconfig-paths: ^4.2.0
   tsup: ^8.5.1
   tsx: ^4.23.1
-  turbo: ^2.10.6
+  turbo: ^2.10.7
   typescript: ^6.0.3
   vitepress: ^1.6.4
   vitepress-plugin-mermaid: ^2.0.17

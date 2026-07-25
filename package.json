@@ -96,8 +96,7 @@
     "rimraf": "catalog:",
     "rxjs": "catalog:",
     "sqlite": "catalog:",
-    "swagger-ui-express": "catalog:",
-    "tailwind-merge": "catalog:"
+    "swagger-ui-express": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
