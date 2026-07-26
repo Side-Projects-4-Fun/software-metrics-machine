@@ -50,11 +50,14 @@ Providers such as GitHub Actions fan a matrix job out into several parallel legs
 each leg's name, for example `test (1)`, `test (2)`, `test (3)`. Because these legs run concurrently, they all occupy
 the same window of wall-clock time — running them in parallel does not multiply the elapsed time.
 
-To reflect this reality, SMM collapses all parallel matrix legs onto their base name (`test`) before computing job
-metrics. This applies to every job-based calculation: Jobs Average Time, Jobs Average Time by Day, Jobs Summary, Jobs
+To reflect this reality, SMM collapses all parallel matrix legs onto their base name before computing job metrics.
+**The base name is the only name you will see** — the individual `test (1)`, `test (2)`, `test (3)` leg names never
+appear in the results. Instead, they are all aggregated and shown as a single row named `test`.
+
+This applies to every job-based calculation: Jobs Average Time, Jobs Average Time by Day, Jobs Summary, Jobs
 Duration by Workflow, and the deployment-frequency target matching. Only the trailing numeric index is stripped, so
 meaningful parentheses earlier in the name are preserved — for instance `deploy (prod) (1)` is normalized to
-`deploy (prod)`, not to `deploy`.
+`deploy (prod)` and shown as `deploy (prod)`, not as `deploy`.
 
 As a result:
 

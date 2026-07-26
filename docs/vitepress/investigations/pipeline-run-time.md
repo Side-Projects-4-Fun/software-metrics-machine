@@ -71,8 +71,9 @@ The resulting data is the following (value in miuntes):
 
 > [!NOTE]
 > Matrix jobs are reported under their base name. A job defined on a matrix fans out into parallel legs named, for
-> example, `test (1)`, `test (2)`, `test (3)`. Because these legs run concurrently, SMM collapses them onto `test`
-> before computing the average, so the row above represents the mean duration of the parallel legs, not their sum. See
+> example, `test (1)`, `test (2)`, `test (3)`. Because these legs run concurrently, SMM collapses them onto a single
+> `test` entry before computing the average — you will only ever see `test` in the table above, never the individual
+> `test (N)` leg names, and the value is the mean duration of the parallel legs, not their sum. See
 > [Matrix jobs](../features/pipelines.md#matrix-jobs-parallel-legs) for details.
 
 <!--

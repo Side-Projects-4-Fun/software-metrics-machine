@@ -187,10 +187,11 @@ Providers such as GitHub Actions fan a matrix job out into several parallel legs
 each leg's name, for example `test (1)`, `test (2)`, `test (3)`. Because these legs run concurrently, they all occupy
 the same window of wall-clock time — running them in parallel does not multiply the elapsed time.
 
-SMM collapses all parallel matrix legs onto their base name (`test`) before computing job metrics, so the commands
-below report a single job instead of one entry per leg. Only the trailing numeric index is stripped, so meaningful
-parentheses earlier in the name are preserved — for instance `deploy (prod) (1)` is normalized to `deploy (prod)`,
-not to `deploy`.
+SMM collapses all parallel matrix legs onto their base name before computing job metrics. **The base name is the
+only name shown** — the individual `test (1)`, `test (2)`, `test (3)` leg names never appear; they are aggregated
+into a single `test` entry. Only the trailing numeric index is stripped, so meaningful parentheses earlier in the
+name are preserved — for instance `deploy (prod) (1)` is normalized to `deploy (prod)` and displayed as
+`deploy (prod)`, not as `deploy`.
 
 This applies to every job-based calculation: `jobs-summary`, `jobs-time-execution`, `jobs-steps-average-time`,
 `jobs-by-status`, `jobs-duration`, and the deployment-frequency target matching. Run-level duration
