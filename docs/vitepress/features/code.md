@@ -22,6 +22,99 @@ The Source Code dashboard tab includes:
 - Ownership by author, file, and entity.
 - Code Coupling.
 
+## Fetching data
+
+Fetching the data before operating it is the first step to get started with metrics. Code metrics are extracted from
+the local git repository using [Codemaat](../codemaat.md) — the repository must be cloned locally for the analysis to work.
+
+Date-only values passed to `--start-date` and `--end-date` are interpreted with the selected project's configured
+`timezone` from `smm_config.json`. If the project does not set `timezone`, SMM uses the project-specific `SMM_TIMEZONE`
+environment variable, then `UTC`.
+
+```bash
+smm code codemaat-fetch --start-date 2025-01-01 --end-date 2025-12-31
+```
+
+| Option            | Description                                                                  | Example                          |
+|-------------------|------------------------------------------------------------------------------|----------------------------------|
+| Start date        | Start date for git history extraction (required).                            | `--start-date=2025-01-01`        |
+| End date          | End date for git history extraction (required).                              | `--end-date=2025-12-31`          |
+| Subfolder         | Subfolder within the repository to analyze.                                  | `--subfolder=src`                |
+| Group depth       | Directory depth used to auto-generate CodeMaat grouping layers.              | `--group-depth=2`                |
+| Min revs          | Minimum number of revisions to include in a coupling analysis (default: 5).  | `--min-revs=10`                  |
+| Min shared revs   | Minimum number of shared revisions for coupling analysis (default: 5).       | `--min-shared-revs=10`           |
+| Min coupling      | Minimum coupling threshold in percentage (default: 30).                      | `--min-coupling=50`              |
+| Force             | Force regeneration of CodeMaat CSV files, bypassing the cache.               | `--force`                        |
+| Output            | Output format for the fetch result (`text` or `json`).                       | `--output=json`                  |
+
+### Examples - Fetch code metrics
+
+Fetching git history for a specific subfolder over the last 6 months:
+
+```bash
+smm code codemaat-fetch --start-date 2025-01-01 --end-date 2025-06-30 --subfolder=src
+```
+
+Setting coupling thresholds for a more focused analysis:
+
+```bash
+smm code codemaat-fetch --start-date 2025-01-01 --end-date 2025-06-30 --min-coupling=50 --min-revs=10
+```
+
+Using a temporary timezone for CLI execution:
+
+```bash
+YOUR_ORG_FRONTEND_APP_SMM_TIMEZONE=Europe/Madrid smm --project your-org/frontend-app code codemaat-fetch --start-date=2025-01-01 --end-date=2025-06-30
+```
+
+Forcing a fresh fetch and outputting the result as JSON:
+
+```bash
+smm code codemaat-fetch --start-date 2025-01-01 --end-date 2025-06-30 --force --output=json
+```
+
+## Fetch commits
+
+The `fetch-commits` command extracts commits from the local git repository for change set analysis. Unlike
+`codemaat-fetch`, this command focuses on raw commit data rather than CodeMaat-processed metrics.
+
+Date-only values passed to `--start-date` and `--end-date` are interpreted with the selected project's configured
+`timezone` from `smm_config.json`. If the project does not set `timezone`, SMM uses the project-specific `SMM_TIMEZONE`
+environment variable, then `UTC`.
+
+```bash
+smm code fetch-commits --start-date 2025-01-01 --end-date 2025-06-30
+```
+
+| Option     | Description                                                                          | Example                          |
+|------------|--------------------------------------------------------------------------------------|----------------------------------|
+| Start date | Start date for commit extraction.                                                    | `--start-date=2025-01-01`        |
+| End date   | End date for commit extraction.                                                      | `--end-date=2025-06-30`          |
+| Authors    | Comma-separated list of authors to filter.                                           | `--authors="Alice,Bob"`          |
+| Force      | Force refetch commits from git, bypassing the cache.                                 | `--force`                        |
+| Buffer     | Max buffer size in MB for git output (default: 100).                                 | `--buffer=200`                   |
+| Output     | Output format for the result (`text` or `json`).                                     | `--output=json`                  |
+
+### Examples - Fetch commits
+
+Fetch commits filtered by author:
+
+```bash
+smm code fetch-commits --start-date 2025-01-01 --end-date 2025-06-30 --authors="Alice,Bob"
+```
+
+Force a fresh fetch and output as JSON:
+
+```bash
+smm code fetch-commits --start-date 2025-01-01 --end-date 2025-06-30 --force --output=json
+```
+
+Increase the buffer size for repositories with large commit histories:
+
+```bash
+smm code fetch-commits --start-date 2025-01-01 --end-date 2025-12-31 --buffer=500
+```
+
 ## Code churn
 
 A stacked bar chart showing the total number of lines added (blue) and deleted (red) across
@@ -78,7 +171,7 @@ files or focus on the top N most frequently changed files. This makes it easy to
 attention and improvement.
 
 :::tabs key:cli
-== :: Dashboard
+== Dashboard
 
 ![Source code](/dashboard/code/entity-churn.png "A bar chart that breaks down the total code churn by individual file (entity), showing the top N most frequently changed files")
 

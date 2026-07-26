@@ -119,6 +119,29 @@ smm pipelines fetch-jobs --start-date 2025-01-01 --end-date 2025-12-10
 Like the pull request comments, the jobs fetched are based in the pipelines already fetched, so ensure you run the
 `smm pipelines fetch` command first.
 
+## Data quality
+
+Once data is fetched, you might want to check the quality of it and if the data matches the expected values. To achieve that,
+SMM has a summary command that shows basic information about the quality of the data. Such as:
+
+It will print a summary of the PRs fetched, including:
+
+- Total PRs (total_prs): The total number of pull requests.
+- First PR (first_pr): Details of the first pull request.
+- Last PR (last_pr): Details of the last pull request.
+- Merged PRs (merged_prs): The number of pull requests that were merged.
+- Closed PRs (closed_prs): The number of pull requests that were closed but not merged.
+- PRs Without Conclusion (without_conclusion): The number of pull requests that are neither closed nor merged.
+- Unique Authors (unique_authors): The number of unique authors who created pull requests.
+- Unique Labels (unique_labels): The number of unique labels used across pull requests.
+- Labels (labels): A list of all unique labels used in pull requests.
+
+The command to get the summary is:
+
+```bash
+smm prs summary
+```
+
 ## Visualizing the data
 
 Now that you have fetched the data, you can visualize it using the dashboard application provided by Software Metrics

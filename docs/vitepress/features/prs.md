@@ -12,6 +12,99 @@ tables designed to highlight review speed, comment patterns, throughput, themes,
 Each chart in the dashboard is interactive and supports filtering by author, labels, and date range, allowing you to
 drill down into the data that matters most for your team. This enables you to monitor team flow and identify bottlenecks.
 
+## Fetching data
+
+Fetching the data before operating it is the most first step to get started with metrics. This application provides
+utilities to fetch data based on date time criteria as it is a standard to use it as a cut off for data analysis.
+
+> [!NOTE]
+> Fetching data may take a while depending on activity in the repository, by default it fetches
+> every pull request and every workflow run in the repository.
+
+Date-only values passed to `--start-date` and `--end-date` are interpreted with the selected project's configured
+`timezone` from `smm_config.json`. If the project does not set `timezone`, SMM uses the project-specific `SMM_TIMEZONE`
+environment variable, then `UTC`.
+
+```bash
+smm prs fetch
+```
+
+| Option         | Description <div style="width:200px"></div> | Example <div style="width:200px"></div> |
+|----------------|-------------------------------------|--------------------------|
+| Months         | It defaults to 1. It is used if no start or end date is given   | `--months=2`|
+| Start date     | Fetches PRs created after a date.   | `--start-date=2025-01-01`|
+| End date       | Fetches PRs created before a date.  | `--end-date=2025-12-31`  |
+| Filters       | Allows to pass in filters directly to the [GitHub API](https://docs.github.com/en/rest/pulls/pulls#list-pull-requests)  | `--raw-filters=state=open`  |
+| Force       | By default a file is stored with the retrieved data to avoid refetching it again. However, using this parameter bypass this cache. | `--force=true`  |
+
+Filtering the data fetch from PRs by date is done logically while fetching the data, this is not a feature that GitHub
+API provides.
+
+### Examples - Fetch PRs
+
+Fetching PRs from the last 3 months:
+
+```bash
+smm prs fetch --months=3
+```
+
+Fetching PRs created between January 1, 2025, and June 30, 2025:
+
+```bash
+smm prs fetch --start-date=2025-01-01 --end-date=2025-06-30
+```
+
+Using a temporary timezone for CLI execution:
+
+```bash
+YOUR_ORG_FRONTEND_APP_SMM_TIMEZONE=Europe/Madrid smm --project your-org/frontend-app prs fetch --start-date=2025-01-01 --end-date=2025-06-30
+```
+
+Fetching only open PRs:
+
+```bash
+smm prs fetch --raw-filters=state=open,head=main
+```
+
+Forcing the fetch to ignore already fetched PRs (this overrides the data stored):
+
+```bash
+smm prs fetch --force=true
+```
+
+## Fetch PRs comments
+
+Pull requests often have comments that provide insights into the review process. However, in order to fetch comments for
+Pull Request, you must first fetch the PRs using the `smm prs fetch` command. The comments are not fetched by default to
+optimize the data retrieval process as GitHub API has rate limits. Before fetching the comments, it first uses the PRs
+data already fetched to get the comments for each PR using the property `review_comments_url` from each PR.
+
+```bash
+smm prs fetch-comments
+```
+
+| Option         | Description <div style="width:200px"></div> | Example <div style="width:240px"></div> |
+|----------------|-------------------------------------|--------------------------|
+| Start date     |  The PRs created date to filter after this date, this is the PR not the comment pr itself.  | `--start-date=2025-01-01`|
+| End date       | The PRs created date to filter before this date, this is the PR not the comment pr itself.  | `--end-date=2025-12-31`  |
+| Filters        | Allows to pass in filters directly to the [GitHub API](https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28&versionId=free-pro-team%40latest&category=pulls&subcategory=review-requests#list-review-comments-on-a-pull-request). It will pass the filters for each PR request.  | `--raw-filters=sort=created`  |
+| Force       | By default a file is stored with the retrieved data to avoid refetching it again. However, using this parameter bypass this cache. | `--force=true`  |
+
+### Examples - Fetch PRs comments
+
+Fetching comments for PRs created between January 1, 2025, and June 30, 2025:
+
+```bash
+smm prs fetch-comments --start-date=2025-01-01 --end-date=2025-06-30
+```
+
+Forcing the fetch to ignore already fetched comments (this overrides the data stored):
+
+```bash
+smm prs fetch-comments --force=true
+```
+
+
 ## Dashboard filters
 
 Use these filters in the Pull Requests dashboard tab.

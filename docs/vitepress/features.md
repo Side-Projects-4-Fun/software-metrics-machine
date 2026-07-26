@@ -6,20 +6,6 @@ outline: deep
 
 Software Metrics Machine (SMM) offers multiple ways to analyze and visualize engineering metrics.
 
-## Dashboard
-
-To see the dashboard, you first need to start it with the following command:
-
-```bash
-smm dashboard serve
-```
-
-The command will hang the terminal and start a local server on port 3000.
-
-### Accessing the Dashboard
-
-The dashboard, is available under the local url `http://localhost:3000` in your web browser.
-
 ![Dashboard Overview](/dashboard/dashboard.png)
 
 The dashboard provides the following features:
@@ -64,7 +50,7 @@ Start REST API with:
 smm dashboard serve
 ```
 
-Swagger docs are available at `http://localhost:3000/api/docs` by default.
+Swagger docs are available at `http://localhost:8000/api/docs` by default.
 
 See [REST API](./rest-api.md) for endpoint overview.
 

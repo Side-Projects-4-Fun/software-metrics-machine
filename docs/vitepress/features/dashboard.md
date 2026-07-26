@@ -66,17 +66,70 @@ If the dashboard request does not include a valid `timezone`, the API falls back
 
 ## Saved views
 
-Filters can be saved from the filter drawer. A saved view records:
+Filters can be saved from the filter drawer. The **Save Filter** button opens a dialog where you name the current filter
+state. The saved view records the dashboard section, pathname, current filter values, active repository, and a timestamp.
 
-- The dashboard section.
-- The current pathname.
-- The current filter values.
-- The active repository.
-- The saved view name.
+Saved views are stored per-project alongside your metrics data in `saved-filters.json`. Both the dashboard and the CLI
+read from the same file, so filters saved in one surface are available in the other.
 
-Saved views are stored in browser local storage under `smm.saved-filters`. The home page shows saved views grouped by
-project and dashboard section, so common slices can be reopened directly. Saved views can also be deleted from the filter
-drawer.
+:::tabs key:cli
+== Dashboard
+
+The filter drawer shows the **Save Filter** and **Delete Filter** buttons above the filter controls. When a saved view's
+filter values match the current URL parameters, the saved view is shown as selected in the filter dropdown.
+
+The home page shows saved views grouped by project and dashboard section so common slices can be reopened directly.
+
+== CLI
+
+List saved filters, optionally filtered by section:
+
+```bash
+smm filters list
+smm filters list --section pipelines
+```
+
+Save a filter with the options you want to reuse:
+
+```bash
+smm filters save "Q3 main branch" \
+  --section pipelines \
+  --start-date 2026-07-01 \
+  --end-date 2026-09-30 \
+  --workflow-selector ci.yml \
+  --weekends exclude
+```
+
+The `--section` option is required. Available sections are `insights`, `pipelines`, `pull-requests`,
+`source-code`, `engineering-health`, `architecture`, and `sonarqube`.
+
+Show and delete saved filters:
+
+```bash
+smm filters show "Q3 main branch"
+smm filters delete "Q3 main branch"
+```
+
+Output as JSON when scripting:
+
+```bash
+smm filters list --output json
+```
+:::
+
+### Applying saved filters to metric commands
+
+Use the `--filter` flag on metric commands to apply a saved filter's values automatically.
+Explicit command-line flags override the saved filter.
+
+```bash
+smm pipelines summary --filter "Q3 main branch"
+smm pipelines runs-by --filter "Q3 main branch" --period month
+smm prs summary --filter "Team Alpha reviews"
+```
+
+The filter section must match the command that uses it. A filter saved under `pipelines` is applied
+to `smm pipelines ...` commands, a `pull-requests` filter to `smm prs ...` commands, and so on.
 
 ## References and targets
 

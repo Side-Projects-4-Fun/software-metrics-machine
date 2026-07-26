@@ -61,34 +61,7 @@ A JSON response should be return with the user information, something similar to
 }
 ```
 
-That is it! You are ready to go and start fetching your data!
-
-## Fetching data
-
-Fetching the data before operating it is the most first step to get started with metrics. This application provides
-utilities to fetch data based on date time criteria as it is a standard to use it as a cut off for data analysis. Filters
-are optional. [See the CLI documentation for more details](./github/cli.md).
-
-> [!NOTE]
-> Fetching data may take a while depending on activity in the repository, by default it fetches
-> every pull request and every workflow run in the repository. To fine tune the fetching process, use the options
-> available in the [CLI documentation](./github/cli.md).
-
-### Pull requests
-
-For options to fetch pull requests refer to the [CLI documentation](./github/cli-prs.md).
-
-```bash
-smm prs fetch
-```
-
-### Workflows (pipelines)
-
-For options to fetch workflows and jobs refer to the [CLI documentation](./github/cli-workflows.md).
-
-```bash
-smm pipelines fetch
-```
+That is it! You are ready to go and start fetching your data! You now can either use the CLI commands or the dashboard to visualize the data. For that end, you can follow ["Your first analysis with GitHub"](./your-first-analysis-with-github.md) section. In the next section we will explain the limitations of the GitHub API.
 
 ## Limitations
 
@@ -99,37 +72,3 @@ analysis that Metrics Machine can do. For that end, the library has implemented 
 off where the last downloaded data has been stored, to avoid missing the data needed.
 
 <https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28#primary-rate-limit-for-authenticated-users>
-
-## Visualizing data
-
-This project provides commands to visualize the fetched data using various metrics. Visualization helps in understanding
-trends, identifying bottlenecks, and making informed decisions based on the data. The two options to visualize data are:
-
-1. A dashboard (web application) that provides an interactive interface to explore the data.
-2. CLI commands that generate charts and display them using matplotlib.
-
-### Dashboard
-
-The web application provides an interactive dashboard to explore the data visually. To start the dashboard, run the
-following command:
-
-```bash
-smm dashboard serve
-```
-
-If the dashboard needs to load a large local dataset, increase the Node.js heap before starting it:
-
-```bash
-NODE_OPTIONS="--max-old-space-size=8192" smm dashboard serve
-```
-
-On Windows PowerShell:
-
-```powershell
-$env:NODE_OPTIONS="--max-old-space-size=8192"; smm dashboard serve
-```
-
-### CLI commands
-
-The CLI commands are designed to generate specific charts based on the fetched data. Each command corresponds to a
-particular metric or analysis. [See the CLI documentation for more details](./github/cli.md).

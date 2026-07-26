@@ -2,13 +2,9 @@
 
 This section covers utility tools available in Software Metrics Machine that help with data management and processing.
 
-## Available Tools
+## JSON merge
 
-- **JSON merge**: Merges JSON files from the current directory into a single output file.
-- **MCP server**: Exposes read-only project metrics to local agent clients over stdio.
-
-See [Tools CLI](./tools/cli.md).
-See [MCP server](./mcp.md).
+Merges JSON files from the current directory into a single output file.
 
 ## Health Check
 

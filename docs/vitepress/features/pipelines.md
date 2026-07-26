@@ -22,6 +22,34 @@ The dashboard tab currently includes:
 Several tables link to provider pages such as workflow runs, job runs, and workflow metrics when the configured provider
 supports those URLs.
 
+## Fetch pipelines
+
+Date-only values passed to pipeline commands are interpreted with the selected project's configured `timezone` from
+`smm_config.json`. If the project does not set `timezone`, SMM uses the project-specific `SMM_TIMEZONE` environment
+variable, then `UTC`.
+
+```bash
+smm pipelines fetch
+```
+
+| Option         | Description                          | Example                   |
+|----------------|--------------------------------------|---------------------------|
+| Start date     | Fetches workflows created after a date.   | `--start-date=2025-01-01` |
+| End date       | Fetches workflows created before a date.  | `--end-date=2025-12-31`   |
+| Step           | Step defines the pace in which the data is fetched. It helps to mitigate the rate limits in the GitHub API | `--by-day`  |
+
+Example with an explicit timezone from the environment:
+
+```bash
+YOUR_ORG_FRONTEND_APP_SMM_TIMEZONE=Europe/Madrid smm --project your-org/frontend-app pipelines fetch --start-date=2025-01-01 --end-date=2025-12-31
+```
+
+## Fetch Jobs
+
+```bash
+smm pipelines fetch-jobs
+```
+
 ## Outliers and weekend filtering
 
 Pipeline duration metrics can be skewed by unusually slow runs, retries, provider incidents, or weekend-only activity.

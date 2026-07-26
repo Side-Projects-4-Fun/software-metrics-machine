@@ -72,49 +72,42 @@ export default withMermaid(
         {
           text: 'SMM',
           items: [
-            { text: 'Features', link: '/features' },
-            { text: 'Insights', link: '/features/insights' },
-            { text: 'Engineering Health', link: '/features/engineering-health' },
-            { text: 'Pull requests', link: '/features/prs' },
-            { text: 'Pipelines', link: '/features/pipelines' },
-            { text: 'Source code', link: '/features/code' },
-            { text: 'Architecture', link: '/features/architecture' },
-            { text: 'SonarQube', link: '/sonarqube' },
+            { text: 'Features', link: '/features', items: [
+              { text: 'Engineering Health', link: '/features/engineering-health' },
+              { text: 'Dashboard', link: '/features/dashboard' },
+              { text: 'Insights', link: '/features/insights' },
+              { text: 'Pull requests', link: '/features/prs' },
+              { text: 'Pipelines', link: '/features/pipelines' },
+              { text: 'Source code', link: '/features/code' },
+              { text: 'Architecture', link: '/features/architecture' },
+              { text: 'SonarQube', link: '/sonarqube' },
+              {
+                text: 'Tools', link: '/tools', items: []
+              },
+            ] },
+            { text: 'Configuration', link: '/features/configuration' },
             { text: 'REST API', link: '/rest-api' },
             { text: 'MCP server', link: '/mcp' },
-            { text: 'Configuration', link: '/features/configuration' },
           ]
         },
         {
           text: 'Integrations',
           items: [
             {
-              text: 'GitHub', link: '/github', items: [
-                { text: 'CLI', link: '/github/cli' },
-                { text: 'Pull requests', link: '/github/cli-prs' },
-                { text: 'Pipelines', link: '/github/cli-workflows' },
-              ]
-            },
-            {
-              text: 'Jira', link: '/jira'
+              text: 'GitHub', link: '/github', items: []
             },
             {
               text: 'GitLab', link: '/gitlab'
             },
             {
+              text: 'Jira', link: '/jira'
+            },
+            {
               text: 'SonarQube', link: '/sonarqube'
             },
             {
-              text: 'Codemaat', link: '/codemaat', items: [
-                { text: 'CLI', link: '/codemaat/cli' },
-              ]
+              text: 'Codemaat', link: '/codemaat', items: [ ]
             },
-            {
-              text: 'Tools', link: '/tools', items: [
-                { text: 'CLI', link: '/tools/cli' },
-                { text: 'Health check', link: '/tools#health-check' },
-              ]
-            }
           ]
         },
         {
