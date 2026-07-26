@@ -16,6 +16,7 @@ import type {
   PipelineFilters,
   PipelineDashboard,
 } from '../pipeline-types';
+import { normalizeMatrixJobName } from '../matrix-job-name';
 
 export class PipelineImplementation {
   private pipelinesDataService!: PipelinesDataService;
@@ -209,7 +210,7 @@ export class PipelineImplementation {
     for (const run of runs) {
       const jobs = run.jobs || [];
       for (const job of jobs) {
-        const name = job.name.trim();
+        const name = normalizeMatrixJobName(job.name);
         if (!name) continue;
         const duration = this.pipelinesDataService.getDurationMinutes(
           job.startedAt,
@@ -266,7 +267,7 @@ export class PipelineImplementation {
       const day = this.pipelinesDataService.getPeriodKey(runDate, 'day');
 
       for (const job of jobs) {
-        const name = job.name.trim();
+        const name = normalizeMatrixJobName(job.name);
         if (!name) continue;
         const duration = this.pipelinesDataService.getDurationMinutes(
           job.startedAt,
@@ -314,7 +315,7 @@ export class PipelineImplementation {
       const workflow = run.path || 'unknown';
       const jobs = run.jobs || [];
       for (const job of jobs) {
-        const name = job.name.trim();
+        const name = normalizeMatrixJobName(job.name);
         if (!name) continue;
         const duration = this.pipelinesDataService.getDurationMinutes(
           job.startedAt,
@@ -364,7 +365,7 @@ export class PipelineImplementation {
     for (const run of runs) {
       const workflowName = run.path;
       for (const job of run.jobs || []) {
-        const jobName = job.name;
+        const jobName = normalizeMatrixJobName(job.name);
         const key = `${workflowName || 'unknown'}::${jobName}`;
         if (!jobMetricsMap.has(key)) {
           jobMetricsMap.set(key, {
@@ -410,7 +411,9 @@ export class PipelineImplementation {
       const durationSamples: Array<MetricSample<PipelineAverageOutlierItem>> = [];
       for (const run of runs) {
         if (run.path !== metrics.workflowName) continue;
-        const job = (run.jobs || []).find((j) => j.name === metrics.jobName);
+        const job = (run.jobs || []).find(
+          (j) => normalizeMatrixJobName(j.name) === metrics.jobName
+        );
         if (job && job.startedAt && job.completedAt) {
           const started = new Date(job.startedAt).getTime();
           const completed = new Date(job.completedAt).getTime();

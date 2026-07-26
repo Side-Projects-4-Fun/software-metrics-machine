@@ -69,6 +69,12 @@ The resulting data is the following (value in miuntes):
 3    coverage  0.350000
 ```
 
+> [!NOTE]
+> Matrix jobs are reported under their base name. A job defined on a matrix fans out into parallel legs named, for
+> example, `test (1)`, `test (2)`, `test (3)`. Because these legs run concurrently, SMM collapses them onto `test`
+> before computing the average, so the row above represents the mean duration of the parallel legs, not their sum. See
+> [Matrix jobs](../features/pipelines.md#matrix-jobs-parallel-legs) for details.
+
 <!--
 ## Findings
 -->

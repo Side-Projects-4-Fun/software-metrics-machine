@@ -8,6 +8,7 @@ import type {
   PipelineMetrics,
   PipelineRun,
 } from '../pipeline-types';
+import { normalizeMatrixJobName } from '../matrix-job-name';
 import type { Configuration } from '../../..';
 import type { TimeZoneProvider } from '../../../infrastructure';
 import type { MetricCleaningOptions, MetricSample } from '../../metric-samples';
@@ -269,7 +270,7 @@ export class PipelinesService implements IPipelinesService {
       const workflowName = run.path;
 
       for (const job of jobs) {
-        const jobName = job.name;
+        const jobName = normalizeMatrixJobName(job.name);
         const key = `${workflowName || 'unknown'}::${jobName}`;
         if (!jobMetricsMap.has(key)) {
           jobMetricsMap.set(key, {
@@ -323,7 +324,9 @@ export class PipelinesService implements IPipelinesService {
           continue;
         }
 
-        const job = (run.jobs || []).find((j) => j.name === metrics.jobName);
+        const job = (run.jobs || []).find(
+          (j) => normalizeMatrixJobName(j.name) === metrics.jobName
+        );
         if (job && job.startedAt && job.completedAt) {
           durationSamples.push(this.toJobSample(run, job, this.calculateJobDuration(job)));
         }

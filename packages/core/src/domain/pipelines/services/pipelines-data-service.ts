@@ -8,6 +8,7 @@ import type {
   PipelineMetrics,
   PipelineRun,
 } from '../pipeline-types';
+import { normalizeMatrixJobName } from '../matrix-job-name';
 import type { TimeZoneProvider } from '../../../infrastructure';
 import type { MetricCleaningOptions, MetricSample } from '../../metric-samples';
 import {
@@ -172,8 +173,12 @@ export class PipelinesDataService implements IPipelinesService {
           run.path === target.pipeline && run.status === 'completed' && run.conclusion === 'success'
       );
 
+      const targetJobName = normalizeMatrixJobName(target.job);
       const jobsOnly = deployments.flatMap((run) =>
-        (run.jobs || []).filter((job) => job.name === target.job && job.conclusion === 'success')
+        (run.jobs || []).filter(
+          (job) =>
+            normalizeMatrixJobName(job.name) === targetJobName && job.conclusion === 'success'
+        )
       );
 
       for (const job of jobsOnly) {
@@ -249,7 +254,7 @@ export class PipelinesDataService implements IPipelinesService {
       const workflowName = run.path;
 
       for (const job of jobs) {
-        const jobName = job.name;
+        const jobName = normalizeMatrixJobName(job.name);
         const key = `${workflowName || 'unknown'}::${jobName}`;
         if (!jobMetricsMap.has(key)) {
           jobMetricsMap.set(key, {
@@ -301,7 +306,9 @@ export class PipelinesDataService implements IPipelinesService {
           continue;
         }
 
-        const job = (run.jobs || []).find((j) => j.name === metrics.jobName);
+        const job = (run.jobs || []).find(
+          (j) => normalizeMatrixJobName(j.name) === metrics.jobName
+        );
         if (job && job.startedAt && job.completedAt) {
           durationSamples.push(this.toJobSample(run, job, this.calculateJobDuration(job)));
         }

@@ -4,6 +4,7 @@ export * from './services/pipeline-implementation';
 export * from './services/deployment-frequency-service';
 export * from './service';
 export * from './pipeline-types';
+export * from './matrix-job-name';
 export * from './repositories';
 export * from './factories';
 export * from './infrastructure/index';

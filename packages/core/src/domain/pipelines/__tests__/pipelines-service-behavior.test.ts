@@ -147,6 +147,63 @@ describe('PipelinesService behavior', () => {
     expect(frequency).toEqual([{ period: '2025-01', count: 2 }]);
   });
 
+  it('collapses parallel matrix job legs onto a single job in metrics and duration', async () => {
+    // Matrix legs run in parallel and share the same wall-clock duration, so they
+    // must be reported as a single logical job (e.g. `test`) instead of three
+    // fragmented entries `test (1)`, `test (2)`, `test (3)`.
+    const repository = new PipelinesRepositoryBuilder()
+      .withPipelineRuns([
+        new PipelineRunBuilder()
+          .withId('run-1')
+          .withPath('.github/workflows/ci.yml')
+          .withCreatedAt('2025-01-01T10:00:00Z')
+          .withJobs([
+            new PipelineJobBuilder()
+              .withName('test (1)')
+              .withConclusion('success')
+              .withStartedAt('2025-01-01T10:00:00Z')
+              .withCompletedAt('2025-01-01T10:05:00Z')
+              .build(),
+            new PipelineJobBuilder()
+              .withName('test (2)')
+              .withConclusion('success')
+              .withStartedAt('2025-01-01T10:00:00Z')
+              .withCompletedAt('2025-01-01T10:05:00Z')
+              .build(),
+            new PipelineJobBuilder()
+              .withName('test (3)')
+              .withConclusion('failure')
+              .withStartedAt('2025-01-01T10:00:00Z')
+              .withCompletedAt('2025-01-01T10:05:00Z')
+              .build(),
+          ])
+          .build(),
+      ])
+      .build();
+    const service = new PipelinesService(
+      repository,
+      undefined,
+      logger,
+      new TimeZoneProvider('UTC')
+    );
+
+    const jobMetrics = await service.getJobMetrics();
+
+    expect(jobMetrics).toHaveLength(1);
+    expect(jobMetrics[0]).toEqual(
+      expect.objectContaining({
+        jobName: 'test',
+        workflowName: '.github/workflows/ci.yml',
+        totalRuns: 3,
+        successCount: 2,
+        failureCount: 1,
+        successRate: 66.67,
+        // Parallel legs all took 5 minutes; the average is 5, not 15.
+        averageDurationMinutes: 5,
+      })
+    );
+  });
+
   it('calculates exact job metrics for workflow jobs', async () => {
     const repository = new PipelinesRepositoryBuilder()
       .withPipelineRuns([

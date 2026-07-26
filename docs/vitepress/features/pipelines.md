@@ -44,6 +44,28 @@ These options are available on `smm pipelines summary`, `smm pipelines runs-dura
 `smm pipelines jobs-time-execution`, `smm pipelines jobs-steps-average-time`, `smm pipelines jobs-by-status`, and
 `smm pipelines lead-time`.
 
+## Matrix jobs (parallel legs)
+
+Providers such as GitHub Actions fan a matrix job out into several parallel legs and append a parenthesized index to
+each leg's name, for example `test (1)`, `test (2)`, `test (3)`. Because these legs run concurrently, they all occupy
+the same window of wall-clock time — running them in parallel does not multiply the elapsed time.
+
+To reflect this reality, SMM collapses all parallel matrix legs onto their base name (`test`) before computing job
+metrics. This applies to every job-based calculation: Jobs Average Time, Jobs Average Time by Day, Jobs Summary, Jobs
+Duration by Workflow, and the deployment-frequency target matching. Only the trailing numeric index is stripped, so
+meaningful parentheses earlier in the name are preserved — for instance `deploy (prod) (1)` is normalized to
+`deploy (prod)`, not to `deploy`.
+
+As a result:
+
+- Three parallel `test (N)` legs are reported as a single `test` job with `total_runs = 3`.
+- Their average duration is the mean of each leg's own duration (for example `5 min`), **not** the sum of their
+  durations.
+- A deployment-frequency target named `deploy` matches `deploy`, `deploy (1)`, `deploy (2)`, etc.
+
+Run-level duration is computed from the earliest job start and the latest job completion across the whole run, so it is
+already parallel-aware and is unaffected by this normalization.
+
 ## Pipeline by Status
 
 :::tabs key:cli
