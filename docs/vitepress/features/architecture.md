@@ -6,7 +6,7 @@ outline: deep
 
 The Architecture feature generates a persisted snapshot of the repository structure, then lets you inspect it as C4-style views in the dashboard or export it from the CLI.
 
-## Generate a snapshot
+## Fetching data
 
 Run generation after configuring the project git repository. Architecture generation requires `GIT_REPOSITORY_LOCATION` because SMM reads git history and package/source structure, writes the snapshot under the project's SMM data directory, and makes the latest snapshot available to the dashboard.
 
@@ -96,12 +96,12 @@ smm architecture export \
 
 ## View levels
 
-| Level       | Use it for |
-|-------------|------------|
-| `context`   | The system, users, and the SMM containers that generate, serve, and visualize architecture snapshots. |
-| `container` | Package-level containers discovered in the repository and their dependencies. |
-| `component` | Components grouped under discovered packages. |
-| `code`      | Source-file-level relationships. |
+| Level       | Use it for | CLI export example |
+|-------------|------------|---------------------|
+| `context`   | The system, users, and the SMM containers that generate, serve, and visualize architecture snapshots. | `--view context --format json` |
+| `container` | Package-level containers discovered in the repository and their dependencies. | `--view container --format json` |
+| `component` | Components grouped under discovered packages. | `--view component --format mermaid` |
+| `code`      | Source-file-level relationships. | `--view code --format mermaid` |
 
 If `--snapshot-id` is omitted, `smm architecture export` and the dashboard use the latest persisted snapshot.
 

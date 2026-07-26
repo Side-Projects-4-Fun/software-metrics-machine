@@ -330,6 +330,11 @@ smm code coupling
 
 ## Pairing
 
+Pairing metrics reveal collaborative patterns in your codebase by detecting co-authored commits.
+
+::::tabs key:cli
+:::tab Dashboard
+
 The dashboard shows pairing data in two cards:
 
 - **Who Paired The Most With Whom**: top author/co-author pairs by paired commit count.
@@ -337,10 +342,69 @@ The dashboard shows pairing data in two cards:
 
 The Insights tab also shows the Pairing Index summary.
 
+:::
+
+:::tab CLI
+
+The `smm code summary` command shows top pairings and latest paired commits:
+
+```bash
+smm code summary
+```
+
+The `smm code pairing-index` command calculates the pairing index percentage:
+
+```bash
+smm code pairing-index
+```
+
+| Option       | Description                                              | Example                  |
+|--------------|----------------------------------------------------------|--------------------------|
+| Start date   | Start date for commit range.                             | `--start-date=2025-01-01`|
+| End date     | End date for commit range.                               | `--end-date=2025-12-31`  |
+| Min shared   | Minimum number of shared commits (default: 2).           | `--min-shared=5`         |
+| Output       | Output format (`text`, `json`, or `csv`).               | `--output=json`          |
+
+```bash
+smm code pairing-index --start-date=2025-01-01 --end-date=2025-06-30 --min-shared=5
+```
+
+:::
+::::
+
 ## Big O Classification
+
+Analyzes source files for algorithmic complexity risks, assigning a Big O classification and score to each file.
+
+::::tabs key:cli
+:::tab Dashboard
 
 The Big O Classification card lists analyzed files with their detected complexity classification and score. The card
 includes a search field backed by the `big_o_search` query parameter and a sortable score column.
+
+:::
+
+:::tab CLI
+
+```bash
+smm code big-o
+```
+
+| Option        | Description                                                  | Example                        |
+|---------------|--------------------------------------------------------------|--------------------------------|
+| Search        | Filter files by repository-relative path.                    | `--search=src/services`        |
+| Ignore files  | Comma-separated patterns to ignore.                          | `--ignore-files=*.test.ts`     |
+| Include only  | Comma-separated patterns to include exclusively.             | `--include-only=src/**`        |
+| File          | Show line-level Big O analysis for a specific file.          | `--file=src/utils/sort.ts`     |
+| Limit         | Maximum files to analyze when listing summaries (default: 200). | `--limit=50`               |
+| Output        | Output format (`text`, `json`, or `csv`).                   | `--output=csv`                 |
+
+```bash
+smm code big-o --search=src --limit=50 --output=json
+```
+
+:::
+::::
 
 
 ## Dashboard coverage

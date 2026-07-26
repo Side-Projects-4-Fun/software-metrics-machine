@@ -22,7 +22,22 @@ Then open:
 http://localhost:3000/dashboard/engineering-health
 ```
 
-The dashboard page is designed to be read in the browser and exported with the dashboard print action.
+The dashboard page renders a comprehensive engineering health report in the browser, organized as a scrollable document
+with:
+
+- An **overview header** showing generation time, the current and comparison periods, and a risk summary.
+- An **executive summary** with target compliance and strongest movement indicators.
+- A **scorecard** grouping metrics by category (delivery, quality, collaboration, architecture), sorted by risk level.
+- **Trend and driver analysis** highlighting the strongest improving and degrading signals.
+- **Data confidence** metrics showing comparison coverage and sample sizes.
+- A **metric appendix** with per-metric rows including current value, delta, trend, sample size, and recommendations.
+- **References** citing source thresholds and targets.
+
+The dashboard uses the same filter controls as other tabs. See [Filters and CLI options](#filters-and-cli-options) below
+for the available filters, and [Dashboard](./dashboard.md) for shared date, timezone, and saved view behavior.
+
+Raw filters are available from the dashboard filter drawer under the Engineering Health tab. See
+[Raw filters](#raw-filters) for format and examples.
 
 ## CLI
 

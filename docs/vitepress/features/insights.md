@@ -27,6 +27,14 @@ The Insights tab includes three summary cards:
 The status values in the Pipeline Runs and Pull Requests cards link to the related dashboard page with matching filters
 applied.
 
+Each card has a CLI equivalent:
+
+| Card            | CLI command                  |
+|-----------------|------------------------------|
+| Pairing Index   | `smm code pairing-index`     |
+| Pipeline Runs   | `smm pipelines summary`      |
+| Pull Requests   | `smm prs summary`            |
+
 ## Deployment Frequency
 
 <!--@include: ../parts/supported-by-all.md{,2}-->
@@ -60,6 +68,17 @@ For CLI execution, you need to specify the pipeline and the job that deploys to 
 | End date       | Uses pipeline starting until this date.   | `--end-date=2025-12-31`     |
 | Pipeline       | Pipeline to use                           | `--workflow-path=.github/workflows/ci.yml`       |
 | Job            | The job that deploys to production        | `--job-name=deploy_production`       |
+
+### Example - Deployment Frequency
+
+```bash
+smm pipelines deployment-frequency \
+  --start-date 2025-01-01 \
+  --end-date 2025-12-31 \
+  --workflow-path=.github/workflows/deploy.yml \
+  --job-name=deploy_production \
+  --period month
+```
 
 :::
 

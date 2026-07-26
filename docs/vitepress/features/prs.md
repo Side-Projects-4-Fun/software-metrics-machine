@@ -161,16 +161,18 @@ These options are available on `smm prs average-review-time`, `smm prs average-o
 The Pull Requests tab includes:
 
 - **Average Review Time**: review time grouped by author.
-- **Who Comments The Most**: comment volume by commenter.
-- **Time To First Comment**: elapsed time until the first PR comment.
+- **Who Comments The Most**: comment volume by commenter *(dashboard only)*.
+- **Time To First Comment**: elapsed time until the first PR comment *(dashboard only)*.
 - **PRs by Author**: number of PRs opened by author.
-- **Most Commented Pull Requests**: PRs with the most discussion, with direct PR links.
-- **Top Themes in Comments**: common terms in PR comments, with links to search for each theme.
+- **Most Commented Pull Requests**: PRs with the most discussion, with direct PR links *(dashboard only)*.
+- **Top Themes in Comments**: common terms in PR comments, with links to search for each theme *(dashboard only)*.
 - **Open PRs Through Time**: opened and closed PR volume over time.
 - **Average Days PRs Remain Open**: trend of how long PRs stay open.
 - **PR Statistics**: totals, status counts, label distribution, and summary details.
 
-Statistics and label values link to provider PR pages when the configured provider supports those URLs.
+Statistics and label values link to provider PR pages when the configured provider supports those URLs. Cards marked
+*dashboard only* are computed on the fly from comment data and do not have separate CLI commands; run `smm prs
+fetch-comments` first to populate the data they depend on.
 
 ## Summary PRs data
 
@@ -276,6 +278,13 @@ Shows the volume of PRs opened and closed each day. This helps you spot bottlene
 
 ![Pull requests timeline](/dashboard/prs/prs_timeline.png)
 
+### How It Computes and Filters
+
+1. Aggregates PR events by day.
+2. Filters by date range (start/end date) - the date used in the prs are the created_at.
+3. Data is processed to count opened and closed PRs per day.
+4. You can filter the chart to focus on specific periods, such as a sprint or release window.
+
 == CLI
 
 ```bash
@@ -307,16 +316,6 @@ smm prs through-time \
 
 :::
 
-If you notice a spike in opened PRs but few closed ones, it may indicate the start of a new sprint or a backlog forming.
-For example, if September 25th shows many opened PRs but none closed, it could signal a need to focus on reviews.
-
-### How It Computes and Filters
-
-1. Aggregates PR events by day.
-2. Filters by date range (start/end date) - the date used in the prs are the created_at.
-3. Data is processed to count opened and closed PRs per day.
-4. You can filter the chart to focus on specific periods, such as a sprint or release window.
-
 ## Average PR Open
 
 Tracks how long PRs stay open before merging. It uses weekly or monthly aggregation to show trends in review speed.
@@ -326,9 +325,12 @@ Tracks how long PRs stay open before merging. It uses weekly or monthly aggregat
 
 ### Type of Chart
 
-Line chart (trend of average days PRs remain open, aggregated by week or month).
+Line chart showing the trend of average days PRs remain open, aggregated by week or month to smooth daily fluctuations.
 
 ### Insight Provided
+
+Reveals how quickly your team merges pull requests and whether review speed is improving or degrading over time. A
+downward trend suggests faster reviews and healthier flow.
 
 ![Pull requests open by on average](/dashboard/prs/open_prs_average.png)
 
@@ -459,6 +461,15 @@ Plot the average number of comments a PR receives before it is merged, aggregate
 
 :::tabs key:cli
 == Dashboard
+
+### Type of Chart
+
+Line chart showing the average number of comments per PR over time, aggregated by week or month.
+
+### Insight Provided
+
+Measures discussion depth on pull requests. Higher averages may indicate thorough reviews or contentious changes, while
+very low averages could signal superficial reviews.
 
 ![Comments made in prs averaged](/dashboard/prs/prs_comments_average.png)
 

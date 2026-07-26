@@ -46,8 +46,24 @@ YOUR_ORG_FRONTEND_APP_SMM_TIMEZONE=Europe/Madrid smm --project your-org/frontend
 
 ## Fetch Jobs
 
+Pipeline jobs are the individual CI steps that make up a pipeline run. Fetch them after pipelines so the
+job data is linked to the runs already stored.
+
 ```bash
 smm pipelines fetch-jobs
+```
+
+| Option          | Description                                                           | Example                          |
+|-----------------|-----------------------------------------------------------------------|----------------------------------|
+| Start date      | Filter pipelines created on or after this date for job extraction.    | `--run-start-date=2025-01-01`    |
+| End date        | Filter pipelines created on or before this date for job extraction.   | `--run-end-date=2025-12-31`      |
+| Raw Filters     | Provider-specific filters for the pipeline runs the jobs belong to.   | `--raw-filters=branch=main`      |
+| By Day          | Fetch jobs day by day to mitigate provider rate limits.               | `--by-day`                       |
+| Force           | Force re-fetch jobs even if already cached.                           | `--force`                        |
+| Update          | Incrementally fetch only newer jobs and merge with existing cache.    | `--update`                       |
+
+```bash
+smm pipelines fetch-jobs --run-start-date 2025-01-01 --run-end-date 2025-06-30 --by-day
 ```
 
 ## Outliers and weekend filtering
@@ -128,9 +144,32 @@ smm pipelines by-status
 Computes the number of pipeline runs over time and returns a time series plot showing how many pipeline executions
 were triggered in the given time frame. Aggregated by week or month.
 
+::::tabs key:cli
+:::tab Dashboard
+
+Available as the Pipeline Runs by Day card in the Pipeline Runs Duration section of the Pipelines tab.
+
+:::
+
+:::tab CLI
+
 ```bash
 smm pipelines runs-by
 ```
+
+| Option     | Description                                        | Example                  |
+|------------|----------------------------------------------------|--------------------------|
+| Start date | Filter by created after this date.                 | `--start-date=2025-01-01`|
+| End date   | Filter by created before this date.                | `--end-date=2025-12-31`  |
+| Period     | Aggregation period (`day`, `week`, or `month`).    | `--period=month`         |
+| Output     | Output format (`text` or `json`).                  | `--output=json`          |
+
+```bash
+smm pipelines runs-by --start-date 2025-01-01 --end-date 2025-06-30 --period month
+```
+
+:::
+::::
 
 
 
@@ -142,6 +181,46 @@ smm pipelines runs-by
 Computes the duration of each pipeline run over time and returns a time series plot showing how long each pipeline
 execution took to complete in minutes. The time taken is calculated based on the sum of all individual jobs executed in the
 pipeline, excluding skipped jobs.
+
+::::tabs key:cli
+:::tab Dashboard
+
+![Time it takes to run pipeline](/dashboard/pipelines/runs_in_minutes.png)
+
+:::
+
+:::tab CLI
+
+```bash
+smm pipelines runs-duration
+```
+
+| Option        | Description                                                                                                             | Example <div style="width:200px"></div> |
+|---------------|-------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| Start date    | Filter by created after this date.                                                                                      | `--start-date=2025-01-01`     |
+| End date      | Filter by created before this date.                                                                                     | `--end-date=2025-12-31`     |
+| Metric        | The type of metric to compute for each execution (avg, sum, count)                                                      | `--metric=sum`     |
+| Aggregate     | Aggregate the data by day, plotting each day computing the desired metric                                               | `--aggregate-by-day=true`     |
+| Raw Filters   | Filters by the fields available by the provider, for example, if using GitHub, you can filters by any filter in the API | `--raw-filters=status=completed,conclusion=success`     |
+| Workflow path | Filter by the workflow file path                                                                                        | `--workflow-path=".github/workflows/ci.yml"`     |
+| Weekends      | Include, exclude, or isolate weekend samples.                                                                           | `--weekends=exclude` |
+| Outlier mode  | Include, flag, or exclude detected outliers.                                                                            | `--outlier-mode=flag` |
+
+### Examples - Runs duration
+
+Computes the average time of each pipeline run between August 17, 2025, and November 17, 2025 and aggregates the data
+by day, returning the average duration of all runs executed each day:
+
+```bash
+smm pipelines runs-duration \
+  --start-date 2025-08-17 \
+  --end-date 2025-11-17 \
+  --workflow-path=".github/workflows/ci.yml" \
+  --aggregate-by-day=true
+```
+
+:::
+::::
 
 ## Dashboard filters
 
@@ -174,43 +253,6 @@ available in the configured project. When a workflow is selected, the jobs filte
 
 The shared date picker, timezone behavior, saved views, and tab navigation are documented in
 [Dashboard](./dashboard.md).
-
-:::tabs key:cli
-== Dashboard
-
-![Time it takes to run pipeline](/dashboard/pipelines/runs_in_minutes.png)
-
-== CLI
-
-```bash
-smm pipelines runs-duration
-```
-
-| Option        | Description                                                                                                             | Example <div style="width:200px"></div> |
-|---------------|-------------------------------------------------------------------------------------------------------------------------|--------------------------|
-| Start date    | Filter by created after this date.                                                                                      | `--start-date=2025-01-01`     |
-| End date      | Filter by created before this date.                                                                                     | `--end-date=2025-12-31`     |
-| Metric        | The type of metric to compute for each execution (avg, sum, count)                                                      | `--metric=sum`     |
-| Aggregate     | Aggregate the data by day, plotting each day computing the desired metric                                               | `--aggregate-by-day=true`     |
-| Raw Filters   | Filters by the fields available by the provider, for example, if using GitHub, you can filters by any filter in the API | `--raw-filters=status=completed,conclusion=success`     |
-| Workflow path | Filter by the workflow file path                                                                                        | `--workflow-path=".github/workflows/ci.yml"`     |
-| Weekends      | Include, exclude, or isolate weekend samples.                                                                           | `--weekends=exclude` |
-| Outlier mode  | Include, flag, or exclude detected outliers.                                                                            | `--outlier-mode=flag` |
-
-### Examples - Runs duration
-
-Computes the average time of each pipeline run between August 17, 2025, and November 17, 2025 and aggregates the data
-by day, returning the average duration of all runs executed each day:
-
-```bash
-smm pipelines runs-duration \
-  --start-date 2025-08-17 \
-  --end-date 2025-11-17 \
-  --workflow-path=".github/workflows/ci.yml" \
-  --aggregate-by-day=true
-```
-
-:::
 
 ## Pipeline Summary
 
@@ -284,16 +326,14 @@ smm pipelines jobs-time-execution \
 
 ## Jobs by Status
 
-```bash
-smm pipelines jobs-by-status
-```
-
-:::tabs key:cli
-== Dashboard
+::::tabs key:cli
+:::tab Dashboard
 
 Available as the Jobs by Status card in the Pipelines tab.
 
-== CLI
+:::
+
+:::tab CLI
 
 ```bash
 smm pipelines jobs-by-status
@@ -321,16 +361,9 @@ smm pipelines jobs-by-status \
 ```
 
 :::
-
-
-
-
+::::
 
 ## Jobs Summary
-
-```bash
-smm pipelines jobs-summary
-```
 
 :::tabs key:cli
 == Dashboard
@@ -360,4 +393,17 @@ card includes:
 - Average step duration by day.
 - Overall time proportion by step.
 - A sortable table of steps, average duration, and count.
+
+The CLI provides the same data via `smm pipelines jobs-steps-average-time`, which filters to a specific job:
+
+```bash
+smm pipelines jobs-steps-average-time --job=build
+```
+
+| Option       | Description                                                     | Example <div style="width:200px"></div>     |
+|--------------|-----------------------------------------------------------------|---------------------------------------------|
+| Start date   | Filter by created after this date.                              | `--start-date=2025-01-01`                   |
+| End date     | Filter by created before this date.                             | `--end-date=2025-12-31`                     |
+| Job name     | Filter by job name.                                             | `--job=build`                               |
+| Output       | Output format (`text` or `json`).                               | `--output=json`                             |
 
