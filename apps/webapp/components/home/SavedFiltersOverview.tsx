@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { serializeDashboardFilters } from '@/components/filters/DashboardFilters';
-import {
+import type {
   DashboardSection,
   SavedFilterEntry,
-  SavedFiltersStore,
 } from '@/components/filters/saved-filters-store';
+import { dashboardPathForSection } from '@/components/filters/saved-filters-store';
+import { getSavedFilters } from '@/components/filters/saved-filters-actions';
 import { useProjects } from '@/components/providers/ProjectsContext';
 
 const sectionOrder: DashboardSection[] = [
@@ -44,18 +45,17 @@ function repositoryLabel(repository: string): string {
 
 export default function SavedFiltersOverview() {
   const { selectProject } = useProjects();
-  const savedFiltersStore = useMemo(() => new SavedFiltersStore(), []);
   const [savedFilters, setSavedFilters] = useState<SavedFilterEntry[]>([]);
 
   useEffect(() => {
-    savedFiltersStore.getAll()
+    getSavedFilters()
       .then((entries) => {
         setSavedFilters(entries);
       })
       .catch((error) => {
         console.warn('Unable to load saved filters overview', error);
       });
-  }, [savedFiltersStore]);
+  }, []);
 
   const savedFiltersByProject = useMemo<SavedFiltersByProject[]>(() => {
     const groupedByProject = new Map<string, SavedFilterEntry[]>();
@@ -79,10 +79,7 @@ export default function SavedFiltersOverview() {
           }))
           .filter((group) => group.entries.length > 0);
 
-        return {
-          repository,
-          sections,
-        };
+        return { repository, sections };
       });
   }, [savedFilters]);
 
@@ -132,7 +129,8 @@ export default function SavedFiltersOverview() {
                   <div className="space-y-2">
                     {sectionGroup.entries.map((entry) => {
                       const queryString = serializeDashboardFilters(entry.filters).toString();
-                      const href = queryString ? `${entry.pathname}?${queryString}` : entry.pathname;
+                      const basePath = entry.pathname || dashboardPathForSection(entry.section);
+                      const href = queryString ? `${basePath}?${queryString}` : basePath;
 
                       return (
                         <Link

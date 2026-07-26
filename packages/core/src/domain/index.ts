@@ -11,3 +11,5 @@ export * from './metric-samples';
 export * from './issues/index';
 
 export * from './code/codemaat/index';
+
+export * from './filters/index';

@@ -5,3 +5,4 @@ export * from './providers/index';
 export { SonarqubeRepositoryJson as SonarqubeRepository } from './providers/sonarqube/repositories/sonarqube-repository-json';
 export * from './domain/pipelines/index';
 export * from './engineering-health/index';
+export { FileSystemSavedFiltersAdapter } from './domain/filters/file-system-adapter';

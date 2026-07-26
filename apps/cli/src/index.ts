@@ -9,6 +9,7 @@ import { createHealthCheckCommand } from './commands/health-check';
 import { createMcpCommands } from './commands/mcp';
 import { createArchitectureCommands } from './commands/architecture';
 import { createEngineeringHealthCommands } from './commands/engineering-health';
+import { createFiltersCommands } from './commands/filters';
 import { getApplicationVersion, Logger } from '@smmachine/utils';
 import { SmmCommand } from './commands/smm-command';
 
@@ -34,6 +35,7 @@ export function commands() {
   createMcpCommands(program);
   createArchitectureCommands(program);
   createEngineeringHealthCommands(program);
+  createFiltersCommands(program);
 
   // Global help
   program

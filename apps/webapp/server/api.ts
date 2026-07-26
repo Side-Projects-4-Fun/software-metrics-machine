@@ -7,4 +7,4 @@ export { architectureAPI } from './api/architecture';
 export { engineeringHealthAPI } from './api/engineeringHealth';
 export { configurationAPI, projectsAPI } from './api/configuration';
 export type { ApiParams } from './api/client';
-export { fetchAPI } from './api/client';
+export { fetchAPI, fetchPutAPI } from './api/client';

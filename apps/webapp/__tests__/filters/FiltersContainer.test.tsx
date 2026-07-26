@@ -7,12 +7,12 @@ import * as api from '@/server/api';
 
 const navigation = jest.requireMock('next/navigation');
 
-// Mock the API
 jest.mock('@/server/api');
 
 const mockPipelineAPI = api.pipelineAPI as jest.Mocked<typeof api.pipelineAPI>;
 const mockPullRequestAPI = api.pullRequestAPI as jest.Mocked<typeof api.pullRequestAPI>;
 const mockSourceCodeAPI = api.sourceCodeAPI as jest.Mocked<typeof api.sourceCodeAPI>;
+const mockFetchAPI = api.fetchAPI as jest.Mock;
 
 const FiltersContainerWithProvider = () => (
   <FiltersProvider>
@@ -23,11 +23,11 @@ const FiltersContainerWithProvider = () => (
 describe('FiltersContainer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    window.localStorage.clear();
     navigation.usePathname.mockReturnValue('/');
     navigation.useSearchParams.mockReturnValue(new URLSearchParams());
-    
-    // Mock API responses
+
+    mockFetchAPI.mockResolvedValue({ version: 1, filters: [] });
+
     mockPipelineAPI.getFilterOptions = jest.fn().mockResolvedValue({
       workflows: [
         { name: 'workflow-1', path: 'path/1' },
@@ -49,7 +49,7 @@ describe('FiltersContainer', () => {
   it('shows saved filter as selected when URL filters match a saved option', async () => {
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    window.localStorage.setItem('smm.saved-filters', JSON.stringify({
+    mockFetchAPI.mockResolvedValue({
       version: 1,
       filters: [
         {
@@ -67,7 +67,7 @@ describe('FiltersContainer', () => {
           },
         },
       ],
-    }));
+    });
 
     navigation.usePathname.mockReturnValue('/dashboard/insights');
     navigation.useSearchParams.mockReturnValue(new URLSearchParams('startDate=2024-01-01&workflowStatus=completed'));
@@ -82,7 +82,7 @@ describe('FiltersContainer', () => {
   it('keeps pipelines saved filter selected when PR-only filters change', async () => {
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    window.localStorage.setItem('smm.saved-filters', JSON.stringify({
+    mockFetchAPI.mockResolvedValue({
       version: 1,
       filters: [
         {
@@ -100,7 +100,7 @@ describe('FiltersContainer', () => {
           },
         },
       ],
-    }));
+    });
 
     navigation.usePathname.mockReturnValue('/dashboard/pipelines');
     navigation.useSearchParams.mockReturnValue(

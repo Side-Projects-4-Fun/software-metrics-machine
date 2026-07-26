@@ -9,6 +9,7 @@ import {
 } from '@smmachine/core';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 import { DeploymentFrequencyService } from '@smmachine/core/domain/pipelines/services/deployment-frequency-service';
+import { resolveSavedFilterOptions } from './helpers/filter-helper';
 
 function createPipelineDependencies(command: SmmCommand) {
   const config = command.getConfiguration();
@@ -262,13 +263,15 @@ export function createPipelinesCommands(program: SmmCommand): void {
       'Outlier handling for averages: include, flag, or exclude',
       'include'
     )
+    .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
+        const merged = await resolveSavedFilterOptions(command, 'pipelines', options);
         screen.printLine('📊 Generating pipeline summary...');
         const { pipelineImplementation } = createPipelineDependencies(command);
 
-        const { summary } = await pipelineImplementation.dashboard(buildPipelineFilters(options));
+        const { summary } = await pipelineImplementation.dashboard(buildPipelineFilters(merged));
 
         if (options.output === 'json') {
           screen.printLine(JSON.stringify(summary, null, 2));
@@ -295,13 +298,15 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--end-date <date>', 'End date (YYYY-MM-DD)')
     .option('--raw-filters <filters>', 'Raw Provider filters string')
     .option('--output <format>', 'Output format (text|json)', 'text')
+    .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
+        const merged = await resolveSavedFilterOptions(command, 'pipelines', options);
         screen.printLine('📊 Analyzing pipelines by status...');
         const { pipelineImplementation } = createPipelineDependencies(command);
 
-        const { summary } = await pipelineImplementation.dashboard(buildPipelineFilters(options));
+        const { summary } = await pipelineImplementation.dashboard(buildPipelineFilters(merged));
 
         if (options.output === 'json') {
           screen.printLine(
@@ -345,13 +350,15 @@ export function createPipelinesCommands(program: SmmCommand): void {
       'Outlier handling for averages: include, flag, or exclude',
       'include'
     )
+    .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
+        const merged = await resolveSavedFilterOptions(command, 'pipelines', options);
         screen.printLine('⏱️  Analyzing pipeline run durations...');
         const { pipelineImplementation } = createPipelineDependencies(command);
 
-        const { summary } = await pipelineImplementation.dashboard(buildPipelineFilters(options));
+        const { summary } = await pipelineImplementation.dashboard(buildPipelineFilters(merged));
 
         if (options.output === 'json') {
           screen.printLine(
@@ -381,13 +388,15 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--period <period>', 'Time period (day|week|month)', 'week')
     .option('--raw-filters <filters>', 'Raw Provider filters string')
     .option('--output <format>', 'Output format (text|json)', 'text')
+    .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
+        const merged = await resolveSavedFilterOptions(command, 'pipelines', options);
         screen.printLine('📈 Analyzing pipeline runs by time period...');
         const { pipelineImplementation } = createPipelineDependencies(command);
 
-        const filters = buildPipelineFilters(options);
+        const filters = buildPipelineFilters(merged);
         const dashboard = await pipelineImplementation.dashboard(filters);
 
         const metrics = aggregateRunsByPeriod(dashboard.runs_by, options.period);
@@ -426,14 +435,16 @@ export function createPipelinesCommands(program: SmmCommand): void {
       'Outlier handling for averages: include, flag, or exclude',
       'include'
     )
+    .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
+        const merged = await resolveSavedFilterOptions(command, 'pipelines', options);
         screen.printLine('📊 Generating pipeline jobs summary...');
         const { pipelineImplementation } = createPipelineDependencies(command);
 
         const { jobs_summary } = await pipelineImplementation.dashboard(
-          buildPipelineFilters(options)
+          buildPipelineFilters(merged)
         );
 
         if (options.output === 'json') {
@@ -477,14 +488,16 @@ export function createPipelinesCommands(program: SmmCommand): void {
       'Outlier handling for averages: include, flag, or exclude',
       'include'
     )
+    .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
+        const merged = await resolveSavedFilterOptions(command, 'pipelines', options);
         screen.printLine('⏱️  Analyzing job execution times...');
         const { pipelineImplementation } = createPipelineDependencies(command);
 
         const { jobs_summary } = await pipelineImplementation.dashboard(
-          buildPipelineFilters(options)
+          buildPipelineFilters(merged)
         );
 
         if (options.output === 'json') {
@@ -526,14 +539,16 @@ export function createPipelinesCommands(program: SmmCommand): void {
       'Outlier handling for averages: include, flag, or exclude',
       'include'
     )
+    .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
+        const merged = await resolveSavedFilterOptions(command, 'pipelines', options);
         screen.printLine('⏱️  Analyzing job steps execution times...');
         const { pipelineImplementation } = createPipelineDependencies(command);
 
         const { job_steps_average_time } = await pipelineImplementation.dashboard(
-          buildPipelineFilters(options)
+          buildPipelineFilters(merged)
         );
 
         if (options.output === 'json') {
@@ -576,14 +591,16 @@ export function createPipelinesCommands(program: SmmCommand): void {
       'Outlier handling for averages: include, flag, or exclude',
       'include'
     )
+    .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
+        const merged = await resolveSavedFilterOptions(command, 'pipelines', options);
         screen.printLine('📊 Analyzing jobs by status...');
         const { pipelineImplementation } = createPipelineDependencies(command);
 
         const { jobs_summary } = await pipelineImplementation.dashboard(
-          buildPipelineFilters(options)
+          buildPipelineFilters(merged)
         );
 
         if (options.output === 'json') {
@@ -616,14 +633,16 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--period <period>', 'Time period (day|week|month)', 'week')
     .option('--raw-filters <filters>', 'Raw Provider filters string')
     .option('--output <format>', 'Output format (text|json)', 'text')
+    .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
+        const merged = await resolveSavedFilterOptions(command, 'pipelines', options);
         screen.printLine('🚀 Calculating deployment frequency...');
         const { config, deploymentFrequency } = createPipelineDependencies(command);
         const deploymentTargets = config.getDeploymentFrequencyTargets();
 
-        const filters = buildPipelineFilters(options);
+        const filters = buildPipelineFilters(merged);
         const metrics = await deploymentFrequency.getDeploymentFrequencyWithAllIntervals(filters);
 
         if (options.output === 'json') {
@@ -685,13 +704,15 @@ export function createPipelinesCommands(program: SmmCommand): void {
       'Outlier handling for averages: include, flag, or exclude',
       'include'
     )
+    .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
       try {
+        const merged = await resolveSavedFilterOptions(command, 'pipelines', options);
         screen.printLine('⏱️  Calculating lead time for changes...');
         const { pipelineImplementation } = createPipelineDependencies(command);
 
-        const { summary } = await pipelineImplementation.dashboard(buildPipelineFilters(options));
+        const { summary } = await pipelineImplementation.dashboard(buildPipelineFilters(merged));
 
         const leadTime = summary.average_duration_minutes;
 

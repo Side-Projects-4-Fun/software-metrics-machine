@@ -2,6 +2,12 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import SavedFiltersOverview from '@/components/home/SavedFiltersOverview';
 import { defaultFilters } from '@/components/filters/DashboardFilters';
 import { ProjectsProvider } from '@/components/providers/ProjectsContext';
+import * as api from '@/server/api';
+
+jest.mock('@/server/api');
+
+const mockFetchAPI = api.fetchAPI as jest.Mock;
+const mockFetchPutAPI = api.fetchPutAPI as jest.Mock;
 
 function renderSavedFiltersOverview() {
   return render(
@@ -19,11 +25,12 @@ function renderSavedFiltersOverview() {
 
 describe('SavedFiltersOverview', () => {
   beforeEach(() => {
-    window.localStorage.clear();
+    jest.clearAllMocks();
+    mockFetchAPI.mockResolvedValue({ version: 1, filters: [] });
   });
 
   it('groups saved filters by project and page with direct links', async () => {
-    window.localStorage.setItem('smm.saved-filters', JSON.stringify({
+    mockFetchAPI.mockResolvedValue({
       version: 1,
       filters: [
         {
@@ -72,7 +79,7 @@ describe('SavedFiltersOverview', () => {
           createdAt: '2026-06-18T08:00:00.000Z',
         },
       ],
-    }));
+    });
 
     renderSavedFiltersOverview();
 
@@ -96,7 +103,8 @@ describe('SavedFiltersOverview', () => {
 
   it('selects the saved filter project before opening it', async () => {
     document.cookie = 'smm_active_project=owner%2Frepo-a;path=/;max-age=31536000';
-    window.localStorage.setItem('smm.saved-filters', JSON.stringify({
+
+    mockFetchAPI.mockResolvedValue({
       version: 1,
       filters: [
         {
@@ -115,7 +123,7 @@ describe('SavedFiltersOverview', () => {
           createdAt: '2026-06-18T08:00:00.000Z',
         },
       ],
-    }));
+    });
 
     renderSavedFiltersOverview();
 
@@ -127,6 +135,8 @@ describe('SavedFiltersOverview', () => {
   });
 
   it('renders the empty state when there are no saved filters', async () => {
+    mockFetchAPI.mockResolvedValue({ version: 1, filters: [] });
+
     renderSavedFiltersOverview();
 
     await waitFor(() => {

@@ -8,13 +8,10 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useFilters } from '@/components/filters/FiltersContext';
-import {
-  DashboardSection,
-  SavedFilterEntry,
-  SavedFiltersStore,
-} from './saved-filters-store';
+import type { DashboardSection, SavedFilterEntry } from './saved-filters-store';
+import { getSavedFiltersBySection, saveSavedFilter, removeSavedFilter } from './saved-filters-actions';
 
 interface SavedFiltersSectionProps {
   activeSection: DashboardSection;
@@ -32,28 +29,22 @@ export default function SavedFiltersSection({
   onSavedFiltersLoaded,
 }: SavedFiltersSectionProps) {
   const { filters } = useFilters();
-  const savedFiltersStore = useMemo(() => new SavedFiltersStore(), []);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isSaveDialogOpen, setSaveDialogOpen] = useState(false);
   const [newFilterName, setNewFilterName] = useState('');
 
-  const loadSavedFilters = async () => {
-    const entries = await savedFiltersStore.getBySection(activeSection, repository);
+  const loadSavedFilters = useCallback(async () => {
+    const entries = await getSavedFiltersBySection(activeSection, repository);
     onSavedFiltersLoaded?.(entries);
-  };
+  }, [activeSection, onSavedFiltersLoaded, repository]);
 
   const handleDeleteSelectedFilter = async () => {
-    if (!selectedSavedFilter) {
-      return;
-    }
-
+    if (!selectedSavedFilter) {return;}
     const shouldDelete = window.confirm(`Delete saved filter "${selectedSavedFilter.name}"?`);
-    if (!shouldDelete) {
-      return;
-    }
+    if (!shouldDelete) {return;}
 
     setActionError(null);
-    await savedFiltersStore.remove(selectedSavedFilter.id);
+    await removeSavedFilter(selectedSavedFilter.id);
     await loadSavedFilters();
   };
 
@@ -69,14 +60,11 @@ export default function SavedFiltersSection({
 
   const handleSaveNewFilter = async () => {
     const normalizedFilterName = newFilterName.trim();
-    if (!normalizedFilterName) {
-      return;
-    }
+    if (!normalizedFilterName) {return;}
 
     setActionError(null);
-
     try {
-      await savedFiltersStore.save(activeSection, pathname, normalizedFilterName, filters, repository);
+      await saveSavedFilter(activeSection, pathname, normalizedFilterName, filters, repository);
       await loadSavedFilters();
       handleCloseSaveDialog();
     } catch (error) {
@@ -86,14 +74,14 @@ export default function SavedFiltersSection({
   };
 
   useEffect(() => {
-    savedFiltersStore.getBySection(activeSection, repository)
+    getSavedFiltersBySection(activeSection, repository)
       .then((entries) => {
         onSavedFiltersLoaded?.(entries);
       })
       .catch((error) => {
         console.warn('Unable to load saved filters', error);
       });
-  }, [activeSection, onSavedFiltersLoaded, repository, savedFiltersStore]);
+  }, [activeSection, onSavedFiltersLoaded, repository]);
 
   return (
     <>
@@ -102,9 +90,7 @@ export default function SavedFiltersSection({
           disabled={selectedSavedFilter ? true : false}
           variant="contained"
           size="small"
-          onClick={() => {
-            handleOpenSaveDialog();
-          }}
+          onClick={() => { handleOpenSaveDialog(); }}
         >
           Save Filter
         </Button>
@@ -112,11 +98,7 @@ export default function SavedFiltersSection({
           variant="outlined"
           color="error"
           size="small"
-          onClick={() => {
-            handleDeleteSelectedFilter().catch((error) => {
-              console.warn('Unable to delete saved filter', error);
-            });
-          }}
+          onClick={() => { handleDeleteSelectedFilter().catch((error) => { console.warn('Unable to delete saved filter', error); }); }}
           disabled={!selectedSavedFilter}
         >
           Delete Filter
@@ -145,11 +127,7 @@ export default function SavedFiltersSection({
         <DialogActions>
           <Button onClick={handleCloseSaveDialog}>Cancel</Button>
           <Button
-            onClick={() => {
-              handleSaveNewFilter().catch((error) => {
-                console.warn('Unable to save filter', error);
-              });
-            }}
+            onClick={() => { handleSaveNewFilter().catch((error) => { console.warn('Unable to save filter', error); }); }}
             variant="contained"
             disabled={newFilterName.trim().length === 0}
           >

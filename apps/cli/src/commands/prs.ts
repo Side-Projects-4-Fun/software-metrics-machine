@@ -10,6 +10,7 @@ import {
   PRsService,
   PullRequestFactory,
 } from '@smmachine/core';
+import { resolveSavedFilterOptions } from './helpers/filter-helper';
 
 function createPRsOrchestratorRead(command: SmmCommand): IReadPullRequestsRepository {
   const config = command.getConfiguration();
@@ -312,12 +313,14 @@ export function createPRsCommands(program: SmmCommand): void {
       'Comma-separated raw filter string (e.g. status=draft,author=john)'
     )
     .option('--output <format>', 'Output format (text|json)', 'text')
+    .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PRsCommand');
       try {
+        const merged = await resolveSavedFilterOptions(command, 'pull-requests', options);
         screen.printLine('📊 Generating PR summary...');
         const service = createPRService(command);
-        const filters = buildPRFilters(options);
+        const filters = buildPRFilters(merged);
         const summary = await service.getSummary(filters);
 
         if (options.output === 'json') {
@@ -417,12 +420,14 @@ export function createPRsCommands(program: SmmCommand): void {
     .option('--aggregate-by <period>', 'Aggregation period: day, week, or month (default: week)')
     .option('--raw-filters <filters>', 'Comma-separated raw filter string')
     .option('--output <format>', 'Output format (text|json)', 'text')
+    .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PRsCommand');
       try {
+        const merged = await resolveSavedFilterOptions(command, 'pull-requests', options);
         screen.printLine('📊 Analyzing PRs through time...');
         const service = createPRService(command);
-        const filters = buildPRFilters(options);
+        const filters = buildPRFilters(merged);
         const rows = await service.getThroughTime(filters, options.aggregateBy);
 
         if (options.output === 'json') {

@@ -1,161 +1,97 @@
 export interface DashboardFilters {
-  // Date filters
   startDate: string;
   endDate: string;
   timezone?: string;
-
-  // Pipeline filters
   workflowSelector?: string;
   workflowStatus: string[];
   workflowConclusions: string[];
   jobSelector: string[];
   branch: string[];
   event: string[];
-
-  // PR filters
   authorSelect: string[];
   excludeAuthorSelect: string[];
   excludeCommenterSelect: string[];
   labelSelector: string[];
   pullRequestStatus?: 'open' | 'closed' | 'merged' | 'draft';
   aggregateBy?: string;
-
-  // Average computation filters
   weekends: 'include' | 'exclude' | 'weekends_only';
   outlierMode: 'include' | 'flag' | 'exclude';
-
-  // Engineering health filters
   metric?: string;
   category?: string;
   compareStartDate: string;
   compareEndDate: string;
   rawFilters: string;
   period: 'day' | 'week' | 'month';
-
-  // Source code filters
   ignorePatternFiles: string;
   includePatternFiles: string;
   authorSelectSourceCode: string[];
   topEntries: number;
   typeChurn?: string;
-
-  // Metrics filters
   aggregateMetric: string;
-
-  // SonarQube filters
   sonarqubeRemoveFolders: boolean;
 }
 
 export const DASHBOARD_FILTER_QUERY_KEYS = [
-  'startDate',
-  'endDate',
-  'timezone',
-  'workflowSelector',
-  'workflowStatus',
-  'workflowConclusions',
-  'jobSelector',
-  'branch',
-  'event',
-  'aggregateMetric',
-  'ignorePatternFiles',
-  'includePatternFiles',
-  'authorSelectSourceCode',
-  'topEntries',
-  'typeChurn',
-  'authorSelect',
-  'excludeAuthorSelect',
-  'excludeCommenterSelect',
-  'labelSelector',
-  'pullRequestStatus',
-  'aggregateBy',
-  'weekends',
-  'outlierMode',
-  'metric',
-  'category',
-  'compareStartDate',
-  'compareEndDate',
-  'rawFilters',
-  'period',
+  'startDate', 'endDate', 'timezone', 'workflowSelector', 'workflowStatus',
+  'workflowConclusions', 'jobSelector', 'branch', 'event', 'aggregateMetric',
+  'ignorePatternFiles', 'includePatternFiles', 'authorSelectSourceCode',
+  'topEntries', 'typeChurn', 'authorSelect', 'excludeAuthorSelect',
+  'excludeCommenterSelect', 'labelSelector', 'pullRequestStatus',
+  'aggregateBy', 'weekends', 'outlierMode', 'metric', 'category',
+  'compareStartDate', 'compareEndDate', 'rawFilters', 'period',
   'sonarqubeRemoveFolders',
 ] as const;
 
 export const defaultFilters: DashboardFilters = {
-  startDate: '',
-  endDate: '',
-  timezone: '',
-  workflowSelector: undefined,
-  workflowStatus: [],
-  workflowConclusions: [],
-  jobSelector: [],
-  branch: [],
-  event: [],
-  authorSelect: [],
-  excludeAuthorSelect: [],
-  excludeCommenterSelect: [],
-  labelSelector: [],
-  aggregateBy: 'week',
-  weekends: 'include',
-  outlierMode: 'include',
-  metric: undefined,
-  category: undefined,
-  compareStartDate: '',
-  compareEndDate: '',
-  rawFilters: '',
-  period: 'week',
-  ignorePatternFiles: '',
-  includePatternFiles: '',
-  authorSelectSourceCode: [],
-  topEntries: 20,
-  typeChurn: 'added',
-  aggregateMetric: 'avg',
-  sonarqubeRemoveFolders: true,
+  startDate: '', endDate: '', timezone: '', workflowSelector: undefined,
+  workflowStatus: [], workflowConclusions: [], jobSelector: [], branch: [],
+  event: [], authorSelect: [], excludeAuthorSelect: [],
+  excludeCommenterSelect: [], labelSelector: [], aggregateBy: 'week',
+  weekends: 'include', outlierMode: 'include', metric: undefined,
+  category: undefined, compareStartDate: '', compareEndDate: '',
+  rawFilters: '', period: 'week', ignorePatternFiles: '',
+  includePatternFiles: '', authorSelectSourceCode: [], topEntries: 20,
+  typeChurn: 'added', aggregateMetric: 'avg', sonarqubeRemoveFolders: true,
 };
 
 type SearchParamValue = string | string[] | undefined;
-
 type SearchParamSource = Record<string, SearchParamValue>;
 
 function getSingleValue(value: SearchParamValue): string | undefined {
-  if (Array.isArray(value)) {
-    return value[0];
-  }
-
+  if (Array.isArray(value)) {return value[0];}
   return value;
 }
 
 function getArrayValue(value: SearchParamValue): string[] {
-  if (Array.isArray(value)) {
-    return value;
-  }
-
-  if (typeof value === 'string' && value.length > 0) {
-    return value.split(',').map((item) => item.trim()).filter(Boolean);
-  }
-
+  if (Array.isArray(value)) {return value;}
+  if (typeof value === 'string' && value.length > 0)
+    {return value.split(',').map((s) => s.trim()).filter(Boolean);}
   return [];
 }
 
 function toNumber(value: string | undefined, fallback: number | undefined): number | undefined {
-  if (!value) {
-    return fallback;
-  }
-
-  const parsedValue = Number(value);
-  return Number.isFinite(parsedValue) ? parsedValue : fallback;
+  if (!value) {return fallback;}
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
 }
 
 function toBoolean(value: SearchParamValue, fallback: boolean): boolean {
-  const singleValue = getSingleValue(value);
-
-  if (singleValue === 'true') {
-    return true;
-  }
-
-  if (singleValue === 'false') {
-    return false;
-  }
-
+  const v = getSingleValue(value);
+  if (v === 'true') {return true;}
+  if (v === 'false') {return false;}
   return fallback;
+}
+
+function parseWeekends(v: string | undefined, fb: DashboardFilters['weekends']): DashboardFilters['weekends'] {
+  return v === 'exclude' || v === 'include' || v === 'weekends_only' ? v : fb;
+}
+
+function parseOutlierMode(v: string | undefined, fb: DashboardFilters['outlierMode']): DashboardFilters['outlierMode'] {
+  return v === 'flag' || v === 'exclude' || v === 'include' ? v : fb;
+}
+
+function parsePeriod(v: string | undefined, fb: DashboardFilters['period']): DashboardFilters['period'] {
+  return v === 'day' || v === 'week' || v === 'month' ? v : fb;
 }
 
 export function parseDashboardFilters(
@@ -207,75 +143,38 @@ export function parseDashboardFilters(
 }
 
 export function serializeDashboardFilters(filters: DashboardFilters): URLSearchParams {
-  const params = new URLSearchParams();
-
-  const append = (key: string, value: string | number | undefined) => {
-    if (value !== undefined && value !== '') {
-      params.set(key, String(value));
-    }
-  };
-
-  const appendList = (key: string, values: string[] | undefined) => {
-    if (values && values.length > 0) {
-      params.set(key, values.join(','));
-    }
-  };
-
-  append('startDate', filters.startDate);
-  append('endDate', filters.endDate);
-  append('timezone', filters.timezone);
-  append('workflowSelector', filters.workflowSelector);
-  appendList('workflowStatus', filters.workflowStatus);
-  appendList('workflowConclusions', filters.workflowConclusions);
-  appendList('jobSelector', filters.jobSelector);
-  appendList('branch', filters.branch);
-  appendList('event', filters.event);
-  append('aggregateMetric', filters.aggregateMetric);
-  append('ignorePatternFiles', filters.ignorePatternFiles);
-  append('includePatternFiles', filters.includePatternFiles);
-  appendList('authorSelectSourceCode', filters.authorSelectSourceCode);
-  append('topEntries', filters.topEntries);
-  append('typeChurn', filters.typeChurn);
-  appendList('authorSelect', filters.authorSelect);
-  appendList('excludeAuthorSelect', filters.excludeAuthorSelect);
-  appendList('excludeCommenterSelect', filters.excludeCommenterSelect);
-  appendList('labelSelector', filters.labelSelector);
-  append('pullRequestStatus', filters.pullRequestStatus);
-  append('aggregateBy', filters.aggregateBy);
-  append('weekends', filters.weekends);
-  append('outlierMode', filters.outlierMode);
-  append('metric', filters.metric);
-  append('category', filters.category);
-  append('compareStartDate', filters.compareStartDate);
-  append('compareEndDate', filters.compareEndDate);
-  append('rawFilters', filters.rawFilters);
-  if (filters.period !== defaultFilters.period) {
-    append('period', filters.period);
-  }
-  append('sonarqubeRemoveFolders', filters.sonarqubeRemoveFolders ? 'true' : 'false');
-
-  return params;
-}
-
-function parseWeekends(
-  value: string | undefined,
-  fallback: DashboardFilters['weekends'],
-): DashboardFilters['weekends'] {
-  return value === 'exclude' || value === 'include' || value === 'weekends_only'
-    ? value
-    : fallback;
-}
-
-function parseOutlierMode(
-  value: string | undefined,
-  fallback: DashboardFilters['outlierMode'],
-): DashboardFilters['outlierMode'] {
-  return value === 'flag' || value === 'exclude' || value === 'include' ? value : fallback;
-}
-
-function parsePeriod(
-  value: string | undefined,
-  fallback: DashboardFilters['period'],
-): DashboardFilters['period'] {
-  return value === 'day' || value === 'week' || value === 'month' ? value : fallback;
+  const p = new URLSearchParams();
+  const a = (k: string, v: string | number | undefined) => { if (v !== undefined && v !== '') {p.set(k, String(v));} };
+  const al = (k: string, vs: string[] | undefined) => { if (vs && vs.length > 0) {p.set(k, vs.join(','));} };
+  a('startDate', filters.startDate);
+  a('endDate', filters.endDate);
+  a('timezone', filters.timezone);
+  a('workflowSelector', filters.workflowSelector);
+  al('workflowStatus', filters.workflowStatus);
+  al('workflowConclusions', filters.workflowConclusions);
+  al('jobSelector', filters.jobSelector);
+  al('branch', filters.branch);
+  al('event', filters.event);
+  a('aggregateMetric', filters.aggregateMetric);
+  a('ignorePatternFiles', filters.ignorePatternFiles);
+  a('includePatternFiles', filters.includePatternFiles);
+  al('authorSelectSourceCode', filters.authorSelectSourceCode);
+  a('topEntries', filters.topEntries);
+  a('typeChurn', filters.typeChurn);
+  al('authorSelect', filters.authorSelect);
+  al('excludeAuthorSelect', filters.excludeAuthorSelect);
+  al('excludeCommenterSelect', filters.excludeCommenterSelect);
+  al('labelSelector', filters.labelSelector);
+  a('pullRequestStatus', filters.pullRequestStatus);
+  a('aggregateBy', filters.aggregateBy);
+  a('weekends', filters.weekends);
+  a('outlierMode', filters.outlierMode);
+  a('metric', filters.metric);
+  a('category', filters.category);
+  a('compareStartDate', filters.compareStartDate);
+  a('compareEndDate', filters.compareEndDate);
+  a('rawFilters', filters.rawFilters);
+  if (filters.period !== defaultFilters.period) {a('period', filters.period);}
+  a('sonarqubeRemoveFolders', filters.sonarqubeRemoveFolders ? 'true' : 'false');
+  return p;
 }

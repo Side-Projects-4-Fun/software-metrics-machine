@@ -41,6 +41,7 @@ const ALLOWED_API_ENDPOINTS = new Set<string>([
   '/configuration',
   '/dora/deployment-frequency',
   '/engineering-health/evaluate',
+  '/filters',
   '/pipelines/by-status',
   '/pipelines/dashboard',
   '/pipelines/filter-options',
@@ -140,6 +141,43 @@ export async function fetchAPI<T>(endpoint: string, params?: ApiParams): Promise
   if (!response.ok) {
     const body = await response.json().catch(() => null);
     const message = body?.message || body?.error || response.statusText;
+    throw new Error(`API error: ${message}`);
+  }
+
+  return response.json();
+}
+
+export async function fetchPutAPI<T>(endpoint: string, body: unknown, params?: ApiParams): Promise<T> {
+  const { smmRestBaseUrl } = getServerEnv();
+  const apiBaseUrl = `${smmRestBaseUrl}/api/v1`;
+  const safeEndpoint = sanitizeApiEndpoint(endpoint);
+  const url = new URL(safeEndpoint, apiBaseUrl);
+
+  const cookieStore = await cookies();
+  const activeProject = cookieStore.get('smm_active_project')?.value;
+  if (activeProject) {
+    url.searchParams.append('project', decodeURIComponent(activeProject));
+  }
+
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        url.searchParams.append(key, String(value));
+      }
+    });
+  }
+
+  const response = await fetch(url.toString(), {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const responseBody = await response.json().catch(() => null);
+    const message = responseBody?.message || responseBody?.error || response.statusText;
     throw new Error(`API error: ${message}`);
   }
 
