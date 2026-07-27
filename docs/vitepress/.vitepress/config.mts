@@ -56,6 +56,7 @@ export default withMermaid(
       // https://vitepress.dev/reference/default-theme-config
       nav: [
         { text: 'Home', link: '/' },
+        { text: 'Team', link: '/team' }
       ],
 
       sidebar: [
