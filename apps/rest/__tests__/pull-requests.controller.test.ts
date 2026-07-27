@@ -7,8 +7,8 @@ const createMockPRsService = (methods: Partial<PRsService> = {}): PRsService =>
     getSummary: vi.fn(),
     getThroughTime: vi.fn(),
     getByAuthor: vi.fn(),
-    getAverageReviewTime: vi.fn(),
-    getAverageOpenBy: vi.fn(),
+    getReviewTime: vi.fn(),
+    getOpenTimeBy: vi.fn(),
     getMetrics: vi.fn(),
     getCommentsByAuthor: vi.fn(),
     getFirstCommentTime: vi.fn(),
@@ -97,15 +97,18 @@ describe('PullRequestsController', () => {
 
   it('aggregates average open days by day', async () => {
     const { controller, mockPrsService } = createController({
-      getAverageOpenBy: vi.fn().mockResolvedValue([{ period: '2026-01-05', avg_days: 1.5 }]),
+      getOpenTimeBy: vi
+        .fn()
+        .mockResolvedValue([{ period: '2026-01-05', avg_days: 1.5, method: 'average' }]),
     });
 
     const response = await controller.averageOpenBy(undefined, undefined, 'day');
 
-    expect(response).toEqual([{ period: '2026-01-05', avg_days: 1.5 }]);
-    expect(mockPrsService.getAverageOpenBy).toHaveBeenCalledWith(
+    expect(response).toEqual([{ period: '2026-01-05', avg_days: 1.5, method: 'average' }]);
+    expect(mockPrsService.getOpenTimeBy).toHaveBeenCalledWith(
       expect.objectContaining({ startDate: undefined, endDate: undefined }),
-      'day'
+      'day',
+      'average'
     );
   });
 
@@ -145,33 +148,35 @@ describe('PullRequestsController', () => {
   describe('averageReviewTime', () => {
     it('uses the explicit top value when provided', async () => {
       const { controller, mockPrsService } = createController({
-        getAverageReviewTime: vi.fn().mockResolvedValue([{ author: 'bob', avg_days: 1.2 }]),
+        getReviewTime: vi
+          .fn()
+          .mockResolvedValue([{ author: 'bob', avg_days: 1.2, method: 'average' }]),
       });
 
       const response = await controller.averageReviewTime(undefined, undefined, undefined, '4');
 
-      expect(response.result).toEqual([{ author: 'bob', avg_days: 1.2 }]);
-      expect(mockPrsService.getAverageReviewTime).toHaveBeenCalledWith(expect.anything(), 4);
+      expect(response.result).toEqual([{ author: 'bob', avg_days: 1.2, method: 'average' }]);
+      expect(mockPrsService.getReviewTime).toHaveBeenCalledWith(expect.anything(), 4, 'average');
     });
 
     it('defaults top to 10 when omitted', async () => {
       const { controller, mockPrsService } = createController({
-        getAverageReviewTime: vi.fn().mockResolvedValue([]),
+        getReviewTime: vi.fn().mockResolvedValue([]),
       });
 
       await controller.averageReviewTime(undefined, undefined, undefined, undefined);
 
-      expect(mockPrsService.getAverageReviewTime).toHaveBeenCalledWith(expect.anything(), 10);
+      expect(mockPrsService.getReviewTime).toHaveBeenCalledWith(expect.anything(), 10, 'average');
     });
 
     it('falls back to 10 when top is non-numeric', async () => {
       const { controller, mockPrsService } = createController({
-        getAverageReviewTime: vi.fn().mockResolvedValue([]),
+        getReviewTime: vi.fn().mockResolvedValue([]),
       });
 
       await controller.averageReviewTime(undefined, undefined, undefined, 'nope');
 
-      expect(mockPrsService.getAverageReviewTime).toHaveBeenCalledWith(expect.anything(), 10);
+      expect(mockPrsService.getReviewTime).toHaveBeenCalledWith(expect.anything(), 10, 'average');
     });
   });
 
@@ -184,7 +189,7 @@ describe('PullRequestsController', () => {
       const response = await controller.averageComments();
 
       expect(response).toEqual({ avg_comments: 3.5 });
-      expect(mockPrsService.getMetrics).toHaveBeenCalledWith(expect.anything());
+      expect(mockPrsService.getMetrics).toHaveBeenCalledWith(expect.anything(), 'average');
     });
   });
 
@@ -232,7 +237,11 @@ describe('PullRequestsController', () => {
       const response = await controller.firstCommentTime(undefined, undefined, undefined, '6');
 
       expect(response.result).toEqual([{ author: 'dave', avg_hours: 2.5, prs_with_comments: 4 }]);
-      expect(mockPrsService.getFirstCommentTime).toHaveBeenCalledWith(expect.anything(), 6);
+      expect(mockPrsService.getFirstCommentTime).toHaveBeenCalledWith(
+        expect.anything(),
+        6,
+        'average'
+      );
     });
 
     it('defaults top to 10 when omitted', async () => {
@@ -242,7 +251,11 @@ describe('PullRequestsController', () => {
 
       await controller.firstCommentTime(undefined, undefined, undefined, undefined);
 
-      expect(mockPrsService.getFirstCommentTime).toHaveBeenCalledWith(expect.anything(), 10);
+      expect(mockPrsService.getFirstCommentTime).toHaveBeenCalledWith(
+        expect.anything(),
+        10,
+        'average'
+      );
     });
 
     it('falls back to 10 when top is non-numeric', async () => {
@@ -252,7 +265,11 @@ describe('PullRequestsController', () => {
 
       await controller.firstCommentTime(undefined, undefined, undefined, 'NaN-ish');
 
-      expect(mockPrsService.getFirstCommentTime).toHaveBeenCalledWith(expect.anything(), 10);
+      expect(mockPrsService.getFirstCommentTime).toHaveBeenCalledWith(
+        expect.anything(),
+        10,
+        'average'
+      );
     });
   });
 

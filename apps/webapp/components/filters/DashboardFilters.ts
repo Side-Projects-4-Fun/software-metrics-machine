@@ -29,6 +29,7 @@ export interface DashboardFilters {
   typeChurn?: string;
   aggregateMetric: string;
   sonarqubeRemoveFolders: boolean;
+  method?: string;
 }
 
 export const DASHBOARD_FILTER_QUERY_KEYS = [
@@ -40,6 +41,7 @@ export const DASHBOARD_FILTER_QUERY_KEYS = [
   'aggregateBy', 'weekends', 'outlierMode', 'metric', 'category',
   'compareStartDate', 'compareEndDate', 'rawFilters', 'period',
   'sonarqubeRemoveFolders',
+  'method',
 ] as const;
 
 export const defaultFilters: DashboardFilters = {
@@ -52,6 +54,7 @@ export const defaultFilters: DashboardFilters = {
   rawFilters: '', period: 'week', ignorePatternFiles: '',
   includePatternFiles: '', authorSelectSourceCode: [], topEntries: 20,
   typeChurn: 'added', aggregateMetric: 'avg', sonarqubeRemoveFolders: true,
+  method: 'average',
 };
 
 type SearchParamValue = string | string[] | undefined;
@@ -139,6 +142,7 @@ export function parseDashboardFilters(
       fallback.rawFilters,
     period: parsePeriod(getSingleValue(searchParams.period), fallback.period),
     sonarqubeRemoveFolders: toBoolean(searchParams.sonarqubeRemoveFolders, fallback.sonarqubeRemoveFolders),
+    method: getSingleValue(searchParams.method) || fallback.method,
   };
 }
 
@@ -176,5 +180,6 @@ export function serializeDashboardFilters(filters: DashboardFilters): URLSearchP
   a('rawFilters', filters.rawFilters);
   if (filters.period !== defaultFilters.period) {a('period', filters.period);}
   a('sonarqubeRemoveFolders', filters.sonarqubeRemoveFolders ? 'true' : 'false');
+  a('method', filters.method);
   return p;
 }

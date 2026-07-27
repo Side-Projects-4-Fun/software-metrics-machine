@@ -1,4 +1,5 @@
 import type { JobMetrics, PipelineAverageOutlier, PipelineMetrics } from './pipeline-types';
+import type { MetricMethod } from '../metric-samples';
 import { type PipelineFilters } from './pipeline-types';
 
 export type PipelineDateFields = {
@@ -45,7 +46,7 @@ export interface IPipelinesService {
   getRunDurationMinutes(run: PipelineDateFields): number | null;
   getDurationMinutes(startedAt?: string, completedAt?: string): number | null;
   getPeriodKey(dateString: string | undefined, interval: 'day' | 'week' | 'month'): string;
-  getMetrics(filters?: PipelineFilters): Promise<PipelineMetrics>;
+  getMetrics(filters?: PipelineFilters, method?: MetricMethod): Promise<PipelineMetrics>;
   getDeploymentFrequency(
     interval: 'day' | 'week' | 'month',
     filters?: PipelineFilters
@@ -58,11 +59,14 @@ export interface IPipelinesService {
   getDeploymentFrequencyWithAllIntervals(
     filters?: PipelineFilters
   ): Promise<DeploymentFrequencyRow[]>;
-  getJobMetrics(filters?: PipelineFilters): Promise<JobMetrics[]>;
+  getJobMetrics(filters?: PipelineFilters, method?: MetricMethod): Promise<JobMetrics[]>;
   getJobRerunsByDay(
     filters?: PipelineFilters
   ): Promise<Array<{ day: string; rerun_count: number }>>;
-  getJobStepsAverageTime(filters?: PipelineFilters): Promise<
+  getJobStepsAverageTime(
+    filters?: PipelineFilters,
+    method?: MetricMethod
+  ): Promise<
     Array<{
       name: string;
       averageDurationMinutes: number;

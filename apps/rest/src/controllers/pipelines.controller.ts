@@ -1,8 +1,9 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import type { MetricMethod } from '@smmachine/core';
 import {
-  averageMetricSamples,
   cleanMetricSamples,
+  computeMetricSamples,
   parseMetricCleaningOptions,
   PipelinesRepository,
   PipelinesService,
@@ -48,6 +49,24 @@ interface PipelineFiltersQuery {
   event?: string;
   weekends?: string;
   outlier_mode?: string;
+  method?: string;
+}
+
+const VALID_METRIC_METHODS: MetricMethod[] = [
+  'average',
+  'median',
+  'p75',
+  'p90',
+  'p95',
+  'min',
+  'max',
+];
+
+function normalizeMetricMethod(value?: string): MetricMethod {
+  const normalized = (value || 'average').toLowerCase();
+  return VALID_METRIC_METHODS.includes(normalized as MetricMethod)
+    ? (normalized as MetricMethod)
+    : 'average';
 }
 
 interface RunLike {
@@ -148,7 +167,8 @@ export class PipelinesController {
 
   @Get('/pipelines/jobs-summary')
   async jobsSummary(@Query() query: PipelineFiltersQuery): Promise<PipelineJobsSummaryResponse> {
-    const metrics = await this.pipelinesService.getJobMetrics(this.toServiceFilters(query));
+    const method = normalizeMetricMethod(query.method);
+    const metrics = await this.pipelinesService.getJobMetrics(this.toServiceFilters(query), method);
 
     return {
       result: metrics.map((item) => ({
@@ -179,6 +199,7 @@ export class PipelinesController {
     @Query() query?: PipelineFiltersQuery
   ): Promise<PipelineRunsDurationResponse> {
     const runs = await this.loadRunsWithFilters({ ...(query || {}), includeJobs: true });
+    const method = normalizeMetricMethod(query?.method);
 
     const grouped = new Map<string, Array<MetricSample<PipelineOutlierItem>>>();
 
@@ -208,7 +229,7 @@ export class PipelinesController {
         const cleaned = cleanMetricSamples(samples, cleaning);
         const durations = cleaned.samples.map((sample) => sample.value);
         const n = cleaned.samples.length;
-        const avgDuration = averageMetricSamples(cleaned.samples);
+        const avgDuration = computeMetricSamples(cleaned.samples, method);
         const minDuration = n > 0 ? Math.min(...durations) : 0;
         const maxDuration = n > 0 ? Math.max(...durations) : 0;
         const outliers =
@@ -321,7 +342,8 @@ export class PipelinesController {
     @Query() query?: PipelineFiltersQuery
   ): Promise<PipelineStepsAverageTimeResponse> {
     const result = await this.pipelinesService.getJobStepsAverageTime(
-      this.toServiceFilters(query || {})
+      this.toServiceFilters(query || {}),
+      normalizeMetricMethod(query?.method)
     );
     return { result };
   }
@@ -331,7 +353,8 @@ export class PipelinesController {
     @Query() query?: PipelineFiltersQuery
   ): Promise<PipelineStepsAverageTimeByDayResponse> {
     const result = await this.pipelinesService.getJobStepsAverageTimeByDay(
-      this.toServiceFilters(query || {})
+      this.toServiceFilters(query || {}),
+      normalizeMetricMethod(query?.method)
     );
     return { result };
   }
@@ -396,7 +419,7 @@ export class PipelinesController {
         return {
           job_name: jobNameValue,
           workflow_name: data.workflowName,
-          avg_time: averageMetricSamples(cleaned.samples),
+          avg_time: computeMetricSamples(cleaned.samples, normalizeMetricMethod(query?.method)),
           count: cleaned.samples.length,
           outliers:
             cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
@@ -465,7 +488,7 @@ export class PipelinesController {
         const cleaned = cleanMetricSamples(samples, cleaning);
         return {
           day,
-          avg_time: averageMetricSamples(cleaned.samples),
+          avg_time: computeMetricSamples(cleaned.samples, normalizeMetricMethod(query?.method)),
           count: cleaned.samples.length,
           outliers:
             cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'

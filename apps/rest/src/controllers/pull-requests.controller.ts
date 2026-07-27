@@ -1,5 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import type { MetricMethod } from '@smmachine/core';
 import {
   parseMetricCleaningOptions,
   PRsService,
@@ -18,6 +19,23 @@ import type {
   PRFirstCommentTimeResponse,
   PRFilterOptionsResponse,
 } from '../dtos/response.dto';
+
+const VALID_METRIC_METHODS: MetricMethod[] = [
+  'average',
+  'median',
+  'p75',
+  'p90',
+  'p95',
+  'min',
+  'max',
+];
+
+function normalizeMetricMethod(value?: string): MetricMethod {
+  const normalized = (value || 'average').toLowerCase();
+  return VALID_METRIC_METHODS.includes(normalized as MetricMethod)
+    ? (normalized as MetricMethod)
+    : 'average';
+}
 
 @ApiTags('Pull Request Metrics')
 @Controller()
@@ -127,10 +145,12 @@ export class PullRequestsController {
     @Query('exclude_commenters') excludeCommenters?: string,
     @Query('status') status?: PRDetails['state'],
     @Query('weekends') weekends?: string,
-    @Query('outlier_mode') outlierMode?: string
+    @Query('outlier_mode') outlierMode?: string,
+    @Query('method') methodRaw?: string
   ): Promise<PRAverageReviewTimeResponse> {
     const maxRows = top ? Number(top) : 10;
-    const result = await this.prsService.getAverageReviewTime(
+    const method = normalizeMetricMethod(methodRaw);
+    const result = await this.prsService.getReviewTime(
       this.toFilters(
         startDate,
         endDate,
@@ -142,7 +162,8 @@ export class PullRequestsController {
         weekends,
         outlierMode
       ),
-      Number.isFinite(maxRows) ? maxRows : 10
+      Number.isFinite(maxRows) ? maxRows : 10,
+      method
     );
 
     return { result };
@@ -159,9 +180,11 @@ export class PullRequestsController {
     @Query('exclude_commenters') excludeCommenters?: string,
     @Query('status') status?: PRDetails['state'],
     @Query('weekends') weekends?: string,
-    @Query('outlier_mode') outlierMode?: string
+    @Query('outlier_mode') outlierMode?: string,
+    @Query('method') methodRaw?: string
   ): Promise<PRAverageOpenByResponse> {
-    return this.prsService.getAverageOpenBy(
+    const method = normalizeMetricMethod(methodRaw);
+    return this.prsService.getOpenTimeBy(
       this.toFilters(
         startDate,
         endDate,
@@ -173,7 +196,8 @@ export class PullRequestsController {
         weekends,
         outlierMode
       ),
-      aggregateBy
+      aggregateBy,
+      method
     );
   }
 
@@ -187,8 +211,10 @@ export class PullRequestsController {
     @Query('exclude_commenters') excludeCommenters?: string,
     @Query('status') status?: PRDetails['state'],
     @Query('weekends') weekends?: string,
-    @Query('outlier_mode') outlierMode?: string
+    @Query('outlier_mode') outlierMode?: string,
+    @Query('method') methodRaw?: string
   ): Promise<PRAverageCommentsResponse> {
+    const method = normalizeMetricMethod(methodRaw);
     const metrics = await this.prsService.getMetrics(
       this.toFilters(
         startDate,
@@ -200,7 +226,8 @@ export class PullRequestsController {
         status,
         weekends,
         outlierMode
-      )
+      ),
+      method
     );
     return { avg_comments: metrics.averageComments, outliers: metrics.outliers?.comments };
   }
@@ -248,9 +275,11 @@ export class PullRequestsController {
     @Query('exclude_commenters') excludeCommenters?: string,
     @Query('status') status?: PRDetails['state'],
     @Query('weekends') weekends?: string,
-    @Query('outlier_mode') outlierMode?: string
+    @Query('outlier_mode') outlierMode?: string,
+    @Query('method') methodRaw?: string
   ): Promise<PRFirstCommentTimeResponse> {
     const maxRows = top ? Number(top) : 10;
+    const method = normalizeMetricMethod(methodRaw);
     const result = await this.prsService.getFirstCommentTime(
       this.toFilters(
         startDate,
@@ -263,7 +292,8 @@ export class PullRequestsController {
         weekends,
         outlierMode
       ),
-      Number.isFinite(maxRows) ? maxRows : 10
+      Number.isFinite(maxRows) ? maxRows : 10,
+      method
     );
 
     return { result };

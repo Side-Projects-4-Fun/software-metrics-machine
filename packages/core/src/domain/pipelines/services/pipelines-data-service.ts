@@ -10,7 +10,7 @@ import type {
 } from '../pipeline-types';
 import { normalizeMatrixJobName } from '../matrix-job-name';
 import type { TimeZoneProvider } from '../../../infrastructure';
-import type { MetricCleaningOptions, MetricSample } from '../../metric-samples';
+import type { MetricCleaningOptions, MetricMethod, MetricSample } from '../../metric-samples';
 import {
   cleanMetricSamples,
   computeMetricSamples,
@@ -71,7 +71,10 @@ export class PipelinesDataService implements IPipelinesService {
     return this.tz.getIntervalKey(dateString, interval);
   }
 
-  async getMetrics(filters?: PipelineFilters): Promise<PipelineMetrics> {
+  async getMetrics(
+    filters?: PipelineFilters,
+    method: MetricMethod = 'average'
+  ): Promise<PipelineMetrics> {
     const filteredRuns = this.filterRuns(filters);
 
     const completedRuns = filteredRuns.filter((r) => r.conclusion);
@@ -85,7 +88,7 @@ export class PipelinesDataService implements IPipelinesService {
       this.extractDurationSamples(filteredRuns),
       filters?.cleaning
     );
-    const averageDuration = computeMetricSamples(cleanedDurations.samples, 'average');
+    const averageDuration = computeMetricSamples(cleanedDurations.samples, method);
 
     this.logger.info(
       `Pipeline Data Metrics: ${filteredRuns.length} total, ${successful.length} successful, ${successRate.toFixed(2)}% success rate`
@@ -244,7 +247,10 @@ export class PipelinesDataService implements IPipelinesService {
     return result;
   }
 
-  async getJobMetrics(filters?: PipelineFilters): Promise<JobMetrics[]> {
+  async getJobMetrics(
+    filters?: PipelineFilters,
+    method: MetricMethod = 'average'
+  ): Promise<JobMetrics[]> {
     const filteredRuns = this.filterRuns(filters);
 
     const jobMetricsMap = new Map<string, JobMetrics>();
@@ -317,7 +323,7 @@ export class PipelinesDataService implements IPipelinesService {
 
       metrics.averageDurationMinutes =
         cleanedDurations.samples.length > 0
-          ? Math.round(computeMetricSamples(cleanedDurations.samples, 'average') * 100) / 100
+          ? Math.round(computeMetricSamples(cleanedDurations.samples, method) * 100) / 100
           : 0;
       metrics.outliers = this.shouldExposeOutliers(filters?.cleaning)
         ? cleanedDurations.outliers
@@ -357,7 +363,10 @@ export class PipelinesDataService implements IPipelinesService {
       .sort((a, b) => a.day.localeCompare(b.day));
   }
 
-  async getJobStepsAverageTime(filters?: PipelineFilters): Promise<
+  async getJobStepsAverageTime(
+    filters?: PipelineFilters,
+    method: MetricMethod = 'average'
+  ): Promise<
     Array<{
       name: string;
       averageDurationMinutes: number;
@@ -397,7 +406,7 @@ export class PipelinesDataService implements IPipelinesService {
 
     for (const [name, samples] of stepDurations.entries()) {
       const cleaned = this.cleanPipelineSamples(samples, filters?.cleaning);
-      const avg = computeMetricSamples(cleaned.samples, 'average');
+      const avg = computeMetricSamples(cleaned.samples, method);
       result.push({
         name,
         averageDurationMinutes: Math.round(avg * 100) / 100,
@@ -409,7 +418,10 @@ export class PipelinesDataService implements IPipelinesService {
     return result;
   }
 
-  async getJobStepsAverageTimeByDay(filters?: PipelineFilters): Promise<
+  async getJobStepsAverageTimeByDay(
+    filters?: PipelineFilters,
+    method: MetricMethod = 'average'
+  ): Promise<
     Array<{
       day: string;
       steps: Array<{
@@ -464,7 +476,7 @@ export class PipelinesDataService implements IPipelinesService {
       const steps = [];
       for (const [name, samples] of stepMap.entries()) {
         const cleaned = this.cleanPipelineSamples(samples, filters?.cleaning);
-        const avg = computeMetricSamples(cleaned.samples, 'average');
+        const avg = computeMetricSamples(cleaned.samples, method);
         steps.push({
           name,
           averageDurationMinutes: Math.round(avg * 100) / 100,

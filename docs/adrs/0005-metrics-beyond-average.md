@@ -2,7 +2,7 @@
 
 Date: 2026-07-27
 
-Status: Proposed
+Status: Accepted
 
 ## Context
 
@@ -175,20 +175,6 @@ alice: 2.30 days
 4. **Do nothing and only expose these via the dashboard/webapp.**
 
    CLI is a first-class access path in SMM. Statistical depth should not be gated behind the web UI.
-
-## Work Estimate
-
-| Work Item | Effort |
-|---|---|
-| Add `computeMetricSamples()` and `MetricMethod` type to core | Small |
-| Refactor service methods to accept `method` parameter | Medium (7-8 methods across 2 services) |
-| Rename CLI subcommands + add `--method` option | Medium |
-| Add deprecated aliases with warnings | Small |
-| Update CLI unit tests (vitest) | Medium (existing tests cover all affected commands) |
-| Update e2e tests (bash) | Medium (16+ test references to average commands) |
-| Update engineering health adapters (optional `method` config) | Small |
-| Update docs/vitepress CLI reference pages | Small |
-| **Total** | **~4-5 days** |
 
 ## Notes
 

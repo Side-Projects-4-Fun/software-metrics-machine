@@ -25,6 +25,7 @@ export interface DashboardFilters {
   weekends?: 'include' | 'exclude' | 'weekends_only';
   outlierMode?: 'include' | 'flag' | 'exclude';
   sonarqubeRemoveFolders?: boolean;
+  method?: string;
 }
 
 /**
@@ -44,6 +45,7 @@ export function buildPipelineApiParams(filters: DashboardFilters): ApiParams {
     metric: filters.aggregateMetric,
     weekends: filters.weekends,
     outlier_mode: filters.outlierMode,
+    method: filters.method,
   };
 }
 
@@ -85,6 +87,7 @@ export function buildPullRequestApiParams(filters: DashboardFilters): ApiParams 
     aggregate_by: filters.aggregateBy,
     weekends: filters.weekends,
     outlier_mode: filters.outlierMode,
+    method: filters.method,
   };
 }
 

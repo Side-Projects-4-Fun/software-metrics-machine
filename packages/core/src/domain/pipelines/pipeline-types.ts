@@ -1,4 +1,4 @@
-import type { MetricCleaningOptions, MetricOutlier } from '../metric-samples';
+import type { MetricCleaningOptions, MetricMethod, MetricOutlier } from '../metric-samples';
 
 /**
  * Pipeline-related domain types for deployment frequency and metrics
@@ -61,6 +61,7 @@ export interface PipelineFilters {
   includeDefined?: boolean; // Only .yml/.yaml files
   rawFilters?: string;
   cleaning?: MetricCleaningOptions;
+  method?: MetricMethod;
 }
 
 export interface PipelineAverageOutlierItem {

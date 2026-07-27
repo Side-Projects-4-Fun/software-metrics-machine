@@ -11,7 +11,7 @@ import type {
 import { normalizeMatrixJobName } from '../matrix-job-name';
 import type { Configuration } from '../../..';
 import type { TimeZoneProvider } from '../../../infrastructure';
-import type { MetricCleaningOptions, MetricSample } from '../../metric-samples';
+import type { MetricCleaningOptions, MetricMethod, MetricSample } from '../../metric-samples';
 import { cleanMetricSamples, computeMetricSamples } from '../../metric-samples';
 import type { PipelinesRepository } from '../repositories';
 import type {
@@ -75,7 +75,10 @@ export class PipelinesService implements IPipelinesService {
   /**
    * Get overall pipeline metrics for the given filters.
    */
-  async getMetrics(filters?: PipelineFilters): Promise<PipelineMetrics> {
+  async getMetrics(
+    filters?: PipelineFilters,
+    method: MetricMethod = 'average'
+  ): Promise<PipelineMetrics> {
     const runs = await this.filterRuns(filters);
 
     const completedRuns = runs.filter((r) => r.conclusion);
@@ -90,7 +93,7 @@ export class PipelinesService implements IPipelinesService {
       this.extractDurationSamples(runs),
       filters?.cleaning
     );
-    const averageDuration = computeMetricSamples(cleanedDurations.samples, 'average');
+    const averageDuration = computeMetricSamples(cleanedDurations.samples, method);
 
     this.logger.info(
       `Pipeline Metrics: ${runs.length} total, ${successful.length} successful, ${successRate.toFixed(2)}% success rate`
@@ -260,7 +263,10 @@ export class PipelinesService implements IPipelinesService {
   /**
    * Get metrics aggregated by job name.
    */
-  async getJobMetrics(filters?: PipelineFilters): Promise<JobMetrics[]> {
+  async getJobMetrics(
+    filters?: PipelineFilters,
+    method: MetricMethod = 'average'
+  ): Promise<JobMetrics[]> {
     const runs = await this.filterRuns(filters);
 
     const jobMetricsMap = new Map<string, JobMetrics>();
@@ -335,7 +341,7 @@ export class PipelinesService implements IPipelinesService {
 
       metrics.averageDurationMinutes =
         cleanedDurations.samples.length > 0
-          ? Math.round(computeMetricSamples(cleanedDurations.samples, 'average') * 100) / 100
+          ? Math.round(computeMetricSamples(cleanedDurations.samples, method) * 100) / 100
           : 0;
       metrics.outliers = this.shouldExposeOutliers(filters?.cleaning)
         ? cleanedDurations.outliers
@@ -381,7 +387,10 @@ export class PipelinesService implements IPipelinesService {
   /**
    * Get average duration of steps for a job.
    */
-  async getJobStepsAverageTime(filters?: PipelineFilters): Promise<
+  async getJobStepsAverageTime(
+    filters?: PipelineFilters,
+    method: MetricMethod = 'average'
+  ): Promise<
     Array<{
       name: string;
       averageDurationMinutes: number;
@@ -422,7 +431,7 @@ export class PipelinesService implements IPipelinesService {
 
     for (const [name, samples] of stepDurations.entries()) {
       const cleaned = this.cleanPipelineSamples(samples, filters?.cleaning);
-      const avg = computeMetricSamples(cleaned.samples, 'average');
+      const avg = computeMetricSamples(cleaned.samples, method);
       result.push({
         name,
         averageDurationMinutes: Math.round(avg * 100) / 100,
@@ -437,7 +446,10 @@ export class PipelinesService implements IPipelinesService {
   /**
    * Get average duration of steps for a job, grouped by day.
    */
-  async getJobStepsAverageTimeByDay(filters?: PipelineFilters): Promise<
+  async getJobStepsAverageTimeByDay(
+    filters?: PipelineFilters,
+    method: MetricMethod = 'average'
+  ): Promise<
     Array<{
       day: string;
       steps: Array<{
@@ -493,7 +505,7 @@ export class PipelinesService implements IPipelinesService {
       const steps = [];
       for (const [name, samples] of stepMap.entries()) {
         const cleaned = this.cleanPipelineSamples(samples, filters?.cleaning);
-        const avg = computeMetricSamples(cleaned.samples, 'average');
+        const avg = computeMetricSamples(cleaned.samples, method);
         steps.push({
           name,
           averageDurationMinutes: Math.round(avg * 100) / 100,

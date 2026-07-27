@@ -3,7 +3,7 @@ import type { PipelinesRepository } from '../repositories';
 import type { DeploymentFrequencyTarget } from '../service';
 import { PipelinesDataService } from './pipelines-data-service';
 import type { TimeZoneProvider } from '../../../infrastructure';
-import type { MetricCleaningOptions, MetricSample } from '../../metric-samples';
+import type { MetricCleaningOptions, MetricMethod, MetricSample } from '../../metric-samples';
 import {
   parseMetricCleaningOptions,
   cleanMetricSamples,
@@ -38,19 +38,20 @@ export class PipelineImplementation {
     );
 
     const cleaning = filters.cleaning || parseMetricCleaningOptions({});
+    const method: MetricMethod = filters.method || 'average';
 
     return {
-      summary: this.computeSummary(runs, cleaning),
+      summary: this.computeSummary(runs, cleaning, method),
       jobs_by_status: this.computeJobsByStatus(runs),
-      runs_duration: this.computeRunsDuration(runs, cleaning),
+      runs_duration: this.computeRunsDuration(runs, cleaning, method),
       runs_by: this.computeRunsByDay(runs),
-      jobs_average_time: this.computeJobsAverageTime(runs, cleaning),
-      jobs_average_time_by_day: this.computeJobsAverageTimeByDay(runs, cleaning),
+      jobs_average_time: this.computeJobsAverageTime(runs, cleaning, method),
+      jobs_average_time_by_day: this.computeJobsAverageTimeByDay(runs, cleaning, method),
       jobs_duration_by_workflow: this.computeJobsDurationByWorkflow(runs),
-      jobs_summary: this.computeJobsSummary(runs, cleaning),
+      jobs_summary: this.computeJobsSummary(runs, cleaning, method),
       jobs_reruns_by_day: this.computeJobsRerunsByDay(runs),
-      job_steps_average_time: this.computeJobStepsAverageTime(runs, cleaning),
-      job_steps_average_time_by_day: this.computeJobStepsAverageTimeByDay(runs, cleaning),
+      job_steps_average_time: this.computeJobStepsAverageTime(runs, cleaning, method),
+      job_steps_average_time_by_day: this.computeJobStepsAverageTimeByDay(runs, cleaning, method),
     };
   }
 
@@ -78,7 +79,8 @@ export class PipelineImplementation {
 
   private computeSummary(
     runs: PipelineRun[],
-    cleaning: MetricCleaningOptions
+    cleaning: MetricCleaningOptions,
+    method: MetricMethod
   ): PipelineDashboard['summary'] {
     const successful = runs.filter((run) => run.conclusion === 'success').length;
     const failed = runs.filter((run) => run.conclusion === 'failure').length;
@@ -100,7 +102,7 @@ export class PipelineImplementation {
       }
     }
     const cleaned = cleanMetricSamples(durationSamples, cleaning);
-    const avgDuration = computeMetricSamples(cleaned.samples, 'average');
+    const avgDuration = computeMetricSamples(cleaned.samples, method);
 
     return {
       total_runs: runs.length,
@@ -136,7 +138,8 @@ export class PipelineImplementation {
 
   private computeRunsDuration(
     runs: PipelineRun[],
-    cleaning: MetricCleaningOptions
+    cleaning: MetricCleaningOptions,
+    method: MetricMethod
   ): PipelineDashboard['runs_duration'] {
     const grouped = new Map<string, Array<MetricSample<PipelineAverageOutlierItem>>>();
 
@@ -158,7 +161,7 @@ export class PipelineImplementation {
         const cleaned = cleanMetricSamples(samples, cleaning);
         const durations = cleaned.samples.map((sample) => sample.value);
         const n = cleaned.samples.length;
-        const avgDuration = computeMetricSamples(cleaned.samples, 'average');
+        const avgDuration = computeMetricSamples(cleaned.samples, method);
         const minDuration = n > 0 ? Math.min(...durations) : 0;
         const maxDuration = n > 0 ? Math.max(...durations) : 0;
         const outliers =
@@ -200,7 +203,8 @@ export class PipelineImplementation {
 
   private computeJobsAverageTime(
     runs: PipelineRun[],
-    cleaning: MetricCleaningOptions
+    cleaning: MetricCleaningOptions,
+    method: MetricMethod
   ): PipelineDashboard['jobs_average_time'] {
     const grouped = new Map<
       string,
@@ -242,7 +246,7 @@ export class PipelineImplementation {
         return {
           job_name: jobNameValue,
           workflow_name: data.workflowName,
-          avg_time: computeMetricSamples(cleaned.samples, 'average'),
+          avg_time: computeMetricSamples(cleaned.samples, method),
           count: cleaned.samples.length,
           outliers:
             cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
@@ -256,7 +260,8 @@ export class PipelineImplementation {
 
   private computeJobsAverageTimeByDay(
     runs: PipelineRun[],
-    cleaning: MetricCleaningOptions
+    cleaning: MetricCleaningOptions,
+    method: MetricMethod
   ): PipelineDashboard['jobs_average_time_by_day'] {
     const grouped = new Map<string, Array<MetricSample<PipelineAverageOutlierItem>>>();
 
@@ -295,7 +300,7 @@ export class PipelineImplementation {
         const cleaned = cleanMetricSamples(samples, cleaning);
         return {
           day,
-          avg_time: computeMetricSamples(cleaned.samples, 'average'),
+          avg_time: computeMetricSamples(cleaned.samples, method),
           count: cleaned.samples.length,
           outliers:
             cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
@@ -343,7 +348,8 @@ export class PipelineImplementation {
 
   private computeJobsSummary(
     runs: PipelineRun[],
-    cleaning: MetricCleaningOptions
+    cleaning: MetricCleaningOptions,
+    method: MetricMethod
   ): PipelineDashboard['jobs_summary'] {
     const jobMetricsMap = new Map<
       string,
@@ -436,7 +442,7 @@ export class PipelineImplementation {
       const cleaned = cleanMetricSamples(durationSamples, cleaning);
       const avgDuration =
         cleaned.samples.length > 0
-          ? Math.round(computeMetricSamples(cleaned.samples, 'average') * 100) / 100
+          ? Math.round(computeMetricSamples(cleaned.samples, method) * 100) / 100
           : 0;
       const successRate =
         metrics.totalRuns > 0
@@ -488,7 +494,8 @@ export class PipelineImplementation {
 
   private computeJobStepsAverageTime(
     runs: PipelineRun[],
-    cleaning: MetricCleaningOptions
+    cleaning: MetricCleaningOptions,
+    method: MetricMethod
   ): PipelineDashboard['job_steps_average_time'] {
     const stepDurations = new Map<string, Array<MetricSample<PipelineAverageOutlierItem>>>();
 
@@ -526,7 +533,7 @@ export class PipelineImplementation {
 
     for (const [name, samples] of stepDurations.entries()) {
       const cleaned = cleanMetricSamples(samples, cleaning);
-      const avg = computeMetricSamples(cleaned.samples, 'average');
+      const avg = computeMetricSamples(cleaned.samples, method);
       result.push({
         name,
         averageDurationMinutes: Math.round(avg * 100) / 100,
@@ -543,7 +550,8 @@ export class PipelineImplementation {
 
   private computeJobStepsAverageTimeByDay(
     runs: PipelineRun[],
-    cleaning: MetricCleaningOptions
+    cleaning: MetricCleaningOptions,
+    method: MetricMethod
   ): PipelineDashboard['job_steps_average_time_by_day'] {
     const dayStepDurations = new Map<
       string,
@@ -594,7 +602,7 @@ export class PipelineImplementation {
       const steps = [];
       for (const [name, samples] of stepMap.entries()) {
         const cleaned = cleanMetricSamples(samples, cleaning);
-        const avg = computeMetricSamples(cleaned.samples, 'average');
+        const avg = computeMetricSamples(cleaned.samples, method);
         steps.push({
           name,
           averageDurationMinutes: Math.round(avg * 100) / 100,

@@ -36,6 +36,7 @@ const SECTION_FILTER_KEYS: Record<DashboardSection, (keyof DashboardFilters)[]> 
     'event',
     'weekends',
     'outlierMode',
+    'method',
   ],
   'pull-requests': [
     'authorSelect',
@@ -46,6 +47,7 @@ const SECTION_FILTER_KEYS: Record<DashboardSection, (keyof DashboardFilters)[]> 
     'aggregateBy',
     'weekends',
     'outlierMode',
+    'method',
   ],
   'source-code': [
     'ignorePatternFiles',
@@ -331,6 +333,12 @@ export default function FiltersContainer({ repository }: { repository: string })
                 updateFilter('outlierMode', value as 'include' | 'flag' | 'exclude')
               }
             />
+            <SelectFilter
+              label="Metric Method"
+              value={filters.method}
+              options={['average', 'median', 'p75', 'p90', 'p95', 'min', 'max']}
+              onChange={(value) => updateFilter('method', value)}
+            />
           </Stack>
         </Box>
       )}
@@ -393,6 +401,12 @@ export default function FiltersContainer({ repository }: { repository: string })
               onChange={(value) =>
                 updateFilter('outlierMode', value as 'include' | 'flag' | 'exclude')
               }
+            />
+            <SelectFilter
+              label="Metric Method"
+              value={filters.method}
+              options={['average', 'median', 'p75', 'p90', 'p95', 'min', 'max']}
+              onChange={(value) => updateFilter('method', value)}
             />
           </Stack>
         </Box>
