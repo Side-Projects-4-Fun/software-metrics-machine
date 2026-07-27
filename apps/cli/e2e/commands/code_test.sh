@@ -299,3 +299,32 @@ function test_code_pairing_index_reports_pairing_percentage() {
   assert_smm_output_contains "\"pairingIndexPercentage\": 50"
   assert_smm_output_contains "\"pairedCommits\": 1"
 }
+
+function test_code_filters_save_and_list_for_source_code_section() {
+  local workspace
+
+  workspace="$(create_smm_e2e_workspace)"
+  export SMM_STORE_DATA_AT="${workspace}"
+
+  run_smm filters save source-filter \
+    --section source-code \
+    --start-date 2026-03-01 \
+    --end-date 2026-03-31 \
+    --ignore-pattern-files "node_modules/*" \
+    --include-pattern-files "src/*.ts" \
+    --top-entries 10 \
+    --type-churn added
+  assert_smm_output_contains 'Saved filter: "source-filter" [source-code]'
+  assert_smm_success
+
+  run_smm filters show source-filter
+  assert_smm_output_contains "startDate: 2026-03-01"
+  assert_smm_output_contains "endDate: 2026-03-31"
+  assert_smm_output_contains "ignorePatternFiles: node_modules/*"
+  assert_smm_output_contains "includePatternFiles: src/*.ts"
+  assert_smm_output_contains "topEntries: 10"
+  assert_smm_output_contains "typeChurn: added"
+  assert_smm_success
+
+  unset SMM_STORE_DATA_AT
+}

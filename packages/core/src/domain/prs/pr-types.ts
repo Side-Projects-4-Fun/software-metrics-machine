@@ -1,4 +1,4 @@
-import type { MetricCleaningOptions, MetricOutlier } from '../metric-samples';
+import type { MetricCleaningOptions, MetricMethod, MetricOutlier } from '../metric-samples';
 
 /**
  * PR-related domain types for analytics
@@ -85,6 +85,7 @@ export interface PRMetrics {
   averageComments: number;
   most_commented_prs: MostCommentedPRData[];
   leadTime: number;
+  method: MetricMethod;
   commentSummary: CommentAuthor[];
   labelSummary: LabelSummary[];
   outliers?: {
@@ -180,6 +181,7 @@ export interface PRsByTimeframe {
   count: number;
   averageOpenDays: number;
   averageComments: number;
+  method: MetricMethod;
   outliers?: {
     openDays: PRAverageOutlier[];
     comments: PRAverageOutlier[];

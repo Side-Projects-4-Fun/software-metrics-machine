@@ -41,11 +41,12 @@ export class ReviewTimeMetric extends BaseMetric {
   }
 
   async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
-    const rows = await this.dependencies.prsService.getAverageReviewTime(
+    const rows = await this.dependencies.prsService.getReviewTime(
       toPrFilters(input),
-      input?.top
+      input?.top,
+      'average'
     );
-    const sum = rows.reduce((acc, row) => acc + row.avg_days, 0);
+    const sum = rows.reduce((acc: number, row) => acc + row.avg_days, 0);
     const average = rows.length > 0 ? sum / rows.length : 0;
 
     return {

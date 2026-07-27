@@ -44,6 +44,14 @@ SMM uses a multi-project configuration format. Wrap your project configurations 
       "jira_email": "your-email@example.com",
       "jira_token": "your_jira_token",
       "jira_project": "API"
+    },
+    {
+      "git_provider": "gitlab",
+      "gitlab_token": "glpat-your-gitlab-token",
+      "github_repository": "your-group/infra-config",
+      "git_repository_location": "/absolute/path/to/infra-config",
+      "main_branch": "main",
+      "timezone": "UTC"
     }
   ]
 }
@@ -84,6 +92,7 @@ Supported project-specific environment variable suffixes are:
 - `GIT_PROVIDER`
 - `GITHUB_TOKEN`
 - `GITLAB_TOKEN`
+- `GITLAB_URL`
 - `GIT_REPOSITORY_PATH`
 - `LOGGING_LEVEL`
 - `JIRA_URL`
@@ -156,9 +165,10 @@ Offset-aware date-time values such as `2026-01-01T09:00:00+01:00` are treated as
 
 | Key | Description | Required |
 |-----|-------------|----------|
-| `git_provider` | Git provider (for example `github`) | Yes |
+| `git_provider` | Git provider (`github` or `gitlab`) | Yes |
 | `github_token` | GitHub personal access token | Yes for GitHub PR/pipeline |
 | `gitlab_token` | GitLab personal access token | Yes for GitLab MR/pipeline |
+| `gitlab_url` | GitLab instance URL (for self-hosted GitLab, e.g. `https://gitlab.example.com/group/project`) | No |
 | `github_repository` | Repository in `owner/repo` format (also used as project identifier) | Yes |
 | `git_repository_location` | Local clone path for git/code metrics | Yes for source-code metrics |
 | `deployment_frequency_targets` | Deployment frequency workflow/job targets as `{ "pipeline": "...", "job": "..." }` objects | No |

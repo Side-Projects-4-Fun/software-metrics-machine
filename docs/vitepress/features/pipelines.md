@@ -36,7 +36,7 @@ smm pipelines fetch
 |----------------|--------------------------------------|---------------------------|
 | Start date     | Fetches workflows created after a date.   | `--start-date=2025-01-01` |
 | End date       | Fetches workflows created before a date.  | `--end-date=2025-12-31`   |
-| Step           | Step defines the pace in which the data is fetched. It helps to mitigate the rate limits in the GitHub API | `--by-day`  |
+| Step           | Step defines the pace in which the data is fetched. It helps to mitigate API rate limits. | `--by-day`  |
 
 Example with an explicit timezone from the environment:
 
@@ -85,7 +85,7 @@ the interquartile range rule: values outside `Q1 - 1.5 * IQR` and `Q3 + 1.5 * IQ
 before outlier detection.
 
 These options are available on `smm pipelines summary`, `smm pipelines runs-duration`, `smm pipelines jobs-summary`,
-`smm pipelines jobs-time-execution`, `smm pipelines jobs-steps-average-time`, `smm pipelines jobs-by-status`, and
+`smm pipelines jobs-time-execution`, `smm pipelines jobs-steps-time`, `smm pipelines jobs-by-status`, and
 `smm pipelines lead-time`.
 
 ## Matrix jobs (parallel legs)
@@ -201,8 +201,8 @@ smm pipelines runs-duration
 | End date      | Filter by created before this date.                                                                                     | `--end-date=2025-12-31`     |
 | Metric        | The type of metric to compute for each execution (avg, sum, count)                                                      | `--metric=sum`     |
 | Aggregate     | Aggregate the data by day, plotting each day computing the desired metric                                               | `--aggregate-by-day=true`     |
-| Raw Filters   | Filters by the fields available by the provider, for example, if using GitHub, you can filters by any filter in the API | `--raw-filters=status=completed,conclusion=success`     |
-| Workflow path | Filter by the workflow file path                                                                                        | `--workflow-path=".github/workflows/ci.yml"`     |
+| Raw Filters   | Provider-specific raw filters. See your provider's API docs for available fields (GitHub, GitLab, etc.). | `--raw-filters=status=completed,conclusion=success`     |
+| Workflow path | Filter by the workflow file path (e.g. `.github/workflows/ci.yml` or `.gitlab-ci.yml`)               | `--workflow-path=".github/workflows/ci.yml"`     |
 | Weekends      | Include, exclude, or isolate weekend samples.                                                                           | `--weekends=exclude` |
 | Outlier mode  | Include, flag, or exclude detected outliers.                                                                            | `--outlier-mode=flag` |
 
@@ -343,7 +343,7 @@ smm pipelines jobs-by-status
 |----------------------|-----------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|
 | Start date           | Filter by created after this date.                                                                                          | `--start-date=2025-01-01`                           |
 | End date             | Filter by created before this date.                                                                                         | `--end-date=2025-12-31`                             |
-| Raw Filters          | Filters by the job fields available by the provider, for example, if using GitHub, you can filters by any filter in the API | `--raw-filters=status=completed,conclusion=success` |
+| Raw Filters          | Provider-specific raw filters for job fields. See your provider's API docs for available fields. | `--raw-filters=status=completed,conclusion=success` |
 | Pipeline raw Filters | Filters by the pipeline, use this option to decrease the scope size of the dataset                                          | `--pipeline-raw-filters=status=completed`           |
 
 
@@ -394,10 +394,10 @@ card includes:
 - Overall time proportion by step.
 - A sortable table of steps, average duration, and count.
 
-The CLI provides the same data via `smm pipelines jobs-steps-average-time`, which filters to a specific job:
+The CLI provides the same data via `smm pipelines jobs-steps-time`, which filters to a specific job:
 
 ```bash
-smm pipelines jobs-steps-average-time --job=build
+smm pipelines jobs-steps-time --method average --job=build
 ```
 
 | Option       | Description                                                     | Example <div style="width:200px"></div>     |
@@ -405,5 +405,6 @@ smm pipelines jobs-steps-average-time --job=build
 | Start date   | Filter by created after this date.                              | `--start-date=2025-01-01`                   |
 | End date     | Filter by created before this date.                             | `--end-date=2025-12-31`                     |
 | Job name     | Filter by job name.                                             | `--job=build`                               |
+| Method       | Statistical method: average, median, p75, p90, p95, min, max (default: average). | `--method=median` |
 | Output       | Output format (`text` or `json`).                               | `--output=json`                             |
 

@@ -62,6 +62,7 @@ export interface ConfigurationResponse {
   result: {
     git_provider?: string;
     github_repository?: string;
+    gitlab_url?: string;
     git_repository_location: string;
     store_data: string;
     deployment_frequency_targets: Array<{ pipeline: string; job: string }>;

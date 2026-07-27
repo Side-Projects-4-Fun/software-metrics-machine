@@ -2,14 +2,16 @@
 outline: deep
 ---
 
-# Your first analysis with GitHub and GitHub Actions
+# Your first analysis with GitHub (or GitLab)
 
 This guide will walk you through the steps to perform your first analysis using Software Metrics Machine. By the end of
-this guide, you will have fetched data from a GitHub repository and visualized key metrics to gain insights into your
+this guide, you will have fetched data from a repository and visualized key metrics to gain insights into your
 software development process.
 
 > [!NOTE]
-> This guide assumes you have already set up the project by following the [Getting Started](./getting-started.md) guide.
+> This guide uses GitHub as the provider. If you are using GitLab, the same CLI commands apply — just set
+> `git_provider` to `gitlab` in your `smm_config.json`. See the [GitLab provider guide](./gitlab.md) for setup
+> instructions.
 
 ## The project
 

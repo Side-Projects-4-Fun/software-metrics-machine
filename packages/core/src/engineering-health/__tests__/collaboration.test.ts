@@ -4,13 +4,13 @@ import type { EngineeringHealthDependencies } from '../dependencies';
 
 describe('collaboration engineering health metrics', () => {
   it('forwards prLabels to review time PR filters', async () => {
-    const getAverageReviewTime = vi.fn().mockResolvedValue([
-      { author: 'alice', avg_days: 1.5 },
-      { author: 'bob', avg_days: 0.5 },
+    const getReviewTime = vi.fn().mockResolvedValue([
+      { author: 'alice', avg_days: 1.5, method: 'average' as const },
+      { author: 'bob', avg_days: 0.5, method: 'average' as const },
     ]);
 
     const metric = new ReviewTimeMetric({
-      prsService: { getAverageReviewTime } as never,
+      prsService: { getReviewTime } as never,
       pipelinesService: {} as never,
       deploymentFrequencyService: {} as never,
       pipelineImplementation: {} as never,
@@ -28,13 +28,14 @@ describe('collaboration engineering health metrics', () => {
       top: 10,
     });
 
-    expect(getAverageReviewTime).toHaveBeenCalledWith(
+    expect(getReviewTime).toHaveBeenCalledWith(
       expect.objectContaining({
         startDate: '2026-07-01',
         endDate: '2026-07-31',
         labels: ['bug', 'frontend'],
       }),
-      10
+      10,
+      'average'
     );
   });
 

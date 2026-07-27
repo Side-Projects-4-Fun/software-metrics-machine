@@ -1,5 +1,5 @@
 import type { SmmCommand } from './smm-command';
-import type { PipelineDashboardRunsByItem } from '@smmachine/core';
+import type { PipelineDashboardRunsByItem, MetricMethod } from '@smmachine/core';
 import {
   parseMetricCleaningOptions,
   PipelineImplementation,
@@ -69,6 +69,23 @@ function buildPipelineFilters(options: {
       outlierMode: options.outlierMode,
     }),
   };
+}
+
+const VALID_METRIC_METHODS: MetricMethod[] = [
+  'average',
+  'median',
+  'p75',
+  'p90',
+  'p95',
+  'min',
+  'max',
+];
+
+function normalizeMetricMethod(value?: string): MetricMethod {
+  const normalized = (value || 'average').toLowerCase();
+  return VALID_METRIC_METHODS.includes(normalized as MetricMethod)
+    ? (normalized as MetricMethod)
+    : 'average';
 }
 
 type CliOutlier = {
@@ -522,8 +539,63 @@ export function createPipelinesCommands(program: SmmCommand): void {
     });
 
   pipelinesGroup
+    .subcommand('jobs-steps-time')
+    .description('View pipeline job steps execution times with selectable statistical method')
+    .option('--start-date <date>', 'Start date (YYYY-MM-DD)')
+    .option('--end-date <date>', 'End date (YYYY-MM-DD)')
+    .option('--job <name>', 'Filter by job name')
+    .option('--raw-filters <filters>', 'Raw Provider filters string')
+    .option('--output <format>', 'Output format (text|json)', 'text')
+    .option(
+      '--method <method>',
+      'Statistical method: average, median, p75, p90, p95, min, max',
+      'average'
+    )
+    .option(
+      '--weekends <mode>',
+      'Weekend handling for averages: include, exclude, or weekends_only',
+      'include'
+    )
+    .option(
+      '--outlier-mode <mode>',
+      'Outlier handling for averages: include, flag, or exclude',
+      'include'
+    )
+    .option('--filter <name>', 'Apply a saved filter')
+    .actionWithSmm(async (options, command) => {
+      const logger = command.getLogger('PipelinesCommand');
+      const metricMethod = normalizeMetricMethod(options.method);
+      try {
+        const merged = await resolveSavedFilterOptions(command, 'pipelines', options);
+        screen.printLine(`⏱️  Analyzing job steps execution times (${metricMethod})...`);
+        const { pipelineImplementation } = createPipelineDependencies(command);
+
+        const { job_steps_average_time } = await pipelineImplementation.dashboard(
+          buildPipelineFilters(merged)
+        );
+
+        if (options.output === 'json') {
+          screen.printLine(JSON.stringify(job_steps_average_time, null, 2));
+        } else {
+          screen.printLine(`\n=== ${metricMethod.toUpperCase()} Job Steps Execution Times ===\n`);
+          job_steps_average_time.forEach((item) => {
+            screen.printLine(`Step: ${item.name}`);
+            screen.printLine(
+              `Execution Time: ${item.averageDurationMinutes.toFixed(2)} minutes (${item.count} executions, method: ${metricMethod})`
+            );
+            printOutliers(screen, item.outliers);
+            screen.printLine('');
+          });
+        }
+      } catch (error) {
+        logger.error('Failed to analyze job steps execution times', error);
+        process.exit(1);
+      }
+    });
+
+  pipelinesGroup
     .subcommand('jobs-steps-average-time')
-    .description('View pipeline job steps average execution times')
+    .description('(DEPRECATED) Use "jobs-steps-time --method average" instead')
     .option('--start-date <date>', 'Start date (YYYY-MM-DD)')
     .option('--end-date <date>', 'End date (YYYY-MM-DD)')
     .option('--job <name>', 'Filter by job name')
@@ -541,6 +613,9 @@ export function createPipelinesCommands(program: SmmCommand): void {
     )
     .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
+      screen.printLine(
+        '⚠️  "jobs-steps-average-time" is deprecated. Use "jobs-steps-time --method average" instead.'
+      );
       const logger = command.getLogger('PipelinesCommand');
       try {
         const merged = await resolveSavedFilterOptions(command, 'pipelines', options);

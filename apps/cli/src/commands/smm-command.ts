@@ -31,15 +31,16 @@ export class SmmCommand extends Command {
     return this.command(nameAndArgs) as SmmCommand;
   }
 
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  actionWithSmm(handler: (options: any, command: SmmCommand) => void | Promise<void>): this {
-    return this.action(async (options: unknown, command: Command) => {
-      const smmCommand = command as unknown as SmmCommand;
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  actionWithSmm(handler: (...args: any[]) => void | Promise<void>): this {
+    return this.action(async (...args: any[]) => {
+      const smmCommand = args[args.length - 1] as SmmCommand;
       await smmCommand.autoMigrateIfNeeded();
       smmCommand.getConfigurationRepository();
-      return await handler(options, smmCommand);
+      return await handler(...args);
     });
   }
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   private async autoMigrateIfNeeded(): Promise<void> {
     if (!process.env.SMM_STORE_DATA_AT) {

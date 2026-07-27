@@ -52,10 +52,35 @@ export function cleanMetricSamples<TItem>(
   };
 }
 
+export type MetricMethod = 'average' | 'median' | 'p75' | 'p90' | 'p95' | 'min' | 'max';
+
+export function computeMetricSamples<TItem>(
+  samples: Array<MetricSample<TItem>>,
+  method: MetricMethod = 'average'
+): number {
+  if (samples.length === 0) return 0;
+  const values = samples.map((s) => s.value).sort((a, b) => a - b);
+
+  switch (method) {
+    case 'average':
+      return values.reduce((a, b) => a + b, 0) / values.length;
+    case 'median':
+      return percentile(values, 0.5);
+    case 'p75':
+      return percentile(values, 0.75);
+    case 'p90':
+      return percentile(values, 0.9);
+    case 'p95':
+      return percentile(values, 0.95);
+    case 'min':
+      return values[0];
+    case 'max':
+      return values[values.length - 1];
+  }
+}
+
 export function averageMetricSamples<TItem>(samples: Array<MetricSample<TItem>>): number {
-  return samples.length > 0
-    ? samples.reduce((sum, sample) => sum + sample.value, 0) / samples.length
-    : 0;
+  return computeMetricSamples(samples, 'average');
 }
 
 export function parseMetricCleaningOptions(options: {

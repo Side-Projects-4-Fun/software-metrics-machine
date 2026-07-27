@@ -34,11 +34,11 @@ smm prs fetch
 | Months         | It defaults to 1. It is used if no start or end date is given   | `--months=2`|
 | Start date     | Fetches PRs created after a date.   | `--start-date=2025-01-01`|
 | End date       | Fetches PRs created before a date.  | `--end-date=2025-12-31`  |
-| Filters       | Allows to pass in filters directly to the [GitHub API](https://docs.github.com/en/rest/pulls/pulls#list-pull-requests)  | `--raw-filters=state=open`  |
+| Filters       | Allows passing raw filters directly to the provider's API. See your provider's API docs for available fields. For GitHub: [list PRs](https://docs.github.com/en/rest/pulls/pulls#list-pull-requests)  | `--raw-filters=state=open`  |
 | Force       | By default a file is stored with the retrieved data to avoid refetching it again. However, using this parameter bypass this cache. | `--force=true`  |
 
-Filtering the data fetch from PRs by date is done logically while fetching the data, this is not a feature that GitHub
-API provides.
+Filtering the data fetch from PRs by date is done logically while fetching the data. Provider APIs may require
+all results to be retrieved before client-side date filtering can be applied.
 
 ### Examples - Fetch PRs
 
@@ -76,7 +76,7 @@ smm prs fetch --force=true
 
 Pull requests often have comments that provide insights into the review process. However, in order to fetch comments for
 Pull Request, you must first fetch the PRs using the `smm prs fetch` command. The comments are not fetched by default to
-optimize the data retrieval process as GitHub API has rate limits. Before fetching the comments, it first uses the PRs
+optimize data retrieval and respect API rate limits. Before fetching the comments, it first uses the PRs
 data already fetched to get the comments for each PR using the property `review_comments_url` from each PR.
 
 ```bash
@@ -87,7 +87,7 @@ smm prs fetch-comments
 |----------------|-------------------------------------|--------------------------|
 | Start date     |  The PRs created date to filter after this date, this is the PR not the comment pr itself.  | `--start-date=2025-01-01`|
 | End date       | The PRs created date to filter before this date, this is the PR not the comment pr itself.  | `--end-date=2025-12-31`  |
-| Filters        | Allows to pass in filters directly to the [GitHub API](https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28&versionId=free-pro-team%40latest&category=pulls&subcategory=review-requests#list-review-comments-on-a-pull-request). It will pass the filters for each PR request.  | `--raw-filters=sort=created`  |
+| Filters        | Allows passing raw filters directly to the provider's API. See your provider's API docs for available fields. For GitHub: [list review comments](https://docs.github.com/en/rest/pulls/comments?apiVersion=2022-11-28). It will pass the filters for each PR request.  | `--raw-filters=sort=created`  |
 | Force       | By default a file is stored with the retrieved data to avoid refetching it again. However, using this parameter bypass this cache. | `--force=true`  |
 
 ### Examples - Fetch PRs comments
@@ -136,25 +136,34 @@ The status filter supports `open`, `closed`, `merged`, and `draft`. The aggregat
 The shared date picker, timezone behavior, saved views, and tab navigation are documented in
 [Dashboard](./dashboard.md).
 
-## Outliers and weekend filtering
+## Statistical method, outliers and weekend filtering
+
+PR metrics support multiple statistical methods via the `--method` option:
+
+```bash
+--method average|median|p75|p90|p95|min|max
+```
+
+The default is `average`. `median` (p50) shows the typical experience without being skewed by outliers. `p75`/`p90`/`p95`
+answer "N% of PRs are within X days", matching common SLA formulations. `min`/`max` show the full range.
 
 Average-based PR metrics can include unusually large or small samples, such as a PR left open during a holiday or a burst
-of automated comments. CLI commands that compute averages expose two cleaning options:
+of automated comments. CLI commands that compute metrics expose two cleaning options:
 
 ```bash
 --weekends include|exclude|weekends_only
 --outlier-mode include|flag|exclude
 ```
 
-`--weekends` controls the sample set before averages are calculated. Use `include` to keep all samples, `exclude` to use
+`--weekends` controls the sample set before metrics are calculated. Use `include` to keep all samples, `exclude` to use
 weekday samples only, or `weekends_only` to inspect weekend activity separately.
 
 `--outlier-mode` controls detected outliers. Use `include` to keep all samples without reporting outliers, `flag` to keep
-all samples and print outliers, or `exclude` to remove outliers before computing the average. Outliers are detected with
+all samples and print outliers, or `exclude` to remove outliers before computing the metric. Outliers are detected with
 the interquartile range rule: values outside `Q1 - 1.5 * IQR` and `Q3 + 1.5 * IQR` are flagged. Weekend filtering runs
 before outlier detection.
 
-These options are available on `smm prs average-review-time`, `smm prs average-open`, and `smm prs average-comments`.
+These options are available on `smm prs review-time`, `smm prs open-time`, and `smm prs comments`.
 
 ## Dashboard cards
 
@@ -316,7 +325,7 @@ smm prs through-time \
 
 :::
 
-## Average PR Open
+## PR Open Time
 
 Tracks how long PRs stay open before merging. It uses weekly or monthly aggregation to show trends in review speed.
 
@@ -337,7 +346,7 @@ downward trend suggests faster reviews and healthier flow.
 == CLI
 
 ```bash
-smm prs average-open
+smm prs open-time --method average
 ```
 
 | Option            | Description                          | Example                  |
@@ -349,6 +358,7 @@ smm prs average-open
 | Exclude commenters| Comma-separated PR commenters to exclude. | `--exclude-commenters=bot` |
 | Labels            | Filters PRs by attached labels.      | `--labels=bug,enhancement` |
 | Aggregate by      | Aggregation period: day, week, or month (default: week). | `--aggregate-by=month` |
+| Method            | Statistical method: average, median, p75, p90, p95, min, max (default: average). | `--method=median` |
 | Raw filters       | Comma-separated raw filter string.   | `--raw-filters="status=draft"` |
 | Output            | Output format (text or json). Defaults to text. | `--output=json` |
 
@@ -360,10 +370,10 @@ smm prs average-open
 2. Supports filters for author, labels (e.g., bug, enhancement), and date range.
 3. Aggregation smooths out daily fluctuations, showing long-term trends.
 
-## Average Review Time By Author
+## Review Time By Author
 
-Plot the average time taken from the team to review a PR open by an author and merge it. The result is shown in average
-by days.
+Plot the review time taken from the team to review a PR opened by an author and merge it. Supports multiple statistical
+methods via `--method`.
 
 :::tabs key:cli
 == Dashboard
@@ -381,7 +391,7 @@ Highlights which contributors have PRs that remain open the longest, helping ide
 == CLI
 
 ```bash
-smm prs average-review-time
+smm prs review-time --method average
 ```
 
 | Option            | Description                          | Example                  |
@@ -393,6 +403,7 @@ smm prs average-review-time
 | Exclude commenters| Comma-separated PR commenters to exclude. | `--exclude-commenters=bot` |
 | Labels            | Filters PRs by attached labels.      | `--labels=bug,enhancement` |
 | Top               | Show top N authors (default: 10).    | `--top=20`              |
+| Method            | Statistical method: average, median, p75, p90, p95, min, max (default: average). | `--method=p90` |
 | Raw filters       | Comma-separated raw filter string.   | `--raw-filters="status=merged"` |
 | Weekends          | Include, exclude, or isolate weekend samples. | `--weekends=exclude` |
 | Outlier mode      | Include, flag, or exclude detected outliers. | `--outlier-mode=flag` |
@@ -455,9 +466,10 @@ opened 30 PRs in a month, he's a key contributor.
 2. Filters by top N authors, labels, and date range.
 3. Includes bots (e.g., dependabot) to show the impact of automation.
 
-## Average Comments per PR
+## Comments per PR
 
-Plot the average number of comments a PR receives before it is merged, aggregated by week or month.
+Plot the number of comments a PR receives before it is merged, aggregated by week or month. Supports multiple statistical
+methods via `--method`.
 
 :::tabs key:cli
 == Dashboard
@@ -468,15 +480,15 @@ Line chart showing the average number of comments per PR over time, aggregated b
 
 ### Insight Provided
 
-Measures discussion depth on pull requests. Higher averages may indicate thorough reviews or contentious changes, while
-very low averages could signal superficial reviews.
+Measures discussion depth on pull requests. Higher values may indicate thorough reviews or contentious changes, while
+very low values could signal superficial reviews.
 
 ![Comments made in prs averaged](/dashboard/prs/prs_comments_average.png)
 
 == CLI
 
 ```bash
-smm prs average-comments --aggregate-by=week
+smm prs comments --method average --aggregate-by=week
 ```
 
 | Option            | Description                          | Example                  |
@@ -487,7 +499,8 @@ smm prs average-comments --aggregate-by=week
 | Exclude authors   | Comma-separated PR authors to exclude. | `--exclude-authors=bot` |
 | Exclude commenters| Comma-separated PR commenters to exclude. | `--exclude-commenters=bot` |
 | Labels            | Filters PRs by attached labels.      | `--labels=bug,enhancement` |
-| Aggregate by      | Aggregation period: week or month. Shows per-period averages. | `--aggregate-by=month` |
+| Aggregate by      | Aggregation period: week or month. Shows per-period values. | `--aggregate-by=month` |
+| Method            | Statistical method: average, median, p75, p90, p95, min, max (default: average). | `--method=median` |
 | Raw filters       | Comma-separated raw filter string.   | `--raw-filters="status=merged"` |
 | Output            | Output format (text or json). Defaults to text. | `--output=json` |
 

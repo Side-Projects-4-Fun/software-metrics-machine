@@ -71,8 +71,26 @@ In the folder pointed to store the data, create a configuration file named `smm_
 
 This configuration is the central point to configure the project and give it default values. Replace `your_github_token` with
 the token you generated, `/your/local/repo` with the path where you cloned the repository, and `Europe/Madrid` with the
-IANA timezone used by your team. CLI commands use this timezone for date-only filters and time grouping. A table with the
-full configuration options is available at [Configuration options](./features/configuration.md).
+IANA timezone used by your team. CLI commands use this timezone for date-only filters and time grouping.
+
+For **GitLab**, set `git_provider` to `gitlab` and provide `gitlab_token` instead. See the [GitLab provider guide](./gitlab.md)
+for full setup instructions:
+
+```json
+{
+  "projects": [
+    {
+      "git_provider": "gitlab",
+      "gitlab_token": "glpat-your-gitlab-token",
+      "github_repository": "your-group/your-project",
+      "git_repository_location": "/your/local/repo",
+      "timezone": "Europe/Madrid"
+    }
+  ]
+}
+```
+
+A table with the full configuration options is available at [Configuration options](./features/configuration.md).
 
 ### Checkpoint store data
 
@@ -94,7 +112,10 @@ setup.
 ## Ready to go
 
 You are now ready to start using Software Metrics Machine and fetch data from your repository. The next step is to
-pick a provider and start fetching data. Proceed to [your first analysis with GitHub](./your-first-analysis-with-github.md).
+pick a provider and start fetching data:
+
+- [Your first analysis with GitHub](./your-first-analysis-with-github.md)
+- [GitLab provider setup](./gitlab.md)
 
 ## Docker setup
 

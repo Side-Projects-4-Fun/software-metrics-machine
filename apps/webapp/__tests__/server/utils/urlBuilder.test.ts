@@ -139,4 +139,26 @@ describe('createUrlBuilder', () => {
       'https://gitlab.com/acme/widgets/-/jobs?scope%5B%5D=all&search=Build+and+Test&ref=main&created_after=2026-01-01T00%3A00%3A00Z&created_before=2026-01-31T23%3A59%3A59Z'
     );
   });
+
+  it('builds a GitLab MR link using a self-hosted instance URL', () => {
+    const builder = createUrlBuilder(createConfig({
+      git_provider: 'gitlab',
+      gitlab_url: 'https://gitlab.example.com/acme/widgets',
+    }));
+
+    expect(builder.getPRUrl(42)).toBe(
+      'https://gitlab.example.com/acme/widgets/-/merge_requests/42'
+    );
+  });
+
+  it('builds a GitLab CI action performance link for a deployment frequency dot', () => {
+    const builder = createUrlBuilder(createConfig({ git_provider: 'gitlab' }));
+
+    const url = builder.getActionPerformanceForJobUrl('deploy', 'main', 'day', '2026-03-29');
+    expect(url).toContain('/-/jobs?');
+    expect(url).toContain('search=deploy');
+    expect(url).toContain('ref=main');
+    expect(url).toContain('created_after=');
+    expect(url).toContain('created_before=');
+  });
 });

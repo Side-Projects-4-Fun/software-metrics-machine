@@ -135,6 +135,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
       this.getDefaultGithubToken();
     config.gitlabToken =
       this.getString(configData, 'gitlab_token') || this.getProjectEnv(repository, 'GITLAB_TOKEN');
+    config.gitlabUrl =
+      this.getString(configData, 'gitlab_url') || this.getProjectEnv(repository, 'GITLAB_URL');
     config.storeData = this.env.SMM_STORE_DATA_AT!;
     config.gitRepositoryLocation =
       this.getString(configData, 'git_repository_location') ||
@@ -380,6 +382,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       'git_provider',
       'github_token',
       'gitlab_token',
+      'gitlab_url',
       'github_repository',
       'git_repository_location',
       'main_branch',

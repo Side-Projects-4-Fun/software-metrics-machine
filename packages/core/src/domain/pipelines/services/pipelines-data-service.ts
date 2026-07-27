@@ -12,8 +12,8 @@ import { normalizeMatrixJobName } from '../matrix-job-name';
 import type { TimeZoneProvider } from '../../../infrastructure';
 import type { MetricCleaningOptions, MetricSample } from '../../metric-samples';
 import {
-  averageMetricSamples,
   cleanMetricSamples,
+  computeMetricSamples,
   shouldIncludeTimestampForWeekendsMode,
 } from '../../metric-samples';
 import type {
@@ -85,7 +85,7 @@ export class PipelinesDataService implements IPipelinesService {
       this.extractDurationSamples(filteredRuns),
       filters?.cleaning
     );
-    const averageDuration = averageMetricSamples(cleanedDurations.samples);
+    const averageDuration = computeMetricSamples(cleanedDurations.samples, 'average');
 
     this.logger.info(
       `Pipeline Data Metrics: ${filteredRuns.length} total, ${successful.length} successful, ${successRate.toFixed(2)}% success rate`
@@ -317,7 +317,7 @@ export class PipelinesDataService implements IPipelinesService {
 
       metrics.averageDurationMinutes =
         cleanedDurations.samples.length > 0
-          ? Math.round(averageMetricSamples(cleanedDurations.samples) * 100) / 100
+          ? Math.round(computeMetricSamples(cleanedDurations.samples, 'average') * 100) / 100
           : 0;
       metrics.outliers = this.shouldExposeOutliers(filters?.cleaning)
         ? cleanedDurations.outliers
@@ -397,7 +397,7 @@ export class PipelinesDataService implements IPipelinesService {
 
     for (const [name, samples] of stepDurations.entries()) {
       const cleaned = this.cleanPipelineSamples(samples, filters?.cleaning);
-      const avg = averageMetricSamples(cleaned.samples);
+      const avg = computeMetricSamples(cleaned.samples, 'average');
       result.push({
         name,
         averageDurationMinutes: Math.round(avg * 100) / 100,
@@ -464,7 +464,7 @@ export class PipelinesDataService implements IPipelinesService {
       const steps = [];
       for (const [name, samples] of stepMap.entries()) {
         const cleaned = this.cleanPipelineSamples(samples, filters?.cleaning);
-        const avg = averageMetricSamples(cleaned.samples);
+        const avg = computeMetricSamples(cleaned.samples, 'average');
         steps.push({
           name,
           averageDurationMinutes: Math.round(avg * 100) / 100,

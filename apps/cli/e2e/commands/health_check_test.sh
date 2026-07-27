@@ -52,3 +52,20 @@ function test_health_check_provider_github_filters_datasets() {
   assert_smm_output_not_contains "sonarqube"
   assert_smm_success
 }
+
+function test_health_check_filters_save_and_delete_for_pipelines_section() {
+  local workspace
+
+  workspace="$(create_smm_e2e_workspace)"
+  export SMM_STORE_DATA_AT="${workspace}"
+
+  run_smm filters save hc-filter --section pipelines --start-date 2026-01-01
+  assert_smm_output_contains 'Saved filter: "hc-filter" [pipelines]'
+  assert_smm_success
+
+  run_smm filters delete hc-filter
+  assert_smm_output_contains 'Deleted filter: "hc-filter"'
+  assert_smm_success
+
+  unset SMM_STORE_DATA_AT
+}

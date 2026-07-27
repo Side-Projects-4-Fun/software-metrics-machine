@@ -902,8 +902,8 @@ describe('PRsService', () => {
 
       expect(result).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ author: 'alice', avg_days: 2 }),
-          expect.objectContaining({ author: 'bob', avg_days: 1 }),
+          expect.objectContaining({ author: 'alice', avg_days: 2, method: 'average' }),
+          expect.objectContaining({ author: 'bob', avg_days: 1, method: 'average' }),
         ])
       );
     });
@@ -949,7 +949,9 @@ describe('PRsService', () => {
 
       const result = await prsService.getAverageOpenBy();
 
-      expect(result).toEqual([{ period: expect.any(String), avg_days: 0 }]);
+      expect(result).toEqual([
+        { period: expect.any(String), avg_days: 0, method: 'average', outliers: undefined },
+      ]);
     });
 
     it('should use closedAt when mergedAt is absent', async () => {
@@ -968,7 +970,9 @@ describe('PRsService', () => {
 
       const result = await prsService.getAverageOpenBy();
 
-      expect(result).toEqual([{ period: expect.any(String), avg_days: 2 }]);
+      expect(result).toEqual([
+        { period: expect.any(String), avg_days: 2, method: 'average', outliers: undefined },
+      ]);
     });
 
     it('should aggregate by day when aggregateBy is "day"', async () => {
@@ -1224,7 +1228,11 @@ describe('PRsService', () => {
 
       expect(defaultTop).toHaveLength(10);
       expect(explicitTop).toHaveLength(3);
-      expect(defaultTop[0]).toMatchObject({ avg_hours: 1, prs_with_comments: 1 });
+      expect(defaultTop[0]).toMatchObject({
+        avg_hours: 1,
+        prs_with_comments: 1,
+        method: 'average',
+      });
     });
 
     it('should pick the earliest comment as first when a PR has multiple comments', async () => {
@@ -1247,7 +1255,15 @@ describe('PRsService', () => {
 
       const result = await prsService.getFirstCommentTime();
 
-      expect(result).toEqual([{ author: 'alice', avg_hours: 1, prs_with_comments: 1 }]);
+      expect(result).toEqual([
+        {
+          author: 'alice',
+          avg_hours: 1,
+          prs_with_comments: 1,
+          method: 'average',
+          outliers: undefined,
+        },
+      ]);
     });
   });
 });

@@ -115,3 +115,20 @@ function test_architecture_export_fails_for_missing_snapshot() {
   assert_smm_failure
   assert_smm_output_contains "No architecture view found"
 }
+
+function test_architecture_filters_save_and_list_for_architecture_section() {
+  local workspace
+
+  workspace="$(create_smm_e2e_workspace)"
+  export SMM_STORE_DATA_AT="${workspace}"
+
+  run_smm filters save arch-filter --section architecture --start-date 2026-01-01 --end-date 2026-12-31
+  assert_smm_output_contains 'Saved filter: "arch-filter" [architecture]'
+  assert_smm_success
+
+  run_smm filters list --section architecture
+  assert_smm_output_contains "[architecture] arch-filter"
+  assert_smm_success
+
+  unset SMM_STORE_DATA_AT
+}

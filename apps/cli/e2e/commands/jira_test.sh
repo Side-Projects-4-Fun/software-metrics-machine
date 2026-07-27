@@ -98,3 +98,27 @@ function test_jira_fetch_comments_with_issue_prints_message() {
   assert_smm_output_contains "Fetching comments for issue KAN-123"
   assert_smm_output_contains "Python CLI for full comment support"
 }
+
+function test_jira_filters_save_and_list_across_sections() {
+  local workspace
+
+  workspace="$(create_smm_e2e_workspace)"
+  export SMM_STORE_DATA_AT="${workspace}"
+
+  run_smm filters save jira-pipeline --section pipelines --start-date 2026-01-01
+  assert_smm_success
+  run_smm filters save jira-pr --section pull-requests --start-date 2026-01-01
+  assert_smm_success
+
+  run_smm filters list
+  assert_smm_output_contains "[pipelines] jira-pipeline"
+  assert_smm_output_contains "[pull-requests] jira-pr"
+  assert_smm_success
+
+  run_smm filters delete jira-pipeline
+  assert_smm_success
+  run_smm filters delete jira-pr
+  assert_smm_success
+
+  unset SMM_STORE_DATA_AT
+}

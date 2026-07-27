@@ -145,13 +145,13 @@ function test_pipelines_jobs_time_execution_renders_cached_job_averages() {
 }
 
 function test_pipelines_jobs_steps_average_time_renders_cached_step_averages() {
-  run_seeded_pipelines_command pipelines jobs-steps-average-time --job build
+  run_seeded_pipelines_command pipelines jobs-steps-time --method average --job build
 
   assert_smm_success
   assert_smm_output_contains "Job Steps Execution Times"
   assert_smm_output_contains "Step: Test"
-  assert_smm_output_contains "Average Execution Time: 9.00 minutes"
-  assert_smm_output_contains "Analyzed across 2 step executions"
+  assert_smm_output_contains "9.00 minutes"
+  assert_smm_output_contains "method: average"
 }
 
 function test_pipelines_jobs_by_status_renders_cached_job_statuses() {
@@ -179,4 +179,45 @@ function test_pipelines_lead_time_renders_cached_average() {
   assert_smm_success
   assert_smm_output_contains "Lead Time for Changes"
   assert_smm_output_contains "Lead Time: 15.00 hours"
+}
+
+function test_pipelines_summary_applies_saved_filter() {
+  local workspace
+
+  workspace="$(create_pipelines_workspace)"
+  seed_pipelines_workspace "${workspace}"
+  export SMM_STORE_DATA_AT="${workspace}"
+
+  run_smm filters save pl-test-filter --section pipelines --start-date 2026-02-01 --end-date 2026-02-28
+  assert_smm_success
+
+  run_smm pipelines summary --filter pl-test-filter
+
+  unset SMM_STORE_DATA_AT
+
+  assert_smm_output_contains "Pipeline Summary"
+  assert_smm_output_contains "Total Runs: 2"
+  assert_smm_output_contains "Successful Runs: 1"
+  assert_smm_output_contains "Failed Runs: 1"
+  assert_smm_success
+}
+
+function test_pipelines_by_status_applies_saved_filter() {
+  local workspace
+
+  workspace="$(create_pipelines_workspace)"
+  seed_pipelines_workspace "${workspace}"
+  export SMM_STORE_DATA_AT="${workspace}"
+
+  run_smm filters save pl-status-filter --section pipelines --branch main --outlier-mode exclude
+  assert_smm_success
+
+  run_smm pipelines by-status --filter pl-status-filter
+
+  unset SMM_STORE_DATA_AT
+
+  assert_smm_success
+  assert_smm_output_contains "Pipelines by Status"
+  assert_smm_output_contains "Successful: 1"
+  assert_smm_output_contains "Failed: 1"
 }

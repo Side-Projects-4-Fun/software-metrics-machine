@@ -35,6 +35,12 @@ export interface IConfiguration {
   gitlabToken?: string;
 
   /**
+   * GitLab instance URL (e.g. https://gitlab.example.com).
+   * Defaults to https://gitlab.com when omitted.
+   */
+  gitlabUrl?: string;
+
+  /**
    * GitHub repository in format owner/repo
    */
   githubRepository?: string;
@@ -149,6 +155,7 @@ export interface ISmmProjectConfig extends JsonObject {
   git_provider?: string;
   github_token?: string;
   gitlab_token?: string;
+  gitlab_url?: string;
   github_repository?: string;
   git_repository_location?: string;
   deployment_frequency_targets?: ConfigurableDeploymentFrequencyTarget[];
@@ -187,6 +194,7 @@ export class Configuration implements IConfiguration {
   gitProvider?: string;
   githubToken?: string;
   gitlabToken?: string;
+  gitlabUrl?: string;
   githubRepository?: string;
   storeData = '';
   gitRepositoryLocation = '';

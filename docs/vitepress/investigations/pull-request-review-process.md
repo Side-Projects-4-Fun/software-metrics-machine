@@ -2,7 +2,7 @@
 outline: deep
 ---
 
-# Review process
+# Pull Request Review Process
 
 Understanding how your team reviews pull requests is critical for identifying bottlenecks, balancing workload,
 and improving delivery speed. This investigation walks through data collection and analysis of PR review metrics using
@@ -40,13 +40,14 @@ Comments are linked to the PRs already fetched. The date range filters on the PR
 With the data in place, run the analysis commands below. Each command reads the cached data — no network calls are
 needed unless you force a re-fetch.
 
-### Average review time by author
+### Review time by author
 
 Review time measures how long it takes from PR open to merge, grouped by author. This reveals whose PRs spend
-the most time in review.
+the most time in review. Uses the `--method` option to select the statistical measure.
 
 ```bash
-smm prs average-review-time \
+smm prs review-time \
+  --method average \
   --start-date 2025-08-17 \
   --end-date 2025-11-17 \
   --top 5 \
@@ -64,16 +65,18 @@ Example output (values in days):
 4           eve    4.50       6
 ```
 
-Use `--weekends exclude` to focus on business-day review times. Use `--outlier-mode flag` to surface PRs that took
-unusually long without removing them from the average. See
-[Outliers and weekend filtering](../features/prs.md#outliers-and-weekend-filtering) for details.
+Use `--method median` to avoid skew from outliers, or `--method p90` for SLA tracking ("90% of PRs reviewed within X
+days"). Use `--weekends exclude` to focus on business-day review times. Use `--outlier-mode flag` to surface PRs that
+took unusually long without removing them from the metric. See
+[Statistical method, outliers and weekend filtering](../features/prs.md#statistical-method-outliers-and-weekend-filtering) for details.
 
-### Average PR open time
+### PR open time
 
 Open time tracks how long PRs stay open before they are merged or closed, aggregated by week or month.
 
 ```bash
-smm prs average-open \
+smm prs open-time \
+  --method average \
   --start-date 2025-08-17 \
   --end-date 2025-11-17 \
   --aggregate-by week \
@@ -93,12 +96,13 @@ Example output (values in days, one row per week):
 A rising trend in average open time over several weeks may signal increased review load, larger PRs, or reviewer
 availability gaps.
 
-### Average comments per PR
+### Comments per PR
 
 Comments per PR measures how much discussion each pull request attracts before it lands.
 
 ```bash
-smm prs average-comments \
+smm prs comments \
+  --method average \
   --start-date 2025-08-17 \
   --end-date 2025-11-17 \
   --aggregate-by week
@@ -193,7 +197,7 @@ availability, author reputation)[^3][^4].
 
 #### Throughput vs open time
 
-Compare the weekly `through-time` table (opened vs closed columns) against the `average-open` trend.
+Compare the weekly `through-time` table (opened vs closed columns) against the `open-time` trend.
 High-performing teams balance throughput with stability — a pattern documented in the DORA research
 program[^10].
 
@@ -206,11 +210,12 @@ program[^10].
 
 #### Author workload balance
 
-Overlay `average-review-time` (by author) with `by-author` (PR count). Concentrated code ownership
+Overlay `review-time` (by author) with `by-author` (PR count). Concentrated code ownership
 increases review bottlenecks and correlates with higher post-release defect rates[^11].
 
 ```bash
-smm prs average-review-time \
+smm prs review-time \
+  --method average \
   --start-date 2025-08-17 \
   --end-date 2025-11-17 \
   --top 10

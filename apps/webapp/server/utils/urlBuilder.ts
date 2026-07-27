@@ -305,7 +305,7 @@ function createGitHubBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
  */
 function createGitLabBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
   const [owner, repo] = config.github_repository.split('/').filter(Boolean);
-  const baseUrl = `https://gitlab.com/${owner}/${repo}`;
+  const baseUrl = config.gitlab_url || `https://gitlab.com/${owner}/${repo}`;
   
   return {
     getPRsUrl(filters) {
@@ -418,8 +418,21 @@ function createGitLabBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
         : `${config.sonar_url}/dashboard`;
     },
 
-    getActionPerformanceForJobUrl(_jobName: string, _workflowName: string, _granularity: 'day' | 'week' | 'month', _date: string, _timezone?: string): string {
-      return `#need+custom+implementation+for+GitLab: ${_jobName}, ${_workflowName}, ${_granularity}, ${_date}`;
+    getActionPerformanceForJobUrl(jobName: string, workflowName: string, granularity: 'day' | 'week' | 'month', date: string, _timezone?: string): string {
+      const range = computeRange(date, granularity);
+      const startIso = new Date(range.start).toISOString();
+      const endIso = new Date(range.end).toISOString();
+
+      const params = new URLSearchParams();
+      params.set('scope[]', 'all');
+      params.set('search', jobName);
+      if (workflowName) {
+        params.set('ref', workflowName);
+      }
+      params.set('created_after', startIso);
+      params.set('created_before', endIso);
+
+      return `${baseUrl}/-/jobs?${params.toString()}`;
     }
 
   };

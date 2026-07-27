@@ -193,9 +193,9 @@ The smart comma separator allows you to use commas within values without breakin
 
 ### Provider-specific examples
 
-#### GitHub workflows
+#### Workflows / Pipelines
 
-When working with GitHub workflows and pipelines, you can filter by:
+When working with workflows and pipelines (GitHub Actions, GitLab CI, etc.), you can filter by:
 
 ```bash
 # Filter by workflow status and branch
@@ -222,9 +222,9 @@ smm engineering-health evaluate \
     --raw-filters "status=success|name=ci-cd|event=push"
 ```
 
-#### GitHub pull requests
+#### Pull requests / Merge requests
 
-For collaboration metrics backed by pull requests:
+For collaboration metrics backed by pull requests or merge requests:
 
 ```bash
 # Filter by PR author

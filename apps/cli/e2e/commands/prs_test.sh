@@ -162,12 +162,12 @@ function test_prs_average_review_time_renders_cached_pull_request_averages() {
   seed_prs_workspace "${workspace}"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm prs average-review-time
+  run_smm prs review-time --method average
 
   unset SMM_STORE_DATA_AT
 
   assert_smm_success
-  assert_smm_output_contains "Average Review Time by Author"
+  assert_smm_output_contains "AVERAGE Review Time by Author"
   assert_smm_output_contains "alice: 2.00 days"
 }
 
@@ -178,12 +178,12 @@ function test_prs_average_open_renders_cached_pull_request_averages() {
   seed_prs_workspace "${workspace}"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm prs average-open --aggregate-by day
+  run_smm prs open-time --method average --aggregate-by day
 
   unset SMM_STORE_DATA_AT
 
   assert_smm_success
-  assert_smm_output_contains "Average PR Open Time"
+  assert_smm_output_contains "AVERAGE PR Open Time"
   assert_smm_output_contains "2026-01-05: 2.00 days"
   assert_smm_output_contains "2026-01-12: 0.00 days"
 }
@@ -195,11 +195,49 @@ function test_prs_average_comments_renders_cached_pull_request_average() {
   seed_prs_workspace "${workspace}"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm prs average-comments
+  run_smm prs comments --method average
 
   unset SMM_STORE_DATA_AT
 
   assert_smm_success
-  assert_smm_output_contains "Average Comments per PR"
+  assert_smm_output_contains "AVERAGE Comments per PR"
   assert_smm_output_contains "Average Comments: 0.5"
+}
+
+function test_prs_summary_applies_saved_filter() {
+  local workspace
+
+  workspace="$(create_smm_e2e_workspace)"
+  seed_prs_workspace "${workspace}"
+  export SMM_STORE_DATA_AT="${workspace}"
+
+  run_smm filters save pr-test-filter --section pull-requests --pull-request-status merged
+  assert_smm_success
+
+  run_smm prs summary --filter pr-test-filter
+
+  unset SMM_STORE_DATA_AT
+
+  assert_smm_output_contains "PRs Summary:"
+  assert_smm_output_contains "Total PRs: 2"
+  assert_smm_output_contains "Merged PRs: 1"
+  assert_smm_success
+}
+
+function test_prs_through_time_applies_saved_filter() {
+  local workspace
+
+  workspace="$(create_smm_e2e_workspace)"
+  seed_prs_workspace "${workspace}"
+  export SMM_STORE_DATA_AT="${workspace}"
+
+  run_smm filters save pr-through-filter --section pull-requests --start-date 2026-01-01 --end-date 2026-01-31
+  assert_smm_success
+
+  run_smm prs through-time --filter pr-through-filter
+
+  unset SMM_STORE_DATA_AT
+
+  assert_smm_success
+  assert_smm_output_contains "PRs Through Time"
 }

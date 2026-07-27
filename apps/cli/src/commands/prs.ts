@@ -1,6 +1,11 @@
 import type { SmmCommand } from './smm-command';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
-import type { PRFilters, PRSummary, IReadPullRequestsRepository } from '@smmachine/core';
+import type {
+  PRFilters,
+  PRSummary,
+  IReadPullRequestsRepository,
+  MetricMethod,
+} from '@smmachine/core';
 import {
   GithubPrsClient,
   GitlabMrClient,
@@ -83,6 +88,23 @@ function buildPRFilters(options: {
   }
 
   return filters;
+}
+
+const VALID_METRIC_METHODS: MetricMethod[] = [
+  'average',
+  'median',
+  'p75',
+  'p90',
+  'p95',
+  'min',
+  'max',
+];
+
+function normalizeMetricMethod(value?: string): MetricMethod {
+  const normalized = (value || 'average').toLowerCase();
+  return VALID_METRIC_METHODS.includes(normalized as MetricMethod)
+    ? (normalized as MetricMethod)
+    : 'average';
 }
 
 function formatOptionalDate(value?: string): string {
@@ -487,12 +509,71 @@ export function createPRsCommands(program: SmmCommand): void {
     });
 
   /**
-   * smm prs average-review-time [options]
-   * View average review time by author
+   * smm prs review-time [options]
+   * View review time by author with selectable statistical method
+   */
+  prsGroup
+    .subcommand('review-time')
+    .description('View review time (days) by author')
+    .option('--start-date <date>', 'Filter PRs created on or after this date')
+    .option('--end-date <date>', 'Filter PRs created on or before this date')
+    .option('--exclude-authors <authors>', 'Comma-separated PR authors to exclude')
+    .option('--exclude-commenters <commenters>', 'Comma-separated PR commenters to exclude')
+    .option('--authors <authors>', 'Comma-separated PR authors to include')
+    .option('--labels <labels>', 'Comma-separated PR labels to filter by')
+    .option('--top <number>', 'Show top N authors', '10')
+    .option('--raw-filters <filters>', 'Comma-separated raw filter string')
+    .option('--output <format>', 'Output format (text|json)', 'text')
+    .option(
+      '--method <method>',
+      'Statistical method: average, median, p75, p90, p95, min, max',
+      'average'
+    )
+    .option(
+      '--weekends <mode>',
+      'Weekend handling for averages: include, exclude, or weekends_only',
+      'include'
+    )
+    .option(
+      '--outlier-mode <mode>',
+      'Outlier handling for averages: include, flag, or exclude',
+      'include'
+    )
+    .actionWithSmm(async (options, command) => {
+      const logger = command.getLogger('PRsCommand');
+      try {
+        const metricMethod = normalizeMetricMethod(options.method);
+        screen.printLine(`📊 Calculating ${metricMethod} review time...`);
+        const service = createPRService(command);
+        const filters = buildPRFilters(options);
+        const reviews = await service.getReviewTime(filters, Number(options.top), metricMethod);
+
+        if (options.output === 'json') {
+          screen.printLine(JSON.stringify(reviews, null, 2));
+        } else {
+          screen.printLine(`\n=== ${metricMethod.toUpperCase()} Review Time by Author ===\n`);
+          for (const review of reviews) {
+            screen.printLine(
+              `${review.author}: ${review.avg_days.toFixed(2)} days (method: ${review.method})`
+            );
+            printOutliers(screen, review.outliers);
+          }
+        }
+
+        screen.printLine('\n✅ Analysis completed');
+      } catch (error) {
+        logger.error('Failed to calculate review time', error);
+        process.exit(1);
+      }
+    });
+
+  /**
+   * smm prs average-review-time [options] (deprecated)
+   * Use smm prs review-time --method average instead
    */
   prsGroup
     .subcommand('average-review-time')
-    .description('View average review time (days) by author')
+    .description('(DEPRECATED) Use "review-time --method average" instead')
     .option('--start-date <date>', 'Filter PRs created on or after this date')
     .option('--end-date <date>', 'Filter PRs created on or before this date')
     .option('--exclude-authors <authors>', 'Comma-separated PR authors to exclude')
@@ -513,6 +594,9 @@ export function createPRsCommands(program: SmmCommand): void {
       'include'
     )
     .actionWithSmm(async (options, command) => {
+      screen.printLine(
+        '⚠️  "average-review-time" is deprecated. Use "review-time --method average" instead.'
+      );
       const logger = command.getLogger('PRsCommand');
       try {
         screen.printLine('📊 Calculating average review time...');
@@ -538,12 +622,71 @@ export function createPRsCommands(program: SmmCommand): void {
     });
 
   /**
-   * smm prs average-open [options]
-   * View average PR open time by period
+   * smm prs open-time [options]
+   * View PR open time by period with selectable statistical method
+   */
+  prsGroup
+    .subcommand('open-time')
+    .description('View PR open time (days) aggregated by day/week/month')
+    .option('--start-date <date>', 'Filter PRs created on or after this date')
+    .option('--end-date <date>', 'Filter PRs created on or before this date')
+    .option('--exclude-authors <authors>', 'Comma-separated PR authors to exclude')
+    .option('--exclude-commenters <commenters>', 'Comma-separated PR commenters to exclude')
+    .option('--authors <authors>', 'Comma-separated PR authors to include')
+    .option('--labels <labels>', 'Comma-separated PR labels to filter by')
+    .option('--aggregate-by <period>', 'Aggregation period: day, week, or month (default: week)')
+    .option('--raw-filters <filters>', 'Comma-separated raw filter string')
+    .option('--output <format>', 'Output format (text|json)', 'text')
+    .option(
+      '--method <method>',
+      'Statistical method: average, median, p75, p90, p95, min, max',
+      'average'
+    )
+    .option(
+      '--weekends <mode>',
+      'Weekend handling for averages: include, exclude, or weekends_only',
+      'include'
+    )
+    .option(
+      '--outlier-mode <mode>',
+      'Outlier handling for averages: include, flag, or exclude',
+      'include'
+    )
+    .actionWithSmm(async (options, command) => {
+      const logger = command.getLogger('PRsCommand');
+      try {
+        const metricMethod = normalizeMetricMethod(options.method);
+        screen.printLine(`📊 Calculating ${metricMethod} PR open time...`);
+        const service = createPRService(command);
+        const filters = buildPRFilters(options);
+        const periods = await service.getOpenTimeBy(filters, options.aggregateBy, metricMethod);
+
+        if (options.output === 'json') {
+          screen.printLine(JSON.stringify(periods, null, 2));
+        } else {
+          screen.printLine(`\n=== ${metricMethod.toUpperCase()} PR Open Time ===\n`);
+          for (const period of periods) {
+            screen.printLine(
+              `${period.period}: ${period.avg_days.toFixed(2)} days (method: ${period.method})`
+            );
+            printOutliers(screen, period.outliers);
+          }
+        }
+
+        screen.printLine('\n✅ Analysis completed');
+      } catch (error) {
+        logger.error('Failed to calculate PR open time', error);
+        process.exit(1);
+      }
+    });
+
+  /**
+   * smm prs average-open [options] (deprecated)
+   * Use smm prs open-time --method average instead
    */
   prsGroup
     .subcommand('average-open')
-    .description('View average PR open time (days) aggregated by day/week/month')
+    .description('(DEPRECATED) Use "open-time --method average" instead')
     .option('--start-date <date>', 'Filter PRs created on or after this date')
     .option('--end-date <date>', 'Filter PRs created on or before this date')
     .option('--exclude-authors <authors>', 'Comma-separated PR authors to exclude')
@@ -564,6 +707,9 @@ export function createPRsCommands(program: SmmCommand): void {
       'include'
     )
     .actionWithSmm(async (options, command) => {
+      screen.printLine(
+        '⚠️  "average-open" is deprecated. Use "open-time --method average" instead.'
+      );
       const logger = command.getLogger('PRsCommand');
       try {
         screen.printLine('📊 Calculating average PR open time...');
@@ -589,12 +735,105 @@ export function createPRsCommands(program: SmmCommand): void {
     });
 
   /**
-   * smm prs average-comments [options]
-   * View average comments per PR
+   * smm prs comments [options]
+   * View comments per PR with selectable statistical method
+   */
+  prsGroup
+    .subcommand('comments')
+    .description('View number of comments per PR with selectable statistical method')
+    .option('--start-date <date>', 'Filter PRs created on or after this date')
+    .option('--end-date <date>', 'Filter PRs created on or before this date')
+    .option('--exclude-authors <authors>', 'Comma-separated PR authors to exclude')
+    .option('--exclude-commenters <commenters>', 'Comma-separated PR commenters to exclude')
+    .option('--authors <authors>', 'Comma-separated PR authors to include')
+    .option('--labels <labels>', 'Comma-separated PR labels to filter by')
+    .option(
+      '--aggregate-by <period>',
+      'Aggregation period: week or month. Shows per-period values.'
+    )
+    .option('--raw-filters <filters>', 'Comma-separated raw filter string')
+    .option('--output <format>', 'Output format (text|json)', 'text')
+    .option(
+      '--method <method>',
+      'Statistical method: average, median, p75, p90, p95, min, max',
+      'average'
+    )
+    .option(
+      '--weekends <mode>',
+      'Weekend handling for averages: include, exclude, or weekends_only',
+      'include'
+    )
+    .option(
+      '--outlier-mode <mode>',
+      'Outlier handling for averages: include, flag, or exclude',
+      'include'
+    )
+    .actionWithSmm(async (options, command) => {
+      const logger = command.getLogger('PRsCommand');
+      try {
+        const metricMethod = normalizeMetricMethod(options.method);
+        screen.printLine(`📊 Calculating ${metricMethod} comments per PR...`);
+        const service = createPRService(command);
+        const filters = buildPRFilters(options);
+
+        if (options.aggregateBy) {
+          const mode = options.aggregateBy.toLowerCase();
+          const timeframes =
+            mode === 'month'
+              ? await service.getMetricsByMonth(filters, metricMethod)
+              : await service.getMetricsByWeek(filters, metricMethod);
+
+          if (options.output === 'json') {
+            screen.printLine(JSON.stringify(timeframes, null, 2));
+          } else {
+            screen.printLine(
+              `\n=== ${metricMethod.toUpperCase()} Comments per PR by ${mode} ===\n`
+            );
+            for (const tf of timeframes) {
+              screen.printLine(
+                `${tf.period}: ${tf.averageComments} (${tf.count} PRs, method: ${tf.method})`
+              );
+              printOutliers(screen, tf.outliers?.comments);
+            }
+          }
+        } else {
+          const metrics = await service.getMetrics(filters, metricMethod);
+
+          if (options.output === 'json') {
+            screen.printLine(
+              JSON.stringify(
+                {
+                  avg_comments: metrics.averageComments,
+                  method: metrics.method,
+                  outliers: metrics.outliers?.comments,
+                },
+                null,
+                2
+              )
+            );
+          } else {
+            screen.printLine(`\n=== ${metricMethod.toUpperCase()} Comments per PR ===\n`);
+            screen.printLine(
+              `${metricMethod.charAt(0).toUpperCase() + metricMethod.slice(1)} Comments: ${metrics.averageComments}`
+            );
+            printOutliers(screen, metrics.outliers?.comments);
+          }
+        }
+
+        screen.printLine('\n✅ Analysis completed');
+      } catch (error) {
+        logger.error('Failed to calculate comments', error);
+        process.exit(1);
+      }
+    });
+
+  /**
+   * smm prs average-comments [options] (deprecated)
+   * Use smm prs comments --method average instead
    */
   prsGroup
     .subcommand('average-comments')
-    .description('View average number of comments per PR')
+    .description('(DEPRECATED) Use "comments --method average" instead')
     .option('--start-date <date>', 'Filter PRs created on or after this date')
     .option('--end-date <date>', 'Filter PRs created on or before this date')
     .option('--exclude-authors <authors>', 'Comma-separated PR authors to exclude')
@@ -618,6 +857,9 @@ export function createPRsCommands(program: SmmCommand): void {
       'include'
     )
     .actionWithSmm(async (options, command) => {
+      screen.printLine(
+        '⚠️  "average-comments" is deprecated. Use "comments --method average" instead.'
+      );
       const logger = command.getLogger('PRsCommand');
       try {
         screen.printLine('📊 Calculating average comments per PR...');

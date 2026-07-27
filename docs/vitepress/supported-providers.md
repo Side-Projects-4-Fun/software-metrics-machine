@@ -19,9 +19,12 @@ If you are using [GitHub and GitHub Actions](./github.md), the following are sup
 
 ### GitLab
 
-If you are using [GitLab](./gitlab.md), the following are currently supported:
+If you are using [GitLab](./gitlab.md), the following are supported:
 
-- Source code analysis via git
+- Insights
+- Pipelines
+- Merge requests (pull requests)
+- Source code analysis via local git repository
 
 ### Bitbucket
 

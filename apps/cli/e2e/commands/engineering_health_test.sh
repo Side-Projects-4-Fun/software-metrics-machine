@@ -150,3 +150,29 @@ function test_engineering_health_evaluate_applies_pr_labels_to_output() {
   assert_smm_output_contains '"sampleSize": 0'
   assert_smm_success
 }
+
+function test_engineering_health_filters_save_and_show_for_engineering_health_section() {
+  local workspace
+
+  workspace="$(create_smm_e2e_workspace)"
+  export SMM_STORE_DATA_AT="${workspace}"
+
+  run_smm filters save eh-filter \
+    --section engineering-health \
+    --metric pipeline-duration \
+    --category delivery \
+    --compare-start-date 2026-01-01 \
+    --compare-end-date 2026-01-31 \
+    --start-date 2026-02-01 \
+    --end-date 2026-02-28
+  assert_smm_output_contains 'Saved filter: "eh-filter" [engineering-health]'
+  assert_smm_success
+
+  run_smm filters show eh-filter
+  assert_smm_output_contains "Section: engineering-health"
+  assert_smm_output_contains "metric: pipeline-duration"
+  assert_smm_output_contains "category: delivery"
+  assert_smm_success
+
+  unset SMM_STORE_DATA_AT
+}

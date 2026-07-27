@@ -7,7 +7,7 @@ import type { MetricCleaningOptions, MetricSample } from '../../metric-samples';
 import {
   parseMetricCleaningOptions,
   cleanMetricSamples,
-  averageMetricSamples,
+  computeMetricSamples,
 } from '../../metric-samples';
 import type {
   PipelineRun,
@@ -100,7 +100,7 @@ export class PipelineImplementation {
       }
     }
     const cleaned = cleanMetricSamples(durationSamples, cleaning);
-    const avgDuration = averageMetricSamples(cleaned.samples);
+    const avgDuration = computeMetricSamples(cleaned.samples, 'average');
 
     return {
       total_runs: runs.length,
@@ -158,7 +158,7 @@ export class PipelineImplementation {
         const cleaned = cleanMetricSamples(samples, cleaning);
         const durations = cleaned.samples.map((sample) => sample.value);
         const n = cleaned.samples.length;
-        const avgDuration = averageMetricSamples(cleaned.samples);
+        const avgDuration = computeMetricSamples(cleaned.samples, 'average');
         const minDuration = n > 0 ? Math.min(...durations) : 0;
         const maxDuration = n > 0 ? Math.max(...durations) : 0;
         const outliers =
@@ -242,7 +242,7 @@ export class PipelineImplementation {
         return {
           job_name: jobNameValue,
           workflow_name: data.workflowName,
-          avg_time: averageMetricSamples(cleaned.samples),
+          avg_time: computeMetricSamples(cleaned.samples, 'average'),
           count: cleaned.samples.length,
           outliers:
             cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
@@ -295,7 +295,7 @@ export class PipelineImplementation {
         const cleaned = cleanMetricSamples(samples, cleaning);
         return {
           day,
-          avg_time: averageMetricSamples(cleaned.samples),
+          avg_time: computeMetricSamples(cleaned.samples, 'average'),
           count: cleaned.samples.length,
           outliers:
             cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
@@ -436,7 +436,7 @@ export class PipelineImplementation {
       const cleaned = cleanMetricSamples(durationSamples, cleaning);
       const avgDuration =
         cleaned.samples.length > 0
-          ? Math.round(averageMetricSamples(cleaned.samples) * 100) / 100
+          ? Math.round(computeMetricSamples(cleaned.samples, 'average') * 100) / 100
           : 0;
       const successRate =
         metrics.totalRuns > 0
@@ -526,7 +526,7 @@ export class PipelineImplementation {
 
     for (const [name, samples] of stepDurations.entries()) {
       const cleaned = cleanMetricSamples(samples, cleaning);
-      const avg = averageMetricSamples(cleaned.samples);
+      const avg = computeMetricSamples(cleaned.samples, 'average');
       result.push({
         name,
         averageDurationMinutes: Math.round(avg * 100) / 100,
@@ -594,7 +594,7 @@ export class PipelineImplementation {
       const steps = [];
       for (const [name, samples] of stepMap.entries()) {
         const cleaned = cleanMetricSamples(samples, cleaning);
-        const avg = averageMetricSamples(cleaned.samples);
+        const avg = computeMetricSamples(cleaned.samples, 'average');
         steps.push({
           name,
           averageDurationMinutes: Math.round(avg * 100) / 100,

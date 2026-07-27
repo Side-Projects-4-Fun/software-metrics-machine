@@ -115,10 +115,13 @@ export default withMermaid(
           text: 'Investigations',
           items: [
             {
-              text: 'Team review process', link: '/investigations/review-process', items: [ ]
+              text: 'Pull request review process', link: '/investigations/pull-request-review-process', items: [ ]
             },
             {
               text: 'Pipeline run time', link: '/investigations/pipeline-run-time', items: [ ]
+            },
+            {
+              text: 'Assessing technical debt', link: '/investigations/technical-debt', items: [ ]
             },
           ]
         }

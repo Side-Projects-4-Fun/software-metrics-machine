@@ -18,6 +18,7 @@ export class ConfigurationController {
       result: {
         git_provider: this.config.gitProvider,
         github_repository: this.config.githubRepository,
+        gitlab_url: this.config.gitlabUrl,
         git_repository_location: this.config.gitRepositoryLocation,
         store_data: this.config.storeData,
         deployment_frequency_targets: this.config.getDeploymentFrequencyTargets(),
