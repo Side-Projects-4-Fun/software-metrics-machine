@@ -53,6 +53,8 @@ jobs:
 
       - name: build
         run: npm run docs:build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
