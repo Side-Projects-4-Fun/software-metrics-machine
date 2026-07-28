@@ -42,6 +42,8 @@ import { DeploymentFrequencyService } from '@smmachine/core/domain/pipelines/ser
 import { DoraController } from './controllers/dora.controller';
 import { EngineeringHealthController } from './controllers/engineering-health.controller';
 import { FiltersController } from './controllers/filters.controller';
+import { PipelineEvaluationController } from './controllers/pipeline-evaluation.controller';
+import { PREvaluationController } from './controllers/pr-evaluation.controller';
 
 function buildDataDirectories(config: Configuration) {
   const baseDir = config.storeData || './outputs';
@@ -106,6 +108,8 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     DoraController,
     EngineeringHealthController,
     FiltersController,
+    PipelineEvaluationController,
+    PREvaluationController,
   ],
   providers: [
     // Configuration Repository (singleton — caches project list)

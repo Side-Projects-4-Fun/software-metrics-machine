@@ -65,4 +65,28 @@ export const pullRequestAPI = {
       commenters: string[];
       labels: string[];
     }>('/pull-requests/filter-options'),
+
+  evaluate: (params?: ApiParams) =>
+    fetchAPI<{
+      generatedAt: string;
+      signals: Array<{
+        id: string;
+        title: string;
+        description: string;
+        severity: 'critical' | 'warning' | 'good';
+        category: string;
+        metrics: Array<{ label: string; value: string }>;
+      }>;
+      summary: {
+        totalPRs: number;
+        mergedPRs: number;
+        openPRs: number;
+        avgCommentsPerPR: number;
+        avgReviewHours: number;
+        avgOpenDays: number;
+        uniqueAuthors: number;
+        topReviewer?: string;
+        bottleneckAuthor?: string;
+      };
+    }>('/pull-requests/evaluate', params),
 };

@@ -12,6 +12,7 @@ import MostCommentedPRsCard from '@/components/charts/pull-requests/MostCommente
 import CommentsByAuthorCard from '@/components/charts/pull-requests/CommentsByAuthorCard';
 import FirstCommentTimeCard from '@/components/charts/pull-requests/FirstCommentTimeCard';
 import OutliersCard, { MetricOutlierRow } from '@/components/charts/OutliersCard';
+import PREvaluationCard from '@/components/charts/pull-requests/PREvaluationCard';
 import { toOutlierRows } from '@/components/charts/outliers-utils';
 import {
   AvgCommentsData,
@@ -36,12 +37,34 @@ function unwrapResult<T>(data: T | ResultWrapper<T>): T {
   return data;
 }
 
+interface EvaluationData {
+  generatedAt: string;
+  signals: Array<{
+    id: string;
+    title: string;
+    description: string;
+    severity: 'critical' | 'warning' | 'good';
+    category: string;
+    metrics: Array<{ label: string; value: string }>;
+  }>;
+  summary: {
+    totalPRs: number;
+    mergedPRs: number;
+    openPRs: number;
+    avgCommentsPerPR: number;
+    avgReviewHours: number;
+    avgOpenDays: number;
+    uniqueAuthors: number;
+    topReviewer?: string;
+    bottleneckAuthor?: string;
+  };
+}
+
 export default async function PullRequestsPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  
   const filters = parseDashboardFilters(await searchParams ?? {}, defaultFilters);
   let byAuthor: ByAuthorData[] = [];
   let avgReviewTime: AvgReviewTimeData[] = [];
@@ -53,10 +76,12 @@ export default async function PullRequestsPage({
   let commentsByAuthor: CommentsByAuthorData[] = [];
   let firstCommentTime: FirstCommentTimeData[] = [];
   let outliers: MetricOutlierRow[] = [];
+  let evaluation: EvaluationData | null = null;
+  let detailViewError: string | null = null;
 
   try {
     const apiParams = buildPullRequestApiParams(filters);
-    const [author, review, open, openBy, comments, summaryData, commentsByAuthorData, firstCommentTimeData] = await Promise.all([
+    const [author, review, open, openBy, comments, summaryData, commentsByAuthorData, firstCommentTimeData, evalData] = await Promise.all([
       pullRequestAPI.byAuthor(apiParams),
       pullRequestAPI.averageReviewTime(apiParams),
       pullRequestAPI.openThroughTime(apiParams),
@@ -65,14 +90,16 @@ export default async function PullRequestsPage({
       pullRequestAPI.summary(apiParams),
       pullRequestAPI.commentsByAuthor(apiParams),
       pullRequestAPI.firstCommentTime(apiParams),
+      pullRequestAPI.evaluate(apiParams),
     ]);
-    // Handle both direct array responses and wrapped responses
+
+    evaluation = evalData;
+
     byAuthor = ensureArray<ByAuthorData>(unwrapResult(author as ByAuthorData[] | ResultWrapper<ByAuthorData[]>));
     avgReviewTime = ensureArray<AvgReviewTimeData>(unwrapResult(review as AvgReviewTimeData[] | ResultWrapper<AvgReviewTimeData[]>));
     const openData = ensureArray<OpenThroughTimeResponseItem>(
       unwrapResult(open as OpenThroughTimeResponseItem[] | ResultWrapper<OpenThroughTimeResponseItem[]>)
     );
-    // Transform data: group by date and pivot kind into opened/closed
     if (openData.length > 0) {
       openThroughTime = openData.reduce((acc: OpenThroughTimeData[], item: OpenThroughTimeResponseItem) => {
         const existing = acc.find((d: OpenThroughTimeData) => d.date === item.date);
@@ -125,39 +152,50 @@ export default async function PullRequestsPage({
     ];
   } catch (error) {
     console.error('Error fetching PR data:', error);
-    // Set empty arrays on error
+    detailViewError = 'Failed to load PR detail data.';
   }
 
   return (
     <div className="space-y-6">
+      {evaluation ? (
+        <PREvaluationCard data={evaluation} />
+      ) : null}
+
       <OutliersCard rows={outliers} />
-      <div className="grid grid-cols-1 gap-6">
-        <AverageReviewTimeCard data={avgReviewTime} />
-      </div>
-      <div className="grid grid-cols-2 gap-6">
-        <CommentsByAuthorCard data={commentsByAuthor} />
-        <FirstCommentTimeCard data={firstCommentTime} />
-      </div>
-      <div className="grid grid-cols-1 gap-6">
-        <PRsByAuthorCard data={byAuthor} />
+
+      <div className="border-t border-gray-200 pt-2">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">Detail View</h2>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
-        <MostCommentedPRsCard data={summary?.most_commented_prs || []} />
-        <TopThemesCard data={topThemes} />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6">
-        <OpenPRsThroughTimeCard data={openThroughTime} />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6">
-        <AverageDaysPRsRemainOpenCard data={avgOpenBy} />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6">
-        <PRStatisticsCard summary={summary} avgComments={avgComments} />
-      </div>
+      {detailViewError ? (
+        <div className="text-red-600 text-sm">{detailViewError}</div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 gap-6">
+            <AverageReviewTimeCard data={avgReviewTime} />
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            <CommentsByAuthorCard data={commentsByAuthor} />
+            <FirstCommentTimeCard data={firstCommentTime} />
+          </div>
+          <div className="grid grid-cols-1 gap-6">
+            <PRsByAuthorCard data={byAuthor} />
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            <MostCommentedPRsCard data={summary?.most_commented_prs || []} />
+            <TopThemesCard data={topThemes} />
+          </div>
+          <div className="grid grid-cols-1 gap-6">
+            <OpenPRsThroughTimeCard data={openThroughTime} />
+          </div>
+          <div className="grid grid-cols-1 gap-6">
+            <AverageDaysPRsRemainOpenCard data={avgOpenBy} />
+          </div>
+          <div className="grid grid-cols-1 gap-6">
+            <PRStatisticsCard summary={summary} avgComments={avgComments} />
+          </div>
+        </>
+      )}
     </div>
   );
 }

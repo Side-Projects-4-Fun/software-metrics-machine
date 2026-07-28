@@ -18,16 +18,38 @@ import JobsAverageTimeCard from '@/components/charts/pipeline/JobsAverageTimeCar
 import JobsByStatusCard from '@/components/charts/pipeline/JobsByStatusCard';
 import JobsRerunCard from '@/components/charts/pipeline/JobsRerunCard';
 import JobStepsAnalysis from '@/components/charts/pipeline/JobStepsAnalysis';
-import { Card, CardContent } from '@/components/ui/card';
-import { toOutlierRows } from '@/components/charts/outliers-utils';
 import OutliersCard, { MetricOutlierRow } from '@/components/charts/OutliersCard';
+import PipelineEvaluationCard from '@/components/charts/pipeline/PipelineEvaluationCard';
+import { toOutlierRows } from '@/components/charts/outliers-utils';
+
+interface EvaluationData {
+  generatedAt: string;
+  signals: Array<{
+    id: string;
+    title: string;
+    description: string;
+    severity: 'critical' | 'warning' | 'good';
+    category: string;
+    metrics: Array<{ label: string; value: string }>;
+  }>;
+  summary: {
+    totalRuns: number;
+    averageDurationMinutes: number;
+    successRate: number;
+    failureRate: number;
+    totalReruns: number;
+    bottleneckJob?: string;
+    bottleneckJobSharePercent?: number;
+    slowestWorkflow?: string;
+  };
+}
 
 export default async function PipelinesPage({
   searchParams,
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const filters = parseDashboardFilters(await searchParams ?? {}, defaultFilters);
+  const filters = parseDashboardFilters((await searchParams) ?? {}, defaultFilters);
   let jobsByStatus: JobByStatusData[] = [];
   let runsDurationByAggregation: Record<'avg' | 'min' | 'max', RunsDurationData[]> = {
     avg: [],
@@ -42,16 +64,23 @@ export default async function PipelinesPage({
   let jobsRerunsByDay: JobRerunsByDayData[] = [];
   let jobStepsTime: JobStepsAverageTimeData[] = [];
   let jobStepsTimeByDay: JobStepsAverageTimeByDayData[] = [];
-  let totalRuns = 0;
   let outliers: MetricOutlierRow[] = [];
+  let evaluation: EvaluationData | null = null;
+  let detailViewError: string | null = null;
 
   const isSingleJobSelected = filters.jobSelector && filters.jobSelector.length === 1;
 
-  try {
-    const apiParams = buildPipelineApiParams(filters);
-    const data = await pipelineAPI.dashboard(apiParams);
+  const apiParams = buildPipelineApiParams(filters);
 
-    totalRuns = data.summary?.total_runs || 0;
+  try {
+    const [dashboardData, evalData] = await Promise.all([
+      pipelineAPI.dashboard(apiParams),
+      pipelineAPI.evaluate(apiParams),
+    ]);
+
+    evaluation = evalData;
+
+    const data = dashboardData;
 
     const jobsData: JobByStatusData[] = Array.isArray(data.jobs_by_status)
       ? data.jobs_by_status.map((j) => ({
@@ -193,34 +222,48 @@ export default async function PipelinesPage({
     jobsRerunsByDay = [];
     jobStepsTime = [];
     jobStepsTimeByDay = [];
-    totalRuns = 0;
+    detailViewError = 'Failed to load pipeline detail data.';
   }
 
   return (
     <div className="space-y-6">
-      <OutliersCard rows={outliers} />
-      <Card>
-        <CardContent>
-          <div className="p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-gray-600">Total runs</p>
-            <p className="text-3xl font-bold text-blue-600">{totalRuns.toLocaleString('en-US')}</p>
-          </div>
-        </CardContent>
-      </Card>
+      {evaluation ? (
+        <PipelineEvaluationCard data={evaluation} />
+      ) : null}
 
-      <div className="grid grid-cols-1 gap-6">
-        <PipelineRunsDurationCard
-          dataByAggregation={runsDurationByAggregation}
-          runsByDay={runsByDay}
-          jobsDurationByWorkflow={jobsDurationByWorkflow}
-        />
-        <JobsAverageTimeCard data={jobsAvgTime} dataByDay={jobsAvgTimeByDay} apiParams={buildPipelineApiParams(filters)} />
+      <OutliersCard rows={outliers} />
+
+      <div className="border-t border-gray-200 pt-2">
+        <h2 className="text-lg font-semibold text-gray-700 mb-4">Detail View</h2>
       </div>
 
-      <JobsRerunCard data={jobsSummary} dataByDay={jobsRerunsByDay} />
-      <JobsByStatusCard data={jobsByStatus} />
-      {isSingleJobSelected && jobStepsTime.length > 0 && (
-        <JobStepsAnalysis data={jobStepsTime} dataByDay={jobStepsTimeByDay} jobName={filters.jobSelector[0]} />
+      {detailViewError ? (
+        <div className="text-red-600 text-sm">{detailViewError}</div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 gap-6">
+            <PipelineRunsDurationCard
+              dataByAggregation={runsDurationByAggregation}
+              runsByDay={runsByDay}
+              jobsDurationByWorkflow={jobsDurationByWorkflow}
+            />
+            <JobsAverageTimeCard
+              data={jobsAvgTime}
+              dataByDay={jobsAvgTimeByDay}
+              apiParams={apiParams}
+            />
+          </div>
+
+          <JobsRerunCard data={jobsSummary} dataByDay={jobsRerunsByDay} />
+          <JobsByStatusCard data={jobsByStatus} />
+          {isSingleJobSelected && jobStepsTime.length > 0 && (
+            <JobStepsAnalysis
+              data={jobStepsTime}
+              dataByDay={jobStepsTimeByDay}
+              jobName={filters.jobSelector[0]}
+            />
+          )}
+        </>
       )}
     </div>
   );

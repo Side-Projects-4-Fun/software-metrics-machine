@@ -165,6 +165,29 @@ export const pipelineAPI = {
       }>;
     }>('/pipelines/dashboard', params),
 
+  evaluate: (params?: ApiParams) =>
+    fetchAPI<{
+      generatedAt: string;
+      signals: Array<{
+        id: string;
+        title: string;
+        description: string;
+        severity: 'critical' | 'warning' | 'good';
+        category: 'duration' | 'stability' | 'throughput';
+        metrics: Array<{ label: string; value: string }>;
+      }>;
+      summary: {
+        totalRuns: number;
+        averageDurationMinutes: number;
+        successRate: number;
+        failureRate: number;
+        totalReruns: number;
+        bottleneckJob?: string;
+        bottleneckJobSharePercent?: number;
+        slowestWorkflow?: string;
+      };
+    }>('/pipelines/evaluate', params),
+
   // Filter option endpoints
   getFilterOptions: (params?: ApiParams) =>
     fetchAPI<{
