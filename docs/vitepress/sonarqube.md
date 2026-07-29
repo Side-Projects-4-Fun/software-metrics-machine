@@ -123,10 +123,13 @@ Options:
 - `--properties`: Raw scanner options
 - `--admin-user`: SonarQube admin username (default: `admin`)
 - `--admin-password`: SonarQube admin password (default: `admin`)
+- `--no-clean-up-after-run`: Keep the container and data directory after analysis completes. By default, the container and data directory are removed after each analysis run.
 
 This command starts the SonarQube server (if not already running), executes sonar-scanner
-against your local repository, and automatically fetches quality measures, component tree,
-and historical measures once the analysis completes.
+against your local repository, then automatically fetches quality measures, component tree,
+and historical measures once the analysis completes. By default, the container and data
+directory are cleaned up after each run to ensure a fresh state on the next execution.
+Use `--no-clean-up-after-run` to keep the container running for faster repeated analyses.
 
 ## REST API
 
