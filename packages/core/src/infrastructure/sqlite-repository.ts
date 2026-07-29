@@ -1,9 +1,10 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { DatabaseSync } from 'node:sqlite';
+import type { DatabaseSync } from 'node:sqlite';
 import type { Logger } from '@smmachine/utils';
 import type { IRepository } from './repository';
 import { applySqliteMigrations } from './sqlite-migrations';
+import { openSqliteConnection } from './sqlite-connection';
 
 type PayloadRow = {
   payload: string;
@@ -181,7 +182,7 @@ export class SqliteRepository<T> implements IRepository<T> {
   }
 
   private openDatabase(): DatabaseSync {
-    return new DatabaseSync(this.dbPath);
+    return openSqliteConnection(this.dbPath);
   }
 
   private ensureSchema(db: DatabaseSync): void {

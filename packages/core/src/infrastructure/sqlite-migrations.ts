@@ -379,6 +379,7 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
 ];
 
 export function applySqliteMigrations(db: DatabaseSync): void {
+  db.exec('PRAGMA journal_mode=WAL;');
   ensureMigrationsTable(db);
   const hasScopeColumn = migrationsTableHasScopeColumn(db);
 

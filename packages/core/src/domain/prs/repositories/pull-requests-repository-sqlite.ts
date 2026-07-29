@@ -1,9 +1,10 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { DatabaseSync } from 'node:sqlite';
+import type { DatabaseSync } from 'node:sqlite';
 import type { Configuration } from '../../../infrastructure';
 import { RepositoryFactory } from '../../../infrastructure';
 import { applySqliteMigrations } from '../../../infrastructure/sqlite-migrations';
+import { openSqliteConnection } from '../../../infrastructure/sqlite-connection';
 import type { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import type { RawFilter } from '../../../infrastructure/parse-raw-filters-repository';
 import { ParseRawFiltersRepository } from '../../../infrastructure/parse-raw-filters-repository';
@@ -232,7 +233,7 @@ export class PullRequestsSqliteRepository
 
   private async loadPayloadRows(tableName: string, query: PayloadQuery): Promise<PayloadRow[]> {
     await fs.mkdir(path.dirname(this.sqliteDbPath), { recursive: true });
-    const db = new DatabaseSync(this.sqliteDbPath);
+    const db = openSqliteConnection(this.sqliteDbPath);
     try {
       applySqliteMigrations(db);
       if (!this.tableExists(db, tableName)) {

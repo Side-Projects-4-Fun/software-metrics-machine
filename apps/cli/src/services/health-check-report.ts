@@ -1,8 +1,8 @@
 import type { Configuration } from '@smmachine/core/infrastructure/configuration';
 import { RepositoryFactory } from '@smmachine/core/infrastructure/repository-factory';
 import { applySqliteMigrations } from '@smmachine/core/infrastructure/sqlite-migrations';
+import { openSqliteConnection } from '@smmachine/core/infrastructure/sqlite-connection';
 import * as fs from 'fs/promises';
-import { DatabaseSync } from 'node:sqlite';
 
 type DatasetCheck = {
   id: string;
@@ -298,7 +298,7 @@ export class HealthCheckReportBuilder {
     payloadColumn: string,
     namespace: string
   ): Array<Record<string, unknown>> {
-    const db = new DatabaseSync(sqliteDbPath);
+    const db = openSqliteConnection(sqliteDbPath);
     try {
       applySqliteMigrations(db);
       const hasTable = Boolean(

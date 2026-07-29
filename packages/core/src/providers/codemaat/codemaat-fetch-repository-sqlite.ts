@@ -1,9 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { DatabaseSync } from 'node:sqlite';
+import type { DatabaseSync } from 'node:sqlite';
 import type { Logger } from '@smmachine/utils';
 import type { Configuration } from '../../infrastructure';
 import { applySqliteMigrations } from '../../infrastructure/sqlite-migrations';
+import { openSqliteConnection } from '../../infrastructure/sqlite-connection';
 import { RepositoryFactory } from '../../infrastructure/repository-factory';
 import { CodemaatFetchCsvRepository } from './codemaat-fetch-repository-csv';
 import type {
@@ -40,7 +41,7 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
 
   private importCsvFilesToSqlite(sourceDirectory?: string): number {
     fs.mkdirSync(path.dirname(this.sqliteDbPath), { recursive: true });
-    const db = new DatabaseSync(this.sqliteDbPath);
+    const db = openSqliteConnection(this.sqliteDbPath);
     try {
       applySqliteMigrations(db);
       db.exec('BEGIN IMMEDIATE TRANSACTION');

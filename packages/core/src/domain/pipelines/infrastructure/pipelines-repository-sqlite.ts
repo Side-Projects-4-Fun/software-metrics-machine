@@ -1,11 +1,12 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { DatabaseSync } from 'node:sqlite';
+import type { DatabaseSync } from 'node:sqlite';
 import type { Logger } from '@smmachine/utils';
 import type { Configuration } from '../../../infrastructure/configuration';
 import { RepositoryFactory } from '../../../infrastructure/repository-factory';
 import type { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import { applySqliteMigrations } from '../../../infrastructure/sqlite-migrations';
+import { openSqliteConnection } from '../../../infrastructure/sqlite-connection';
 import type {
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
@@ -156,7 +157,7 @@ export class PipelinesSqliteRepository
     runOptions?: LoadPipelinesOptions
   ): Promise<PayloadRow[]> {
     await fs.mkdir(path.dirname(this.sqliteDbPath), { recursive: true });
-    const db = new DatabaseSync(this.sqliteDbPath);
+    const db = openSqliteConnection(this.sqliteDbPath);
     try {
       applySqliteMigrations(db);
       if (!this.tableExists(db, 'workflow_jobs') || !this.tableExists(db, 'workflow_runs')) {
@@ -195,7 +196,7 @@ export class PipelinesSqliteRepository
     jobOptions?: JobLoadOptions
   ): Promise<PayloadRow[]> {
     await fs.mkdir(path.dirname(this.sqliteDbPath), { recursive: true });
-    const db = new DatabaseSync(this.sqliteDbPath);
+    const db = openSqliteConnection(this.sqliteDbPath);
     try {
       applySqliteMigrations(db);
       if (!this.tableExists(db, tableName)) {

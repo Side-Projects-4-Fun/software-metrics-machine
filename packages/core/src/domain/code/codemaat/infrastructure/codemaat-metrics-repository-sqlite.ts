@@ -1,4 +1,4 @@
-import { DatabaseSync } from 'node:sqlite';
+import type { DatabaseSync } from 'node:sqlite';
 import type { Logger } from '@smmachine/utils';
 import type { Configuration } from '../../../../infrastructure/configuration';
 import type {
@@ -14,6 +14,7 @@ import type {
 } from '../../../../providers/codemaat/types';
 import { RepositoryFactory } from '../../../../infrastructure/repository-factory';
 import { applySqliteMigrations } from '../../../../infrastructure/sqlite-migrations';
+import { openSqliteConnection } from '../../../../infrastructure/sqlite-connection';
 import { normalizePatternList } from '../../../../domain/code/pattern-filters';
 import { CodeMaatMetricsCsvRepository } from './codemaat-metrics-repository-csv';
 import type {
@@ -641,7 +642,7 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
   }
 
   private openSqlite(): DatabaseSync {
-    const db = new DatabaseSync(this.sqliteDbPath);
+    const db = openSqliteConnection(this.sqliteDbPath);
     applySqliteMigrations(db);
     return db;
   }

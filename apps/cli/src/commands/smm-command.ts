@@ -1,8 +1,7 @@
 import { Command } from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
-import { DatabaseSync } from 'node:sqlite';
-import { applySqliteMigrations, RepositoryFactory } from '@smmachine/core';
+import { applySqliteMigrations, openSqliteConnection, RepositoryFactory } from '@smmachine/core';
 import type { Configuration } from '@smmachine/core/infrastructure/configuration';
 import { ConfigurationRepository } from '@smmachine/core/infrastructure/configuration-repository';
 import { Logger, type LogLevel } from '@smmachine/utils';
@@ -50,7 +49,7 @@ export class SmmCommand extends Command {
     const configuration = this.getConfiguration();
     const sqliteDbPath = RepositoryFactory.getSqliteDatabasePath(configuration);
     fs.mkdirSync(path.dirname(sqliteDbPath), { recursive: true });
-    const db = new DatabaseSync(sqliteDbPath);
+    const db = openSqliteConnection(sqliteDbPath);
 
     try {
       applySqliteMigrations(db);
