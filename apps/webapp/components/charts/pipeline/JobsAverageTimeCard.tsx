@@ -9,6 +9,7 @@ import { ApiParams } from '@/server/api';
 import { useFilters } from '@/components/filters/FiltersContext';
 import { formatDurationMinutes } from './duration-format';
 import { TargetInfo } from '@/components/charts/TargetInfo';
+import { formatMetricLabel, formatMetricMethod } from '@/utils/formatMetricMethod';
 
 interface JobsAverageTimeCardProps {
   data: JobsAverageTimeData[];
@@ -20,6 +21,8 @@ export default function JobsAverageTimeCard({ data, dataByDay }: JobsAverageTime
   const { urlBuilder } = useLinkBuilder();
   const { filters } = useFilters();
   const [activeTab, setActiveTab] = react.useState<'by-job' | 'by-day'>('by-job');
+  const avgTimeLabel = formatMetricLabel(filters.method, 'Time');
+  const methodLabel = formatMetricMethod(filters.method);
 
   const handleBarClick = (entry: JobsAverageTimeData) => {
     const url = urlBuilder.getJobRunsUrl(entry.job_name, entry.workflow_name, {
@@ -69,8 +72,8 @@ export default function JobsAverageTimeCard({ data, dataByDay }: JobsAverageTime
         {activeTab === 'by-day' && (
           <div className="mt-3 flex flex-col gap-2">
             <p className="text-xs text-gray-600">Filter: {selectedJobsDisplay}</p>
-            <p className="text-xs text-gray-500">
-              Average job execution time per day to spot trends in performance
+              <p className="text-xs text-gray-500">
+              {methodLabel} job execution time per day to spot trends in performance
             </p>
           </div>
         )}
@@ -86,13 +89,13 @@ export default function JobsAverageTimeCard({ data, dataByDay }: JobsAverageTime
               <Tooltip
                 formatter={(value: unknown, name: unknown) => {
                   const label = String(name);
-                  return label === 'Avg Time'
+                  return label === avgTimeLabel
                     ? [formatDurationMinutes(Number(value) || 0), label]
                     : [String(value ?? ''), label];
                 }}
               />
               <Legend />
-              <Bar dataKey="avg_time" yAxisId="left" fill="#82ca9d" name="Avg Time" onClick={(e) => handleBarClick(e.payload)} style={{ cursor: 'pointer' }} />
+              <Bar dataKey="avg_time" yAxisId="left" fill="#82ca9d" name={avgTimeLabel} onClick={(e) => handleBarClick(e.payload)} style={{ cursor: 'pointer' }} />
               <Bar dataKey="count" yAxisId="right" fill="#60a5fa" name="Runs Count" />
             </BarChart>
           </ResponsiveContainer>
@@ -108,13 +111,13 @@ export default function JobsAverageTimeCard({ data, dataByDay }: JobsAverageTime
               <Tooltip
                 formatter={(value: unknown, name: unknown) => {
                   const label = String(name);
-                  return label === 'Avg Time'
+                  return label === avgTimeLabel
                     ? [formatDurationMinutes(Number(value) || 0), label]
                     : [String(value ?? ''), label];
                 }}
               />
               <Legend />
-              <Line yAxisId="left" type="monotone" dataKey="avg_time" stroke="#82ca9d" name="Avg Time" dot={{ r: 4 }} />
+              <Line yAxisId="left" type="monotone" dataKey="avg_time" stroke="#82ca9d" name={avgTimeLabel} dot={{ r: 4 }} />
               <Line yAxisId="right" type="monotone" dataKey="count" stroke="#60a5fa" name="Runs Count" dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>

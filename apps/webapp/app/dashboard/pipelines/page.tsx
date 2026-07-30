@@ -228,7 +228,7 @@ export default async function PipelinesPage({
   return (
     <div className="space-y-6">
       {evaluation ? (
-        <PipelineEvaluationCard data={evaluation} />
+        <PipelineEvaluationCard data={evaluation} method={filters.method} />
       ) : null}
 
       <OutliersCard rows={outliers} />
@@ -261,6 +261,7 @@ export default async function PipelinesPage({
               data={jobStepsTime}
               dataByDay={jobStepsTimeByDay}
               jobName={filters.jobSelector[0]}
+              method={filters.method}
             />
           )}
         </>

@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TargetInfo } from '@/components/charts/TargetInfo';
+import { formatMetricMethod } from '@/utils/formatMetricMethod';
 
 type LayeredCouplingData = {
   entity: string;
@@ -119,9 +120,10 @@ function layoutChildren(cluster: PositionedCluster): PositionedChild[] {
   });
 }
 
-export default function LayeredCouplingClusterCard({ data }: { data: LayeredCouplingData[] }) {
+export default function LayeredCouplingClusterCard({ data, method }: { data: LayeredCouplingData[]; method?: string }) {
   const clusters = useMemo(() => layoutClusters(buildClusters(data)), [data]);
   const maxDegree = Math.max(...clusters.map((cluster) => cluster.totalDegree), 1);
+  const revsLabel = formatMetricMethod(method).toLowerCase();
 
   return (
     <Card className="overflow-hidden">
@@ -200,7 +202,7 @@ export default function LayeredCouplingClusterCard({ data }: { data: LayeredCoup
                         strokeWidth="1.5"
                       >
                         <title>
-                          {child.coupled || '(unknown)'} · degree {child.degree} · avg revs {child.averageRevs}
+                          {child.coupled || '(unknown)'} · degree {child.degree} · {revsLabel} revs {child.averageRevs}
                         </title>
                       </circle>
                     );

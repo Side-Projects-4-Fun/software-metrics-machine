@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SortableTable } from '@/components/ui/sortable-table';
 import { CouplingData } from './types';
 import { TargetInfo } from '@/components/charts/TargetInfo';
+import { formatMetricLabel } from '@/utils/formatMetricMethod';
 
-export default function CodeCouplingCard({ data }: { data: CouplingData[] }) {
+export default function CodeCouplingCard({ data, method }: { data: CouplingData[]; method?: string }) {
+  const revsLabel = formatMetricLabel(method, 'Revs');
   const columns = [
     { key: 'entity', label: 'Entity' },
     { key: 'coupled', label: 'Coupled With' },
@@ -19,7 +21,7 @@ export default function CodeCouplingCard({ data }: { data: CouplingData[] }) {
     },
     {
       key: 'averageRevs',
-      label: 'Avg. Revs',
+      label: revsLabel,
       align: 'right' as const,
       renderCell: (item: CouplingData) => (
         <span className="px-2 py-1 rounded bg-green-100 text-green-800">{item.averageRevs}</span>

@@ -158,7 +158,7 @@ export default async function PullRequestsPage({
   return (
     <div className="space-y-6">
       {evaluation ? (
-        <PREvaluationCard data={evaluation} />
+        <PREvaluationCard data={evaluation} method={filters.method} />
       ) : null}
 
       <OutliersCard rows={outliers} />
@@ -172,11 +172,11 @@ export default async function PullRequestsPage({
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6">
-            <AverageReviewTimeCard data={avgReviewTime} />
+            <AverageReviewTimeCard data={avgReviewTime} method={filters.method} />
           </div>
           <div className="grid grid-cols-2 gap-6">
             <CommentsByAuthorCard data={commentsByAuthor} />
-            <FirstCommentTimeCard data={firstCommentTime} />
+            <FirstCommentTimeCard data={firstCommentTime} method={filters.method} />
           </div>
           <div className="grid grid-cols-1 gap-6">
             <PRsByAuthorCard data={byAuthor} />
@@ -189,10 +189,10 @@ export default async function PullRequestsPage({
             <OpenPRsThroughTimeCard data={openThroughTime} />
           </div>
           <div className="grid grid-cols-1 gap-6">
-            <AverageDaysPRsRemainOpenCard data={avgOpenBy} />
+            <AverageDaysPRsRemainOpenCard data={avgOpenBy} method={filters.method} />
           </div>
           <div className="grid grid-cols-1 gap-6">
-            <PRStatisticsCard summary={summary} avgComments={avgComments} />
+            <PRStatisticsCard summary={summary} avgComments={avgComments} method={filters.method} />
           </div>
         </>
       )}

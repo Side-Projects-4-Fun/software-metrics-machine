@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AvgCommentsData, SummaryData } from './types';
 import { useLinkBuilder } from '@/components/providers/LinkBuilderContext';
 import { TargetInfo } from '@/components/charts/TargetInfo';
+import { formatMetricLabel, formatMetricMethod } from '@/utils/formatMetricMethod';
 
 function StatBoxLink({ label, value, filters, urlBuilder }: { label: string; value: number; filters?: { status?: string; author?: string; label?: string }; urlBuilder: ReturnType<typeof useLinkBuilder>['urlBuilder'] }) {
   const href = urlBuilder.getPRsUrl(filters);
@@ -18,12 +19,16 @@ function StatBoxLink({ label, value, filters, urlBuilder }: { label: string; val
 export default function PRStatisticsCard({
   summary,
   avgComments,
+  method,
 }: {
   summary: SummaryData | null;
   avgComments: AvgCommentsData | null;
+  method?: string;
 }) {
   const { urlBuilder } = useLinkBuilder();
   const labels = summary?.labels || [];
+  const commentsLabel = formatMetricLabel(method, 'Comments');
+  const detailedCommentsLabel = `${formatMetricMethod(method)} Comments Per PR (Detailed)`;
 
   return (
     <Card>
@@ -46,7 +51,7 @@ export default function PRStatisticsCard({
               <p className="text-3xl font-bold text-gray-600">{summary?.closed_prs || 0}</p>
             </a>
             <div className="p-4 bg-purple-50 rounded-lg">
-              <p className="text-sm text-gray-600">Avg Comments</p>
+              <p className="text-sm text-gray-600">{commentsLabel}</p>
               <p className="text-3xl font-bold text-purple-600">{summary?.avg_comments_per_pr?.toFixed(2) || 0}</p>
             </div>
             <div className="p-4 bg-orange-50 rounded-lg">
@@ -59,7 +64,7 @@ export default function PRStatisticsCard({
             </div>
           </div>
           <div className="p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-gray-600">Average Comments Per PR (Detailed)</p>
+            <p className="text-sm text-gray-600">{detailedCommentsLabel}</p>
             <p className="text-3xl font-bold text-blue-600">{avgComments?.avg_comments?.toFixed(2) || 0}</p>
           </div>
 

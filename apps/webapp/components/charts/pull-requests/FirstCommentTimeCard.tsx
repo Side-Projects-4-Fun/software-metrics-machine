@@ -6,9 +6,11 @@ import { ensureArray } from '@/server/utils/chartData';
 import { FirstCommentTimeData } from './types';
 import { useLinkBuilder } from '@/components/providers/LinkBuilderContext';
 import { TargetInfo } from '@/components/charts/TargetInfo';
+import { formatMetricLabel } from '@/utils/formatMetricMethod';
 
-export default function FirstCommentTimeCard({ data }: { data: FirstCommentTimeData[] }) {
+export default function FirstCommentTimeCard({ data, method }: { data: FirstCommentTimeData[]; method?: string }) {
   const { urlBuilder } = useLinkBuilder();
+  const hoursLabel = formatMetricLabel(method, 'Hours');
 
   const handleBarClick = (entry: FirstCommentTimeData) => {
     const url = urlBuilder.getPRsUrl({ author: entry.author });
@@ -35,7 +37,7 @@ export default function FirstCommentTimeCard({ data }: { data: FirstCommentTimeD
             <Bar
               dataKey="avg_hours"
               fill="#82ca9d"
-              name="Avg Hours"
+              name={hoursLabel}
               onClick={(e) => handleBarClick(e.payload)}
               style={{ cursor: 'pointer' }}
             />

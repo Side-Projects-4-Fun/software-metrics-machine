@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatMetricLabel } from '@/utils/formatMetricMethod';
 
 type Severity = 'critical' | 'warning' | 'good';
 
@@ -67,10 +68,15 @@ function ratingColor(value: number, goodThreshold: number, warnThreshold: number
 
 export default function PREvaluationCard({
   data,
+  method,
 }: {
   data: PREvaluationData;
+  method?: string;
 }) {
   const { signals, summary } = data;
+  const openTimeLabel = formatMetricLabel(method, 'Open Time');
+  const commentsPrLabel = formatMetricLabel(method, 'Comments/PR');
+  const reviewTimeLabel = formatMetricLabel(method, 'Review Time');
 
   const sortedSignals = [...signals].sort((a, b) => {
     const order: Record<Severity, number> = { critical: 0, warning: 1, good: 2 };
@@ -102,7 +108,7 @@ export default function PREvaluationCard({
               </p>
             </div>
             <div className={`rounded-lg p-3 text-center ${ratingColor(1 / Math.max(summary.avgOpenDays, 0.001), 0.8, 0.3)}`}>
-              <p className="text-xs text-gray-500">Avg Open Time</p>
+              <p className="text-xs text-gray-500">{openTimeLabel}</p>
               <p className="text-xl font-bold">
                 {summary.avgOpenDays.toFixed(1)}d
               </p>
@@ -114,13 +120,13 @@ export default function PREvaluationCard({
               </p>
             </div>
             <div className="bg-blue-50 rounded-lg p-3 text-center">
-              <p className="text-xs text-gray-500">Avg Comments/PR</p>
+              <p className="text-xs text-gray-500">{commentsPrLabel}</p>
               <p className="text-xl font-bold text-blue-700">
                 {summary.avgCommentsPerPR.toFixed(1)}
               </p>
             </div>
             <div className={`rounded-lg p-3 text-center ${ratingColor(1 / Math.max(summary.avgReviewHours, 0.001), 0.15, 0.05)}`}>
-              <p className="text-xs text-gray-500">Avg Review Time</p>
+              <p className="text-xs text-gray-500">{reviewTimeLabel}</p>
               <p className="text-xl font-bold">
                 {formatHours(summary.avgReviewHours)}
               </p>

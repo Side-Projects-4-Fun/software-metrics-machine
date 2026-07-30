@@ -9,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { ensureArray } from '@/server/utils/chartData';
 import { JobsDurationByWorkflowItem, RunsByDayData, RunsDurationData } from './types';
 import { useLinkBuilder } from '@/components/providers/LinkBuilderContext';
+import { formatMetricLabel, formatMetricMethod } from '@/utils/formatMetricMethod';
 import { formatDurationMinutes } from './duration-format';
 import { TargetInfo } from '@/components/charts/TargetInfo';
 import { useFilters } from '@/components/filters/FiltersContext';
@@ -75,6 +76,8 @@ export default function PipelineRunsDurationCard({
   const { filters } = useFilters();
   const [activeTab, setActiveTab] = useState<ActiveTab>('duration');
   const [hiddenJobNames, setHiddenJobNames] = useState<Set<string>>(new Set());
+  const methodLabel = formatMetricMethod(filters.method);
+  const avgDurationLabel = formatMetricLabel(filters.method, 'Duration');
 
   const sortedDailyRuns = useMemo(
     () => [...ensureArray<RunsByDayData>(runsByDay)].sort((a, b) => a.day.localeCompare(b.day)),
@@ -159,7 +162,7 @@ export default function PipelineRunsDurationCard({
         )}
         {activeTab === 'job-breakdown' && (
           <p className="mt-2 text-sm text-gray-600">
-            Average duration of each job per workflow, stacked to show the total pipeline runtime composition.
+            {methodLabel} duration of each job per workflow, stacked to show the total pipeline runtime composition.
           </p>
         )}
         {activeTab === 'daily-runs' && (
@@ -180,7 +183,7 @@ export default function PipelineRunsDurationCard({
                 <Legend />
                 <Bar dataKey="min" stackId="r" fill="rgba(0,0,0,0)" stroke="rgba(0,0,0,0)" legendType="none" />
                 <Bar dataKey="range" stackId="r" fill="#93c5fd" name="Min-Max Range" />
-                <Scatter dataKey="avg" fill="#1d4ed8" name="Average" />
+                <Scatter dataKey="avg" fill="#1d4ed8" name={avgDurationLabel} />
               </ComposedChart>
             </ResponsiveContainer>
             <div className="mt-6 overflow-x-auto">
@@ -202,7 +205,7 @@ export default function PipelineRunsDurationCard({
                   },
                   {
                     key: 'avg',
-                    label: 'Average',
+                    label: avgDurationLabel,
                     align: 'right' as const,
                     renderCell: (item: (typeof durationRangeData)[number]) => (
                       <a

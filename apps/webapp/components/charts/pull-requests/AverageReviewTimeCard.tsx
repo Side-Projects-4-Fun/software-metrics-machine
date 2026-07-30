@@ -6,9 +6,11 @@ import { ensureArray } from '@/server/utils/chartData';
 import { AvgReviewTimeData } from './types';
 import { useLinkBuilder } from '@/components/providers/LinkBuilderContext';
 import { TargetInfo } from '@/components/charts/TargetInfo';
+import { formatMetricLabel } from '@/utils/formatMetricMethod';
 
-export default function AverageReviewTimeCard({ data }: { data: AvgReviewTimeData[] }) {
+export default function AverageReviewTimeCard({ data, method }: { data: AvgReviewTimeData[]; method?: string }) {
   const { urlBuilder } = useLinkBuilder();
+  const daysLabel = formatMetricLabel(method, 'Days');
 
   const handleBarClick = (entry: AvgReviewTimeData) => {
     const url = urlBuilder.getPRsUrl({ author: entry.author });
@@ -32,7 +34,7 @@ export default function AverageReviewTimeCard({ data }: { data: AvgReviewTimeDat
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="avg_days" fill="#82ca9d" name="Avg Days" onClick={(e) => handleBarClick(e.payload)} style={{ cursor: 'pointer' }} />
+            <Bar dataKey="avg_days" fill="#82ca9d" name={daysLabel} onClick={(e) => handleBarClick(e.payload)} style={{ cursor: 'pointer' }} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

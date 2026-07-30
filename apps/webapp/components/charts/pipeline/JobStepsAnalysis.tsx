@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, Cart
 import { JobStepsAverageTimeData, JobStepsAverageTimeByDayData } from './types';
 import { formatDurationMinutes } from './duration-format';
 import { TargetInfo } from '@/components/charts/TargetInfo';
+import { formatMetricLabel, formatMetricMethod } from '@/utils/formatMetricMethod';
 
 // Generate a sequence of colors for the stacked bars
 const COLORS = [
@@ -18,16 +19,20 @@ export default function JobStepsAnalysis({
   data,
   dataByDay,
   jobName,
+  method,
 }: {
   data: JobStepsAverageTimeData[];
   dataByDay: JobStepsAverageTimeByDayData[];
   jobName: string;
+  method?: string;
 }) {
   const [hiddenStepNames, setHiddenStepNames] = useState<Set<string>>(new Set());
   const totalTime = useMemo(() => {
     return data.reduce((sum, step) => sum + step.averageDurationMinutes, 0);
   }, [data]);
   const visibleSteps = data.filter((step) => !hiddenStepNames.has(step.name));
+  const timeLabel = formatMetricLabel(method, 'Time');
+  const methodLabel = formatMetricMethod(method);
 
   const toggleStep = useCallback((stepName: string) => {
     setHiddenStepNames((current) => {
@@ -53,15 +58,15 @@ export default function JobStepsAnalysis({
           <TargetInfo metric="pipeline-duration" />
         </div>
         <p className="text-sm text-gray-500">
-          Average execution time of each step across {data[0]?.count || 0} runs.
-          Total average time: {formatDurationMinutes(totalTime)}.
+          {methodLabel} execution time of each step across {data[0]?.count || 0} runs.
+          Total {methodLabel.toLowerCase()} time: {formatDurationMinutes(totalTime)}.
         </p>
       </CardHeader>
       <CardContent>
         {/* Daily Stacked Bar Chart showing step durations over time */}
         {dataByDay && dataByDay.length > 0 && (
           <div className="mb-10">
-            <h4 className="text-sm font-semibold mb-4 text-gray-700">Average Duration By Day</h4>
+            <h4 className="text-sm font-semibold mb-4 text-gray-700">{methodLabel} Duration By Day</h4>
             <div className="mb-4 flex flex-wrap items-center gap-2" aria-label="Toggle step duration bars">
               {data.map((step, index) => (
                 <label
@@ -181,7 +186,7 @@ export default function JobStepsAnalysis({
               },
               {
                 key: 'averageDurationMinutes',
-                label: 'Average Time',
+                label: timeLabel,
                 align: 'right' as const,
                 renderCell: (step: JobStepsAverageTimeData) => (
                   <span className="tabular-nums">{formatDurationMinutes(step.averageDurationMinutes)}</span>

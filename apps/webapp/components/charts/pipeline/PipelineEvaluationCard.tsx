@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatMetricLabel } from '@/utils/formatMetricMethod';
 
 type Severity = 'critical' | 'warning' | 'good';
 
@@ -60,10 +61,13 @@ function formatMinutes(min: number): string {
 
 export default function PipelineEvaluationCard({
   data,
+  method,
 }: {
   data: PipelineEvaluationData;
+  method?: string;
 }) {
   const { signals, summary } = data;
+  const durationLabel = formatMetricLabel(method, 'Duration');
 
   const sortedSignals = [...signals].sort((a, b) => {
     const order: Record<Severity, number> = { critical: 0, warning: 1, good: 2 };
@@ -85,7 +89,7 @@ export default function PipelineEvaluationCard({
               </p>
             </div>
             <div className="bg-blue-50 rounded-lg p-3 text-center">
-              <p className="text-xs text-gray-500">Avg Duration</p>
+              <p className="text-xs text-gray-500">{durationLabel}</p>
               <p className="text-xl font-bold text-blue-700">
                 {formatMinutes(summary.averageDurationMinutes)}
               </p>
