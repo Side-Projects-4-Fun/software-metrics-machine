@@ -20,8 +20,6 @@ describe('cli: Pull Request Commands', () => {
   let getMetricsByWeekMock: ReturnType<typeof vi.fn>;
   let getThroughTimeMock: ReturnType<typeof vi.fn>;
   let getByAuthorMock: ReturnType<typeof vi.fn>;
-  let getAverageReviewTimeMock: ReturnType<typeof vi.fn>;
-  let getAverageOpenByMock: ReturnType<typeof vi.fn>;
 
   const summaryResponse: PRSummaryResponse = {
     result: {
@@ -112,8 +110,6 @@ describe('cli: Pull Request Commands', () => {
       { date: '2026-01', kind: 'Closed', count: 4 },
     ]);
     getByAuthorMock = vi.fn().mockResolvedValue([{ author: 'alice', count: 5 }]);
-    getAverageReviewTimeMock = vi.fn().mockResolvedValue([{ author: 'alice', avg_days: 2.5 }]);
-    getAverageOpenByMock = vi.fn().mockResolvedValue([{ period: '2026-W01', avg_days: 2.5 }]);
 
     // Read-side factory: return a stubbed repository so no SQLite access happens.
     vi.spyOn(PullRequestFactory, 'create').mockReturnValue({
@@ -135,10 +131,6 @@ describe('cli: Pull Request Commands', () => {
     vi.spyOn(PRsService.prototype, 'getMetricsByWeek').mockImplementation(getMetricsByWeekMock);
     vi.spyOn(PRsService.prototype, 'getThroughTime').mockImplementation(getThroughTimeMock);
     vi.spyOn(PRsService.prototype, 'getByAuthor').mockImplementation(getByAuthorMock);
-    vi.spyOn(PRsService.prototype, 'getAverageReviewTime').mockImplementation(
-      getAverageReviewTimeMock
-    );
-    vi.spyOn(PRsService.prototype, 'getAverageOpenBy').mockImplementation(getAverageOpenByMock);
 
     consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     exitSpy = vi.spyOn(process, 'exit').mockImplementation((code?: number) => {
@@ -174,9 +166,6 @@ describe('cli: Pull Request Commands', () => {
           'by-week',
           'through-time',
           'by-author',
-          'average-review-time',
-          'average-open',
-          'average-comments',
         ])
       );
     });
@@ -516,156 +505,6 @@ describe('cli: Pull Request Commands', () => {
 
       const output = getOutput();
       expect(output).toContain('"author": "alice"');
-    });
-  });
-
-  describe('prs average-review-time', () => {
-    it('forwards filters, cleaning options, and top to getAverageReviewTime', async () => {
-      await program.parseAsync(
-        [
-          'prs',
-          'average-review-time',
-          '--top',
-          '3',
-          '--weekends',
-          'exclude',
-          '--outlier-mode',
-          'flag',
-        ],
-        { from: 'user' }
-      );
-
-      expect(getAverageReviewTimeMock).toHaveBeenCalledWith(
-        {
-          ...baseFilters,
-          cleaning: { weekends: 'exclude', outlierMode: 'flag' },
-        },
-        3
-      );
-    });
-
-    it('defaults top to 10 and cleaning to include/include', async () => {
-      await program.parseAsync(['prs', 'average-review-time'], { from: 'user' });
-
-      expect(getAverageReviewTimeMock).toHaveBeenCalledWith(baseFilters, 10);
-    });
-
-    it('prints average review time by author in text output', async () => {
-      await program.parseAsync(['prs', 'average-review-time'], { from: 'user' });
-
-      const output = getOutput();
-      expect(output).toContain('=== Average Review Time by Author ===');
-      expect(output).toContain('alice: 2.50 days');
-    });
-
-    it('prints JSON when --output json is provided', async () => {
-      await program.parseAsync(['prs', 'average-review-time', '--output', 'json'], {
-        from: 'user',
-      });
-
-      const output = getOutput();
-      expect(output).toContain('"avg_days": 2.5');
-    });
-  });
-
-  describe('prs average-open', () => {
-    it('forwards filters, cleaning options, and aggregateBy to getAverageOpenBy', async () => {
-      await program.parseAsync(
-        [
-          'prs',
-          'average-open',
-          '--aggregate-by',
-          'week',
-          '--weekends',
-          'exclude',
-          '--outlier-mode',
-          'flag',
-        ],
-        { from: 'user' }
-      );
-
-      expect(getAverageOpenByMock).toHaveBeenCalledWith(
-        {
-          ...baseFilters,
-          cleaning: { weekends: 'exclude', outlierMode: 'flag' },
-        },
-        'week'
-      );
-    });
-
-    it('defaults aggregateBy to undefined when not provided', async () => {
-      await program.parseAsync(['prs', 'average-open'], { from: 'user' });
-
-      expect(getAverageOpenByMock).toHaveBeenCalledWith(baseFilters, undefined);
-    });
-
-    it('prints average open time per period in text output', async () => {
-      await program.parseAsync(['prs', 'average-open'], { from: 'user' });
-
-      const output = getOutput();
-      expect(output).toContain('=== Average PR Open Time ===');
-      expect(output).toContain('2026-W01: 2.50 days');
-    });
-
-    it('prints JSON when --output json is provided', async () => {
-      await program.parseAsync(['prs', 'average-open', '--output', 'json'], { from: 'user' });
-
-      const output = getOutput();
-      expect(output).toContain('"avg_days": 2.5');
-    });
-  });
-
-  describe('prs average-comments', () => {
-    it('calls getMetrics when no --aggregate-by is provided', async () => {
-      await program.parseAsync(
-        ['prs', 'average-comments', '--weekends', 'exclude', '--outlier-mode', 'flag'],
-        { from: 'user' }
-      );
-
-      expect(getMetricsMock).toHaveBeenCalledWith({
-        ...baseFilters,
-        cleaning: { weekends: 'exclude', outlierMode: 'flag' },
-      });
-      expect(getMetricsByMonthMock).not.toHaveBeenCalled();
-      expect(getMetricsByWeekMock).not.toHaveBeenCalled();
-    });
-
-    it('calls getMetricsByMonth when --aggregate-by month is provided', async () => {
-      await program.parseAsync(['prs', 'average-comments', '--aggregate-by', 'month'], {
-        from: 'user',
-      });
-
-      expect(getMetricsByMonthMock).toHaveBeenCalledWith(baseFilters);
-      expect(getMetricsMock).not.toHaveBeenCalled();
-      expect(getMetricsByWeekMock).not.toHaveBeenCalled();
-    });
-
-    it('calls getMetricsByWeek when --aggregate-by week is provided', async () => {
-      await program.parseAsync(['prs', 'average-comments', '--aggregate-by', 'week'], {
-        from: 'user',
-      });
-
-      expect(getMetricsByWeekMock).toHaveBeenCalledWith(baseFilters);
-      expect(getMetricsMock).not.toHaveBeenCalled();
-      expect(getMetricsByMonthMock).not.toHaveBeenCalled();
-    });
-
-    it('prints average comments text output without --aggregate-by', async () => {
-      await program.parseAsync(['prs', 'average-comments'], { from: 'user' });
-
-      const output = getOutput();
-      expect(output).toContain('=== Average Comments per PR ===');
-      expect(output).toContain('Average Comments: 1.5');
-    });
-
-    it('prints per-period output when --aggregate-by month is provided', async () => {
-      await program.parseAsync(['prs', 'average-comments', '--aggregate-by', 'month'], {
-        from: 'user',
-      });
-
-      const output = getOutput();
-      expect(output).toContain('=== Average Comments per PR by month ===');
-      expect(output).toContain('2026-01: 1.5 avg comments (5 PRs)');
     });
   });
 

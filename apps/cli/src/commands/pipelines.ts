@@ -593,58 +593,6 @@ export function createPipelinesCommands(program: SmmCommand): void {
       }
     });
 
-  pipelinesGroup
-    .subcommand('jobs-steps-average-time')
-    .description('(DEPRECATED) Use "jobs-steps-time --method average" instead')
-    .option('--start-date <date>', 'Start date (YYYY-MM-DD)')
-    .option('--end-date <date>', 'End date (YYYY-MM-DD)')
-    .option('--job <name>', 'Filter by job name')
-    .option('--raw-filters <filters>', 'Raw Provider filters string')
-    .option('--output <format>', 'Output format (text|json)', 'text')
-    .option(
-      '--weekends <mode>',
-      'Weekend handling for averages: include, exclude, or weekends_only',
-      'include'
-    )
-    .option(
-      '--outlier-mode <mode>',
-      'Outlier handling for averages: include, flag, or exclude',
-      'include'
-    )
-    .option('--filter <name>', 'Apply a saved filter')
-    .actionWithSmm(async (options, command) => {
-      screen.printLine(
-        '⚠️  "jobs-steps-average-time" is deprecated. Use "jobs-steps-time --method average" instead.'
-      );
-      const logger = command.getLogger('PipelinesCommand');
-      try {
-        const merged = await resolveSavedFilterOptions(command, 'pipelines', options);
-        screen.printLine('⏱️  Analyzing job steps execution times...');
-        const { pipelineImplementation } = createPipelineDependencies(command);
-
-        const { job_steps_average_time } = await pipelineImplementation.dashboard(
-          buildPipelineFilters(merged)
-        );
-
-        if (options.output === 'json') {
-          screen.printLine(JSON.stringify(job_steps_average_time, null, 2));
-        } else {
-          screen.printLine('\n=== Job Steps Execution Times ===\n');
-          job_steps_average_time.forEach((item) => {
-            screen.printLine(`Step: ${item.name}`);
-            screen.printLine(
-              `Average Execution Time: ${item.averageDurationMinutes.toFixed(2)} minutes`
-            );
-            screen.printLine(`Analyzed across ${item.count} step executions\n`);
-            printOutliers(screen, item.outliers);
-          });
-        }
-      } catch (error) {
-        logger.error('Failed to analyze job steps execution times', error);
-        process.exit(1);
-      }
-    });
-
   /**
    * smm pipelines jobs-by-status [options]
    * View jobs grouped by status

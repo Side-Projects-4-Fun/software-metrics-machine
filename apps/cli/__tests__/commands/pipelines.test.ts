@@ -351,45 +351,6 @@ describe('cli: Pipelines Commands', () => {
     });
   });
 
-  describe('pipelines jobs-steps-average-time', () => {
-    it('prints step average execution time details', async () => {
-      dashboardMock.mockResolvedValueOnce({
-        summary: {
-          total_runs: 0,
-          successful_runs: 0,
-          failed_runs: 0,
-          cancelled_runs: 0,
-          skipped_runs: 0,
-          timed_out_runs: 0,
-          success_rate: 0,
-          average_duration_minutes: 0,
-          first_run: null,
-          last_run: null,
-          in_progress: 0,
-          queued: 0,
-        },
-        runs_by: [],
-        jobs_summary: [],
-        job_steps_average_time: [
-          {
-            name: 'install dependencies',
-            averageDurationMinutes: 2.5,
-            count: 6,
-          },
-        ],
-      } as never);
-
-      await program.parseAsync(['pipelines', 'jobs-steps-average-time'], { from: 'user' });
-
-      const output = getOutput();
-
-      expect(output).toContain('=== Job Steps Execution Times ===');
-      expect(output).toContain('Step: install dependencies');
-      expect(output).toContain('Average Execution Time: 2.50 minutes');
-      expect(output).toContain('Analyzed across 6 step executions');
-    });
-  });
-
   describe('pipelines jobs-by-status', () => {
     it('prints jobs grouped by status', async () => {
       dashboardMock.mockResolvedValueOnce({
