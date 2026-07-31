@@ -115,10 +115,6 @@ export function createSonarQubeCommands(program: SmmCommand): void {
     .option('--properties <value>', 'Raw SONAR_SCANNER_OPTS value passed directly to scanner')
     .option('--admin-user <user>', 'Predefined local SonarQube admin username', 'admin')
     .option('--admin-password <password>', 'Predefined local SonarQube admin password', 'admin')
-    .option(
-      '--no-clean-up-after-run',
-      'Keep the SonarQube container and data directory after analysis completes'
-    )
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('SonarQubeCommand');
       try {
@@ -140,7 +136,6 @@ export function createSonarQubeCommands(program: SmmCommand): void {
             ? String(options.scannerHostUrl).trim()
             : undefined,
           scannerToken: options.scannerToken,
-          cleanUpAfterRun: options.cleanUpAfterRun,
         });
         // wait to give sonarqube time to process the changes and make metrics available before fetching
         screen.printLine('Waiting for SonarQube to process analysis results...');

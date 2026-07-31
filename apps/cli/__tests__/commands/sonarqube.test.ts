@@ -382,22 +382,20 @@ describe('cli: SonarQube Commands', () => {
 
       expect(exitSpy).toHaveBeenCalledWith(1);
 
-      expect(runAnalysisMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          containerName: 'sonarqube',
-          scannerContainerName: 'sonarqube-scanner',
-          containerImage: 'sonarqube:community',
-          scannerImage: 'sonarsource/sonar-scanner-cli',
-          dataDirectory: expect.stringContaining('sonarqube_data'),
-          sourceDirectory: expect.any(String),
-          hostPort: '9000',
-          scannerOptions: '',
-          adminUser: 'admin',
-          adminPassword: 'admin',
-          scannerHostUrl: undefined,
-          scannerToken: undefined,
-        })
-      );
+      expect(runAnalysisMock).toHaveBeenCalledWith({
+        containerName: 'sonarqube',
+        scannerContainerName: 'sonarqube-scanner',
+        containerImage: 'sonarqube:community',
+        scannerImage: 'sonarsource/sonar-scanner-cli',
+        dataDirectory: expect.stringContaining('sonarqube_data'),
+        sourceDirectory: expect.any(String),
+        hostPort: '9000',
+        scannerOptions: '',
+        adminUser: 'admin',
+        adminPassword: 'admin',
+        scannerHostUrl: undefined,
+        scannerToken: undefined,
+      });
     });
 
     it('forwards non-default options to SonarqubeLocalAnalysis.run', async () => {
@@ -437,49 +435,20 @@ describe('cli: SonarQube Commands', () => {
         )
       ).rejects.toThrow('process.exit(1)');
 
-      expect(runAnalysisMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          containerName: 'my-sonar',
-          scannerContainerName: 'my-scanner',
-          containerImage: 'sonarqube:enterprise',
-          scannerImage: 'my-scanner-image',
-          dataDirectory: expect.stringContaining('custom/data'),
-          sourceDirectory: expect.any(String),
-          hostPort: '9999',
-          scannerOptions: '-Xsonar.test=1',
-          adminUser: 'customAdmin',
-          adminPassword: 'customPass',
-          scannerHostUrl: 'http://custom:9000',
-          scannerToken: 'custom-token',
-        })
-      );
-    });
-
-    it('forwards cleanUpAfterRun:true by default', async () => {
-      runAnalysisMock.mockRejectedValueOnce(new Error('abort'));
-
-      await expect(
-        program.parseAsync([...projectArgs, 'sonarqube', 'analysis', 'run'], { from: 'user' })
-      ).rejects.toThrow('process.exit(1)');
-
-      expect(runAnalysisMock).toHaveBeenCalledWith(
-        expect.objectContaining({ cleanUpAfterRun: true })
-      );
-    });
-
-    it('forwards cleanUpAfterRun:false when --no-clean-up-after-run is set', async () => {
-      runAnalysisMock.mockRejectedValueOnce(new Error('abort'));
-
-      await expect(
-        program.parseAsync(
-          [...projectArgs, 'sonarqube', 'analysis', 'run', '--no-clean-up-after-run'],
-          { from: 'user' }
-        )
-      ).rejects.toThrow('process.exit(1)');
-
-      expect(runAnalysisMock).toHaveBeenCalledWith(
-        expect.objectContaining({ cleanUpAfterRun: false })
-      );
+      expect(runAnalysisMock).toHaveBeenCalledWith({
+        containerName: 'my-sonar',
+        scannerContainerName: 'my-scanner',
+        containerImage: 'sonarqube:enterprise',
+        scannerImage: 'my-scanner-image',
+        dataDirectory: expect.stringContaining('custom/data'),
+        sourceDirectory: expect.any(String),
+        hostPort: '9999',
+        scannerOptions: '-Xsonar.test=1',
+        adminUser: 'customAdmin',
+        adminPassword: 'customPass',
+        scannerHostUrl: 'http://custom:9000',
+        scannerToken: 'custom-token',
+      });
     });
 
     it('prints a failure message and exits when analysis.run rejects', async () => {

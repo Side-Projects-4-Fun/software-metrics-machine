@@ -47,7 +47,6 @@ export type SonarqubeLocalAnalysisOptions = {
   adminPassword: string;
   scannerHostUrl?: string;
   scannerToken?: string;
-  cleanUpAfterRun?: boolean;
 };
 
 const LOCAL_SONARQUBE_TOKEN_FILE = 'local_sonarqube_data.json';
@@ -108,6 +107,19 @@ export class SonarqubeLocalAnalysis {
   }
 
   async run(options: SonarqubeLocalAnalysisOptions): Promise<SonarqubeLocalAnalysisResult> {
+    this.logger.info('🧹 Cleaning up existing SonarQube container and data to ensure clean state.');
+    await runCommand('docker', ['stop', options.containerName]);
+    await runCommand('docker', ['rm', options.containerName]);
+    rimrafSync(options.dataDirectory);
+
+    const dataDir = path.resolve(options.dataDirectory);
+    if (existsSync(dataDir)) {
+      this.logger.info(
+        `🧹 Removing existing SonarQube data directory at "${dataDir}" to ensure clean state.`
+      );
+      rimrafSync(dataDir);
+    }
+
     await this.assertDockerAvailable();
 
     const containerState = await this.getContainerState(options.containerName);
@@ -149,70 +161,59 @@ export class SonarqubeLocalAnalysis {
       }
     }
 
-    const cleanUp = options.cleanUpAfterRun !== false;
+    this.logger.info('⏳ Waiting for SonarQube to become operational (this might take a while)...');
+    await this.waitForReady(options.containerName);
 
-    try {
-      this.logger.info(
-        '⏳ Waiting for SonarQube to become operational (this might take a while)...'
-      );
-      await this.waitForReady(options.containerName);
+    const containerUrls = await this.getContainerUrls(options.containerName, options.hostPort);
+    const hostUrl = options.scannerHostUrl
+      ? normalizeUrl(options.scannerHostUrl)
+      : containerUrls.hostUrl;
 
-      const containerUrls = await this.getContainerUrls(options.containerName, options.hostPort);
-      const hostUrl = options.scannerHostUrl
-        ? normalizeUrl(options.scannerHostUrl)
-        : containerUrls.hostUrl;
+    this.logger.info(`ℹ️ SonarQube internal URL: ${containerUrls.internalUrl}`);
+    this.logger.info(`ℹ️ SonarQube host URL: ${containerUrls.hostUrl}`);
 
-      this.logger.info(`ℹ️ SonarQube internal URL: ${containerUrls.internalUrl}`);
-      this.logger.info(`ℹ️ SonarQube host URL: ${containerUrls.hostUrl}`);
+    const effectivePassword = await this.ensurePassword(
+      hostUrl,
+      options.adminUser,
+      options.adminPassword
+    );
 
-      const effectivePassword = await this.ensurePassword(
-        hostUrl,
-        options.adminUser,
-        options.adminPassword
-      );
-
-      const sonarToken =
-        options.scannerToken ||
-        (await this.getToken(hostUrl, options.adminUser, effectivePassword));
-      if (options.scannerToken && options.scannerToken !== this.config.sonarLocalRunnerToken) {
-        this.config.sonarLocalRunnerToken = options.scannerToken;
-        this.saveConfiguration();
-      }
-      const projectKey = this.getProjectKey(options.scannerOptions);
-
-      const scannerArgs = [
-        'run',
-        '--rm',
-        `--name=${options.scannerContainerName}`,
-        '-e',
-        `SONAR_HOST_URL=${containerUrls.internalUrl}`,
-      ];
-
-      if (sonarToken) {
-        scannerArgs.push('-e', `SONAR_TOKEN=${sonarToken}`);
-      }
-
-      if (options.scannerOptions.length > 0) {
-        scannerArgs.push('-e', `SONAR_SCANNER_OPTS=${options.scannerOptions}`);
-      } else {
-        scannerArgs.push('-e', `SONAR_SCANNER_OPTS=-Dsonar.projectKey=${projectKey}`);
-      }
-
-      scannerArgs.push('-v', `${options.sourceDirectory}:/usr/src`, options.scannerImage);
-
-      this.logger.info('🔎 Running SonarQube scanner...');
-      const scannerResult = await runCommand('docker', scannerArgs);
-      if (scannerResult.code !== 0) {
-        throw new Error('SonarQube scanner execution failed.');
-      }
-
-      this.logger.info('✅ SonarQube analysis has been completed');
-      return { containerUrls, projectKey };
-    } finally {
-      if (cleanUp) {
-        await this.cleanUp(options.containerName, options.dataDirectory);
-      }
+    const sonarToken =
+      options.scannerToken || (await this.getToken(hostUrl, options.adminUser, effectivePassword));
+    if (options.scannerToken && options.scannerToken !== this.config.sonarLocalRunnerToken) {
+      this.config.sonarLocalRunnerToken = options.scannerToken;
+      this.saveConfiguration();
     }
+    const projectKey = this.getProjectKey(options.scannerOptions);
+
+    const scannerArgs = [
+      'run',
+      '--rm',
+      `--name=${options.scannerContainerName}`,
+      '-e',
+      `SONAR_HOST_URL=${containerUrls.internalUrl}`,
+    ];
+
+    if (sonarToken) {
+      scannerArgs.push('-e', `SONAR_TOKEN=${sonarToken}`);
+    }
+
+    if (options.scannerOptions.length > 0) {
+      scannerArgs.push('-e', `SONAR_SCANNER_OPTS=${options.scannerOptions}`);
+    } else {
+      scannerArgs.push('-e', `SONAR_SCANNER_OPTS=-Dsonar.projectKey=${projectKey}`);
+    }
+
+    scannerArgs.push('-v', `${options.sourceDirectory}:/usr/src`, options.scannerImage);
+
+    this.logger.info('🔎 Running SonarQube scanner...');
+    const scannerResult = await runCommand('docker', scannerArgs);
+    if (scannerResult.code !== 0) {
+      throw new Error('SonarQube scanner execution failed.');
+    }
+
+    this.logger.info('✅ SonarQube analysis has been completed');
+    return { containerUrls, projectKey };
   }
 
   private getProjectKey(scannerOptions: string): string {
@@ -362,18 +363,6 @@ export class SonarqubeLocalAnalysis {
       return typeof parsed.serverUrl === 'string' ? parsed.serverUrl : undefined;
     } catch {
       return undefined;
-    }
-  }
-
-  private async cleanUp(containerName: string, dataDirectory: string): Promise<void> {
-    this.logger.info('🧹 Cleaning up SonarQube container and data directory...');
-    await runCommand('docker', ['stop', containerName]);
-    await runCommand('docker', ['rm', containerName]);
-
-    const dataDir = path.resolve(dataDirectory);
-    if (existsSync(dataDir)) {
-      this.logger.info(`🧹 Removing SonarQube data directory at "${dataDir}".`);
-      rimrafSync(dataDir);
     }
   }
 
