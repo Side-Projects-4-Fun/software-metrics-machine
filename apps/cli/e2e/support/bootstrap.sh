@@ -115,6 +115,12 @@ run_smm_with_github_prs_msw() {
   return 0
 }
 
+run_smm_with_github_pipelines_msw() {
+  SMM_E2E_OUTPUT="$(node "${SMM_E2E_DIR}/support/github-pipelines-msw-runner.mjs" "$@" 2>&1)"
+  SMM_E2E_STATUS=$?
+  return 0
+}
+
 seed_sqlite_fixture() {
   local workspace="$1"
   local fixture="$2"

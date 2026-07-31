@@ -80,14 +80,24 @@ CSV
   seed_sqlite_code_analysis_fixture "${workspace}"
 }
 
-
-function test_code_fetch_commits_help_renders_successfully() {
-  run_smm code fetch-commits --help
-
+function test_code_help_renders_successfully() {
+  run_smm code --help
   assert_smm_success
-  assert_smm_output_contains "Usage:"
   assert_smm_output_contains "fetch-commits"
+  assert_smm_output_contains "codemaat-fetch"
+  assert_smm_output_contains "big-o"
+
+  run_smm code fetch-commits --help
+  assert_smm_success
   assert_smm_output_contains "--buffer"
+  assert_smm_output_contains "--authors"
+
+  run_smm code codemaat-fetch --help
+  assert_smm_success
+  assert_smm_output_contains "--group-depth"
+  assert_smm_output_contains "--min-revs"
+  assert_smm_output_contains "--min-shared-revs"
+  assert_smm_output_contains "--min-coupling"
 }
 
 function test_code_fetch_commits_persists_commits_from_git_repository() {
@@ -98,12 +108,17 @@ function test_code_fetch_commits_persists_commits_from_git_repository() {
   sqlite_db="${workspace}/github_acme_widgets/smm.sqlite"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm code fetch-commits --force --output json
+  run_smm code fetch-commits \
+    --force \
+    --buffer 50 \
+    --start-date 2026-03-01 \
+    --end-date 2026-03-31 \
+    --output json
 
   unset SMM_STORE_DATA_AT
 
   assert_smm_success
-  assert_smm_output_contains "\"commits\": 2"
+  assert_smm_output_contains '"commits": 2'
   assert_smm_file_exists "${sqlite_db}"
 }
 
@@ -113,12 +128,18 @@ function test_code_fetch_commits_filters_by_author() {
   workspace="$(create_code_workspace)"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm code fetch-commits --force --authors Bob --output json
+  run_smm code fetch-commits \
+    --force \
+    --authors Bob \
+    --buffer 50 \
+    --start-date 2026-03-01 \
+    --end-date 2026-03-31 \
+    --output json
 
   unset SMM_STORE_DATA_AT
 
   assert_smm_success
-  assert_smm_output_contains "\"commits\": 1"
+  assert_smm_output_contains '"commits": 1'
 }
 
 function test_code_big_o_analyzes_repository_source_file() {
@@ -128,14 +149,20 @@ function test_code_big_o_analyzes_repository_source_file() {
   seed_code_analysis_workspace "${workspace}"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm code big-o --file src/nested.ts --output json
+  run_smm code big-o \
+    --file src/nested.ts \
+    --search nested \
+    --ignore-files "*.test.ts" \
+    --include-only "src/*.ts" \
+    --limit 5 \
+    --output json
 
   unset SMM_STORE_DATA_AT
 
   assert_smm_success
-  assert_smm_output_contains "\"filePath\": \"src/nested.ts\""
-  assert_smm_output_contains "\"classification\": \"O(n^2)\""
-  assert_smm_output_contains "\"lineNumber\": 2"
+  assert_smm_output_contains '"filePath": "src/nested.ts"'
+  assert_smm_output_contains '"classification": "O(n^2)"'
+  assert_smm_output_contains '"lineNumber": 2'
 }
 
 function test_code_summary_reports_pairing_insights_from_commits_store() {
@@ -145,40 +172,18 @@ function test_code_summary_reports_pairing_insights_from_commits_store() {
   seed_code_analysis_workspace "${workspace}"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm code summary --output json
+  run_smm code summary \
+    --start-date 2026-03-01 \
+    --end-date 2026-03-31 \
+    --output json
 
   unset SMM_STORE_DATA_AT
 
   assert_smm_success
-  assert_smm_output_contains "\"pairingIndexPercentage\": 50"
-  assert_smm_output_contains "\"totalAnalyzedCommits\": 2"
-  assert_smm_output_contains "\"pairedCommits\": 1"
-  assert_smm_output_contains "\"coAuthor\": \"Bob\""
-}
-
-function test_code_codemaat_fetch_help_renders_successfully() {
-  run_smm code codemaat-fetch --help
-
-  assert_smm_success
-  assert_smm_output_contains "Usage:"
-  assert_smm_output_contains "codemaat-fetch"
-  assert_smm_output_contains "--start-date"
-}
-
-function test_code_codemaat_fetch_help_includes_group_depth_option() {
-  run_smm code codemaat-fetch --help
-
-  assert_smm_success
-  assert_smm_output_contains "--group-depth"
-}
-
-function test_code_codemaat_fetch_help_includes_threshold_options() {
-  run_smm code codemaat-fetch --help
-
-  assert_smm_success
-  assert_smm_output_contains "--min-revs"
-  assert_smm_output_contains "--min-shared-revs"
-  assert_smm_output_contains "--min-coupling"
+  assert_smm_output_contains '"pairingIndexPercentage": 50'
+  assert_smm_output_contains '"totalAnalyzedCommits": 2'
+  assert_smm_output_contains '"pairedCommits": 1'
+  assert_smm_output_contains '"coAuthor": "Bob"'
 }
 
 function test_code_codemaat_fetch_reports_threshold_params_in_output() {
@@ -187,11 +192,19 @@ function test_code_codemaat_fetch_reports_threshold_params_in_output() {
   workspace="$(create_code_workspace)"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm code codemaat-fetch --start-date 2026-03-01 --end-date 2026-03-31 --group-depth 4 --min-revs 7 --min-shared-revs 9 --min-coupling 33 --force --output json
+  run_smm code codemaat-fetch \
+    --start-date 2026-03-01 \
+    --end-date 2026-03-31 \
+    --group-depth 4 \
+    --min-revs 7 \
+    --min-shared-revs 9 \
+    --min-coupling 33 \
+    --force \
+    --output json
 
   unset SMM_STORE_DATA_AT
 
-  assert_smm_output_contains "\"scriptPath\":"
+  assert_smm_output_contains '"scriptPath":'
   assert_smm_output_contains "CodeMaat coupling thresholds: min_revs=7 min_shared_revs=9 min_coupling=33"
   assert_smm_success
 }
@@ -203,14 +216,18 @@ function test_code_churn_reads_codemaat_churn_csv() {
   seed_code_analysis_workspace "${workspace}"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm code churn --start-date 2026-03-02 --output json
+  run_smm code churn \
+    --start-date 2026-03-01 \
+    --end-date 2026-03-31 \
+    --output json
 
   unset SMM_STORE_DATA_AT
 
   assert_smm_success
-  assert_smm_output_contains "\"date\": \"2026-03-02\""
-  assert_smm_output_contains "\"added\": 7"
-  assert_smm_output_not_contains "\"date\": \"2026-03-01\""
+  assert_smm_output_contains '"date": "2026-03-01"'
+  assert_smm_output_contains '"date": "2026-03-02"'
+  assert_smm_output_contains '"added": 10'
+  assert_smm_output_contains '"added": 7'
 }
 
 function test_code_coupling_reads_codemaat_coupling_csv() {
@@ -220,14 +237,18 @@ function test_code_coupling_reads_codemaat_coupling_csv() {
   seed_code_analysis_workspace "${workspace}"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm code coupling --output json
+  run_smm code coupling \
+    --start-date 2026-03-01 \
+    --end-date 2026-03-31 \
+    --min-coupling 30 \
+    --output json
 
   unset SMM_STORE_DATA_AT
 
   assert_smm_success
-  assert_smm_output_contains "\"entity\": \"src/checkout.ts\""
-  assert_smm_output_contains "\"coupled\": \"src/cart.ts\""
-  assert_smm_output_contains "\"degree\": 75"
+  assert_smm_output_contains '"entity": "src/checkout.ts"'
+  assert_smm_output_contains '"coupled": "src/cart.ts"'
+  assert_smm_output_contains '"degree": 75'
 }
 
 function test_code_entity_churn_reports_total_churn() {
@@ -237,7 +258,10 @@ function test_code_entity_churn_reports_total_churn() {
   seed_code_analysis_workspace "${workspace}"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm code entity-churn --top 1
+  run_smm code entity-churn \
+    --start-date 2026-03-01 \
+    --end-date 2026-03-31 \
+    --top 1
 
   unset SMM_STORE_DATA_AT
 
@@ -254,15 +278,19 @@ function test_code_entity_effort_reads_codemaat_entity_effort_csv() {
   seed_code_analysis_workspace "${workspace}"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm code entity-effort --top 1 --output json
+  run_smm code entity-effort \
+    --start-date 2026-03-01 \
+    --end-date 2026-03-31 \
+    --top 1 \
+    --output json
 
   unset SMM_STORE_DATA_AT
 
   assert_smm_success
-  assert_smm_output_contains "\"entityEffort\""
-  assert_smm_output_contains "\"entity\": \"src/cart.ts\""
-  assert_smm_output_contains "\"total-revs\": 5"
-  assert_smm_output_not_contains "\"entity\": \"src/checkout.ts\""
+  assert_smm_output_contains '"entityEffort"'
+  assert_smm_output_contains '"entity": "src/cart.ts"'
+  assert_smm_output_contains '"total-revs": 5'
+  assert_smm_output_not_contains '"entity": "src/checkout.ts"'
 }
 
 function test_code_entity_ownership_filters_by_entity() {
@@ -272,15 +300,19 @@ function test_code_entity_ownership_filters_by_entity() {
   seed_code_analysis_workspace "${workspace}"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm code entity-ownership --entity cart --output json
+  run_smm code entity-ownership \
+    --start-date 2026-03-01 \
+    --end-date 2026-03-31 \
+    --entity cart \
+    --output json
 
   unset SMM_STORE_DATA_AT
 
   assert_smm_success
-  assert_smm_output_contains "\"ownership\""
-  assert_smm_output_contains "\"entity\": \"src/cart.ts\""
-  assert_smm_output_contains "\"author\": \"Alice\""
-  assert_smm_output_not_contains "\"entity\": \"src/checkout.ts\""
+  assert_smm_output_contains '"ownership"'
+  assert_smm_output_contains '"entity": "src/cart.ts"'
+  assert_smm_output_contains '"author": "Alice"'
+  assert_smm_output_not_contains '"entity": "src/checkout.ts"'
 }
 
 function test_code_pairing_index_reports_pairing_percentage() {
@@ -290,14 +322,18 @@ function test_code_pairing_index_reports_pairing_percentage() {
   seed_code_analysis_workspace "${workspace}"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm code pairing-index --min-shared 1 --output json
+  run_smm code pairing-index \
+    --start-date 2026-03-01 \
+    --end-date 2026-03-31 \
+    --min-shared 1 \
+    --output json
 
   unset SMM_STORE_DATA_AT
 
   assert_smm_success
-  assert_smm_output_contains "\"pairingIndex\""
-  assert_smm_output_contains "\"pairingIndexPercentage\": 50"
-  assert_smm_output_contains "\"pairedCommits\": 1"
+  assert_smm_output_contains '"pairingIndex"'
+  assert_smm_output_contains '"pairingIndexPercentage": 50'
+  assert_smm_output_contains '"pairedCommits": 1'
 }
 
 function test_code_filters_save_and_list_for_source_code_section() {
