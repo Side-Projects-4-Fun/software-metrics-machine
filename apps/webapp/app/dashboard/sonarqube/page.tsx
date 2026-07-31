@@ -11,9 +11,11 @@ import { buildSonarqubeApiParams } from '@/server/utils/apiParams';
 import {
   SonarqubeComponentMeasure,
   SonarqubeComponentTreeHistoryEntry,
+  SonarqubeEvaluation,
   SonarqubeMeasurement,
   SonarqubeMeasurementHistoryEntry,
 } from '@/server/api/sonarqube';
+import SonarqubeEvaluationCard from '@/components/charts/sonarqube/SonarqubeEvaluationCard';
 
 type ResultWrapper<T> = {
   result: T;
@@ -53,15 +55,18 @@ export default async function SonarqubePage({
   let measurements: SonarqubeMeasurement[] = [];
   let measurementHistory: SonarqubeMeasurementHistoryEntry[] = [];
   let componentTreeHistory: SonarqubeComponentTreeHistoryEntry[] = [];
+  let evaluation: SonarqubeEvaluation | null = null;
 
   try {
     const apiParams = buildSonarqubeApiParams(filters);
-    const [tree, measResult, historyResult, componentTreeHistoryResult] = await Promise.all([
+    const [tree, measResult, historyResult, componentTreeHistoryResult, evaluationResult] = await Promise.all([
       sonarqubeAPI.componentTree(apiParams),
       sonarqubeAPI.loadMeasurements(apiParams),
       sonarqubeAPI.loadMeasurementHistory(apiParams),
       sonarqubeAPI.loadComponentTreeHistory(apiParams),
+      sonarqubeAPI.evaluate(apiParams),
     ]);
+    evaluation = evaluationResult;
     measurements = ensureArray<SonarqubeMeasurement>(
       unwrapResult(measResult as SonarqubeMeasurement[] | ResultWrapper<SonarqubeMeasurement[]>)
     );
@@ -97,6 +102,7 @@ export default async function SonarqubePage({
   } catch (error) {
     console.error('Error fetching sonarqube component tree:', error);
     components = [];
+    evaluation = null;
   }
 
   const reliabilityRating = metricValue(mainComponentMeasures, 'reliability_rating');
@@ -125,6 +131,11 @@ export default async function SonarqubePage({
 
   return (
     <div className="space-y-6">
+      {evaluation ? (
+        <div className="grid grid-cols-1 gap-6">
+          <SonarqubeEvaluationCard data={evaluation} />
+        </div>
+      ) : null}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <SonarqubeStatCard title="Reliability Rating" value={reliabilityRating} color="#22c55e" />
         <SonarqubeStatCard title="Security Rating" value={securityRating} color="#f97316" />

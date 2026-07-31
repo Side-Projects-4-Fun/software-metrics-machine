@@ -9,3 +9,6 @@ export type {
   ArchitectureViewLevel,
   GenerateArchitectureOptions,
 } from './types';
+
+export * from './architecture-evaluation-service';
+export * from './architecture-evaluation-types';

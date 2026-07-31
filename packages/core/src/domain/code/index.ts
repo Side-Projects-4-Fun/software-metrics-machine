@@ -6,6 +6,8 @@ export * from './pairing/pairing-factory';
 
 export * from './sonarqube/sonarqube-service';
 export * from './sonarqube/sonarqube-factory';
+export * from './sonarqube/sonarqube-evaluation-service';
+export * from './sonarqube/sonarqube-evaluation-types';
 
 export {
   BigOService,
@@ -15,5 +17,8 @@ export {
 } from './big-o/big-o-service';
 
 export * from './codemaat/index';
+
+export * from './code-evaluation-service';
+export * from './code-evaluation-types';
 
 export * from './git/git-factory';

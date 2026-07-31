@@ -24,7 +24,8 @@ import {
 import { LatestPairedCommitsCard } from "@/components/charts/source-code/LatestPairedCommitsCard";
 import { TopPairingsCard } from '@/components/charts/source-code/TopPairingsCard';
 import { BigOAnalysisCard } from '@/components/charts/source-code/BigOAnalysisCard';
-import type { BigOFileSummary as BigOFileSummaryResponse } from '@/server/api/sourceCode';
+import type { BigOFileSummary as BigOFileSummaryResponse, CodeEvaluation } from '@/server/api/sourceCode';
+import CodeEvaluationCard from '@/components/charts/source-code/CodeEvaluationCard';
 
 type ResultWrapper<T> = {
   result: T;
@@ -107,6 +108,7 @@ export default async function SourceCodePage({
     timestamp: string;
     subject: string;
   }> = [];
+  let evaluation: CodeEvaluation | null = null;
 
   try {
     const apiParams = buildSourceCodeApiParams(filters);
@@ -115,7 +117,8 @@ export default async function SourceCodePage({
       metrics: 'complexity,coverage',
       remove_folders: 'true',
     };
-    const [churn, couplingData, layeredCouplingData, effort, churnOverTime, ownership, pairing, bigO, sonarqubeTree] = await Promise.all([
+    const [sourceCodeEval, churn, couplingData, layeredCouplingData, effort, churnOverTime, ownership, pairing, bigO, sonarqubeTree] = await Promise.all([
+      sourceCodeAPI.evaluate(apiParams),
       sourceCodeAPI.entityChurn(apiParams),
       sourceCodeAPI.coupling(apiParams),
       sourceCodeAPI.layeredCoupling(apiParams),
@@ -126,6 +129,7 @@ export default async function SourceCodePage({
       sourceCodeAPI.bigOFiles({ ...apiParams, search: bigOSearch, limit: 200 }),
       sonarqubeAPI.componentTree(sonarqubeParams),
     ]);
+    evaluation = sourceCodeEval;
     // Handle both direct array responses and wrapped responses
     entityChurn = ensureArray<EntityChurnData>(unwrapResult(churn as EntityChurnData[] | ResultWrapper<EntityChurnData[]>));
     coupling = ensureArray<CouplingData>(unwrapResult(couplingData as CouplingData[] | ResultWrapper<CouplingData[]>));
@@ -160,10 +164,16 @@ export default async function SourceCodePage({
     bigOFiles = [];
     topPairings = [];
     latestPairedCommits = [];
+    evaluation = null;
   }
 
   return (
     <div className="space-y-6">
+      {evaluation ? (
+        <div className="grid grid-cols-1 gap-6">
+          <CodeEvaluationCard data={evaluation} />
+        </div>
+      ) : null}
       <div className="grid grid-cols-1 gap-6">
         <BigOAnalysisCard files={bigOFiles} search={bigOSearch} />
       </div>

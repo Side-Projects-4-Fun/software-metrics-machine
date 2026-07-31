@@ -26,6 +26,7 @@ function parseWebappSettings(value?: string): WebappSettings {
 }
 
 const ALLOWED_API_ENDPOINTS = new Set<string>([
+  '/architecture/evaluate',
   '/architecture/snapshots',
   '/architecture/summary',
   '/architecture/view',
@@ -36,6 +37,7 @@ const ALLOWED_API_ENDPOINTS = new Set<string>([
   '/code/entity-churn',
   '/code/entity-effort',
   '/code/entity-ownership',
+  '/code/evaluate',
   '/code/layered-coupling',
   '/code/pairing-index',
   '/configuration',
@@ -71,6 +73,7 @@ const ALLOWED_API_ENDPOINTS = new Set<string>([
   '/pull-requests/through-time',
   '/sonarqube/component-tree',
   '/sonarqube/component-tree/history',
+  '/sonarqube/evaluate',
   '/sonarqube/measurements',
   '/sonarqube/measurements/history',
   '/sonarqube/quality',

@@ -44,6 +44,9 @@ import { EngineeringHealthController } from './controllers/engineering-health.co
 import { FiltersController } from './controllers/filters.controller';
 import { PipelineEvaluationController } from './controllers/pipeline-evaluation.controller';
 import { PREvaluationController } from './controllers/pr-evaluation.controller';
+import { CodeEvaluationController } from './controllers/code-evaluation.controller';
+import { ArchitectureEvaluationController } from './controllers/architecture-evaluation.controller';
+import { SonarqubeEvaluationController } from './controllers/sonarqube-evaluation.controller';
 
 function buildDataDirectories(config: Configuration) {
   const baseDir = config.storeData || './outputs';
@@ -110,6 +113,9 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     FiltersController,
     PipelineEvaluationController,
     PREvaluationController,
+    CodeEvaluationController,
+    ArchitectureEvaluationController,
+    SonarqubeEvaluationController,
   ],
   providers: [
     // Configuration Repository (singleton — caches project list)

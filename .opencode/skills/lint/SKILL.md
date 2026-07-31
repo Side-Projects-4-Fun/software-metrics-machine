@@ -83,13 +83,15 @@ Auto-fix runs on every commit via husky/lint-staged:
 Before submitting any change, verify:
 
 ```bash
-pnpm lint          # must pass (no errors, warnings OK)
+pnpm lint          # must pass (zero errors AND zero warnings)
 pnpm typecheck     # must pass
 pnpm build         # must pass
 pnpm test          # must pass
 ```
 
 This is enforced by the developer agent as the mandatory build verification step.
+
+**Lint is a hard gate**: if `pnpm lint` reports any errors OR warnings, you MUST resolve every one of them before considering the task complete. Treat warnings with the same severity as errors. When the lint output includes fixable issues, run `pnpm lint -- --fix <path>` (or `pnpm --filter <workspace> lint -- --fix <path>` for a single workspace) to auto-fix them, then re-run `pnpm lint` to confirm there are zero issues remaining. If auto-fix cannot resolve an issue, edit the source manually until `pnpm lint` is clean.
 
 ## TypeScript Strict Mode
 
@@ -103,5 +105,6 @@ This is enforced by the developer agent as the mandatory build verification step
 - Never use `as any` or `@ts-ignore` unless absolutely necessary and commented
 - Use `@typescript-eslint/no-explicit-any: error` — prefer `unknown` with proper narrowing
 - Use `@typescript-eslint/no-floating-promises: error` — always `await` or `.catch()` promises
-- Warnings are tolerated in CI; errors block the pipeline
+- Warnings are NOT tolerated — resolve all warnings and errors before completing any task
+- Errors block the pipeline
 - Running `pnpm lint --filter <workspace>` lints only a specific workspace

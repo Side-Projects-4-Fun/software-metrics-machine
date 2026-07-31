@@ -8,9 +8,11 @@ import {
   type ArchitectureEdge,
   type ArchitectureView,
   type ArchitectureNode,
+  type ArchitectureEvaluation,
 } from '@/server/api/architecture';
 import MermaidC4Diagram from '@/components/architecture/MermaidC4Diagram';
 import ArchitectureLevelTabs from '@/components/architecture/ArchitectureLevelTabs';
+import ArchitectureEvaluationCard from '@/components/charts/architecture/ArchitectureEvaluationCard';
 
 type ViewLevel = 'context' | 'container' | 'component' | 'code';
 
@@ -145,11 +147,17 @@ export default async function ArchitecturePage({
 
   let summary: Awaited<ReturnType<typeof architectureAPI.summary>>['result'] = null;
   let selectedView: Awaited<ReturnType<typeof architectureAPI.view>>['result'] = null;
+  let evaluation: ArchitectureEvaluation | null = null;
 
   try {
-    const [summaryResponse, viewResponse] = await Promise.all([
+    const [summaryResponse, viewResponse, evaluationResponse] = await Promise.all([
       architectureAPI.summary(),
       architectureAPI.view(selectedLevel, undefined, {
+        ignore_files: filters.ignorePatternFiles || undefined,
+        include_only: filters.includePatternFiles || undefined,
+      }),
+      architectureAPI.evaluate({
+        level: selectedLevel,
         ignore_files: filters.ignorePatternFiles || undefined,
         include_only: filters.includePatternFiles || undefined,
       }),
@@ -157,8 +165,10 @@ export default async function ArchitecturePage({
 
     summary = unwrapResult(summaryResponse);
     selectedView = unwrapResult(viewResponse);
+    evaluation = evaluationResponse;
   } catch (error) {
     console.error('Error loading architecture data', error);
+    evaluation = null;
   }
 
   if (!summary || !selectedView) {
@@ -183,6 +193,11 @@ export default async function ArchitecturePage({
 
   return (
     <div className="space-y-6">
+      {evaluation ? (
+        <div className="grid grid-cols-1 gap-6">
+          <ArchitectureEvaluationCard data={evaluation} />
+        </div>
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>Architecture Snapshot</CardTitle>

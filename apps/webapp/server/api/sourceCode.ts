@@ -20,6 +20,32 @@ export type BigOFileAnalysis = BigOFileSummary & {
   lines: BigOLineClassification[];
 };
 
+export type CodeEvaluationSignal = {
+  id: string;
+  title: string;
+  description: string;
+  severity: 'critical' | 'warning' | 'good';
+  category: string;
+  metrics: Array<{ label: string; value: string }>;
+};
+
+export type CodeEvaluation = {
+  generatedAt: string;
+  signals: CodeEvaluationSignal[];
+  summary: {
+    totalChurn: number;
+    linesAdded: number;
+    linesDeleted: number;
+    hotspots: number;
+    avgPairingIndex: number;
+    totalCouplingPairs: number;
+    highComplexityFiles: number;
+    topChurnFile?: string;
+    mostCoupledPair?: string;
+    dominantAuthor?: string;
+  };
+};
+
 export const sourceCodeAPI = {
   pairingIndex: (params?: ApiParams) =>
     fetchAPI<{
@@ -80,4 +106,7 @@ export const sourceCodeAPI = {
 
   bigOFiles: (params?: ApiParams) =>
     fetchAPI<BigOFileSummary[]>('/code/big-o', params),
+
+  evaluate: (params?: ApiParams) =>
+    fetchAPI<CodeEvaluation>('/code/evaluate', params),
 };

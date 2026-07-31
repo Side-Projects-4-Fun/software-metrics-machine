@@ -39,6 +39,28 @@ export type ArchitectureView = {
   edges: ArchitectureEdge[];
 };
 
+export type ArchitectureEvaluationSignal = {
+  id: string;
+  title: string;
+  description: string;
+  severity: 'critical' | 'warning' | 'good';
+  category: string;
+  metrics: Array<{ label: string; value: string }>;
+};
+
+export type ArchitectureEvaluation = {
+  generatedAt: string;
+  signals: ArchitectureEvaluationSignal[];
+  summary: {
+    totalContainers: number;
+    totalEdges: number;
+    avgConfidence: number;
+    orphanNodes: number;
+    mostConnectedNode?: string;
+    hubNode?: string;
+  };
+};
+
 type ApiResult<T> = {
   result: T;
 };
@@ -72,4 +94,11 @@ export const architectureAPI = {
         }>
       >
     >('/architecture/snapshots'),
+  evaluate: (params?: {
+    snapshot_id?: string;
+    level?: string;
+    ignore_files?: string;
+    include_only?: string;
+  }) =>
+    fetchAPI<ArchitectureEvaluation>('/architecture/evaluate', params),
 };

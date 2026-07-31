@@ -20,6 +20,30 @@ export type SonarqubeComponentTreeHistoryEntry = {
   data: SonarqubeComponentMeasure[];
 };
 
+export type SonarqubeEvaluationSignal = {
+  id: string;
+  title: string;
+  description: string;
+  severity: 'critical' | 'warning' | 'good';
+  category: string;
+  metrics: Array<{ label: string; value: string }>;
+};
+
+export type SonarqubeEvaluation = {
+  generatedAt: string;
+  signals: SonarqubeEvaluationSignal[];
+  summary: {
+    totalComponents: number;
+    avgComplexity: number;
+    avgCoverage: number;
+    totalNLOC: number;
+    duplicationDensity: number;
+    maintainabilityRating: number;
+    reliabilityRating: number;
+    securityRating: number;
+  };
+};
+
 export const sonarqubeAPI = {
   componentTree: (params?: ApiParams) =>
     fetchAPI<SonarqubeComponentMeasure[]>(
@@ -38,4 +62,7 @@ export const sonarqubeAPI = {
 
   loadComponentTreeHistory: (params?: ApiParams) =>
     fetchAPI<SonarqubeComponentTreeHistoryEntry[]>('/sonarqube/component-tree/history', params),
+
+  evaluate: (params?: ApiParams) =>
+    fetchAPI<SonarqubeEvaluation>('/sonarqube/evaluate', params),
 };
