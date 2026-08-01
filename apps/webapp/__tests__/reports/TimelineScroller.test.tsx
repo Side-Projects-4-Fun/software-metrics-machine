@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import TimelineScroller from '@/components/reports/TimelineScroller';
 
 describe('TimelineScroller', () => {
@@ -65,90 +66,81 @@ describe('TimelineScroller', () => {
   });
 
   describe('keyboard navigation', () => {
-    it('moves to next window on ArrowRight', () => {
+    it('moves to next window on ArrowRight', async () => {
       const onSelect = jest.fn();
       const windows = makeWindows(3);
       render(
         <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
       );
 
-      fireEvent.keyDown(screen.getByRole('button', { name: /Week 1/ }), {
-        key: 'ArrowRight',
-      });
+      screen.getByRole('button', { name: /Week 1/ }).focus();
+      await userEvent.keyboard('{ArrowRight}');
 
       expect(onSelect).toHaveBeenCalledWith(1);
     });
 
-    it('moves to previous window on ArrowLeft', () => {
+    it('moves to previous window on ArrowLeft', async () => {
       const onSelect = jest.fn();
       const windows = makeWindows(3);
       render(
         <TimelineScroller windows={windows} activeIndex={1} onSelect={onSelect} />,
       );
 
-      fireEvent.keyDown(screen.getByRole('button', { name: /Week 2/ }), {
-        key: 'ArrowLeft',
-      });
+      screen.getByRole('button', { name: /Week 2/ }).focus();
+      await userEvent.keyboard('{ArrowLeft}');
 
       expect(onSelect).toHaveBeenCalledWith(0);
     });
 
-    it('does nothing on ArrowRight when at last window', () => {
+    it('does nothing on ArrowRight when at last window', async () => {
       const onSelect = jest.fn();
       const windows = makeWindows(3);
       render(
         <TimelineScroller windows={windows} activeIndex={2} onSelect={onSelect} />,
       );
 
-      fireEvent.keyDown(screen.getByRole('button', { name: /Week 3/ }), {
-        key: 'ArrowRight',
-      });
+      screen.getByRole('button', { name: /Week 3/ }).focus();
+      await userEvent.keyboard('{ArrowRight}');
 
       expect(onSelect).not.toHaveBeenCalled();
     });
 
-    it('does nothing on ArrowLeft when at first window', () => {
+    it('does nothing on ArrowLeft when at first window', async () => {
       const onSelect = jest.fn();
       const windows = makeWindows(3);
       render(
         <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
       );
 
-      fireEvent.keyDown(screen.getByRole('button', { name: /Week 1/ }), {
-        key: 'ArrowLeft',
-      });
+      screen.getByRole('button', { name: /Week 1/ }).focus();
+      await userEvent.keyboard('{ArrowLeft}');
 
       expect(onSelect).not.toHaveBeenCalled();
     });
 
-    it('ignores other keys', () => {
+    it('ignores other keys', async () => {
       const onSelect = jest.fn();
       const windows = makeWindows(3);
       render(
         <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
       );
 
-      fireEvent.keyDown(screen.getByRole('button', { name: /Week 1/ }), {
-        key: 'ArrowUp',
-      });
-      fireEvent.keyDown(screen.getByRole('button', { name: /Week 1/ }), {
-        key: 'Tab',
-      });
+      screen.getByRole('button', { name: /Week 1/ }).focus();
+      await userEvent.keyboard('{ArrowUp}');
+      await userEvent.keyboard('{Tab}');
 
       expect(onSelect).not.toHaveBeenCalled();
     });
 
-    it('moves focus to the next window button after ArrowRight', () => {
+    it('moves focus to the next window button after ArrowRight', async () => {
       const onSelect = jest.fn();
       const windows = makeWindows(3);
       const { rerender } = render(
         <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
       );
 
-      // Press ArrowRight — parent would re-render with activeIndex=1
-      fireEvent.keyDown(screen.getByRole('button', { name: /Week 1/ }), {
-        key: 'ArrowRight',
-      });
+      screen.getByRole('button', { name: /Week 1/ }).focus();
+      await userEvent.keyboard('{ArrowRight}');
       expect(onSelect).toHaveBeenCalledWith(1);
 
       rerender(
@@ -159,16 +151,15 @@ describe('TimelineScroller', () => {
       expect(week2Button).toHaveFocus();
     });
 
-    it('moves focus to the previous window button after ArrowLeft', () => {
+    it('moves focus to the previous window button after ArrowLeft', async () => {
       const onSelect = jest.fn();
       const windows = makeWindows(3);
       const { rerender } = render(
         <TimelineScroller windows={windows} activeIndex={1} onSelect={onSelect} />,
       );
 
-      fireEvent.keyDown(screen.getByRole('button', { name: /Week 2/ }), {
-        key: 'ArrowLeft',
-      });
+      screen.getByRole('button', { name: /Week 2/ }).focus();
+      await userEvent.keyboard('{ArrowLeft}');
       expect(onSelect).toHaveBeenCalledWith(0);
 
       rerender(

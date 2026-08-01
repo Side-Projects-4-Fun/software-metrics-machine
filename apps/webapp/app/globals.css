@@ -21,6 +21,11 @@
   }
 }
 
+/* Non-Tailwind print utilities */
+.smm-print-hide {
+  /* overridden in @media print below */
+}
+
 @media print {
   html {
     color-scheme: light;
@@ -234,5 +239,40 @@
 
   @page {
     margin: 10mm;
+  }
+
+  /* Non-Tailwind print toggles */
+  .smm-print-hide {
+    display: none !important;
+  }
+
+  /* Force MUI Collapse to show all content in print */
+  .MuiCollapse-root {
+    display: block !important;
+    visibility: visible !important;
+    height: auto !important;
+    min-height: auto !important;
+  }
+
+  .MuiCollapse-wrapper,
+  .MuiCollapse-wrapperInner {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Force hidden elements to show in print (collapsible sections) */
+  [hidden] {
+    display: block !important;
+  }
+  [class*="overflow-"] {
+    overflow: visible !important;
+  }
+
+  [class*="max-h-"] {
+    max-height: none !important;
+  }
+
+  [class*="sticky"] {
+    position: static !important;
   }
 }

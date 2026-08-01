@@ -118,7 +118,7 @@ export default function ReportsClient({
               </IconButton>
               <Link
                 href={`/reports/${resolved.report.id}`}
-                className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50"
+                className="smm-print-hide flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50"
               >
                 View
                 <ArrowForwardIcon fontSize="small" />

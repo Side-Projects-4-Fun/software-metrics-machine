@@ -212,8 +212,8 @@ describe('ReportRenderer', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /collapse all/i }));
 
-      expect(screen.queryByTestId('pipeline-eval')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('pr-eval')).not.toBeInTheDocument();
+      expect(screen.getByTestId('pipeline-eval')).not.toBeVisible();
+      expect(screen.getByTestId('pr-eval')).not.toBeVisible();
       expect(screen.getByRole('button', { name: /expand all/i })).toBeVisible();
     });
 
@@ -234,7 +234,7 @@ describe('ReportRenderer', () => {
       // Click the pipelines section header button to collapse it
       fireEvent.click(screen.getByRole('button', { name: /Pipelines —/ }));
 
-      expect(screen.queryByTestId('pipeline-eval')).not.toBeInTheDocument();
+      expect(screen.getByTestId('pipeline-eval')).not.toBeVisible();
       expect(screen.getByTestId('pr-eval')).toBeVisible();
     });
 

@@ -188,17 +188,15 @@ export default function ReportRenderer({
                     Referenced saved filter has been deleted.
                   </Typography>
                 )}
-                {!isCollapsed && (
-                  <>
-                    {data ? (
-                      renderEvaluationCard(ref.section, data)
-                    ) : !error ? (
-                      <Typography variant="body2" color="text.secondary">
-                        No evaluation data available.
-                      </Typography>
-                    ) : null}
-                  </>
-                )}
+                <Box hidden={isCollapsed}>
+                  {data ? (
+                    renderEvaluationCard(ref.section, data)
+                  ) : !error ? (
+                    <Typography variant="body2" color="text.secondary">
+                      No evaluation data available.
+                    </Typography>
+                  ) : null}
+                </Box>
               </Box>
             );
           })}

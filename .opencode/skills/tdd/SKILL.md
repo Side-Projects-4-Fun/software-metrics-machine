@@ -153,6 +153,24 @@ const spy = vi.spyOn(prRepo, 'loadPrsWithFilters');
 - Validate field types, ranges, and formats (e.g. regex for date strings)
 - Use `expect.objectContaining()` and `expect.arrayContaining()` for partial matching
 
+### Webapp: user events (Jest + React Testing Library)
+
+Prefer `userEvent` over `fireEvent` for simulating user interactions. `userEvent` fires the full sequence of events a real user would trigger (focus, keyDown, keyUp, etc.) while `fireEvent` only dispatches a single event.
+
+```typescript
+import userEvent from '@testing-library/user-event';
+
+// Keyboard: focus the element, then dispatch
+screen.getByRole('button', { name: /Next/ }).focus();
+await userEvent.keyboard('{ArrowRight}');
+
+// Clicks, typing, etc.
+await userEvent.click(screen.getByRole('button', { name: /Save/ }));
+await userEvent.type(screen.getByLabelText('Name'), 'hello');
+```
+
+Keep `fireEvent` only when `userEvent` cannot simulate the scenario (rare edge cases).
+
 ## Coverage
 
 Coverage config is inherited from `vitest.base.config.ts`:

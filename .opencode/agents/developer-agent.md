@@ -449,6 +449,30 @@ Verify the `files` field in root `package.json` includes all required artifacts:
 - Props have TypeScript interfaces
 - Named exports for components
 - API calls in `lib/api.ts` fetch from `SMM_REST_BASE_URL`
+- Pages must be printable — the printed output should show all data, charts, and metrics that are visible on screen, without navigation chrome. When building any page: test with `Ctrl+P` / `Cmd+P` print preview. Use Tailwind's `print:` prefix (e.g. `print:hidden` on nav bars, sidebars, sticky headers, action buttons) and ensure no content is clipped by `overflow` or fixed positioning. Collapsed sections must auto-expand in print.
+
+### MUI 9 pitfalls
+
+MUI major versions commonly move or rename props. Always verify with `next build` (not just tests):
+
+- Layout/style props (`alignItems`, `display`, etc.) → use `sx` instead: `<Stack sx={{ alignItems: 'center' }}>`
+- Component slot props (`inputProps`, `InputProps`, etc.) → use `slotProps`: `<TextField slotProps={{ htmlInput: { ... } }}>`
+- Sticky elements below the `AppBar` (64px) → Tailwind `sticky top-16` with `bg-white/95 backdrop-blur`
+
+### Feature page patterns
+
+- Server components fetch data at the page level, client components handle interactivity — feature code lives in `app/<feature>/` (routes) and `components/<feature>/` (UI)
+- List pages show summary cards; clicking navigates to `/<feature>/${id}` for full detail
+- Multi-state views (tabs, timelines, windows) use a client wrapper managing active index, delegating rendering to pure presentational components
+- Collapsible sections track collapsed state in `useState<Set<string>>`, with a toggle-all driven by `allCollapsed` check
+
+### Webapp test patterns
+
+- Keyboard navigation: focus the element, then `await userEvent.keyboard('{ArrowRight}')` and assert handler called — prefer `userEvent` over `fireEvent` (Testing Library recommendation)
+- Focus after state change: `rerender` the component with updated props, then `expect(el).toHaveFocus()`
+- Ref-based focus following: `useRef<Map<number, HTMLElement>>` with callback refs + `useEffect` to focus on index change
+- Avoid `<button>` inside `<button>` — use `<Box role="button" tabIndex={0} onClick onKeyDown>` for clickable wrappers containing `IconButton`
+- Collapsible UI: assert collapsed content is absent from DOM (`.not.toBeInTheDocument()`) rather than just hidden
 
 ## Adding a new CLI command
 
