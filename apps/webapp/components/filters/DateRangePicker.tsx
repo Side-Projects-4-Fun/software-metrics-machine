@@ -19,6 +19,10 @@ import { useMemo, useState } from 'react';
 import { useFilters } from './FiltersContext';
 import { DashboardFilters } from './DashboardFilters';
 
+// ---------------------------------------------------------------------------
+// Shared types and helpers (presets, parsing, formatting, calendar day styling)
+// ---------------------------------------------------------------------------
+
 interface PresetRange {
   label: string;
   getRange: () => [Dayjs, Dayjs];
@@ -194,36 +198,31 @@ function RangePickerDay({
   );
 }
 
-export default function DateRangePicker() {
-  return (
-    <FilterDateRangePicker
-      label="Date range"
-      startKey="startDate"
-      endKey="endDate"
-      startInputLabel="Start"
-      endInputLabel="End"
-    />
-  );
-}
+// ---------------------------------------------------------------------------
+// Shared picker UI. Controlled component — takes ISO strings in, calls back
+// when the user applies a range. All open/close, hover, and calendar state is
+// self-contained.
+// ---------------------------------------------------------------------------
 
-interface FilterDateRangePickerProps {
+interface DateRangePickerPopoverProps {
   label: string;
-  startKey: keyof DashboardFilters;
-  endKey: keyof DashboardFilters;
+  startDate: string;
+  endDate: string;
+  onStartChange: (value: string) => void;
+  onEndChange: (value: string) => void;
   startInputLabel?: string;
   endInputLabel?: string;
 }
 
-export function FilterDateRangePicker({
+function DateRangePickerPopover({
   label,
-  startKey,
-  endKey,
+  startDate,
+  endDate,
+  onStartChange,
+  onEndChange,
   startInputLabel = 'Start',
   endInputLabel = 'End',
-}: FilterDateRangePickerProps) {
-  const { filters, updateFilter } = useFilters();
-  const startDate = String(filters[startKey] || '');
-  const endDate = String(filters[endKey] || '');
+}: DateRangePickerPopoverProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [tempStartDate, setTempStartDate] = useState<Dayjs | null>(parseFilterDate(startDate, 'start'));
   const [tempEndDate, setTempEndDate] = useState<Dayjs | null>(parseFilterDate(endDate, 'end'));
@@ -254,8 +253,8 @@ export function FilterDateRangePicker({
   };
 
   const applyRange = (nextStartDate: Dayjs | null, nextEndDate: Dayjs | null) => {
-    updateFilter(startKey, formatDate(nextStartDate) as DashboardFilters[typeof startKey]);
-    updateFilter(endKey, formatDate(nextEndDate) as DashboardFilters[typeof endKey]);
+    onStartChange(formatDate(nextStartDate));
+    onEndChange(formatDate(nextEndDate));
     closePicker();
   };
 
@@ -281,7 +280,7 @@ export function FilterDateRangePicker({
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box sx={{ my: 1, mx: 'auto', width: { xs: '100%', sm: 520 }, maxWidth: '100%' }}>
+      <Box sx={{ my: 1, mx: 'auto', width: { xs: '100%' }, maxWidth: '100%' }}>
         <TextField
           fullWidth
           label={label}
@@ -420,5 +419,89 @@ export function FilterDateRangePicker({
         </Popover>
       </Box>
     </LocalizationProvider>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Public components
+// ---------------------------------------------------------------------------
+
+export default function DateRangePicker() {
+  return (
+    <FilterDateRangePicker
+      label="Date range"
+      startKey="startDate"
+      endKey="endDate"
+      startInputLabel="Start"
+      endInputLabel="End"
+    />
+  );
+}
+
+interface FilterDateRangePickerProps {
+  label: string;
+  startKey: keyof DashboardFilters;
+  endKey: keyof DashboardFilters;
+  startInputLabel?: string;
+  endInputLabel?: string;
+}
+
+export function FilterDateRangePicker({
+  label,
+  startKey,
+  endKey,
+  startInputLabel,
+  endInputLabel,
+}: FilterDateRangePickerProps) {
+  const { filters, updateFilter } = useFilters();
+  const startDate = String(filters[startKey] || '');
+  const endDate = String(filters[endKey] || '');
+
+  return (
+    <DateRangePickerPopover
+      label={label}
+      startDate={startDate}
+      endDate={endDate}
+      onStartChange={(value) =>
+        updateFilter(startKey, value as DashboardFilters[typeof startKey])
+      }
+      onEndChange={(value) =>
+        updateFilter(endKey, value as DashboardFilters[typeof endKey])
+      }
+      startInputLabel={startInputLabel}
+      endInputLabel={endInputLabel}
+    />
+  );
+}
+
+interface StandaloneDateRangePickerProps {
+  label: string;
+  startDate: string;
+  endDate: string;
+  onStartChange: (value: string) => void;
+  onEndChange: (value: string) => void;
+  startInputLabel?: string;
+  endInputLabel?: string;
+}
+
+export function StandaloneDateRangePicker({
+  label,
+  startDate,
+  endDate,
+  onStartChange,
+  onEndChange,
+  startInputLabel,
+  endInputLabel,
+}: StandaloneDateRangePickerProps) {
+  return (
+    <DateRangePickerPopover
+      label={label}
+      startDate={startDate}
+      endDate={endDate}
+      onStartChange={onStartChange}
+      onEndChange={onEndChange}
+      startInputLabel={startInputLabel}
+      endInputLabel={endInputLabel}
+    />
   );
 }

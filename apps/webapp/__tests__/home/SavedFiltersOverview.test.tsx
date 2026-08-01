@@ -7,7 +7,6 @@ import * as api from '@/server/api';
 jest.mock('@/server/api');
 
 const mockFetchAPI = api.fetchAPI as jest.Mock;
-const mockFetchPutAPI = api.fetchPutAPI as jest.Mock;
 
 function renderSavedFiltersOverview() {
   return render(

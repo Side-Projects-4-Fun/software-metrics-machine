@@ -1,0 +1,182 @@
+import { render, screen, fireEvent } from '@testing-library/react';
+import TimelineScroller from '@/components/reports/TimelineScroller';
+
+describe('TimelineScroller', () => {
+  const makeWindows = (count: number) =>
+    Array.from({ length: count }, (_, i) => ({
+      startDate: `2026-06-${String(i * 7 + 1).padStart(2, '0')}`,
+      endDate: `2026-06-${String(i * 7 + 7).padStart(2, '0')}`,
+      label: `Week ${i + 1}`,
+    }));
+
+  it('renders all windows as buttons', () => {
+    const windows = makeWindows(3);
+    render(
+      <TimelineScroller windows={windows} activeIndex={0} onSelect={jest.fn()} />,
+    );
+
+    expect(screen.getByText('Week 1')).toBeVisible();
+    expect(screen.getByText('Week 2')).toBeVisible();
+    expect(screen.getByText('Week 3')).toBeVisible();
+  });
+
+  it('highlights the active window', () => {
+    const windows = makeWindows(3);
+    render(
+      <TimelineScroller windows={windows} activeIndex={1} onSelect={jest.fn()} />,
+    );
+
+    const buttons = screen.getAllByRole('button');
+    expect(buttons[1].className).toContain('bg-blue-600');
+    expect(buttons[0].className).not.toContain('bg-blue-600');
+  });
+
+  it('calls onSelect with the clicked index', () => {
+    const onSelect = jest.fn();
+    const windows = makeWindows(3);
+    render(
+      <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
+    );
+
+    fireEvent.click(screen.getByText('Week 2'));
+    expect(onSelect).toHaveBeenCalledWith(1);
+  });
+
+  it('shows date range below label when dates are present', () => {
+    const windows = makeWindows(1);
+    render(
+      <TimelineScroller windows={windows} activeIndex={0} onSelect={jest.fn()} />,
+    );
+
+    // The date range text uses short format like "Jun 1 – Jun 7"
+    expect(screen.getByText(/Jun/)).toBeVisible();
+  });
+
+  it('shows "Default" for null windows', () => {
+    render(
+      <TimelineScroller
+        windows={[null]}
+        activeIndex={0}
+        onSelect={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Default')).toBeVisible();
+  });
+
+  describe('keyboard navigation', () => {
+    it('moves to next window on ArrowRight', () => {
+      const onSelect = jest.fn();
+      const windows = makeWindows(3);
+      render(
+        <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
+      );
+
+      fireEvent.keyDown(screen.getByRole('button', { name: /Week 1/ }), {
+        key: 'ArrowRight',
+      });
+
+      expect(onSelect).toHaveBeenCalledWith(1);
+    });
+
+    it('moves to previous window on ArrowLeft', () => {
+      const onSelect = jest.fn();
+      const windows = makeWindows(3);
+      render(
+        <TimelineScroller windows={windows} activeIndex={1} onSelect={onSelect} />,
+      );
+
+      fireEvent.keyDown(screen.getByRole('button', { name: /Week 2/ }), {
+        key: 'ArrowLeft',
+      });
+
+      expect(onSelect).toHaveBeenCalledWith(0);
+    });
+
+    it('does nothing on ArrowRight when at last window', () => {
+      const onSelect = jest.fn();
+      const windows = makeWindows(3);
+      render(
+        <TimelineScroller windows={windows} activeIndex={2} onSelect={onSelect} />,
+      );
+
+      fireEvent.keyDown(screen.getByRole('button', { name: /Week 3/ }), {
+        key: 'ArrowRight',
+      });
+
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('does nothing on ArrowLeft when at first window', () => {
+      const onSelect = jest.fn();
+      const windows = makeWindows(3);
+      render(
+        <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
+      );
+
+      fireEvent.keyDown(screen.getByRole('button', { name: /Week 1/ }), {
+        key: 'ArrowLeft',
+      });
+
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('ignores other keys', () => {
+      const onSelect = jest.fn();
+      const windows = makeWindows(3);
+      render(
+        <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
+      );
+
+      fireEvent.keyDown(screen.getByRole('button', { name: /Week 1/ }), {
+        key: 'ArrowUp',
+      });
+      fireEvent.keyDown(screen.getByRole('button', { name: /Week 1/ }), {
+        key: 'Tab',
+      });
+
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('moves focus to the next window button after ArrowRight', () => {
+      const onSelect = jest.fn();
+      const windows = makeWindows(3);
+      const { rerender } = render(
+        <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
+      );
+
+      // Press ArrowRight — parent would re-render with activeIndex=1
+      fireEvent.keyDown(screen.getByRole('button', { name: /Week 1/ }), {
+        key: 'ArrowRight',
+      });
+      expect(onSelect).toHaveBeenCalledWith(1);
+
+      rerender(
+        <TimelineScroller windows={windows} activeIndex={1} onSelect={onSelect} />,
+      );
+
+      const week2Button = screen.getByRole('button', { name: /Week 2/ });
+      expect(week2Button).toHaveFocus();
+    });
+
+    it('moves focus to the previous window button after ArrowLeft', () => {
+      const onSelect = jest.fn();
+      const windows = makeWindows(3);
+      const { rerender } = render(
+        <TimelineScroller windows={windows} activeIndex={1} onSelect={onSelect} />,
+      );
+
+      fireEvent.keyDown(screen.getByRole('button', { name: /Week 2/ }), {
+        key: 'ArrowLeft',
+      });
+      expect(onSelect).toHaveBeenCalledWith(0);
+
+      rerender(
+        <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
+      );
+
+      const week1Button = screen.getByRole('button', { name: /Week 1/ });
+      expect(week1Button).toHaveFocus();
+    });
+  });
+});

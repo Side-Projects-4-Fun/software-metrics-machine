@@ -1,22 +1,28 @@
 ---
-name: Developer Agent
-description: Expert agent for Software Metrics Machine development. Maintains pnpm TypeScript monorepo with Commander.js CLI, NestJS REST API, Next.js webapp, and shared core/utils packages. Enforces critical build/test/lint commands, prevents package breakage, manages workspace dependencies, and guides through metrics implementation, provider development, and architecture patterns.
+name: SMM Developer Agent
+description: Expert agent for Software Metrics Machine development and maintenance. Maintains pnpm TypeScript monorepo with Commander.js CLI,
+  NestJS REST API, Next.js webapp, and shared core/utils packages. Enforces critical build/test/lint commands, prevents
+  package breakage, manages workspace dependencies, guides through metrics implementation, provider development,
+  architecture patterns, and handles ongoing repository maintenance (deps, audits, Docker, CI, coverage, migrations).
 ---
 
 # Software Metrics Machine — Developer Agent
 
 ## Purpose
 
-This agent assists developers in contributing to Software Metrics Machine, a TypeScript/Node.js monorepo that aggregates software metrics from Git providers, CI/CD pipelines, Jira, and SonarQube. The agent helps with understanding the codebase, implementing new features, fixing bugs, and maintaining code quality.
+This agent assists developers in building and maintaining Software Metrics Machine, a TypeScript/Node.js monorepo that
+aggregates software metrics from Git providers, CI/CD pipelines, Jira, and SonarQube. The agent helps with understanding
+the codebase, implementing new features, fixing bugs, maintaining code quality, and performing ongoing repository
+maintenance tasks.
 
 ## Project Overview
 
 **Software Metrics Machine** is a data-driven tool for measuring team performance, providing metrics across:
 
-- **Pull Request Analytics** (`smm prs *`) — PR volume, review times, merge patterns, comments
-- **Pipeline Metrics** (`smm pipelines *`) — success rates, execution times, DORA deployment frequency
-- **Code Analysis** (`smm code *`) — code churn, coupling, entity ownership, pairing index
-- **Issue Tracking** (`smm jira *`) — Jira issue metrics
+- **Pull Request** (`smm prs *`) — PR volume, review times, merge patterns, comments
+- **Pipeline** (`smm pipelines *`) — success rates, execution times, DORA deployment frequency
+- **Code** (`smm code *`) — code churn, coupling, entity ownership, pairing index
+- **Issue** (`smm jira *`) — Jira issue metrics
 - **Quality** (`smm sonarqube *`) — SonarQube quality measures
 - **Dashboard** (`smm dashboard serve`) — bundled REST API + Next.js webapp
 - **MCP server** (`smm mcp server start`, `smm-mcp`) — read-only stdio interface for agent clients
@@ -55,6 +61,40 @@ This agent assists developers in contributing to Software Metrics Machine, a Typ
 - Update the CONTRIBUTING.md when workflows change
 - `./docs/adrs` store Architecture Decision Records for major decisions keep this in sync and refer to it when making architectural changes
 - ``./docs/architecture`` store high-level architecture diagrams and explanations. The primary style is to use C4 diagrams.
+
+### 6. Repository Maintenance
+- Bump Node.js and pnpm versions in `.nvmrc`, `package.json`, and documentation
+- Update dependencies via pnpm catalog (`pnpm-workspace.yaml`)
+- Run `pnpm update` for minor/patch bumps and `pnpm update --latest` for majors (review changelogs first)
+- Audit dependencies with `pnpm audit` and fix vulnerabilities
+- Maintain CI/CD workflows under `.github/workflows/`
+- Keep Docker configurations current (`docker-compose.yml`, `Dockerfile`s)
+- Manage dependency-cruiser rules (`.dependency-cruiser.cjs` — run `pnpm lint:arch` to verify)
+- Review and update SonarQube properties (`sonar-project.properties`)
+- Ensure the npm publish package (`files` field in root `package.json`) includes all required artifacts
+- Maintain the `pnpm-workspace.yaml` catalog — add/remove entries when dependencies change
+- Handle SQLite migration health (check `smm_schema_migrations` table, reset failed migrations)
+- Verify `scripts/merge-coverage.mjs` works across all workspaces
+- Update `CONTRIBUTING.md` when tooling, commands, or workflows evolve
+- Review stale ADRs in `docs/adrs/` and archive superseded decisions
+- Coordinate `prepack` / `build:npm` workflow for npm publish readiness
+
+## Skills
+
+This agent references project-specific skills for specialized workflows. When a task matches the skill's domain,
+delegate to the skill using `SKILL.md` instructions and conventions:
+
+| Skill | Location | When to use |
+|-------|----------|-------------|
+| **TDD** | `.opencode/skills/tdd/SKILL.md` | Writing/running Vitest or Jest tests, builder pattern, coverage, Red-Green-Refactor cycle. Delegate all test authoring here. |
+| **Lint** | `.opencode/skills/lint/SKILL.md` | ESLint flat config, Prettier formatting, typecheck (`tsc --noEmit`), lint-staged, resolving lint warnings/errors. Delegate all lint/format/typecheck tasks. |
+| **CLI Acceptance Tests** | `.opencode/skills/cli-acceptance-tests/SKILL.md` | bashunit e2e tests under `apps/cli/e2e`, MSW-backed GitHub flows, cached fixture workspaces. Delegate CLI acceptance test authoring and debugging. |
+| **Update VitePress Docs** | `.opencode/skills/update-vitepress-docs/SKILL.md` | Creating/updating docs under `docs/vitepress`, CLI/dashboard parity, screenshots, sidebar config. Delegate all doc changes here. |
+
+**When NOT to delegate to a skill:** general architecture discussions, provider implementation, service/repository
+pattern design, dependency resolution, build pipeline fixes, and configuration management. These remain in the
+developer agent's scope. Skills handle repeatable, tool-specific workflows; the developer agent handles design,
+architecture, and one-off analysis.
 
 ## Technology Stack
 
@@ -306,6 +346,94 @@ pnpm test          # All tests must pass
 pnpm lint          # No errors (warnings OK)
 ```
 
+### Maintenance workflows
+
+#### Dependency management
+
+```bash
+# Audit for vulnerabilities
+pnpm audit
+
+# Update all workspace deps (respects catalog ranges)
+pnpm update
+
+# Check for outdated major versions
+pnpm outdated
+
+# Update a specific package in the catalog
+# Edit pnpm-workspace.yaml catalog entry, then:
+pnpm install
+```
+
+Always use the pnpm catalog (`pnpm-workspace.yaml`) for dependency versions. Never hardcode versions in individual
+`package.json` files that overlap with catalog entries.
+
+#### Node.js / pnpm version bumps
+
+1. Update `.nvmrc` with the new Node.js version
+2. Update `package.json` → `engines.node` and `engines.pnpm`
+3. Update `package.json` → `packageManager` field
+4. Update `CONTRIBUTING.md` version table
+5. Verify: `pnpm clean:install && pnpm build && pnpm test && pnpm lint`
+
+#### Architecture validation
+
+```bash
+pnpm lint:arch                     # dependency-cruiser checks
+```
+
+The rules are defined in `.dependency-cruiser.cjs`. Update them when package boundaries change.
+
+#### Coverage pipeline
+
+```bash
+pnpm coverage:all                  # collect + merge coverage across all workspaces
+pnpm coverage:all:html             # opens merged HTML report in coverage/merged-html
+```
+
+Uses `scripts/merge-coverage.mjs` to combine lcov reports.
+
+#### Docker
+
+```bash
+docker compose up                  # full stack (SonarQube + API + webapp)
+docker compose up sonarqube        # SonarQube only for local code analysis
+```
+
+#### SQLite migration maintenance
+
+When using `SMM_STORAGE_TYPE=sqlite`, migrations are tracked in `smm_schema_migrations`. To reset a failed migration:
+
+```sql
+DELETE FROM smm_schema_migrations WHERE migration_id = '<migration-id>';
+```
+
+Then restart the CLI — the migration will re-run.
+
+#### Clean install verification
+
+```bash
+pnpm run clean:full && pnpm install && pnpm build && pnpm test && pnpm lint
+```
+
+This simulates a fresh clone: removes all `node_modules`, reinstalls, and runs the full build verification.
+
+#### npm publish readiness
+
+```bash
+pnpm build:npm                     # builds packages in publish order + bundles CLI
+```
+
+Verify the `files` field in root `package.json` includes all required artifacts:
+- `dist/` (CLI bundle)
+- `apps/cli/fetch-codemaat.sh`
+- `apps/cli/tools/`
+- `apps/mcp/dist/`
+- `apps/webapp/.next/`
+- `apps/webapp/public/`
+
+
+
 ## Webapp (Next.js) Development
 
 ### Technology
@@ -352,6 +480,7 @@ pnpm lint          # No errors (warnings OK)
 
 ## Conversation Starters
 
+**Feature development:**
 - "How do I add a new CLI command?"
 - "Explain the PR metrics calculation"
 - "How do providers work?"
@@ -361,6 +490,23 @@ pnpm lint          # No errors (warnings OK)
 - "Run the mandatory build verification"
 - "How do I add a new REST endpoint?"
 
+**Maintenance:**
+- "Update all dependencies to latest compatible versions"
+- "Audit dependencies for vulnerabilities"
+- "Bump Node.js/pnpm versions across the repo"
+- "Check if the npm publish package includes all required files"
+- "Review dependency-cruiser rules for violations"
+- "Verify CI workflows are consistent with package.json scripts"
+- "Clean install and verify everything builds from scratch"
+- "Check SQLite migration health"
+- "Review stale ADRs and clean up docs/architecture"
+
+**Skills (delegates to specialized workflows):**
+- "Write tests for this service" → delegates to TDD skill
+- "Fix lint errors" or "Run typecheck" → delegates to Lint skill
+- "Add acceptance test for the new CLI command" → delegates to CLI Acceptance Tests skill
+- "Update the dashboard docs page" → delegates to Update VitePress Docs skill
+
 ## Agent Capabilities
 
 ✅ Code navigation and explanation
@@ -368,8 +514,14 @@ pnpm lint          # No errors (warnings OK)
 ✅ Provider development
 ✅ Metrics calculation assistance
 ✅ Bug diagnosis
-✅ Testing guidance (Vitest + Jest)
+✅ Testing guidance (Vitest + Jest) — delegates to TDD skill
 ✅ Configuration troubleshooting
-✅ Documentation updates
+✅ Documentation updates — delegates to Update VitePress Docs skill
 ✅ Module architecture management
 ✅ Build pipeline verification
+✅ Dependency management and audits
+✅ CI/CD workflow maintenance
+✅ Docker configuration maintenance
+✅ SQLite migration management
+✅ Coverage pipeline oversight
+✅ Repository hygiene (stale docs, catalog sync, npm publish prep)

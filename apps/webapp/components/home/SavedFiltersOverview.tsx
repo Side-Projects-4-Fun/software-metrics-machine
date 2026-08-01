@@ -101,7 +101,7 @@ export default function SavedFiltersOverview() {
       <div className="space-y-2 text-center">
         <h2 className="text-3xl font-bold text-gray-900">Saved Views</h2>
         <p className="text-gray-600">
-          Jump directly to saved filters grouped by project and dashboard page.
+          Jump directly to saved filters grouped by project.
         </p>
       </div>
 

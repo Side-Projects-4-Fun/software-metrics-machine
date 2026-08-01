@@ -72,6 +72,12 @@ export default async function Home() {
               >
                 View Dashboard
               </Link>
+              <Link
+                href="/reports"
+                className="px-8 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-semibold"
+              >
+                View Reports
+              </Link>
               <a
                 href={`${apiBaseUrl}/api/docs`}
                 target="_blank"

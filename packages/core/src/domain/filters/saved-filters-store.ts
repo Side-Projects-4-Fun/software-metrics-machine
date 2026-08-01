@@ -3,6 +3,7 @@ import type {
   DashboardSection,
   SavedFilterEntry,
   SavedFiltersDocument,
+  ReportEntry,
 } from './saved-filter-entry';
 
 export interface SavedFiltersStorageAdapter {
@@ -18,6 +19,7 @@ function defaultDocument(): SavedFiltersDocument {
   return {
     version: 1,
     filters: [],
+    reports: [],
   };
 }
 
@@ -35,6 +37,7 @@ function parseSavedFiltersDocument(raw: string | null): SavedFiltersDocument {
     return {
       version: 1,
       filters: parsed.filters,
+      reports: Array.isArray(parsed.reports) ? parsed.reports : [],
     };
   } catch {
     return defaultDocument();
@@ -152,6 +155,85 @@ export class SavedFiltersStore {
   async remove(id: string): Promise<void> {
     const document = await this.readDocument();
     document.filters = document.filters.filter((entry) => entry.id !== id);
+    await this.writeDocument(document);
+  }
+
+  async getReports(repository?: string): Promise<ReportEntry[]> {
+    const document = await this.readDocument();
+    const reports = document.reports ?? [];
+    if (!repository) {
+      return [...reports];
+    }
+    return reports.filter((r) => r.repository === repository);
+  }
+
+  async saveReport(
+    name: string,
+    sections: ReportEntry['sections'],
+    repository = ''
+  ): Promise<ReportEntry> {
+    const normalizedName = normalizeName(name);
+    if (!normalizedName) {
+      throw new Error('Sprint report name is required.');
+    }
+
+    const document = await this.readDocument();
+    const reports = document.reports ?? [];
+    const existingNames = reports.filter((r) => r.repository === repository).map((r) => r.name);
+
+    const finalName = nextAvailableName(existingNames, normalizedName);
+    const now = new Date().toISOString();
+    const entry: ReportEntry = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+      name: finalName,
+      repository,
+      sections,
+      createdAt: now,
+    };
+
+    document.reports = [entry, ...reports];
+    await this.writeDocument(document);
+    return entry;
+  }
+
+  async updateReport(
+    id: string,
+    name: string,
+    sections: ReportEntry['sections']
+  ): Promise<ReportEntry> {
+    const document = await this.readDocument();
+    const reports = document.reports ?? [];
+    const idx = reports.findIndex((r) => r.id === id);
+
+    if (idx === -1) {
+      throw new Error('Sprint report not found.');
+    }
+
+    const updated: ReportEntry = {
+      ...reports[idx],
+      name: normalizeName(name) || reports[idx].name,
+      sections,
+    };
+
+    reports[idx] = updated;
+    document.reports = reports;
+    await this.writeDocument(document);
+    return updated;
+  }
+
+  async removeReport(id: string): Promise<void> {
+    const document = await this.readDocument();
+    const reports = document.reports ?? [];
+    document.reports = reports.filter((r) => r.id !== id);
+    await this.writeDocument(document);
+  }
+
+  async replaceAll(replacement: SavedFiltersDocument): Promise<void> {
+    const document: SavedFiltersDocument = {
+      version: 1,
+      filters: replacement.filters ?? [],
+      reports: replacement.reports ?? [],
+    };
     await this.writeDocument(document);
   }
 }

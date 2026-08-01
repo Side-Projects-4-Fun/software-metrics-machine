@@ -1,25 +1,30 @@
 'use client';
 
 import { fetchAPI, fetchPutAPI } from '@/server/api';
-import type { SavedFilterEntry } from './saved-filters-store';
-import type { DashboardSection } from './saved-filters-store';
+import type { SavedFilterEntry, DashboardSection } from './saved-filters-store';
 import type { DashboardFilters } from './DashboardFilters';
+import type { ReportEntry, ReportSectionRef, ReportDateWindow } from '@/components/reports/reports-store';
 
 type SavedFiltersDocument = {
   version: 1;
   filters: SavedFilterEntry[];
+  reports?: ReportEntry[];
 };
 
 async function readDocument(): Promise<SavedFiltersDocument> {
   try {
     const data = await fetchAPI<SavedFiltersDocument>('/filters');
     if (data && data.version === 1 && Array.isArray(data.filters)) {
-      return data;
+      return {
+        version: 1,
+        filters: data.filters,
+        reports: Array.isArray(data.reports) ? data.reports : [],
+      };
     }
   } catch {
     // fall through
   }
-  return { version: 1, filters: [] };
+  return { version: 1, filters: [], reports: [] };
 }
 
 async function writeDocument(document: SavedFiltersDocument): Promise<void> {
@@ -81,5 +86,63 @@ export async function saveSavedFilter(
 export async function removeSavedFilter(id: string): Promise<void> {
   const doc = await readDocument();
   doc.filters = doc.filters.filter((e) => e.id !== id);
+  await writeDocument(doc);
+}
+
+export async function getReports(repository?: string): Promise<ReportEntry[]> {
+  const doc = await readDocument();
+  const reports = doc.reports ?? [];
+  if (!repository) {
+    return reports;
+  }
+  return reports
+    .filter((r) => r.repository === repository)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export async function saveReport(
+  name: string,
+  sections: ReportSectionRef[],
+  repository: string,
+  startDateOverride?: string,
+  endDateOverride?: string,
+  dateWindows?: ReportDateWindow[],
+): Promise<ReportEntry> {
+  const normalizedName = name.trim();
+  if (!normalizedName) { throw new Error('Sprint report name is required.'); }
+
+  const doc = await readDocument();
+  const reports = doc.reports ?? [];
+  const existingNames = reports
+    .filter((r) => r.repository === repository)
+    .map((r) => r.name);
+
+  let finalName = normalizedName;
+  if (existingNames.includes(finalName)) {
+    let suffix = 2;
+    while (existingNames.includes(`${normalizedName} (${suffix})`)) { suffix += 1; }
+    finalName = `${normalizedName} (${suffix})`;
+  }
+
+  const entry: ReportEntry = {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+    name: finalName,
+    repository,
+    sections,
+    startDateOverride,
+    endDateOverride,
+    dateWindows: dateWindows && dateWindows.length > 0 ? dateWindows : undefined,
+    createdAt: new Date().toISOString(),
+  };
+
+  doc.reports = [entry, ...reports];
+  await writeDocument(doc);
+  return entry;
+}
+
+export async function removeReport(id: string): Promise<void> {
+  const doc = await readDocument();
+  const reports = doc.reports ?? [];
+  doc.reports = reports.filter((r) => r.id !== id);
   await writeDocument(doc);
 }

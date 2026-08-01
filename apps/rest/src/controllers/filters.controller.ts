@@ -19,23 +19,16 @@ export class FiltersController {
   async getAllFilters(): Promise<SavedFiltersDocument> {
     const store = this.getStore();
     const filters = await store.getAll();
-    return { version: 1, filters };
+    const reports = await store.getReports();
+    return { version: 1, filters, reports };
   }
 
   @Put('/filters')
   async putAllFilters(@Body() document: SavedFiltersDocument): Promise<SavedFiltersDocument> {
     const store = this.getStore();
-
-    const existing = await store.getAll();
-    for (const entry of existing) {
-      await store.remove(entry.id);
-    }
-
-    for (const entry of document.filters) {
-      await store.save(entry.section, entry.pathname, entry.name, entry.filters, entry.repository);
-    }
-
-    const updated = await store.getAll();
-    return { version: 1, filters: updated };
+    await store.replaceAll(document);
+    const filters = await store.getAll();
+    const reports = await store.getReports();
+    return { version: 1, filters, reports };
   }
 }

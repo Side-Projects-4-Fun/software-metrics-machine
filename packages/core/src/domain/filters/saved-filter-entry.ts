@@ -65,9 +65,32 @@ export interface SavedFilterEntry {
   createdAt: string;
 }
 
+export type EvaluatableSection =
+  | 'pipelines'
+  | 'pull-requests'
+  | 'source-code'
+  | 'architecture'
+  | 'sonarqube';
+
+export interface ReportSectionRef {
+  section: EvaluatableSection;
+  savedFilterId: string;
+}
+
+export interface ReportEntry {
+  id: string;
+  name: string;
+  repository: string;
+  sections: ReportSectionRef[];
+  startDateOverride?: string;
+  endDateOverride?: string;
+  createdAt: string;
+}
+
 export type SavedFiltersDocument = {
   version: 1;
   filters: SavedFilterEntry[];
+  reports?: ReportEntry[];
 };
 
 export const DASHBOARD_FILTER_QUERY_KEYS = [
