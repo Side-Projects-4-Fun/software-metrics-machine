@@ -83,7 +83,7 @@ When implementing features (for example architecture generation), generation and
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/marabesi/software-metrics-machine
+git clone https://github.com/Side-Projects-4-Fun/software-metrics-machine
 cd software-metrics-machine
 pnpm install
 ```

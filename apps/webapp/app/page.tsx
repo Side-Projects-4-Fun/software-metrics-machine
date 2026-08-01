@@ -9,31 +9,31 @@ const resources = [
   {
     title: 'GitHub Repository',
     description: 'View source code, contribute, and report issues',
-    href: 'https://github.com/marabesi/software-metrics-machine',
+    href: 'https://github.com/Side-Projects-4-Fun/software-metrics-machine',
     icon: '🔗',
   },
   {
     title: 'Documentation',
     description: 'Learn how to use Software Metrics Machine',
-    href: 'https://marabesi.github.io/software-metrics-machine/getting-started.html',
+    href: 'https://side-projects-4-fun.github.io/software-metrics-machine/getting-started.html',
     icon: '📚',
   },
   {
     title: 'Configuration Guide',
     description: 'Set up providers and configure your workspace',
-    href: 'https://marabesi.github.io/software-metrics-machine/features/configuration.html',
+    href: 'https://side-projects-4-fun.github.io/software-metrics-machine/features/configuration.html',
     icon: '⚙️',
   },
   {
     title: 'CLI Tools',
     description: 'Access SMM through command-line interface',
-    href: 'https://marabesi.github.io/software-metrics-machine/tools.html',
+    href: 'https://side-projects-4-fun.github.io/software-metrics-machine/tools.html',
     icon: '💻',
   },
   {
     title: 'SonarQube Integration',
     description: 'Learn about SonarQube provider configuration',
-    href: 'https://marabesi.github.io/software-metrics-machine/sonarqube.html',
+    href: 'https://side-projects-4-fun.github.io/software-metrics-machine/sonarqube.html',
     icon: '🔍',
   },
   {

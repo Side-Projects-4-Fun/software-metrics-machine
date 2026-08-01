@@ -1,5 +1,5 @@
-[![CI](https://github.com/marabesi/software-metrics-machine/actions/workflows/ci.yml/badge.svg)](https://github.com/marabesi/software-metrics-machine/actions/workflows/ci.yml)
-[![Docs](https://github.com/marabesi/software-metrics-machine/actions/workflows/docs.yml/badge.svg)](https://github.com/marabesi/software-metrics-machine/actions/workflows/docs.yml)
+[![CI](https://github.com/Side-Projects-4-Fun/software-metrics-machine/actions/workflows/ci.yml/badge.svg)](https://github.com/Side-Projects-4-Fun/software-metrics-machine/actions/workflows/ci.yml)
+[![Docs](https://github.com/Side-Projects-4-Fun/software-metrics-machine/actions/workflows/docs.yml/badge.svg)](https://github.com/Side-Projects-4-Fun/software-metrics-machine/actions/workflows/docs.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=marabesi_software-metrics-machine&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=marabesi_software-metrics-machine)
 ![NPM Downloads](https://img.shields.io/npm/dw/%40smmachine%2Flauncher)
 ![NPM Version](https://img.shields.io/npm/v/%40smmachine%2Flauncher)
@@ -82,7 +82,7 @@ Commands:
   help           Show help information
 ```
 
-The official documentation is hosted at [github pages](https://marabesi.github.io/software-metrics-machine/getting-started.html).
+The official documentation is hosted at [github pages](https://side-projects-4-fun.github.io/software-metrics-machine/getting-started.html).
 
 ## References
 

@@ -156,7 +156,7 @@ export default function DrawerLayout({
               color="inherit"
               aria-label="open repository in github"
               component="a"
-              href="https://github.com/marabesi/software-metrics-machine"
+              href="https://github.com/Side-Projects-4-Fun/software-metrics-machine"
               target="_blank"
               rel="noreferrer"
               edge="end"

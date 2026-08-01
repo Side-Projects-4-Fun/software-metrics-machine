@@ -67,7 +67,13 @@ export default withMermaid(
             { text: 'Privacy first', link: '/privacy-first' },
             { text: 'Supported providers', link: '/supported-providers' },
             { text: 'Getting started', link: '/getting-started' },
+          ]
+        },
+        {
+          text: 'Using SMM',
+          items: [
             { text: 'Your first analysis', link: '/your-first-analysis-with-github' },
+            { text: 'Keeping your data up to date', link: '/keeping your data updated' },
           ]
         },
         {

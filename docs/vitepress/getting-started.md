@@ -20,7 +20,6 @@ The way this project works goes through three main steps:
 
 * Node.js 25+
 * Java (for running source code analysis)
-* Python 3.10+ and Poetry (only if you run the legacy Python implementation directly)
 
 ### Via npm
 
