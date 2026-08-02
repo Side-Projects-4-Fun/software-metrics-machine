@@ -69,7 +69,7 @@ export class PipelinesSqliteRepository
       `Loaded ${pipelineRunsFromDomain.length} pipeline runs from SQLite repository`
     );
 
-    const pipelineRuns = this.filterRuns(pipelineRunsFromDomain, options);
+    const pipelineRuns = this.applyWeekendsFilter(pipelineRunsFromDomain, options);
     const selectedJobNames = this.normalizeJobNames(options.jobNames, options.jobName);
     const excludedJobNames = this.normalizeJobNames(undefined, options.excludeJobName);
     const targetJobConclusion = options.jobConclusion?.trim().toLowerCase();
@@ -389,61 +389,23 @@ export class PipelinesSqliteRepository
       .filter((item) => item.length > 0);
   }
 
-  private filterRuns(runs: PipelineRun[], options: LoadPipelinesOptions): PipelineRun[] {
-    const selectedStatuses = this.parseCsvList(options.status).map((item) => item.toLowerCase());
-    const selectedConclusions = this.parseCsvList(options.conclusion).map((item) =>
-      item.toLowerCase()
-    );
-    const selectedBranches = this.parseCsvList(options.targetBranch);
-    const selectedEvents = this.parseCsvList(options.event);
-    const start = options.startDate ? this.toDateBoundaryTimestamp(options.startDate, 'start') : 0;
-    const end = options.endDate ? this.toDateBoundaryTimestamp(options.endDate, 'end') : 0;
-
-    const filteredRuns = runs.filter((run) => {
-      if (start || end) {
-        const runTimestamp = this.toTimestamp(this.getRunMetricDate(run));
-        if (start && runTimestamp < start) return false;
-        if (end && runTimestamp > end) return false;
-      }
-      if (
-        !shouldIncludeTimestampForWeekendsMode(
-          this.getRunMetricDate(run),
-          options.weekends,
-          (dateString) => this.isWeekday(dateString)
-        )
-      ) {
-        return false;
-      }
-      if (options.workflowPath && run.path !== options.workflowPath) {
-        return false;
-      }
-      if (
-        selectedStatuses.length > 0 &&
-        !selectedStatuses.includes((run.status || '').toLowerCase())
-      ) {
-        return false;
-      }
-      if (
-        selectedConclusions.length > 0 &&
-        !selectedConclusions.includes((run.conclusion || '').toLowerCase())
-      ) {
-        return false;
-      }
-      if (selectedBranches.length > 0 && !selectedBranches.includes(run.branch || '')) {
-        return false;
-      }
-      if (selectedEvents.length > 0 && !selectedEvents.includes(run.event || '')) {
-        return false;
-      }
-
-      return true;
-    });
-
-    if (options.sort_by?.created_at) {
-      return this.sortRunsByMetricDate(filteredRuns, options.sort_by.created_at);
+  /**
+   * Apply weekends-only filter in-memory.
+   * All other filters (status, conclusion, branch, event, date range, workflowPath)
+   * are already handled by the SQL WHERE clause in loadPayloadRows.
+   * Sorting is also handled by SQL ORDER BY.
+   */
+  private applyWeekendsFilter(runs: PipelineRun[], options: LoadPipelinesOptions): PipelineRun[] {
+    if (!options.weekends) {
+      return runs;
     }
 
-    return filteredRuns;
+    return runs.filter((run) => {
+      const metricDate = run.completedAt || run.createdAt;
+      return shouldIncludeTimestampForWeekendsMode(metricDate, options.weekends, (dateString) =>
+        this.isWeekday(dateString)
+      );
+    });
   }
 
   private isWeekday(dateString?: string): boolean {
@@ -536,10 +498,6 @@ export class PipelinesSqliteRepository
     return runWithoutJobs;
   }
 
-  private getRunMetricDate(run: PipelineRun): string | undefined {
-    return run.completedAt || run.createdAt;
-  }
-
   private toTimestamp(value?: string): number {
     if (!value) {
       return 0;
@@ -605,14 +563,5 @@ export class PipelinesSqliteRepository
     targetMonday.setUTCDate(week1Monday.getUTCDate() + (week - 1) * 7);
 
     return targetMonday;
-  }
-
-  private sortRunsByMetricDate(runs: PipelineRun[], direction: 'asc' | 'desc'): PipelineRun[] {
-    const sortDirection = direction === 'asc' ? 1 : -1;
-    return [...runs].sort(
-      (a, b) =>
-        (this.toTimestamp(this.getRunMetricDate(a)) - this.toTimestamp(this.getRunMetricDate(b))) *
-        sortDirection
-    );
   }
 }
