@@ -23,6 +23,11 @@ export default function ReportDetailClient({
     return null;
   }
 
+  const effectiveStartDate =
+    activeWindow.window?.startDate ?? resolved.report.startDateOverride ?? '';
+  const effectiveEndDate =
+    activeWindow.window?.endDate ?? resolved.report.endDateOverride ?? '';
+
   return (
     <div>
       {hasMultipleWindows && (
@@ -39,6 +44,8 @@ export default function ReportDetailClient({
         savedFiltersMap={savedFiltersMap}
         evaluations={activeWindow.evaluations}
         errors={activeWindow.errors}
+        effectiveStartDate={effectiveStartDate}
+        effectiveEndDate={effectiveEndDate}
         windowLabel={
           hasMultipleWindows
             ? activeWindow.window?.label ??

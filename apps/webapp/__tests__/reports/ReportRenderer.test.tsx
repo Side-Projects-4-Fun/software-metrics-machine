@@ -22,6 +22,11 @@ jest.mock('@/components/charts/sonarqube/SonarqubeEvaluationCard', () => ({
   default: () => <div data-testid="sonar-eval">SonarQube Eval</div>,
 }));
 
+const defaultProps = {
+  effectiveStartDate: '',
+  effectiveEndDate: '',
+} as const;
+
 describe('ReportRenderer', () => {
   it('renders report name', () => {
     render(
@@ -36,6 +41,7 @@ describe('ReportRenderer', () => {
         savedFiltersMap={new Map()}
         evaluations={{}}
         errors={{}}
+        {...defaultProps}
       />,
     );
 
@@ -55,6 +61,7 @@ describe('ReportRenderer', () => {
         savedFiltersMap={new Map()}
         evaluations={{}}
         errors={{}}
+        {...defaultProps}
       />,
     );
 
@@ -146,6 +153,7 @@ describe('ReportRenderer', () => {
         errors={{
           architecture: 'Evaluation API returned 500',
         }}
+        {...defaultProps}
       />,
     );
 
@@ -246,6 +254,262 @@ describe('ReportRenderer', () => {
       fireEvent.click(pipelinesHeader); // expand
 
       expect(screen.getByTestId('pipeline-eval')).toBeVisible();
+    });
+  });
+
+  describe('dashboard links', () => {
+    it('renders a dashboard link for sections with a saved filter', () => {
+      const savedFiltersMap = new Map();
+      savedFiltersMap.set('f1', {
+        id: 'f1',
+        name: 'CI Filter',
+        section: 'pipelines',
+        pathname: '/dashboard/pipelines',
+        filters: {
+          startDate: '2026-01-01',
+          endDate: '2026-01-31',
+          workflowStatus: [],
+          workflowConclusions: [],
+          jobSelector: [],
+          branch: [],
+          event: [],
+          authorSelect: [],
+          excludeAuthorSelect: [],
+          excludeCommenterSelect: [],
+          labelSelector: [],
+          aggregateBy: 'week',
+          weekends: 'include',
+          outlierMode: 'include',
+          compareStartDate: '',
+          compareEndDate: '',
+          rawFilters: '',
+          period: 'week',
+          ignorePatternFiles: '',
+          includePatternFiles: '',
+          authorSelectSourceCode: [],
+          topEntries: 20,
+          aggregateMetric: 'avg',
+          sonarqubeRemoveFolders: true,
+        },
+        repository: 'owner/repo',
+        createdAt: '',
+      });
+
+      render(
+        <ReportRenderer
+          report={{
+            id: 'r1',
+            name: 'Report 42',
+            repository: 'owner/repo',
+            sections: [{ section: 'pipelines', savedFilterId: 'f1' }],
+            createdAt: '2026-01-01T00:00:00.000Z',
+          }}
+          savedFiltersMap={savedFiltersMap}
+          evaluations={{ pipelines: { generatedAt: '', signals: [], summary: {} } }}
+          errors={{}}
+        />,
+      );
+
+      const link = screen.getByRole('link', { name: /Open Pipelines in dashboard/ });
+      expect(link).toBeVisible();
+      expect(link).toHaveAttribute('href');
+      expect(link.getAttribute('href')).toContain('/dashboard/pipelines?');
+      expect(link.getAttribute('href')).toContain('startDate=2026-01-01');
+      expect(link.getAttribute('href')).toContain('endDate=2026-01-31');
+    });
+
+    it('does not render a dashboard link for sections with missing saved filter', () => {
+      render(
+        <ReportRenderer
+          report={{
+            id: 'r1',
+            name: 'Report 42',
+            repository: 'owner/repo',
+            sections: [{ section: 'architecture', savedFilterId: 'missing-id' }],
+            createdAt: '2026-01-01T00:00:00.000Z',
+          }}
+          savedFiltersMap={new Map()}
+          evaluations={{}}
+          errors={{}}
+        />,
+      );
+
+      expect(screen.queryByRole('link', { name: /Open.*dashboard/ })).not.toBeInTheDocument();
+    });
+
+    it('renders dashboard links for each section with a saved filter', () => {
+      const savedFiltersMap = new Map();
+      savedFiltersMap.set('f1', {
+        id: 'f1',
+        name: 'CI Filter',
+        section: 'pipelines',
+        pathname: '/dashboard/pipelines',
+        filters: {
+          startDate: '2026-01-01',
+          endDate: '2026-01-31',
+          workflowStatus: [],
+          workflowConclusions: [],
+          jobSelector: [],
+          branch: [],
+          event: [],
+          authorSelect: [],
+          excludeAuthorSelect: [],
+          excludeCommenterSelect: [],
+          labelSelector: [],
+          aggregateBy: 'week',
+          weekends: 'include',
+          outlierMode: 'include',
+          compareStartDate: '',
+          compareEndDate: '',
+          rawFilters: '',
+          period: 'week',
+          ignorePatternFiles: '',
+          includePatternFiles: '',
+          authorSelectSourceCode: [],
+          topEntries: 20,
+          aggregateMetric: 'avg',
+          sonarqubeRemoveFolders: true,
+        },
+        repository: 'owner/repo',
+        createdAt: '',
+      });
+
+      render(
+        <ReportRenderer
+          report={{
+            id: 'r1',
+            name: 'Report 42',
+            repository: 'owner/repo',
+            sections: [{ section: 'pipelines', savedFilterId: 'f1' }],
+            createdAt: '2026-01-01T00:00:00.000Z',
+          }}
+          savedFiltersMap={savedFiltersMap}
+          evaluations={{ pipelines: { generatedAt: '', signals: [], summary: {} } }}
+          errors={{}}
+          {...defaultProps}
+        />,
+      );
+
+      expect(screen.getByTestId('pipeline-eval')).toBeVisible();
+    });
+
+    it('dashboard link opens in a new tab', () => {
+      const savedFiltersMap = new Map();
+      savedFiltersMap.set('f1', {
+        id: 'f1',
+        name: 'Sonar Filter',
+        section: 'sonarqube',
+        pathname: '/dashboard/sonarqube',
+        filters: {
+          startDate: '',
+          endDate: '',
+          workflowStatus: [],
+          workflowConclusions: [],
+          jobSelector: [],
+          branch: [],
+          event: [],
+          authorSelect: [],
+          excludeAuthorSelect: [],
+          excludeCommenterSelect: [],
+          labelSelector: [],
+          aggregateBy: 'week',
+          weekends: 'include',
+          outlierMode: 'include',
+          compareStartDate: '',
+          compareEndDate: '',
+          rawFilters: '',
+          period: 'week',
+          ignorePatternFiles: '',
+          includePatternFiles: '',
+          authorSelectSourceCode: [],
+          topEntries: 20,
+          aggregateMetric: 'avg',
+          sonarqubeRemoveFolders: true,
+        },
+        repository: 'owner/repo',
+        createdAt: '',
+      });
+
+      render(
+        <ReportRenderer
+          report={{
+            id: 'r1',
+            name: 'Report 42',
+            repository: 'owner/repo',
+            sections: [{ section: 'sonarqube', savedFilterId: 'f1' }],
+            createdAt: '2026-01-01T00:00:00.000Z',
+          }}
+          savedFiltersMap={savedFiltersMap}
+          evaluations={{ sonarqube: { generatedAt: '', signals: [], summary: {} } }}
+          errors={{}}
+          {...defaultProps}
+        />,
+      );
+
+      const link = screen.getByRole('link', { name: /Open SonarQube in dashboard/ });
+      expect(link).toHaveAttribute('target', '_blank');
+      expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    });
+
+    it('uses effective dates instead of saved filter dates in the link', () => {
+      const savedFiltersMap = new Map();
+      savedFiltersMap.set('f1', {
+        id: 'f1',
+        name: 'CI Filter',
+        section: 'pipelines',
+        pathname: '/dashboard/pipelines',
+        filters: {
+          startDate: '2026-01-01',
+          endDate: '2026-01-31',
+          workflowStatus: [],
+          workflowConclusions: [],
+          jobSelector: [],
+          branch: [],
+          event: [],
+          authorSelect: [],
+          excludeAuthorSelect: [],
+          excludeCommenterSelect: [],
+          labelSelector: [],
+          aggregateBy: 'week',
+          weekends: 'include',
+          outlierMode: 'include',
+          compareStartDate: '',
+          compareEndDate: '',
+          rawFilters: '',
+          period: 'week',
+          ignorePatternFiles: '',
+          includePatternFiles: '',
+          authorSelectSourceCode: [],
+          topEntries: 20,
+          aggregateMetric: 'avg',
+          sonarqubeRemoveFolders: true,
+        },
+        repository: 'owner/repo',
+        createdAt: '',
+      });
+
+      render(
+        <ReportRenderer
+          report={{
+            id: 'r1',
+            name: 'Report 42',
+            repository: 'owner/repo',
+            sections: [{ section: 'pipelines', savedFilterId: 'f1' }],
+            createdAt: '2026-01-01T00:00:00.000Z',
+          }}
+          savedFiltersMap={savedFiltersMap}
+          evaluations={{ pipelines: { generatedAt: '', signals: [], summary: {} } }}
+          errors={{}}
+          {...defaultProps}
+          effectiveStartDate="2026-03-15"
+          effectiveEndDate="2026-04-15"
+        />,
+      );
+
+      const link = screen.getByRole('link', { name: /Open Pipelines in dashboard/ });
+      const href = link.getAttribute('href')!;
+      expect(href).toContain('startDate=2026-03-15');
+      expect(href).toContain('endDate=2026-04-15');
     });
   });
 });

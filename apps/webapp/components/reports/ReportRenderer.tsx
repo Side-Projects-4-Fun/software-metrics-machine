@@ -1,15 +1,18 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Typography, Chip, Box, Button, IconButton } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PipelineEvaluationCard from '@/components/charts/pipeline/PipelineEvaluationCard';
 import PREvaluationCard from '@/components/charts/pull-requests/PREvaluationCard';
 import CodeEvaluationCard from '@/components/charts/source-code/CodeEvaluationCard';
 import ArchitectureEvaluationCard from '@/components/charts/architecture/ArchitectureEvaluationCard';
 import SonarqubeEvaluationCard from '@/components/charts/sonarqube/SonarqubeEvaluationCard';
+import { buildDashboardLink } from '@/lib/dashboard-links';
 import type { SavedFilterEntry } from '@/components/filters/saved-filters-store';
 import type { ReportEntry, EvaluatableSection } from './reports-store';
 import { EVALUATABLE_SECTION_LABELS } from './reports-store';
@@ -20,6 +23,9 @@ interface ReportRendererProps {
   evaluations: Partial<Record<EvaluatableSection, unknown>>;
   errors: Partial<Record<EvaluatableSection, string>>;
   windowLabel?: string;
+  /** Effective dates from the active window or report overrides. */
+  effectiveStartDate: string;
+  effectiveEndDate: string;
 }
 
 function formatDate(iso: string): string {
@@ -55,6 +61,8 @@ export default function ReportRenderer({
   evaluations,
   errors,
   windowLabel,
+  effectiveStartDate,
+  effectiveEndDate,
 }: ReportRendererProps) {
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(
     new Set(),
@@ -142,39 +150,71 @@ export default function ReportRenderer({
             return (
               <Box key={ref.section}>
                 <Box
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => toggleSection(ref.section)}
-                  onKeyDown={(e: React.KeyboardEvent) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      toggleSection(ref.section);
-                    }
-                  }}
-                  aria-label={`${EVALUATABLE_SECTION_LABELS[ref.section]}${saved ? ` — ${saved.name}` : ''}`}
-                  aria-expanded={!isCollapsed}
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 0.5,
                     mb: 1,
-                    p: 0,
-                    border: 'none',
-                    background: 'none',
-                    cursor: 'pointer',
-                    width: '100%',
-                    textAlign: 'left',
-                    color: 'text.primary',
                   }}
                 >
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ fontWeight: 600, flex: 1 }}
+                  <Box
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => toggleSection(ref.section)}
+                    onKeyDown={(e: React.KeyboardEvent) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleSection(ref.section);
+                      }
+                    }}
+                    aria-label={`${EVALUATABLE_SECTION_LABELS[ref.section]}${saved ? ` — ${saved.name}` : ''}`}
+                    aria-expanded={!isCollapsed}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      flex: 1,
+                      p: 0,
+                      border: 'none',
+                      background: 'none',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      color: 'text.primary',
+                    }}
                   >
-                    {EVALUATABLE_SECTION_LABELS[ref.section]}
-                    {saved && ` — ${saved.name}`}
-                  </Typography>
-                  <IconButton size="small" tabIndex={-1} aria-hidden>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{ fontWeight: 600 }}
+                    >
+                      {EVALUATABLE_SECTION_LABELS[ref.section]}
+                      {saved && ` — ${saved.name}`}
+                    </Typography>
+                  </Box>
+                  {saved && (
+                    <Link
+                      href={buildDashboardLink(ref.section, {
+                        ...saved.filters,
+                        startDate: effectiveStartDate || saved.filters.startDate,
+                        endDate: effectiveEndDate || saved.filters.endDate,
+                      })}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="smm-print-hide"
+                      aria-label={`Open ${EVALUATABLE_SECTION_LABELS[ref.section]} in dashboard`}
+                    >
+                      <IconButton
+                        size="small"
+                        component="span"
+                        tabIndex={-1}
+                      >
+                        <OpenInNewIcon fontSize="small" />
+                      </IconButton>
+                    </Link>
+                  )}
+                  <IconButton
+                    size="small"
+                    onClick={() => toggleSection(ref.section)}
+                    aria-label={`Toggle ${EVALUATABLE_SECTION_LABELS[ref.section]}`}
+                  >
                     {isCollapsed ? <ExpandMoreIcon fontSize="small" /> : <ExpandLessIcon fontSize="small" />}
                   </IconButton>
                 </Box>
