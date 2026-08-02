@@ -118,7 +118,7 @@ export default function PipelineRunsDurationCard({
         }
       }
     }
-    const allJobNames = Array.from(jobSet).sort();
+    const allJobNames = Array.from(jobSet).sort((a, b) => a.localeCompare(b));
     return { jobBreakdownData, allJobNames };
   }, [jobsDurationByWorkflow]);
   const visibleJobNames = allJobNames.filter((name) => !hiddenJobNames.has(name));

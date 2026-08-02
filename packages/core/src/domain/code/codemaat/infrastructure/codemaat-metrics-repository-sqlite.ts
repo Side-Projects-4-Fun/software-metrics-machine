@@ -536,7 +536,7 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
     const db = this.openSqlite();
     try {
       if (!this.tableExists(db, 'codemaat_entity_ownership')) {
-        return options?.select === 'authors' ? [] : [];
+        return [];
       }
 
       const rows = db
@@ -567,7 +567,7 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
       if (options?.select === 'authors') {
         return Array.from(
           new Set(filtered.map((row) => row.author).filter((author) => author.length > 0))
-        ).sort();
+        ).sort((a, b) => a.localeCompare(b));
       }
 
       return filtered.slice(0, this.resolveLimit(options?.top, Number.POSITIVE_INFINITY));

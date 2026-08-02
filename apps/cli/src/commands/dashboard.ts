@@ -191,7 +191,7 @@ export function createDashboardCommands(program: SmmCommand): void {
           });
         }
 
-        const shutdown = () => {
+        const shutdown = (): void => {
           logger.info('Stopping dashboard services...');
           terminateServices(services);
         };

@@ -88,7 +88,7 @@ export class DeploymentFrequencyService {
     }
 
     // Determine the start and end dates from the deployments
-    const sortedDays = Array.from(allDays.keys()).sort();
+    const sortedDays = Array.from(allDays.keys()).sort((a, b) => a.localeCompare(b));
     const firstDayStr = sortedDays[0];
     const lastDayStr = sortedDays[sortedDays.length - 1];
 

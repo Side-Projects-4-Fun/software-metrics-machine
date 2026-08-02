@@ -31,7 +31,7 @@ function extractErrorMessage(exceptionResponse: string | object, exception: Http
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new SmmLogger('HttpExceptionFilter', 'CRITICAL');
 
-  catch(exception: HttpException, host: ArgumentsHost) {
+  catch(exception: HttpException, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
@@ -62,7 +62,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new SmmLogger('AllExceptionsFilter', 'CRITICAL');
 
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();

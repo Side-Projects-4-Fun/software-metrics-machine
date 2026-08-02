@@ -1,8 +1,12 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import type { MetricMethod, PRDashboardData } from '@smmachine/core';
 import { parseMetricCleaningOptions, PRsService, PREvaluationService } from '@smmachine/core';
-import type { PREvaluation } from '@smmachine/core';
+import type {
+  MetricCleaningOptions,
+  MetricMethod,
+  PRDashboardData,
+  PREvaluation,
+} from '@smmachine/core';
 
 const VALID_METRIC_METHODS: MetricMethod[] = [
   'average',
@@ -31,7 +35,16 @@ function toFilters(
   status?: string,
   weekends?: string,
   outlierMode?: string
-) {
+): {
+  startDate?: string;
+  endDate?: string;
+  authors?: string;
+  excludeAuthors?: string;
+  excludeCommenters?: string;
+  labels?: string;
+  state: 'open' | 'closed' | 'merged' | 'draft' | undefined;
+  cleaning?: MetricCleaningOptions;
+} {
   return {
     startDate,
     endDate,

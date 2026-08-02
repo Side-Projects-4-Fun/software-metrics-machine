@@ -10,7 +10,7 @@ import { Logger as SmmLogger } from '@smmachine/utils';
 export class LoggingMiddleware implements NestMiddleware {
   private readonly logger = new SmmLogger('HTTP', 'CRITICAL');
 
-  use(req: Request, res: Response, next: NextFunction) {
+  use(req: Request, res: Response, next: NextFunction): void {
     const { method, originalUrl, query } = req;
     const start = Date.now();
 
@@ -25,7 +25,7 @@ export class LoggingMiddleware implements NestMiddleware {
     const originalSend = res.send;
     const logger = this.logger;
 
-    res.send = function (data: unknown) {
+    res.send = function (data: unknown): ReturnType<typeof originalSend> {
       const duration = Date.now() - start;
       const statusCode = res.statusCode;
 

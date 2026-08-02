@@ -1,7 +1,8 @@
 import type { SmmCommand } from './smm-command';
+import type { IssuesRepository } from '@smmachine/core';
 import { createJiraDependencies } from '../factories/jira-factory';
 
-function createJiraOrchestrator(command: SmmCommand) {
+function createJiraOrchestrator(command: SmmCommand): IssuesRepository {
   const config = command.getConfiguration();
   const { issuesRepository } = createJiraDependencies(
     config,

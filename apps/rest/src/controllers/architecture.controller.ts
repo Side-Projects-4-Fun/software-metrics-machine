@@ -1,6 +1,11 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
-import { ArchitectureService, ArchitectureViewLevel } from '@smmachine/core';
+import {
+  ArchitectureService,
+  ArchitectureViewLevel,
+  type ArchitectureSnapshotHeader,
+  type ArchitectureView,
+} from '@smmachine/core';
 
 @ApiTags('Architecture')
 @Controller()
@@ -8,7 +13,7 @@ export class ArchitectureController {
   constructor(private readonly architectureService: ArchitectureService) {}
 
   @Get('/architecture/snapshots')
-  async snapshots() {
+  async snapshots(): Promise<{ result: ArchitectureSnapshotHeader[] }> {
     return {
       result: await this.architectureService.listSnapshots(),
     };
@@ -21,7 +26,7 @@ export class ArchitectureController {
     type: String,
     description: 'Snapshot id. Defaults to latest snapshot when omitted.',
   })
-  async summary(@Query('snapshot_id') snapshotId?: string) {
+  async summary(@Query('snapshot_id') snapshotId?: string): Promise<{ result: object | null }> {
     const snapshot = await this.architectureService.getSnapshot(snapshotId);
     if (!snapshot) {
       return {
@@ -76,7 +81,7 @@ export class ArchitectureController {
     @Query('snapshot_id') snapshotId?: string,
     @Query('ignore_files') ignoreFiles?: string,
     @Query('include_only') includeOnly?: string
-  ) {
+  ): Promise<{ result: ArchitectureView | null }> {
     const view = await this.architectureService.getView(level, snapshotId, {
       ignorePatterns: ignoreFiles,
       includePatterns: includeOnly,

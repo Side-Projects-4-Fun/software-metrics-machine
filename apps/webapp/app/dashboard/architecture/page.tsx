@@ -65,10 +65,6 @@ function toMermaidId(value: string): string {
   return value.replace(/[^a-zA-Z0-9_]/g, '_');
 }
 
-function resolveNodeName(view: ArchitectureView, id: string): string {
-  return view.nodes.find((node: ArchitectureNode) => node.id === id)?.name || id;
-}
-
 function buildMermaidC4(view: ArchitectureView, level: ViewLevel): string {
   const title = view.title.replace(/"/g, '');
   const lines: string[] = [];

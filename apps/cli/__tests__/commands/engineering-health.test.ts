@@ -3,7 +3,7 @@ import type { Command } from 'commander';
 import { commands } from '../../src';
 
 vi.mock('@smmachine/core', async () => {
-  const actual = await vi.importActual<typeof import('@smmachine/core')>('@smmachine/core');
+  const actual = await vi.importActual('@smmachine/core');
   return {
     ...actual,
     createEngineeringHealthOrchestrator: vi.fn(),

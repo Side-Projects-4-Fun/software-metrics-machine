@@ -5,6 +5,7 @@ import type { EngineeringHealthDependencies } from '../dependencies';
 import type {
   EngineeringHealthEvaluationInput,
   MetricCalculationInput,
+  MetricEvaluation,
   MetricScope,
   MetricTarget,
   MetricValue,
@@ -49,7 +50,7 @@ abstract class TargetScopedDeliveryMetric extends BaseMetric {
     super();
   }
 
-  async evaluate(input: EngineeringHealthEvaluationInput) {
+  async evaluate(input: EngineeringHealthEvaluationInput): Promise<MetricEvaluation[]> {
     if (this.dependencies.deploymentTargets.length === 0) {
       return [];
     }

@@ -13,7 +13,7 @@ import { createFiltersCommands } from './commands/filters';
 import { getApplicationVersion, Logger } from '@smmachine/utils';
 import { SmmCommand } from './commands/smm-command';
 
-export function commands() {
+export function commands(): SmmCommand {
   const program = new SmmCommand();
 
   program
@@ -98,7 +98,7 @@ export function commands() {
  *
  *   SMM_STORE_DATA_AT is the only global configuration environment variable.
  */
-export async function main() {
+export async function main(): Promise<void> {
   const program = commands();
 
   // Default action if no command provided

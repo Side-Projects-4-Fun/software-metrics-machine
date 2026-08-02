@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import EngineeringHealthPage from '@/app/dashboard/engineering-health/page';
 import { engineeringHealthAPI } from '@/server/api/engineeringHealth';

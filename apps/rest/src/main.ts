@@ -19,7 +19,7 @@ import { SmmNestLogger } from './logger/smm-nest-logger';
  * - Request logging and monitoring
  * - CORS support
  */
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(MetricsModule);
   app.useLogger(new SmmNestLogger('Bootstrap'));
   const logger = new SmmNestLogger('SoftwareMetricsMachine');
@@ -33,7 +33,7 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
-      exceptionFactory: (errors) => {
+      exceptionFactory: (errors): BadRequestException => {
         const message = errors
           .map((error) => {
             const constraints = Object.values(error.constraints || {});

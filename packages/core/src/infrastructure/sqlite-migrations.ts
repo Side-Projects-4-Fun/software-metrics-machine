@@ -20,7 +20,7 @@ const CODEMAAT_TABLES = [
 const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
   {
     id: '001_create_core_repository_tables',
-    up: (db) => {
+    up: (db: DatabaseSync): void => {
       db.exec(`
         CREATE TABLE IF NOT EXISTS repository_records (
           namespace TEXT NOT NULL,
@@ -222,7 +222,7 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
   },
   {
     id: '002_create_codemaat_tables',
-    up: (db) => {
+    up: (db: DatabaseSync): void => {
       db.exec(`
         CREATE TABLE IF NOT EXISTS codemaat_code_churn (
           date TEXT NOT NULL,
@@ -362,7 +362,7 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
   },
   {
     id: '003_backfill_codemaat_fetched_at',
-    up: (db) => {
+    up: (db: DatabaseSync): void => {
       CODEMAAT_TABLES.forEach((tableName) => {
         if (!tableExists(db, tableName)) {
           return;

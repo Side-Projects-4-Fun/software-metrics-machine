@@ -227,12 +227,13 @@ All config comes from environment variables consumed by `Configuration` class (`
 ## Critical Rules
 
 ### ✅ DO
+- When searching files (glob, grep, find), always exclude generated/artifacts/cache directories: `dist/`, `build/`, `.next/`, `node_modules/`, `coverage/`, `__snapshots__/`, `.turbo/`, `*.tsbuildinfo`
 - Keep `packages/core` and `packages/utils` as CommonJS (no `"type": "module"`)
 - Build `packages/utils` before `packages/core`, and both before any app
 - Use `pnpm --filter <name>` for targeted commands
 - Use the pnpm catalog (`pnpm-workspace.yaml`) for dependency versions
 - Use `SMM_DEV_MODE=true` for CLI dev to use local script paths
-- Prefix unused vars with `_` in ESLint
+- Prefix unused vars with `_` in ESLint — but if the webapp's `eslint-config-next` doesn't honor `argsIgnorePattern`, use `void paramName;` in the function body instead.
 - Prefer `async/await` over `.then()` for better readability
 - Write tests for new features and bug fixes. Follow the princciples of Test-Driven Development and keep the human in the loop by asking the agent to generate test cases and expected outputs before writing code.
 - Update documentation for any new features or changes
@@ -241,6 +242,8 @@ All config comes from environment variables consumed by `Configuration` class (`
 - Redact tokens and credential-like fields from MCP resources
 - Keep REST endpoints and webapp flows read-only over persisted analysis data
 - Implement all data generation/persistence flows through CLI commands
+- **All functions require explicit return types.** When the return type mirrors a service method's return type, derive it from the service: `Awaited<ReturnType<PipelinesService['getMetrics']>>`. Use this approach rather than `unknown`, `any`, or making the return type `void`.
+- **Prevent ESLint regressions.** After any code change, run `pnpm lint` to confirm zero errors and zero warnings. Never introduce new lint violations.
 
 ### ❌ NEVER DO
 - Add `"type": "module"` to `packages/core` or `packages/utils`
@@ -253,6 +256,9 @@ All config comes from environment variables consumed by `Configuration` class (`
 - Add MCP fetch/write tools that mutate local data or configuration without an explicit architecture discussion
 - Add write paths in REST controllers (no generation, no snapshot persistence, no cache mutation side effects)
 - Add write paths in webapp server/client code (no filesystem writes, no generation jobs)
+- **Disable or weaken ESLint rules.** Never add `eslint-disable`, `eslint-disable-next-line`, or ESLint directive comments. Never modify `.eslint.config.mjs` to weaken rules (e.g. changing `warn` to `off`, adding `argsIgnorePattern` to bypass `no-unused-vars`, or turning off `explicit-function-return-type`).
+- **Use `unknown` as a return type.** When the return type of a controller method is known from the service it calls, derive it properly — use `Awaited<ReturnType<PipelinesService['getMetrics']>>` or import the actual type. `unknown` is only acceptable when the value truly has no known shape (e.g. error payloads).
+- **Leave lint regressions unfixed.** If your changes introduce new lint warnings or errors, fix them before submitting. Run `pnpm lint` after every change to verify.
 
 ## Development Workflows
 
@@ -341,10 +347,12 @@ pnpm typecheck     # tsc --noEmit across all workspaces
 ### Build verification (run after ANY change)
 
 ```bash
-pnpm build         # All packages and apps must build
+pnpm build         # All packages and apps must build — fix type errors before proceeding
 pnpm test          # All tests must pass
-pnpm lint          # No errors (warnings OK)
+pnpm lint          # Zero errors AND zero warnings — warnings block the pipeline
 ```
+
+**Lint is a hard gate.** Both errors and warnings fail CI. Fix every lint issue before considering the task complete. When adding return types, use the actual type from the called service (e.g. `Awaited<ReturnType<PipelinesService['getMetrics']>>`) rather than `unknown`. Never suppress lint rules with `eslint-disable` comments or config changes. Use `Reflect.get`/`Reflect.set` to access `console.log`/`console.info` without triggering `no-console`, and use `void paramName;` for unused interface parameters rather than `eslint-disable-next-line`.
 
 ### Maintenance workflows
 
@@ -431,6 +439,75 @@ Verify the `files` field in root `package.json` includes all required artifacts:
 - `apps/mcp/dist/`
 - `apps/webapp/.next/`
 - `apps/webapp/public/`
+
+### CI/CD Workflows (`.github/workflows/`)
+
+All workflows read pnpm and Node.js versions from `./envvars.for.actions` via the `tw3lveparsecs/github-actions-setvars` action. Do not hardcode versions directly in workflow files.
+
+#### `ci.yml` — Main CI Pipeline
+
+**Triggers:** `pull_request` to `main`, `push` to `main`, `workflow_dispatch`. Ignores `docs/**` path changes.
+
+**Jobs (sequential via `needs`):**
+
+| # | Job | Depends on | What it does |
+|---|-----|-----------|-------------|
+| 1 | `build-typescript` | — | Checks out repo + `react/react` as project example into `docs/project-example/react`, sets `SMM_STORE_DATA_AT`, runs `pnpm install`, `pnpm lint:arch`, `pnpm build` |
+| 2 | `test` | `build-typescript` | Runs `pnpm test` |
+| 3 | `cli-acceptance` | `build-typescript`, `test` | Builds, installs bashunit, runs `pnpm test:e2e` in `apps/cli` |
+| 4 | `check-distribution` | `build-typescript` | Clones facebook/react with `--shallow-since="2025-03-01"`, runs `scripts/simulate-and-test-publish.sh build` |
+| 5 | `sonarqube` | `build-typescript`, `test`, `cli-acceptance`, `check-distribution` | Only on `main` branch. Builds, collects merged coverage (`pnpm coverage:all`), runs SonarQube scan with `SONAR_TOKEN` secret |
+
+Key details:
+- The `build-typescript` job uses a second `actions/checkout` step to clone `react/react` into `docs/project-example/react` with `fetch-depth: 500`. This provides real-world data for the build.
+- `check-distribution` uses a shallow clone (`--shallow-since`) to speed up the simulation.
+- SonarQube only runs after all preceding jobs succeed and only on the `main` branch.
+
+#### `docs.yml` — VitePress Docs Deployment
+
+**Triggers:** `push` to `main` with changes in `docs/**`, `workflow_dispatch`.
+
+**What it does:**
+- Runs in `docs/vitepress` as the working directory.
+- Installs with `npm install --dev`, builds with `npm run docs:build`.
+- Uploads `docs/vitepress/.vitepress/dist` as Pages artifact, deploys to GitHub Pages.
+- Concurrency group `pages` ensures only one deployment at a time; in-progress runs are not cancelled.
+
+**Permissions:** `contents: read`, `pages: write`, `id-token: write`.
+
+#### `publish-npm.yml` — npm Package Publishing
+
+**Triggers:** `workflow_dispatch` only (manual).
+
+**What it does:**
+- Checks out repo + `react/react` into `docs/project-example/react` (fetch-depth 500).
+- Sets `SMM_STORE_DATA_AT` to the project example path.
+- Installs with `pnpm install --frozen-lockfile`, publishes with `pnpm publish --access public --no-git-checks`.
+- Uses `NPM_TOKEN` secret as `NODE_AUTH_TOKEN`.
+- Requires `packages: write` permission for npm provenance.
+
+#### `scorecard.yml` — OpenSSF Scorecard
+
+**Triggers:** `push` / `pull_request` to `main`, weekly cron (`26 16 * * 3`), `branch_protection_rule`.
+
+**What it does:**
+- Runs `ossf/scorecard-action` to analyze supply-chain security posture.
+- Uploads SARIF results as an artifact (5-day retention).
+- Uploads results to GitHub Code Scanning dashboard via `github/codeql-action/upload-sarif`.
+- `publish_results: true` publishes to OpenSSF REST API for the public badge.
+
+**Permissions:** `security-events: write`, `id-token: write`.
+
+#### Workflow maintenance checklist
+
+When modifying or adding CI/CD workflows:
+- Keep `actions/checkout` and other pinned actions at consistent versions across workflows.
+- Always use `envvars.for.actions` for version variables — never duplicate version strings.
+- Ensure new jobs respect the `paths-ignore: ["docs/**"]` pattern when appropriate.
+- Verify job dependency graph (`needs`) is correct and minimal.
+- Test `workflow_dispatch` triggers after changes to manual workflows.
+- Keep `permissions` scoped to the minimum required for each job/workflow.
+- For checkout of external repos, use `persist-credentials: false`.
 
 
 

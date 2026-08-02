@@ -37,6 +37,9 @@ export function TargetInfo({ metric, target, description }: TargetInfoProps) {
     <>
       <div
         onClick={handleClick}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(e as unknown as React.MouseEvent<HTMLDivElement>); } }}
+        role="button"
+        tabIndex={0}
         className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-600 cursor-pointer hover:bg-blue-200 transition-colors shrink-0 select-none"
       >
         <span className="text-xs font-semibold">i</span>

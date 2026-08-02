@@ -11,7 +11,12 @@ import type {
 import { normalizeMatrixJobName } from '../matrix-job-name';
 import type { Configuration } from '../../..';
 import type { TimeZoneProvider } from '../../../infrastructure';
-import type { MetricCleaningOptions, MetricMethod, MetricSample } from '../../metric-samples';
+import type {
+  CleanedMetricSamples,
+  MetricCleaningOptions,
+  MetricMethod,
+  MetricSample,
+} from '../../metric-samples';
 import { cleanMetricSamples, computeMetricSamples } from '../../metric-samples';
 import type { PipelinesRepository } from '../repositories';
 import type {
@@ -219,7 +224,7 @@ export class PipelinesService implements IPipelinesService {
     }
 
     // Determine the start and end dates from the deployments
-    const sortedDays = Array.from(allDays.keys()).sort();
+    const sortedDays = Array.from(allDays.keys()).sort((a, b) => a.localeCompare(b));
     const firstDayStr = sortedDays[0];
     const lastDayStr = sortedDays[sortedDays.length - 1];
 
@@ -524,7 +529,7 @@ export class PipelinesService implements IPipelinesService {
       new Set(
         runs.map((run: PipelineRun) => run.path || '').filter((value: string) => value.length > 0)
       )
-    ).sort();
+    ).sort((a, b) => a.localeCompare(b));
     return values.map((workflow) => ({ name: workflow, path: workflow }));
   }
 
@@ -711,7 +716,7 @@ export class PipelinesService implements IPipelinesService {
   private cleanPipelineSamples(
     samples: Array<MetricSample<PipelineAverageOutlierItem>>,
     options?: MetricCleaningOptions
-  ) {
+  ): CleanedMetricSamples<PipelineAverageOutlierItem> {
     return cleanMetricSamples(samples, options);
   }
 

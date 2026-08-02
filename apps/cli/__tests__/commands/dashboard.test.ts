@@ -12,7 +12,7 @@ vi.mock('child_process', () => ({
 }));
 
 vi.mock('fs', async (importActual) => {
-  const actual = await importActual<typeof import('fs')>();
+  const actual = await importActual();
   return {
     ...actual,
     existsSync: mocks.existsSync,

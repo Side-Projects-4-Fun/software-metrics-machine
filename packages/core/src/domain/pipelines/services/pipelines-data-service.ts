@@ -10,7 +10,12 @@ import type {
 } from '../pipeline-types';
 import { normalizeMatrixJobName } from '../matrix-job-name';
 import type { TimeZoneProvider } from '../../../infrastructure';
-import type { MetricCleaningOptions, MetricMethod, MetricSample } from '../../metric-samples';
+import type {
+  CleanedMetricSamples,
+  MetricCleaningOptions,
+  MetricMethod,
+  MetricSample,
+} from '../../metric-samples';
 import {
   cleanMetricSamples,
   computeMetricSamples,
@@ -208,7 +213,7 @@ export class PipelinesDataService implements IPipelinesService {
       return [];
     }
 
-    const sortedDays = Array.from(allDays.keys()).sort();
+    const sortedDays = Array.from(allDays.keys()).sort((a, b) => a.localeCompare(b));
     const firstDayStr = sortedDays[0];
     const lastDayStr = sortedDays[sortedDays.length - 1];
 
@@ -722,7 +727,7 @@ export class PipelinesDataService implements IPipelinesService {
   private cleanPipelineSamples(
     samples: Array<MetricSample<PipelineAverageOutlierItem>>,
     options?: MetricCleaningOptions
-  ) {
+  ): CleanedMetricSamples<PipelineAverageOutlierItem> {
     return cleanMetricSamples(samples, options);
   }
 

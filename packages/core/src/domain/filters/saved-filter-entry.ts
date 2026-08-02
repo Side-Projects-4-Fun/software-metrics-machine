@@ -267,13 +267,13 @@ export function parseDashboardFilters(
 export function serializeDashboardFilters(filters: DashboardFilters): URLSearchParams {
   const params = new URLSearchParams();
 
-  const append = (key: string, value: string | number | undefined) => {
+  const append = (key: string, value: string | number | undefined): void => {
     if (value !== undefined && value !== '') {
       params.set(key, String(value));
     }
   };
 
-  const appendList = (key: string, values: string[] | undefined) => {
+  const appendList = (key: string, values: string[] | undefined): void => {
     if (values && values.length > 0) {
       params.set(key, values.join(','));
     }

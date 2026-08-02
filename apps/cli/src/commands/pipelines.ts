@@ -11,7 +11,12 @@ import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provid
 import { DeploymentFrequencyService } from '@smmachine/core/domain/pipelines/services/deployment-frequency-service';
 import { resolveSavedFilterOptions } from './helpers/filter-helper';
 
-function createPipelineDependencies(command: SmmCommand) {
+function createPipelineDependencies(command: SmmCommand): ReturnType<
+  typeof PipelineFactory.create
+> & {
+  pipelineService: PipelinesService;
+  deploymentFrequencyService: DeploymentFrequencyService;
+} {
   const config = command.getConfiguration();
   const logger = command.getLogger('PipelinesCommand');
   const timeZoneProvider = new TimeZoneProvider(config.timezone);

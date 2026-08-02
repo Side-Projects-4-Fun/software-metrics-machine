@@ -90,13 +90,12 @@ describe('ReportsClient', () => {
       />,
     );
 
-    await waitFor(() => {
-      fireEvent.click(
-        screen.getByRole('button', { name: /New Report/ }),
-      );
-    });
+    const newReportButton = await screen.findByRole('button', { name: /New Report/ });
+    fireEvent.click(newReportButton);
 
-    expect(await screen.findByRole('dialog')).toBeVisible();
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeVisible();
+    });
   });
 
   it('deletes a report when delete button is clicked and confirmed', async () => {

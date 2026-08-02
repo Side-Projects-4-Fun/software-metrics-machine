@@ -73,7 +73,7 @@ export default withMermaid(
           text: 'Using SMM',
           items: [
             { text: 'Your first analysis', link: '/your-first-analysis-with-github' },
-            { text: 'Keeping your data up to date', link: '/keeping your data updated' },
+            { text: 'Keeping your data up to date', link: '/keeping-your-data-up-to-date' },
           ]
         },
         {

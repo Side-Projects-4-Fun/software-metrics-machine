@@ -1,8 +1,10 @@
 import type {
   EngineeringHealthEvaluationInput,
   MetricCalculationInput,
+  MetricCategory,
   MetricComparison,
   MetricEvaluation,
+  MetricId,
   MetricRecommendation,
   MetricScope,
   MetricSummary,
@@ -10,7 +12,6 @@ import type {
   MetricValue,
   TrendDirection,
 } from './types';
-import type { MetricCategory, MetricId } from './types';
 
 export interface Metric {
   readonly id: MetricId;

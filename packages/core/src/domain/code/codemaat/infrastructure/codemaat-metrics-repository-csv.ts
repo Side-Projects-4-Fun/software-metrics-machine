@@ -492,7 +492,7 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
       if (options?.select === 'authors') {
         return Array.from(
           new Set(rows.map((row) => row.author).filter((author) => author.length > 0))
-        ).sort();
+        ).sort((a, b) => a.localeCompare(b));
       }
 
       return rows.slice(0, this.resolveLimit(options?.top, Number.POSITIVE_INFINITY));

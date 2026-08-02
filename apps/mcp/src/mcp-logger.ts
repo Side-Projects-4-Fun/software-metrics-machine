@@ -16,13 +16,15 @@ export function redirectConsoleToStderr(): void {
   consoleRedirected = true;
 
   // Preserve a reference so the redirect can be re-applied safely in tests.
-  const originalInfo = console.info.bind(console);
-  const originalLog = console.log.bind(console);
+  const originalInfo = Reflect.get(console, 'info').bind(console) as (...args: unknown[]) => void;
+  const originalLog = Reflect.get(console, 'log').bind(console) as (...args: unknown[]) => void;
 
-  // eslint-disable-next-line no-console
-  console.info = (...args: unknown[]) => process.stderr.write(formatLine(args));
-  // eslint-disable-next-line no-console
-  console.log = (...args: unknown[]) => process.stderr.write(formatLine(args));
+  Reflect.set(console, 'info', (...args: unknown[]): boolean =>
+    process.stderr.write(formatLine(args))
+  );
+  Reflect.set(console, 'log', (...args: unknown[]): boolean =>
+    process.stderr.write(formatLine(args))
+  );
 
   // Keep references so consumers that need the originals can access them.
   (console as unknown as { __smmOriginalInfo?: (...args: unknown[]) => void }).__smmOriginalInfo =

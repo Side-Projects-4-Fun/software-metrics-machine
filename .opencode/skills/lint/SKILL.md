@@ -91,7 +91,13 @@ pnpm test          # must pass
 
 This is enforced by the developer agent as the mandatory build verification step.
 
-**Lint is a hard gate**: if `pnpm lint` reports any errors OR warnings, you MUST resolve every one of them before considering the task complete. Treat warnings with the same severity as errors. When the lint output includes fixable issues, run `pnpm lint -- --fix <path>` (or `pnpm --filter <workspace> lint -- --fix <path>` for a single workspace) to auto-fix them, then re-run `pnpm lint` to confirm there are zero issues remaining. If auto-fix cannot resolve an issue, edit the source manually until `pnpm lint` is clean.
+**Lint is a hard gate**: if `pnpm lint` reports any errors OR warnings, you MUST resolve every one of them before considering the task complete. Treat warnings with the same severity as errors. When the lint output includes fixable issues, run `pnpm --filter <workspace> exec eslint . --fix` to auto-fix them, then re-run `pnpm lint` to confirm there are zero issues remaining. If auto-fix cannot resolve an issue, edit the source manually until `pnpm lint` is clean.
+
+**After fixing lint issues**, you MUST verify that your changes haven't broken anything:
+
+1. **Build affected workspaces**: run `pnpm build` to confirm all packages compile. If type errors surface from return type annotations or import changes, fix them before proceeding. Pay special attention to return types you added — `ReturnType<typeof ...>` patterns referencing `this` inside class method signatures will fail, and `Array<T>` vs `CleanedMetricSamples<T>` (from `cleanMetricSamples`) are distinct types. Use the actual return type from the called function, not a guess.
+
+2. **Run tests for affected packages**: run `pnpm test` to confirm no regressions. For isolated verification, use `pnpm --filter <workspace> test`.
 
 ## TypeScript Strict Mode
 
@@ -108,3 +114,4 @@ This is enforced by the developer agent as the mandatory build verification step
 - Warnings are NOT tolerated — resolve all warnings and errors before completing any task
 - Errors block the pipeline
 - Running `pnpm lint --filter <workspace>` lints only a specific workspace
+- **Rule disabling is prohibited**: never use `eslint-disable` comments, `eslint-disable-next-line`, or modify any `.eslint.config.mjs` to weaken or disable rules. Fix the underlying issue instead. When a parameter from an interface is legitimately unused, use `void paramName;` in the function body rather than renaming it with an `_` prefix or suppressing the rule.

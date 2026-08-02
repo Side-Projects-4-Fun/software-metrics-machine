@@ -15,6 +15,7 @@ import type { IReadPullRequestsRepository } from '../repositories';
 import type { TimeZoneProvider } from '../../../infrastructure';
 import { stopWords } from './stop-words';
 import type {
+  CleanedMetricSamples,
   MetricCleaningOptions,
   MetricMethod,
   MetricOutlier,
@@ -175,7 +176,7 @@ export class PRsService implements IPRsService {
 
     // Calculate metrics for each month
     const result: PRsByTimeframe[] = [];
-    const months = Array.from(byMonth.keys()).sort();
+    const months = Array.from(byMonth.keys()).sort((a, b) => a.localeCompare(b));
 
     for (const month of months) {
       const monthPRs = byMonth.get(month)!;
@@ -212,7 +213,7 @@ export class PRsService implements IPRsService {
 
     // Calculate metrics for each week
     const result: PRsByTimeframe[] = [];
-    const weeks = Array.from(byWeek.keys()).sort();
+    const weeks = Array.from(byWeek.keys()).sort((a, b) => a.localeCompare(b));
 
     for (const week of weeks) {
       const weekPRs = byWeek.get(week)!;
@@ -789,7 +790,7 @@ export class PRsService implements IPRsService {
   private cleanPRSamples(
     samples: Array<MetricSample<PRAverageOutlierItem>>,
     options?: MetricCleaningOptions
-  ) {
+  ): CleanedMetricSamples<PRAverageOutlierItem> {
     return cleanMetricSamples(samples, options);
   }
 

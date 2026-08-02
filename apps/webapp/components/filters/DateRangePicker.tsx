@@ -187,7 +187,7 @@ function RangePickerDay({
         ...(isInRange && {
           borderRadius: isSingleDay ? '50%' : 0,
           bgcolor: isStart || isEnd ? 'primary.main' : 'primary.light',
-          color: isStart || isEnd ? 'primary.contrastText' : 'primary.contrastText',
+          color: 'primary.contrastText',
           opacity: isStart || isEnd ? 1 : 0.55,
           '&:hover, &:focus': {
             bgcolor: isStart || isEnd ? 'primary.dark' : 'primary.main',

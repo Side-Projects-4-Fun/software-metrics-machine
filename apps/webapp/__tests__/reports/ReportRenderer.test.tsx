@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import ReportRenderer from '@/components/reports/ReportRenderer';
 
 jest.mock('@/components/charts/pipeline/PipelineEvaluationCard', () => ({

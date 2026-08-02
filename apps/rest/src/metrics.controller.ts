@@ -15,8 +15,6 @@ import {
   DeploymentMetricsQueryDto,
   CodeMetricsQueryDto,
   QualityMetricsQueryDto,
-} from './dtos';
-import {
   ErrorResponse,
   MetricsIssueResponse,
   MetricsPRResponse,
@@ -240,7 +238,13 @@ export class MetricsController {
     }
   }
 
-  private async getDeploymentMetricsReport(filters?: DeploymentMetricsQueryDto) {
+  private async getDeploymentMetricsReport(filters?: DeploymentMetricsQueryDto): Promise<{
+    pipelineMetrics: Awaited<ReturnType<PipelinesService['getMetrics']>>;
+    deploymentFrequency: Awaited<
+      ReturnType<PipelinesService['getDeploymentFrequencyWithAllIntervals']>
+    >;
+    jobMetrics: Awaited<ReturnType<PipelinesService['getJobMetrics']>>;
+  }> {
     const pipelineMetrics = await this.pipelinesService.getMetrics(filters);
     const deploymentFrequency =
       await this.pipelinesService.getDeploymentFrequencyWithAllIntervals(filters);
@@ -253,7 +257,11 @@ export class MetricsController {
     };
   }
 
-  private async getCodeMetricsReport(filters?: CodeMetricsQueryDto) {
+  private async getCodeMetricsReport(filters?: CodeMetricsQueryDto): Promise<{
+    pairingIndex: Awaited<ReturnType<PairingIndexService['getPairingIndex']>>;
+    codeChurn: Awaited<ReturnType<ICodeMetricsRepository['getCodeChurn']>>;
+    fileCoupling: Awaited<ReturnType<ICodeMetricsRepository['getFileCoupling']>>;
+  }> {
     const pairingIndex = await this.pairingService.getPairingIndex(filters);
     const codeChurn = await this.codeMetricsRepository.getCodeChurn({
       startDate: filters?.startDate,
@@ -270,7 +278,10 @@ export class MetricsController {
     };
   }
 
-  private async getIssueMetricsReport(filters?: IssueMetricsQueryDto) {
+  private async getIssueMetricsReport(filters?: IssueMetricsQueryDto): Promise<{
+    totalIssues: number;
+    issues: Awaited<ReturnType<IssuesRepository['getIssues']>>;
+  }> {
     const issues = await this.issuesRepository.getIssues(filters);
 
     return {

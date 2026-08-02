@@ -1,12 +1,12 @@
 import { shouldIncludeTimestampForWeekendsMode } from '../../domain/metric-samples';
 import type {
   IReadPullRequestsRepository,
+  IRepository,
   PipelineJob,
   PipelineRun,
   PRDetails,
   PRFilters,
 } from '../../index';
-import type { IRepository } from '../../index';
 import type {
   PipelinesRepository,
   LoadPipelinesOptions,
@@ -39,7 +39,7 @@ export class ReadPullRequestsRepositoryBuilder {
 
   build(): IReadPullRequestsRepository {
     return {
-      loadPrsWithFilters: async (filters?: PRFilters) => {
+      loadPrsWithFilters: async (filters?: PRFilters): Promise<PRDetails[]> => {
         return this.prs.filter((pr) =>
           shouldIncludeTimestampForWeekendsMode(
             pr.mergedAt || pr.closedAt || pr.createdAt,
@@ -292,11 +292,11 @@ export class RepositoryBuilder<T> {
 
   build(): IRepository<T> {
     return {
-      save: async (_item: T) => {},
-      saveAll: async (_items: T[]) => {},
+      save: async (_item: T): Promise<void> => {},
+      saveAll: async (_items: T[]): Promise<void> => {},
       load: async () => this.singleItem,
       loadAll: async () => [...this.items],
-      delete: async () => {},
+      delete: async (): Promise<void> => {},
       exists: async () => this.existsResult,
     };
   }

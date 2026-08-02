@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('node:fs', async (importActual) => {
-  const actual = await importActual<typeof import('node:fs')>();
+  const actual = await importActual();
   return {
     ...actual,
     writeFileSync: mocks.writeFileSync,
@@ -470,7 +470,7 @@ describe('cli: SonarQube Commands', () => {
       beforeEach(async () => {
         configDir = mkdtempSync(join(tmpdir(), 'smm-sonarqube-flow-'));
         // Bypass the global writeFileSync mock to write the real config file
-        const realFs = await vi.importActual<typeof import('node:fs')>('node:fs');
+        const realFs = await vi.importActual('node:fs');
         realFs.writeFileSync(
           join(configDir, 'smm_config.json'),
           JSON.stringify({

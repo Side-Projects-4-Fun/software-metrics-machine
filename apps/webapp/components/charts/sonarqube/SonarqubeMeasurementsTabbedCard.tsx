@@ -54,7 +54,7 @@ function buildChartData(entries: MeasurementEntry[]): { chartData: ChartDataRow[
       metricsSet.add(m.metric);
     }
   }
-  const metrics = Array.from(metricsSet).sort();
+  const metrics = Array.from(metricsSet).sort((a, b) => a.localeCompare(b));
 
   const chartData = entries.map((entry) => {
     const row: ChartDataRow = { fetchedAt: formatDate(entry.fetchedAt) };

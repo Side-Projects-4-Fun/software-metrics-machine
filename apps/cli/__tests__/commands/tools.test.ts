@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('fs', async (importActual) => {
-  const actual = await importActual<typeof import('fs')>();
+  const actual = await importActual();
   return {
     ...actual,
     readdirSync: mocks.readdirSync,

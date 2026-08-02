@@ -205,7 +205,7 @@ export default function EntityOwnershipCard({ data }: { data: EntityOwnershipDat
         const totalChangesB = Object.keys(b).reduce((sum, key) => (typeof b[key] === 'number' ? sum + (b[key] as number) : sum), 0);
         return totalChangesB - totalChangesA;
       }).slice(0, 15),
-      authors: Array.from(allAuthors).sort(),
+      authors: Array.from(allAuthors).sort((a, b) => a.localeCompare(b)),
     };
   }, [data]);
 

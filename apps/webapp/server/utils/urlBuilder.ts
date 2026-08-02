@@ -290,7 +290,8 @@ function createGitHubBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
         : `${config.sonar_url}/dashboard`;
     },
 
-    getActionPerformanceForJobUrl(jobName: string, workflowName: string, granularity: 'day' | 'week' | 'month', date: string, _timezone?: string): string {
+    getActionPerformanceForJobUrl(jobName: string, workflowName: string, granularity: 'day' | 'week' | 'month', date: string, timezone?: string): string {
+      void timezone;
       const range = computeRange(date, granularity);
 
       const filterParam = buildGithubActionsMetricsFilters(workflowName, jobName);
@@ -418,7 +419,8 @@ function createGitLabBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
         : `${config.sonar_url}/dashboard`;
     },
 
-    getActionPerformanceForJobUrl(jobName: string, workflowName: string, granularity: 'day' | 'week' | 'month', date: string, _timezone?: string): string {
+    getActionPerformanceForJobUrl(jobName: string, workflowName: string, granularity: 'day' | 'week' | 'month', date: string, timezone?: string): string {
+      void timezone;
       const range = computeRange(date, granularity);
       const startIso = new Date(range.start).toISOString();
       const endIso = new Date(range.end).toISOString();

@@ -15,6 +15,7 @@ import {
   PullRequestsRepository,
   PullRequestFiltersRepository,
   PipelinesRepository,
+  PipelineFiltersRepository,
   IssuesRepository,
   JiraIssuesClient,
   SonarqubeMeasuresClient,
@@ -33,6 +34,7 @@ import {
   PipelineFactory,
   PipelineImplementation,
   CodemaatFactory,
+  ICodeMetricsRepository,
   createEngineeringHealthOrchestrator,
 } from '@smmachine/core';
 import { PairingService } from '@smmachine/core/domain/code/pairing/pairing-service';
@@ -48,7 +50,12 @@ import { CodeEvaluationController } from './controllers/code-evaluation.controll
 import { ArchitectureEvaluationController } from './controllers/architecture-evaluation.controller';
 import { SonarqubeEvaluationController } from './controllers/sonarqube-evaluation.controller';
 
-function buildDataDirectories(config: Configuration) {
+function buildDataDirectories(config: Configuration): {
+  gitProviderDirectory: string;
+  jiraDirectory: string;
+  sonarqubeDirectory: string;
+  codemaatDirectory: string;
+} {
   const baseDir = config.storeData || './outputs';
   const gitProvider = config.gitProvider || 'github';
   const repoSlug = (config.githubRepository || '').replace('/', '_');
@@ -70,7 +77,10 @@ function createLogger(config: Configuration, name: string): Logger {
   });
 }
 
-function createRequestTimeZoneProvider(config: Configuration, req: Record<string, unknown>) {
+function createRequestTimeZoneProvider(
+  config: Configuration,
+  req: Record<string, unknown>
+): TimeZoneProvider {
   const request = req as { query?: { timezone?: string } };
   const requestTimezone = request.query?.timezone;
   const timezone = requestTimezone || config.timezone || 'UTC';
@@ -121,7 +131,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     // Configuration Repository (singleton — caches project list)
     {
       provide: ConfigurationRepository,
-      useFactory: () =>
+      useFactory: (): ConfigurationRepository =>
         new ConfigurationRepository(process.env, undefined, new Logger('ConfigurationRepository')),
     },
 
@@ -129,7 +139,10 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     {
       provide: Configuration,
       scope: Scope.REQUEST,
-      useFactory: (configRepo: ConfigurationRepository, req: Record<string, unknown>) => {
+      useFactory: (
+        configRepo: ConfigurationRepository,
+        req: Record<string, unknown>
+      ): Configuration => {
         const request = req as { query?: { project?: string }; url?: string };
         const projectName = request.query?.project as string | undefined;
         if (projectName) {
@@ -146,7 +159,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     {
       provide: TimeZoneProvider,
       scope: Scope.REQUEST,
-      useFactory: (config: Configuration, req: Record<string, unknown>) =>
+      useFactory: (config: Configuration, req: Record<string, unknown>): TimeZoneProvider =>
         createRequestTimeZoneProvider(config, req),
       inject: [Configuration, REQUEST],
     },
@@ -154,7 +167,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     // Jira Client
     {
       provide: JiraIssuesClient,
-      useFactory: (config: Configuration) =>
+      useFactory: (config: Configuration): JiraIssuesClient =>
         new JiraIssuesClient(
           config.jiraUrl || '',
           config.jiraEmail || '',
@@ -168,7 +181,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     // SonarQube Client
     {
       provide: SonarqubeMeasuresClient,
-      useFactory: (config: Configuration) =>
+      useFactory: (config: Configuration): SonarqubeMeasuresClient =>
         new SonarqubeMeasuresClient(
           config.sonarUrl || '',
           config.sonarToken || '',
@@ -181,7 +194,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     // Git & CodeMaat
     {
       provide: CommitTraverser,
-      useFactory: (config: Configuration) =>
+      useFactory: (config: Configuration): CommitTraverser =>
         new CommitTraverser(
           config.gitRepositoryLocation || '.',
           createLogger(config, 'CommitTraverser')
@@ -191,7 +204,10 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     // Repositories
     {
       provide: PullRequestsRepository,
-      useFactory: (config: Configuration, timeZoneProvider: TimeZoneProvider) => {
+      useFactory: (
+        config: Configuration,
+        timeZoneProvider: TimeZoneProvider
+      ): ReturnType<typeof PullRequestFactory.create> => {
         return PullRequestFactory.create(
           config,
           createLogger(config, 'PullRequestsRepository'),
@@ -202,7 +218,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     },
     {
       provide: PullRequestFiltersRepository,
-      useFactory: (config: Configuration) => {
+      useFactory: (config: Configuration): ReturnType<typeof PullRequestFactory.createFilters> => {
         return PullRequestFactory.createFilters(
           config,
           createLogger(config, 'PullRequestFiltersRepository')
@@ -212,7 +228,10 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     },
     {
       provide: 'PipelinesRepository',
-      useFactory: (config: Configuration, timeZoneProvider: TimeZoneProvider) => {
+      useFactory: (
+        config: Configuration,
+        timeZoneProvider: TimeZoneProvider
+      ): PipelinesRepository => {
         return PipelineFactory.create(
           config,
           createLogger(config, 'PipelinesRepository'),
@@ -223,7 +242,10 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     },
     {
       provide: 'PipelineFiltersRepository',
-      useFactory: (config: Configuration, timeZoneProvider: TimeZoneProvider) => {
+      useFactory: (
+        config: Configuration,
+        timeZoneProvider: TimeZoneProvider
+      ): PipelineFiltersRepository => {
         return PipelineFactory.create(
           config,
           createLogger(config, 'PipelineFiltersRepository'),
@@ -238,7 +260,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
         pipelineRepository: PipelinesRepository,
         configuration: Configuration,
         timeZoneProvider: TimeZoneProvider
-      ) => {
+      ): PipelinesService => {
         return new PipelinesService(
           pipelineRepository,
           configuration,
@@ -255,7 +277,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
         pipelineRepository: PipelinesRepository,
         configuration: Configuration,
         timeZoneProvider: TimeZoneProvider
-      ) => {
+      ): Promise<PipelineImplementation> => {
         return new PipelineImplementation(
           pipelineRepository,
           configuration.getDeploymentFrequencyTargets(),
@@ -267,7 +289,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     },
     {
       provide: 'ICodeMetricsRepository',
-      useFactory: (config: Configuration) => {
+      useFactory: (config: Configuration): ICodeMetricsRepository => {
         return CodemaatFactory.create(config, createLogger(config, 'CodeMetricsRepository'));
       },
       inject: [Configuration],
@@ -278,7 +300,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
         client: JiraIssuesClient,
         config: Configuration,
         timeZoneProvider: TimeZoneProvider
-      ) => {
+      ): IssuesRepository => {
         const paths = buildDataDirectories(config);
         return new IssuesRepository(
           client,
@@ -292,7 +314,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     },
     {
       provide: SonarqubeRepository,
-      useFactory: (config: Configuration) => {
+      useFactory: (config: Configuration): SonarqubeRepository => {
         const repo = SonarqubeFactory.create(config, createLogger(config, 'SonarqubeRepository'));
         return repo;
       },
@@ -304,7 +326,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
         pullRequestRepository: PullRequestsRepository,
         config: Configuration,
         timeZoneProvider: TimeZoneProvider
-      ) => {
+      ): PRsService => {
         return new PRsService(
           pullRequestRepository,
           timeZoneProvider,
@@ -315,14 +337,17 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     },
     {
       provide: SonarQubeService,
-      useFactory: (sonarqubeRepository: SonarqubeRepository, config: Configuration) => {
+      useFactory: (
+        sonarqubeRepository: SonarqubeRepository,
+        config: Configuration
+      ): SonarQubeService => {
         return new SonarQubeService(sonarqubeRepository, createLogger(config, 'SonarQubeService'));
       },
       inject: [SonarqubeRepository, Configuration],
     },
     {
       provide: PairingService,
-      useFactory: (config: Configuration, timeZoneProvider: TimeZoneProvider) => {
+      useFactory: (config: Configuration, timeZoneProvider: TimeZoneProvider): PairingService => {
         return PairingFactory.create(
           config,
           createLogger(config, 'PairingService'),
@@ -333,7 +358,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     },
     {
       provide: BigOService,
-      useFactory: (config: Configuration) => {
+      useFactory: (config: Configuration): BigOService => {
         return new BigOService(config);
       },
       inject: [Configuration],
@@ -341,7 +366,10 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     {
       provide: 'EngineeringHealthOrchestrator',
       scope: Scope.REQUEST,
-      useFactory: (configuration: Configuration, timeZoneProvider: TimeZoneProvider) => {
+      useFactory: (
+        configuration: Configuration,
+        timeZoneProvider: TimeZoneProvider
+      ): ReturnType<typeof createEngineeringHealthOrchestrator> => {
         return createEngineeringHealthOrchestrator(
           configuration,
           createLogger(configuration, 'EngineeringHealthOrchestrator'),
@@ -353,7 +381,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
     {
       provide: ArchitectureService,
       scope: Scope.REQUEST,
-      useFactory: (config: Configuration) => {
+      useFactory: (config: Configuration): ArchitectureService => {
         return new ArchitectureService(config, createLogger(config, 'ArchitectureService'));
       },
       inject: [Configuration],
@@ -364,7 +392,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
         pipelineRepository: PipelinesRepository,
         config: Configuration,
         timeZoneProvider: TimeZoneProvider
-      ) => {
+      ): DeploymentFrequencyService => {
         return new DeploymentFrequencyService(
           pipelineRepository,
           config.getDeploymentFrequencyTargets(),
@@ -378,7 +406,7 @@ function createRequestTimeZoneProvider(config: Configuration, req: Record<string
   exports: [Configuration, ConfigurationRepository],
 })
 export class MetricsModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
+  configure(consumer: MiddlewareConsumer): void {
     // Register logging middleware for all routes
     consumer.apply(LoggingMiddleware).forRoutes('*');
   }

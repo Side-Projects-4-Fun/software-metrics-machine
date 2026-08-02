@@ -37,7 +37,10 @@ function asToolResult(value: unknown): McpToolResult {
   };
 }
 
-function getReader(argumentsValue: unknown) {
+function getReader(argumentsValue: unknown): {
+  args: ReturnType<typeof parseMetricsToolArguments>;
+  reader: ReturnType<typeof createMcpMetricsReader>;
+} {
   const args = parseMetricsToolArguments(argumentsValue);
   return {
     args,
@@ -58,7 +61,7 @@ export const tools: RegisteredTool[] = [
       additionalProperties: false,
       properties: {},
     },
-    async handler() {
+    async handler(): Promise<McpToolResult> {
       toolLogger.debug('smm_list_projects: loading project list from smm_config.json');
       const repository = new ConfigurationRepository(
         process.env,
@@ -83,7 +86,7 @@ export const tools: RegisteredTool[] = [
       additionalProperties: false,
       properties: {},
     },
-    async handler() {
+    async handler(): Promise<McpToolResult> {
       toolLogger.debug('smm_list_engineering_health_metrics: returning metric catalog');
       return asToolResult({
         categories: ['delivery', 'quality', 'collaboration', 'architecture'],
@@ -96,7 +99,7 @@ export const tools: RegisteredTool[] = [
     description:
       'Get pull request metrics (throughput, review time, authors, outliers) for a configured SMM project.',
     inputSchema: buildMetricsInputSchema('Pull request metric filters.'),
-    async handler(argumentsValue) {
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const { args, reader } = getReader(argumentsValue);
       return asToolResult(
         await reader.getPRMetrics({
@@ -111,7 +114,7 @@ export const tools: RegisteredTool[] = [
     description:
       'Get pipeline and deployment metrics (durations, success rate, deployment frequency, jobs) for a configured SMM project.',
     inputSchema: buildMetricsInputSchema('Deployment metric filters.'),
-    async handler(argumentsValue) {
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const { args, reader } = getReader(argumentsValue);
       return asToolResult(
         await reader.getDeploymentMetrics({
@@ -126,7 +129,7 @@ export const tools: RegisteredTool[] = [
     description:
       'Get code churn, file coupling, and pairing metrics for a configured SMM project. Supports author and file pattern filters.',
     inputSchema: buildCodeMetricsInputSchema(),
-    async handler(argumentsValue) {
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const parsed = parseCodeMetricsArguments(argumentsValue);
       const reader = createMcpMetricsReader({
         project: parsed.project,
@@ -147,7 +150,7 @@ export const tools: RegisteredTool[] = [
     description:
       'Get Jira issue metrics for a configured SMM project. Supports optional status filter.',
     inputSchema: buildIssueMetricsInputSchema(),
-    async handler(argumentsValue) {
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const parsed = parseIssueMetricsArguments(argumentsValue);
       const reader = createMcpMetricsReader({
         project: parsed.project,
@@ -167,7 +170,7 @@ export const tools: RegisteredTool[] = [
     name: 'smm_get_quality_metrics',
     description: 'Get SonarQube quality metrics for a configured SMM project.',
     inputSchema: buildMetricsInputSchema('Quality metric filters.'),
-    async handler(argumentsValue) {
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const { args, reader } = getReader(argumentsValue);
       return asToolResult(
         await reader.getQualityMetrics({
@@ -182,7 +185,7 @@ export const tools: RegisteredTool[] = [
     description:
       'Evaluate engineering health metrics across delivery, quality, collaboration, and architecture categories. Produces values, trends, targets, and recommendations. Optionally compare a current window against a previous window.',
     inputSchema: buildEngineeringHealthInputSchema(),
-    async handler(argumentsValue) {
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const parsed = parseEngineeringHealthArguments(argumentsValue);
       const reader = createMcpMetricsReader({
         project: parsed.project,
@@ -197,7 +200,7 @@ export const tools: RegisteredTool[] = [
     description:
       'Get DORA and pipeline metrics (deployment frequency, lead time inputs, failure rate inputs, pipeline duration, jobs) with rich filtering by workflow, branch, status, conclusion, event, and cleaning options.',
     inputSchema: buildDoraMetricsInputSchema(),
-    async handler(argumentsValue) {
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const parsed = parseDoraMetricsArguments(argumentsValue);
       const reader = createMcpMetricsReader({
         project: parsed.project,
@@ -212,7 +215,7 @@ export const tools: RegisteredTool[] = [
     description:
       'List architecture snapshots previously generated for a configured SMM project. Each entry includes the snapshot id, generation time, branch, commit count, and available view levels.',
     inputSchema: buildMetricsInputSchema('Architecture snapshot lookup filters.'),
-    async handler(argumentsValue) {
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const { reader } = getReader(argumentsValue);
       return asToolResult(await reader.listArchitectureSnapshots());
     },
@@ -222,7 +225,7 @@ export const tools: RegisteredTool[] = [
     description:
       'Read a C4 architecture view (context, container, component, or code) for a configured SMM project, with optional file pattern filters.',
     inputSchema: buildArchitectureViewInputSchema(),
-    async handler(argumentsValue) {
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const parsed = parseArchitectureViewArguments(argumentsValue);
       const reader = createMcpMetricsReader({
         project: parsed.project,
@@ -236,7 +239,7 @@ export const tools: RegisteredTool[] = [
     description:
       'Get a complete metrics report (pull requests, deployment, code, issues, quality) for a configured SMM project.',
     inputSchema: buildMetricsInputSchema('Complete report filters.'),
-    async handler(argumentsValue) {
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const { args, reader } = getReader(argumentsValue);
       return asToolResult(
         await reader.getFullReport({

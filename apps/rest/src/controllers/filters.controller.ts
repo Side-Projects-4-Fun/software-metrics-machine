@@ -1,7 +1,6 @@
 import { Controller, Get, Put, Body } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Configuration } from '@smmachine/core';
-import { SavedFiltersStore, FileSystemSavedFiltersAdapter } from '@smmachine/core';
+import { Configuration, SavedFiltersStore, FileSystemSavedFiltersAdapter } from '@smmachine/core';
 import type { SavedFiltersDocument } from '@smmachine/core';
 
 @ApiTags('Filters')
