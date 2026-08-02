@@ -122,8 +122,8 @@ jobs:
         working-directory: apps/cli
         run: |
           mkdir -p lib
-          curl -sSL -o /tmp/bashunit-install.sh https://bashunit.com/install.sh
-          bash /tmp/bashunit-install.sh
+          curl -sSL -o install-bashunit.sh https://bashunit.com/install.sh
+          bash install-bashunit.sh
 
       - name: Run CLI bashunit e2e tests
         run: cd apps/cli && pnpm run test:e2e
