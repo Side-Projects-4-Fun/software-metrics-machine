@@ -54,23 +54,30 @@ For feature pages, keep each metric or workflow section synchronized:
 4. Show the equivalent CLI command.
 5. Document shared filters once, then reference them from each metric section.
 
-Use VitePress tabs when a section naturally compares visual and terminal usage:
+Use VitePress tabs when a section naturally compares visual and terminal usage. **Always use the `==` title syntax inside `:::tabs` — never use the `::::tabs` / `:::tab` nesting pattern.**
 
-~~~~markdown
-::::tabs key:cli
-:::tab Dashboard
+```markdown
+:::tabs key:cli
+== Dashboard
 ![Readable dashboard alt text](/dashboard/path/to-screenshot.png)
 
 The dashboard card appears in the Feature tab and uses the shared date filters.
-:::
 
-:::tab CLI
+== CLI
 ```bash
 smm feature command --start-date 2026-01-01 --end-date 2026-01-31
 ```
 :::
-::::
-~~~~
+```
+
+### Tab rules (mandatory)
+
+- **Open with `:::tabs key:cli` (3 colons)** and close with `:::` (3 colons). Never use `::::tabs` (4 colons) or `::::` closers.
+- **Use `== Title` for inner tab panes.** Never use `:::tab Title` or `:::tab` directives.
+- Do not mix `::::tabs` / `:::tab` with `:::tabs` / `== Title` in the same file. Every `:::tabs` block must use the `==` syntax throughout.
+- The `key:cli` attribute synchronizes tab selection across blocks on the same page — always include it.
+- No blank `:::` (3 colons) lines inside the block — the inner panes are delimited by `==` headings, not by closing `:::` directives.
+- Verify with `rg ':::tab '` and `rg '::::tabs'` that no wrong patterns remain in any `.md` file under `docs/vitepress/`.
 
 When no screenshot exists, still describe the dashboard location and route. Do not invent screenshots or image paths.
 
@@ -98,6 +105,13 @@ Use the smallest validation that covers the change:
 - Markdown-only edits: inspect rendered-sensitive syntax manually, especially tabs, fenced code blocks, tables, and links.
 - New or moved pages: verify `docs/vitepress/.vitepress/config.mts` sidebar entries.
 - Link, image, frontmatter, or VitePress config changes: run the VitePress build from `docs/vitepress` when practical.
+- **Tab pattern audit**: after any change that adds or modifies VitePress tabs, verify no wrong patterns exist:
+
+```bash
+rg ':::tab ' docs/vitepress/          # must return nothing
+rg '::::tabs' docs/vitepress/         # must return nothing
+rg '^:::$' docs/vitepress/ | wc -l   # must equal the count of ':::tabs key:cli' lines
+```
 
 Common docs commands:
 

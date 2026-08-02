@@ -332,8 +332,8 @@ smm code coupling
 
 Pairing metrics reveal collaborative patterns in your codebase by detecting co-authored commits.
 
-::::tabs key:cli
-:::tab Dashboard
+:::tabs key:cli
+== Dashboard
 
 The dashboard shows pairing data in two cards:
 
@@ -342,9 +342,7 @@ The dashboard shows pairing data in two cards:
 
 The Insights tab also shows the Pairing Index summary.
 
-:::
-
-:::tab CLI
+== CLI
 
 The `smm code summary` command shows top pairings and latest paired commits:
 
@@ -370,21 +368,18 @@ smm code pairing-index --start-date=2025-01-01 --end-date=2025-06-30 --min-share
 ```
 
 :::
-::::
 
 ## Big O Classification
 
 Analyzes source files for algorithmic complexity risks, assigning a Big O classification and score to each file.
 
-::::tabs key:cli
-:::tab Dashboard
+:::tabs key:cli
+== Dashboard
 
 The Big O Classification card lists analyzed files with their detected complexity classification and score. The card
 includes a search field backed by the `big_o_search` query parameter and a sortable score column.
 
-:::
-
-:::tab CLI
+== CLI
 
 ```bash
 smm code big-o
@@ -404,7 +399,6 @@ smm code big-o --search=src --limit=50 --output=json
 ```
 
 :::
-::::
 
 
 ## Dashboard coverage

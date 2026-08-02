@@ -150,8 +150,47 @@ function test_pipelines_runs_duration_renders_cached_duration_average() {
     --weekends exclude \
     --outlier-mode flag
 
-  assert_smm_success
   assert_smm_output_contains '"averageDuration": 15'
+  assert_smm_success
+}
+
+function test_pipelines_runs_duration_with_median_method() {
+  run_seeded_pipelines_command pipelines runs-duration \
+    --start-date 2026-02-01 \
+    --end-date 2026-02-28 \
+    --workflow ".github/workflows/deploy.yml" \
+    --method median \
+    --raw-filters "status=completed" \
+    --weekends exclude \
+    --outlier-mode flag
+
+  assert_smm_output_contains "MEDIAN Pipeline Run Durations"
+  assert_smm_output_contains "Median Duration: 15.00 minutes"
+  assert_smm_output_contains "Total Runs: 2"
+  assert_smm_success
+}
+
+function test_pipelines_runs_duration_with_min_method() {
+  run_seeded_pipelines_command pipelines runs-duration \
+    --start-date 2026-02-01 \
+    --end-date 2026-02-28 \
+    --workflow ".github/workflows/deploy.yml" \
+    --method min \
+    --raw-filters "status=completed" \
+    --weekends exclude \
+    --outlier-mode flag
+
+  assert_smm_output_contains "MIN Pipeline Run Durations"
+  assert_smm_output_contains "Min Duration: 10.00 minutes"
+  assert_smm_output_contains "Total Runs: 2"
+  assert_smm_success
+}
+
+function test_pipelines_runs_duration_help_includes_method() {
+  run_smm pipelines runs-duration --help
+  assert_smm_output_contains "--method"
+  assert_smm_output_contains "Statistical method"
+  assert_smm_success
 }
 
 function test_pipelines_runs_by_period() {
@@ -197,11 +236,33 @@ function test_pipelines_jobs_time_execution_renders_cached_job_averages() {
     --weekends exclude \
     --outlier-mode flag
 
-  assert_smm_success
   assert_smm_output_contains '"job_name": "build"'
   assert_smm_output_contains '"avg_duration_minutes": 12.5'
   assert_smm_output_contains '"failure_count": 1'
   assert_smm_output_contains '"success_count": 1'
+  assert_smm_success
+}
+
+function test_pipelines_jobs_time_execution_with_p95_method() {
+  run_seeded_pipelines_command pipelines jobs-time-execution \
+    --start-date 2026-02-01 \
+    --end-date 2026-02-28 \
+    --job build \
+    --method p95 \
+    --raw-filters "status=completed" \
+    --weekends exclude \
+    --outlier-mode flag
+
+  assert_smm_output_contains "P95 Job Execution Times"
+  assert_smm_output_contains "P95 Execution Time: 19.25 minutes"
+  assert_smm_success
+}
+
+function test_pipelines_jobs_time_execution_help_includes_method() {
+  run_smm pipelines jobs-time-execution --help
+  assert_smm_output_contains "--method"
+  assert_smm_output_contains "Statistical method"
+  assert_smm_success
 }
 
 function test_pipelines_jobs_steps_time_with_all_options() {

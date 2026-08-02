@@ -62,6 +62,7 @@ function buildPipelineFilters(options: {
   rawFilters?: string;
   weekends?: string;
   outlierMode?: string;
+  method?: string;
 }): PipelineFilters {
   return {
     startDate: options.startDate,
@@ -69,6 +70,7 @@ function buildPipelineFilters(options: {
     workflowPath: options.workflow,
     jobName: options.job,
     rawFilters: options.rawFilters,
+    method: normalizeMetricMethod(options.method),
     cleaning: parseMetricCleaningOptions({
       weekends: options.weekends,
       outlierMode: options.outlierMode,
@@ -363,6 +365,11 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--raw-filters <filters>', 'Raw Provider filters string')
     .option('--output <format>', 'Output format (text|json)', 'text')
     .option(
+      '--method <method>',
+      'Statistical method: average, median, p75, p90, p95, min, max',
+      'average'
+    )
+    .option(
       '--weekends <mode>',
       'Weekend handling for averages: include, exclude, or weekends_only',
       'include'
@@ -375,9 +382,10 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
+      const metricMethod = normalizeMetricMethod(options.method);
       try {
         const merged = await resolveSavedFilterOptions(command, 'pipelines', options);
-        screen.printLine('⏱️  Analyzing pipeline run durations...');
+        screen.printLine(`⏱️  Analyzing pipeline run durations (${metricMethod})...`);
         const { pipelineImplementation } = createPipelineDependencies(command);
 
         const { summary } = await pipelineImplementation.dashboard(buildPipelineFilters(merged));
@@ -387,12 +395,12 @@ export function createPipelinesCommands(program: SmmCommand): void {
             JSON.stringify({ averageDuration: summary.average_duration_minutes }, null, 2)
           );
         } else {
-          screen.printLine('\n=== Pipeline Run Durations ===\n');
+          screen.printLine(`\n=== ${metricMethod.toUpperCase()} Pipeline Run Durations ===\n`);
           if (options.workflow) {
             screen.printLine(`Workflow: ${options.workflow}`);
           }
           screen.printLine(
-            `Average Duration: ${summary.average_duration_minutes.toFixed(2)} minutes`
+            `${metricMethod.charAt(0).toUpperCase() + metricMethod.slice(1)} Duration: ${summary.average_duration_minutes.toFixed(2)} minutes`
           );
           screen.printLine(`Total Runs: ${summary.total_runs}`);
         }
@@ -501,6 +509,11 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--raw-filters <filters>', 'Raw Provider filters string')
     .option('--output <format>', 'Output format (text|json)', 'text')
     .option(
+      '--method <method>',
+      'Statistical method: average, median, p75, p90, p95, min, max',
+      'average'
+    )
+    .option(
       '--weekends <mode>',
       'Weekend handling for averages: include, exclude, or weekends_only',
       'include'
@@ -513,9 +526,10 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--filter <name>', 'Apply a saved filter')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('PipelinesCommand');
+      const metricMethod = normalizeMetricMethod(options.method);
       try {
         const merged = await resolveSavedFilterOptions(command, 'pipelines', options);
-        screen.printLine('⏱️  Analyzing job execution times...');
+        screen.printLine(`⏱️  Analyzing job execution times (${metricMethod})...`);
         const { pipelineImplementation } = createPipelineDependencies(command);
 
         const { jobs_summary } = await pipelineImplementation.dashboard(
@@ -525,14 +539,14 @@ export function createPipelinesCommands(program: SmmCommand): void {
         if (options.output === 'json') {
           screen.printLine(JSON.stringify(jobs_summary, null, 2));
         } else {
-          screen.printLine('\n=== Job Execution Times ===\n');
+          screen.printLine(`\n=== ${metricMethod.toUpperCase()} Job Execution Times ===\n`);
           jobs_summary.forEach((item) => {
             screen.printLine(`Job: ${item.job_name}\n`);
             screen.printLine(`Total runs: ${item.total_runs}`);
             screen.printLine(`Failure count: ${item.failure_count}`);
             screen.printLine(`Success rate: ${item.success_rate}`);
             screen.printLine(
-              `Average Execution Time: ${item.avg_duration_minutes.toFixed(2)} minutes`
+              `${metricMethod.charAt(0).toUpperCase() + metricMethod.slice(1)} Execution Time: ${item.avg_duration_minutes.toFixed(2)} minutes`
             );
             printOutliers(screen, item.outliers);
           });

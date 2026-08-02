@@ -167,10 +167,43 @@ describe('cli: Pipelines Commands', () => {
 
       const output = getOutput();
 
-      expect(output).toContain('=== Pipeline Run Durations ===');
+      expect(output).toContain('=== AVERAGE Pipeline Run Durations ===');
       expect(output).toContain('Workflow: ci.yml');
       expect(output).toContain('Average Duration: 42.00 minutes');
       expect(output).toContain('Total Runs: 10');
+    });
+
+    it('uses median method when --method=median is provided', async () => {
+      await program.parseAsync(
+        ['pipelines', 'runs-duration', '--method', 'median', '--workflow', 'ci.yml'],
+        { from: 'user' }
+      );
+
+      const output = getOutput();
+
+      expect(output).toContain('=== MEDIAN Pipeline Run Durations ===');
+      expect(output).toContain('Median Duration: 42.00 minutes');
+      expect(output).toContain('Total Runs: 10');
+    });
+
+    it('passes method to dashboard when --method is provided', async () => {
+      await program.parseAsync(['pipelines', 'runs-duration', '--method', 'p95'], { from: 'user' });
+
+      expect(dashboardMock).toHaveBeenCalledWith(expect.objectContaining({ method: 'p95' }));
+    });
+
+    it('defaults method to average when not provided', async () => {
+      await program.parseAsync(['pipelines', 'runs-duration'], { from: 'user' });
+
+      expect(dashboardMock).toHaveBeenCalledWith(expect.objectContaining({ method: 'average' }));
+    });
+
+    it('falls back to average for invalid method values', async () => {
+      await program.parseAsync(['pipelines', 'runs-duration', '--method', 'foobar'], {
+        from: 'user',
+      });
+
+      expect(dashboardMock).toHaveBeenCalledWith(expect.objectContaining({ method: 'average' }));
     });
   });
 
@@ -342,12 +375,59 @@ describe('cli: Pipelines Commands', () => {
 
       const output = getOutput();
 
-      expect(output).toContain('=== Job Execution Times ===');
+      expect(output).toContain('=== AVERAGE Job Execution Times ===');
       expect(output).toContain('Job: test');
       expect(output).toContain('Total runs: 4');
       expect(output).toContain('Failure count: 1');
       expect(output).toContain('Success rate: 75');
       expect(output).toContain('Average Execution Time: 30.00 minutes');
+    });
+
+    it('uses median method when --method=median is provided', async () => {
+      dashboardMock.mockResolvedValueOnce({
+        summary: {
+          total_runs: 0,
+          successful_runs: 0,
+          failed_runs: 0,
+          cancelled_runs: 0,
+          skipped_runs: 0,
+          timed_out_runs: 0,
+          success_rate: 0,
+          average_duration_minutes: 0,
+          first_run: null,
+          last_run: null,
+          in_progress: 0,
+          queued: 0,
+        },
+        runs_by: [],
+        jobs_summary: [
+          {
+            job_name: 'test',
+            total_runs: 4,
+            failure_count: 1,
+            success_rate: 75,
+            avg_duration_minutes: 20,
+          },
+        ],
+        job_steps_average_time: [],
+      } as never);
+
+      await program.parseAsync(['pipelines', 'jobs-time-execution', '--method', 'median'], {
+        from: 'user',
+      });
+
+      const output = getOutput();
+
+      expect(output).toContain('=== MEDIAN Job Execution Times ===');
+      expect(output).toContain('Median Execution Time: 20.00 minutes');
+    });
+
+    it('passes method to dashboard when --method is provided', async () => {
+      await program.parseAsync(['pipelines', 'jobs-time-execution', '--method', 'p90'], {
+        from: 'user',
+      });
+
+      expect(dashboardMock).toHaveBeenCalledWith(expect.objectContaining({ method: 'p90' }));
     });
   });
 

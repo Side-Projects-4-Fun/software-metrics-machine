@@ -32,11 +32,14 @@ variable, then `UTC`.
 smm pipelines fetch
 ```
 
-| Option         | Description                          | Example                   |
-|----------------|--------------------------------------|---------------------------|
-| Start date     | Fetches workflows created after a date.   | `--start-date=2025-01-01` |
-| End date       | Fetches workflows created before a date.  | `--end-date=2025-12-31`   |
-| Step           | Step defines the pace in which the data is fetched. It helps to mitigate API rate limits. | `--by-day`  |
+| Option       | Description                                                                          | Example                   |
+|--------------|--------------------------------------------------------------------------------------|---------------------------|
+| Start date   | Fetches workflows created after a date.                                              | `--start-date=2025-01-01` |
+| End date     | Fetches workflows created before a date.                                             | `--end-date=2025-12-31`   |
+| Raw Filters  | Provider-specific raw filters. See your provider's API docs for available fields.    | `--raw-filters=status=success,branch=main` |
+| Step         | Defines the pace in which data is fetched. Helps mitigate API rate limits.           | `--by-day`                |
+| Force        | Force re-fetch pipelines even if already cached.                                     | `--force`                 |
+| Update       | Incrementally update pipelines — fetch only newer items and merge with existing cache. | `--update`              |
 
 Example with an explicit timezone from the environment:
 
@@ -126,11 +129,13 @@ already parallel-aware and is unaffected by this normalization.
 smm pipelines by-status
 ```
 
-| Option         | Description                          | Example |
-|----------------|--------------------------------------|---------|
-| Start date     | Filter by created after this date.   | `--start-date=2025-01-01`     |
-| End date       | Filter by created before this date.  | `--end-date=2025-12-31`     |
-| Output         | Output format (text or json)         | `--output=json`             |
+| Option       | Description                                                                       | Example |
+|--------------|-----------------------------------------------------------------------------------|---------|
+| Start date   | Filter by created after this date.                                                | `--start-date=2025-01-01`     |
+| End date     | Filter by created before this date.                                               | `--end-date=2025-12-31`     |
+| Raw Filters  | Provider-specific raw filters. See your provider's API docs for available fields. | `--raw-filters=status=completed,conclusion=success` |
+| Output       | Output format (text or json).                                                     | `--output=json`             |
+| Filter       | Apply a saved filter.                                                             | `--filter=my-filter`        |
 
 :::
 
@@ -144,32 +149,31 @@ smm pipelines by-status
 Computes the number of pipeline runs over time and returns a time series plot showing how many pipeline executions
 were triggered in the given time frame. Aggregated by week or month.
 
-::::tabs key:cli
-:::tab Dashboard
+:::tabs key:cli
+== Dashboard
 
 Available as the Pipeline Runs by Day card in the Pipeline Runs Duration section of the Pipelines tab.
 
-:::
-
-:::tab CLI
+== CLI
 
 ```bash
 smm pipelines runs-by
 ```
 
-| Option     | Description                                        | Example                  |
-|------------|----------------------------------------------------|--------------------------|
-| Start date | Filter by created after this date.                 | `--start-date=2025-01-01`|
-| End date   | Filter by created before this date.                | `--end-date=2025-12-31`  |
-| Period     | Aggregation period (`day`, `week`, or `month`).    | `--period=month`         |
-| Output     | Output format (`text` or `json`).                  | `--output=json`          |
+| Option      | Description                                                                       | Example                  |
+|-------------|-----------------------------------------------------------------------------------|--------------------------|
+| Start date  | Filter by created after this date.                                                | `--start-date=2025-01-01`|
+| End date    | Filter by created before this date.                                               | `--end-date=2025-12-31`  |
+| Period      | Aggregation period (`day`, `week`, or `month`).                                   | `--period=month`         |
+| Raw Filters | Provider-specific raw filters. See your provider's API docs for available fields. | `--raw-filters=status=completed` |
+| Output      | Output format (`text` or `json`).                                                 | `--output=json`          |
+| Filter      | Apply a saved filter.                                                             | `--filter=my-filter`     |
 
 ```bash
 smm pipelines runs-by --start-date 2025-01-01 --end-date 2025-06-30 --period month
 ```
 
 :::
-::::
 
 
 
@@ -182,77 +186,52 @@ Computes the duration of each pipeline run over time and returns a time series p
 execution took to complete in minutes. The time taken is calculated based on the sum of all individual jobs executed in the
 pipeline, excluding skipped jobs.
 
-::::tabs key:cli
-:::tab Dashboard
+:::tabs key:cli
+== Dashboard
 
 ![Time it takes to run pipeline](/dashboard/pipelines/runs_in_minutes.png)
 
-:::
-
-:::tab CLI
+== CLI
 
 ```bash
 smm pipelines runs-duration
 ```
 
-| Option        | Description                                                                                                             | Example <div style="width:200px"></div> |
-|---------------|-------------------------------------------------------------------------------------------------------------------------|--------------------------|
-| Start date    | Filter by created after this date.                                                                                      | `--start-date=2025-01-01`     |
-| End date      | Filter by created before this date.                                                                                     | `--end-date=2025-12-31`     |
-| Metric        | The type of metric to compute for each execution (avg, sum, count)                                                      | `--metric=sum`     |
-| Aggregate     | Aggregate the data by day, plotting each day computing the desired metric                                               | `--aggregate-by-day=true`     |
-| Raw Filters   | Provider-specific raw filters. See your provider's API docs for available fields (GitHub, GitLab, etc.). | `--raw-filters=status=completed,conclusion=success`     |
-| Workflow path | Filter by the workflow file path (e.g. `.github/workflows/ci.yml` or `.gitlab-ci.yml`)               | `--workflow-path=".github/workflows/ci.yml"`     |
-| Weekends      | Include, exclude, or isolate weekend samples.                                                                           | `--weekends=exclude` |
-| Outlier mode  | Include, flag, or exclude detected outliers.                                                                            | `--outlier-mode=flag` |
+| Option       | Description                                                                                                                  | Example <div style="width:200px"></div> |
+|--------------|------------------------------------------------------------------------------------------------------------------------------|--------------------------|
+| Start date   | Filter by created after this date.                                                                                           | `--start-date=2025-01-01`     |
+| End date     | Filter by created before this date.                                                                                          | `--end-date=2025-12-31`     |
+| Workflow     | Filter by workflow name.                                                                                                      | `--workflow="ci.yml"`     |
+| Method       | Statistical method for computing durations: average, median, p75, p90, p95, min, max (default: average).                      | `--method=median` |
+| Raw Filters  | Provider-specific raw filters. See your provider's API docs for available fields (GitHub, GitLab, etc.). | `--raw-filters=status=completed,conclusion=success`     |
+| Output       | Output format (`text` or `json`).                                                                                             | `--output=json`     |
+| Weekends     | Include, exclude, or isolate weekend samples.                                                                                | `--weekends=exclude` |
+| Outlier mode | Include, flag, or exclude detected outliers.                                                                                 | `--outlier-mode=flag` |
+| Filter       | Apply a saved filter.                                                                                                         | `--filter=my-filter` |
 
 ### Examples - Runs duration
 
-Computes the average time of each pipeline run between August 17, 2025, and November 17, 2025 and aggregates the data
-by day, returning the average duration of all runs executed each day:
+Computes the average duration of pipeline runs between August 17, 2025, and November 17, 2025, filtering by workflow name:
 
 ```bash
 smm pipelines runs-duration \
   --start-date 2025-08-17 \
   --end-date 2025-11-17 \
-  --workflow-path=".github/workflows/ci.yml" \
-  --aggregate-by-day=true
+  --workflow="ci.yml"
+```
+
+Uses the median method to compute durations:
+
+```bash
+smm pipelines runs-duration \
+  --start-date 2025-08-17 \
+  --end-date 2025-11-17 \
+  --workflow="ci.yml" \
+  --method=median
 ```
 
 :::
-::::
 
-## Dashboard filters
-
-Use these filters in the Pipelines dashboard tab.
-
-### Date range filters
-
-| Dashboard filter | Backend query parameter |
-|------------------|-------------------------|
-| `startDate`      | `start_date`            |
-| `endDate`        | `end_date`              |
-| `timezone`       | `timezone`              |
-
-### Pipelines-specific filters
-
-| Dashboard filter         | Backend query parameter |
-|--------------------------|-------------------------|
-| `workflowSelector`       | `workflow_path`         |
-| `workflowStatus[]`       | `status`                |
-| `workflowConclusions[]`  | `conclusion`            |
-| `jobSelector[]`          | `job_name`              |
-| `branch[]`               | `branch`                |
-| `event[]`                | `event`                 |
-| `aggregateMetric`        | `metric`                |
-
-For list filters (`[]`), the dashboard sends comma-separated values.
-
-Filter options are loaded from the API. Workflows, statuses, conclusions, branches, events, and jobs reflect the data
-available in the configured project. When a workflow is selected, the jobs filter refreshes to the jobs for that workflow.
-
-The shared date picker, timezone behavior, saved views, and tab navigation are documented in
-[Dashboard](./dashboard.md).
 
 ## Pipeline Summary
 
@@ -269,21 +248,21 @@ Available in the Insights tab as the Pipeline Runs summary card and in the Pipel
 smm pipelines summary
 ```
 
-| Option         | Description                          | Example <div style="width:200px"></div> |
-|----------------|--------------------------------------|--------------------------|
-| Start date     | Filter by created after this date.   | `--start-date=2025-01-01`     |
-| End date       | Filter by created before this date.  | `--end-date=2025-12-31`     |
-| Limit          | Limit the number of pipelines shown  | `--max-workflows`     |
-| Output format  | Format of the output, text or json  | `--output=json`     |
+| Option        | Description                                                           | Example <div style="width:200px"></div> |
+|---------------|-----------------------------------------------------------------------|--------------------------|
+| Start date    | Filter by created after this date.                                    | `--start-date=2025-01-01`     |
+| End date      | Filter by created before this date.                                   | `--end-date=2025-12-31`     |
+| Limit         | Maximum number of workflows to list (default: 10).                    | `--max-workflows=5`     |
+| Raw Filters   | Provider-specific raw filters. See your provider's API docs.          | `--raw-filters=status=completed`     |
+| Output format | Output format (`text` or `json`).                                     | `--output=json`     |
+| Weekends      | Include, exclude, or isolate weekend samples.                         | `--weekends=exclude` |
+| Outlier mode  | Include, flag, or exclude detected outliers.                          | `--outlier-mode=flag` |
+| Filter        | Apply a saved filter.                                                 | `--filter=my-filter`     |
 
 :::
 
 
-
-
-
-
-## Jobs Average Time Execution
+## Jobs Execution Time
 
 Jobs are the building blocks of any pipeline. They represent individual tasks or steps that need to be executed as
 part of the overall pipeline process. This command associates the jobs wih their corresponding pipeline execution.
@@ -301,12 +280,17 @@ In the dashboard, the Jobs Average Time card can be viewed by job or by day.
 smm pipelines jobs-time-execution
 ```
 
-| Option       | Description                                                    | Example <div style="width:200px"></div>     |
-|--------------|----------------------------------------------------------------|---------------------------------------------|
-| Start date   | Filter by created after this date.                             | `--start-date=2025-01-01`                   |
-| End date     | Filter by created before this date.                            | `--end-date=2025-12-31`                     |
-| Job name     | Optional job name substring to filter jobs                     | `--job-name=test`                           |
-| Output       | Output format (text or json)                                   | `--output=json`                             |
+| Option       | Description                                                                           | Example <div style="width:200px"></div>     |
+|--------------|---------------------------------------------------------------------------------------|---------------------------------------------|
+| Start date   | Filter by created after this date.                                                    | `--start-date=2025-01-01`                   |
+| End date     | Filter by created before this date.                                                   | `--end-date=2025-12-31`                     |
+| Job name     | Optional job name to filter jobs.                                                      | `--job=test`                                |
+| Method       | Statistical method: average, median, p75, p90, p95, min, max (default: average).      | `--method=median` |
+| Raw Filters  | Provider-specific raw filters. See your provider's API docs.                           | `--raw-filters=conclusion=success`          |
+| Output       | Output format (`text` or `json`).                                                      | `--output=json`                             |
+| Weekends     | Include, exclude, or isolate weekend samples.                                          | `--weekends=exclude` |
+| Outlier mode | Include, flag, or exclude detected outliers.                                           | `--outlier-mode=flag` |
+| Filter       | Apply a saved filter.                                                                  | `--filter=my-filter`                        |
 
 ### Examples - Shows jobs based on their execution time
 
@@ -326,25 +310,26 @@ smm pipelines jobs-time-execution \
 
 ## Jobs by Status
 
-::::tabs key:cli
-:::tab Dashboard
+:::tabs key:cli
+== Dashboard
 
 Available as the Jobs by Status card in the Pipelines tab.
 
-:::
-
-:::tab CLI
+== CLI
 
 ```bash
 smm pipelines jobs-by-status
 ```
 
-| Option               | Description                                                                                                                 | Example <div style="width:200px"></div>             |
-|----------------------|-----------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|
-| Start date           | Filter by created after this date.                                                                                          | `--start-date=2025-01-01`                           |
-| End date             | Filter by created before this date.                                                                                         | `--end-date=2025-12-31`                             |
-| Raw Filters          | Provider-specific raw filters for job fields. See your provider's API docs for available fields. | `--raw-filters=status=completed,conclusion=success` |
-| Pipeline raw Filters | Filters by the pipeline, use this option to decrease the scope size of the dataset                                          | `--pipeline-raw-filters=status=completed`           |
+| Option       | Description                                                                                                                  | Example <div style="width:200px"></div>             |
+|--------------|------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|
+| Start date   | Filter by created after this date.                                                                                           | `--start-date=2025-01-01`                           |
+| End date     | Filter by created before this date.                                                                                          | `--end-date=2025-12-31`                             |
+| Raw Filters  | Provider-specific raw filters. See your provider's API docs for available fields. | `--raw-filters=status=completed,conclusion=success` |
+| Output       | Output format (`text` or `json`).                                                                                             | `--output=json`                                     |
+| Weekends     | Include, exclude, or isolate weekend samples.                                                                                 | `--weekends=exclude` |
+| Outlier mode | Include, flag, or exclude detected outliers.                                                                                  | `--outlier-mode=flag` |
+| Filter       | Apply a saved filter.                                                                                                         | `--filter=my-filter`                                |
 
 
 ### Examples - Filter jobs by status
@@ -356,12 +341,10 @@ successfully completed:
 smm pipelines jobs-by-status \
   --start-date 2025-08-17 \
   --end-date 2025-11-17 \
-  --pipeline-raw-filters=status=completed \ 
-  --raw-filters=conclusion=success 
+  --raw-filters=status=completed,conclusion=success
 ```
 
 :::
-::::
 
 ## Jobs Summary
 
@@ -377,11 +360,16 @@ counts, success/failure rates, and rerun count.
 smm pipelines jobs-summary
 ```
 
-| Option         | Description                          | Example <div style="width:200px"></div> |
-|----------------|--------------------------------------|--------------------------|
-| Start date     | Filter by created after this date.   | `--start-date=2025-01-01`     |
-| End date       | Filter by created before this date.  | `--end-date=2025-12-31`     |
-| Pipeline       | Filter jobs by pipeline name (not the path) | `--pipeline="Name of the pipeline"`     |
+| Option       | Description                                                         | Example <div style="width:200px"></div> |
+|--------------|---------------------------------------------------------------------|--------------------------|
+| Start date   | Filter by created after this date.                                  | `--start-date=2025-01-01`     |
+| End date     | Filter by created before this date.                                 | `--end-date=2025-12-31`     |
+| Limit        | Maximum number of jobs to list (default: 20).                       | `--max-jobs=10`     |
+| Raw Filters  | Provider-specific raw filters. See your provider's API docs.        | `--raw-filters=conclusion=success`     |
+| Output       | Output format (`text` or `json`).                                    | `--output=json`     |
+| Weekends     | Include, exclude, or isolate weekend samples.                        | `--weekends=exclude` |
+| Outlier mode | Include, flag, or exclude detected outliers.                         | `--outlier-mode=flag` |
+| Filter       | Apply a saved filter.                                                | `--filter=my-filter`     |
 
 :::
 
@@ -394,17 +382,110 @@ card includes:
 - Overall time proportion by step.
 - A sortable table of steps, average duration, and count.
 
+
+:::tabs key:cli
+== Dashboard
+
+Available when job is selected in the filters.
+
+== CLI
+
 The CLI provides the same data via `smm pipelines jobs-steps-time`, which filters to a specific job:
 
 ```bash
 smm pipelines jobs-steps-time --method average --job=build
 ```
 
-| Option       | Description                                                     | Example <div style="width:200px"></div>     |
-|--------------|-----------------------------------------------------------------|---------------------------------------------|
-| Start date   | Filter by created after this date.                              | `--start-date=2025-01-01`                   |
-| End date     | Filter by created before this date.                             | `--end-date=2025-12-31`                     |
-| Job name     | Filter by job name.                                             | `--job=build`                               |
-| Method       | Statistical method: average, median, p75, p90, p95, min, max (default: average). | `--method=median` |
-| Output       | Output format (`text` or `json`).                               | `--output=json`                             |
+| Option       | Description                                                                       | Example <div style="width:200px"></div>     |
+|--------------|-----------------------------------------------------------------------------------|---------------------------------------------|
+| Start date   | Filter by created after this date.                                                | `--start-date=2025-01-01`                   |
+| End date     | Filter by created before this date.                                               | `--end-date=2025-12-31`                     |
+| Job name     | Filter by job name.                                                               | `--job=build`                               |
+| Method       | Statistical method: average, median, p75, p90, p95, min, max (default: average).  | `--method=median` |
+| Raw Filters  | Provider-specific raw filters. See your provider's API docs.                       | `--raw-filters=conclusion=success`          |
+| Output       | Output format (`text` or `json`).                                                 | `--output=json`                             |
+| Weekends     | Include, exclude, or isolate weekend samples.                                      | `--weekends=exclude` |
+| Outlier mode | Include, flag, or exclude detected outliers.                                       | `--outlier-mode=flag` |
+| Filter       | Apply a saved filter.                                                              | `--filter=my-filter`                        |
+
+:::
+
+
+
+## Deployment Frequency
+
+Calculates deployment frequency, a key DORA metric that measures how often code is successfully deployed to production.
+Requires deployment frequency targets to be configured in `smm_config.json`. See [Configuration](./configuration.md#deployment-frequency-targets) for setup details.
+
+:::tabs key:cli
+== Dashboard
+
+Available in the Insights tab as the Deployment Frequency DORA card.
+
+== CLI
+
+```bash
+smm pipelines deployment-frequency
+```
+
+| Option      | Description                                                                       | Example <div style="width:200px"></div> |
+|-------------|-----------------------------------------------------------------------------------|--------------------------|
+| Start date  | Filter by created after this date.                                                | `--start-date=2025-01-01`     |
+| End date    | Filter by created before this date.                                               | `--end-date=2025-12-31`     |
+| Period      | Aggregation period (`day`, `week`, or `month`). Default: `week`.                  | `--period=month`     |
+| Raw Filters | Provider-specific raw filters. See your provider's API docs.                       | `--raw-filters=status=completed`     |
+| Output      | Output format (`text` or `json`).                                                  | `--output=json`     |
+| Filter      | Apply a saved filter.                                                              | `--filter=my-filter`     |
+
+### Examples - Deployment frequency
+
+Compute deployment frequency for a weekly period:
+
+```bash
+smm pipelines deployment-frequency \
+  --start-date 2025-01-01 \
+  --end-date 2025-06-30 \
+  --period week
+```
+
+:::
+
+## Lead Time for Changes
+
+Calculates lead time for changes, a DORA metric that measures the time from code commit to code successfully running in
+production.
+
+:::tabs key:cli
+== Dashboard
+
+Available in the Insights tab as the Lead Time DORA card.
+
+== CLI
+
+```bash
+smm pipelines lead-time
+```
+
+| Option       | Description                                                         | Example <div style="width:200px"></div> |
+|--------------|---------------------------------------------------------------------|--------------------------|
+| Start date   | Filter by created after this date.                                  | `--start-date=2025-01-01`     |
+| End date     | Filter by created before this date.                                 | `--end-date=2025-12-31`     |
+| Raw Filters  | Provider-specific raw filters. See your provider's API docs.        | `--raw-filters=status=completed`     |
+| Output       | Output format (`text` or `json`).                                    | `--output=json`     |
+| Weekends     | Include, exclude, or isolate weekend samples.                        | `--weekends=exclude` |
+| Outlier mode | Include, flag, or exclude detected outliers.                         | `--outlier-mode=flag` |
+| Filter       | Apply a saved filter.                                                | `--filter=my-filter`     |
+
+### Examples - Lead time
+
+Calculate the lead time for changes in the last quarter:
+
+```bash
+smm pipelines lead-time \
+  --start-date 2025-01-01 \
+  --end-date 2025-03-31 \
+  --weekends=exclude
+```
+
+:::
 
