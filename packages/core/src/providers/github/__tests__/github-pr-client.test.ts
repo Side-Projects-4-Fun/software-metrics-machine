@@ -14,7 +14,11 @@ const logger = new MockLoggerBuilder().build();
 // Helpers
 // ---------------------------------------------------------------------------
 
-function createMockRateLimitManager() {
+function createMockRateLimitManager(): {
+  waitIfNeeded: ReturnType<typeof vi.fn>;
+  updateFromHeaders: ReturnType<typeof vi.fn>;
+  waitForReset: ReturnType<typeof vi.fn>;
+} {
   return {
     waitIfNeeded: vi.fn().mockResolvedValue(undefined),
     updateFromHeaders: vi.fn(),
@@ -278,7 +282,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
       fetchPRComments: vi.fn(),
     };
     const config = {
-      getPathFromGitProvider: () => providerDir,
+      getPathFromGitProvider: (): string => providerDir,
     };
 
     const repository = new GitHubPullRequestsFetchRepository(

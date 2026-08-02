@@ -3,6 +3,7 @@ import { PipelineGitHubRunBuilder } from '../../../test/github/github-builders';
 import { GithubWorkflowClient } from '../github-workflow-client';
 import { GitHubRateLimitManager } from '../github-rate-limit-manager';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
+import type { WorkflowJsonResponse } from '../github-response-types';
 
 describe('GithubWorkflowClient - Fetch workflows by day', () => {
   const token = 'test-token';
@@ -23,7 +24,7 @@ describe('GithubWorkflowClient - Fetch workflows by day', () => {
     updatedAt: string;
     startedAt: string;
     commit: string;
-  }) =>
+  }): WorkflowJsonResponse =>
     new PipelineGitHubRunBuilder()
       .id(id)
       .number(number)

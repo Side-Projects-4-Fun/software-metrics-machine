@@ -37,7 +37,7 @@ describe('PipelinesDataService', () => {
     jobName: string;
     jobStartedAt: string;
     jobCompletedAt?: string;
-  }) {
+  }): PipelineRun {
     const jobs =
       jobId && jobName
         ? [
@@ -1000,7 +1000,7 @@ describe('PipelinesDataService', () => {
       id: string,
       createdAt: string,
       options: { completedAt?: string; runAttempt?: number } = {}
-    ) {
+    ): PipelineRun {
       return new PipelineRunBuilder()
         .withId(id)
         .withNumber(1)
@@ -1077,7 +1077,7 @@ describe('PipelinesDataService', () => {
     function runWithSteps(
       id: string,
       steps: Array<{ name?: string; startedAt?: string; completedAt?: string }>
-    ) {
+    ): PipelineRun {
       return new PipelineRunBuilder()
         .withId(id)
         .withNumber(1)
@@ -1223,7 +1223,7 @@ describe('PipelinesDataService', () => {
       createdAt: string,
       steps: Array<{ name?: string; startedAt?: string; completedAt?: string }>,
       completedAt?: string
-    ) {
+    ): PipelineRun {
       return new PipelineRunBuilder()
         .withId(id)
         .withNumber(1)

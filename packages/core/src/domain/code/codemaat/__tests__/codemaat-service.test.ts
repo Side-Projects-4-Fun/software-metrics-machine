@@ -3,7 +3,7 @@ import { CodemaatService } from '../codemaat-service';
 import type { ICodeMetricsRepository } from '../repositories/codemaat-metrics-repository';
 
 describe('CodemaatService', () => {
-  function createRepository() {
+  function createRepository(): ICodeMetricsRepository {
     return {
       getCodeChurn: vi
         .fn()

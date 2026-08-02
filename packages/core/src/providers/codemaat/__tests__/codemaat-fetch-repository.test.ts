@@ -12,7 +12,7 @@ describe('CodemaatFetchRepository', () => {
   const logger = new MockLoggerBuilder().build();
   const tempStoreDirs: string[] = [];
 
-  const createConfiguration = (values: Partial<Configuration> = {}) => {
+  const createConfiguration = (values: Partial<Configuration> = {}): Configuration => {
     const storeData = fs.mkdtempSync(path.join(os.tmpdir(), 'smm-codemaat-wrapper-store-'));
     tempStoreDirs.push(storeData);
 

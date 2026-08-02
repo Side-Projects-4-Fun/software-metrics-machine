@@ -14,7 +14,9 @@ describe('PipelinesFetchRepository - Fetch workflows by day', () => {
   const pipelineRunRepository = new InMemoryRepository<WorkflowJsonResponse>();
   const logger = new MockLoggerBuilder().build();
 
-  const createRepository = async (githubWorkflowClient: IGithubWorkflowClient) => {
+  const createRepository = async (
+    githubWorkflowClient: IGithubWorkflowClient
+  ): Promise<{ repository: PipelinesFetchRepository }> => {
     const repository = new PipelinesFetchRepository(
       configuration,
       githubWorkflowClient,
@@ -26,7 +28,7 @@ describe('PipelinesFetchRepository - Fetch workflows by day', () => {
     return { repository };
   };
 
-  const storeFetchedWorkflows = async (runs: WorkflowJsonResponse[]) => {
+  const storeFetchedWorkflows = async (runs: WorkflowJsonResponse[]): Promise<void> => {
     await pipelineRunRepository.saveAll(runs);
   };
 

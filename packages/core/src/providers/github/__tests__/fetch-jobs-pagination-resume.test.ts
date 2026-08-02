@@ -20,18 +20,20 @@ describe('Fetch jobs pipeline repository - pagination error handling and resume'
   let pipelineJobsRepository: InMemoryRepository<WorkflowJobJsonResponse>;
   const logger = new MockLoggerBuilder().build();
 
-  beforeEach(() => {
+  beforeEach((): void => {
     tempDir = mkdtempSync(join(tmpdir(), 'smm-jobs-resume-'));
-    configuration = { getPathFromGitProvider: () => tempDir };
+    configuration = { getPathFromGitProvider: (): string => tempDir };
     pipelineRunRepository = new InMemoryRepository<WorkflowJsonResponse>();
     pipelineJobsRepository = new InMemoryRepository<WorkflowJobJsonResponse>();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
-  const createRepository = (githubWorkflowClient: IGithubWorkflowJobClient) => {
+  const createRepository = (
+    githubWorkflowClient: IGithubWorkflowJobClient
+  ): PipelinesJobFetchRepository => {
     return new PipelinesJobFetchRepository(
       configuration as never,
       githubWorkflowClient,
@@ -42,7 +44,7 @@ describe('Fetch jobs pipeline repository - pagination error handling and resume'
     );
   };
 
-  const buildRun = (id: string, createdAt: string) =>
+  const buildRun = (id: string, createdAt: string): WorkflowJsonResponse =>
     new PipelineGitHubRunBuilder()
       .id(id)
       .number('1')
@@ -175,16 +177,18 @@ describe('Fetch jobs pipeline repository - resume from existing partial progress
 
   beforeEach(() => {
     tempDir = mkdtempSync(join(tmpdir(), 'smm-jobs-resume-progress-'));
-    configuration = { getPathFromGitProvider: () => tempDir };
+    configuration = { getPathFromGitProvider: (): string => tempDir };
     pipelineRunRepository = new InMemoryRepository<WorkflowJsonResponse>();
     pipelineJobsRepository = new InMemoryRepository<WorkflowJobJsonResponse>();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
-  const createRepository = (githubWorkflowClient: IGithubWorkflowJobClient) => {
+  const createRepository = (
+    githubWorkflowClient: IGithubWorkflowJobClient
+  ): PipelinesJobFetchRepository => {
     return new PipelinesJobFetchRepository(
       configuration as never,
       githubWorkflowClient,
@@ -195,7 +199,7 @@ describe('Fetch jobs pipeline repository - resume from existing partial progress
     );
   };
 
-  const buildRun = (id: string, createdAt: string) =>
+  const buildRun = (id: string, createdAt: string): WorkflowJsonResponse =>
     new PipelineGitHubRunBuilder()
       .id(id)
       .number('1')
@@ -209,9 +213,10 @@ describe('Fetch jobs pipeline repository - resume from existing partial progress
   const writeProgress = (progress: {
     processedRunIds: string[];
     partial?: { runId: string; page: number } | null;
-  }) => writeFile(join(tempDir, 'jobs_progress.json'), JSON.stringify(progress), 'utf-8');
+  }): Promise<void> =>
+    writeFile(join(tempDir, 'jobs_progress.json'), JSON.stringify(progress), 'utf-8');
 
-  const writeIncompleted = (jobs: WorkflowJobJsonResponse[]) =>
+  const writeIncompleted = (jobs: WorkflowJobJsonResponse[]): Promise<void> =>
     writeFile(join(tempDir, 'jobs_incompleted.json'), JSON.stringify(jobs), 'utf-8');
 
   it('should skip a run already listed in processedRunIds without calling fetchJobsPage for it', async () => {
@@ -289,12 +294,12 @@ describe('Fetch jobs pipeline repository - readJson malformed content', () => {
 
   beforeEach(() => {
     tempDir = mkdtempSync(join(tmpdir(), 'smm-jobs-malformed-'));
-    configuration = { getPathFromGitProvider: () => tempDir };
+    configuration = { getPathFromGitProvider: (): string => tempDir };
     pipelineRunRepository = new InMemoryRepository<WorkflowJsonResponse>();
     pipelineJobsRepository = new InMemoryRepository<WorkflowJobJsonResponse>();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 

@@ -18,7 +18,7 @@ describe('PipelinesRepositoryJson loadPipelines', () => {
   const logger = new MockLoggerBuilder().build();
   const timeZoneProvider = new TimeZoneProvider('UTC');
 
-  const createRepository = () => {
+  const createRepository = (): PipelinesRepositoryJson => {
     return new PipelinesRepositoryJson(
       pipelineRunRepository,
       pipelineJobsRepository,

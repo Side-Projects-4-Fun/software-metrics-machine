@@ -26,7 +26,7 @@ describe('Fetch jobs pipeline repository', () => {
   const createRepository = async (
     githubWorkflowClient: IGithubWorkflowJobClient,
     pipelineFiltersRepository?: { refreshOptions: ReturnType<typeof vi.fn> }
-  ) => {
+  ): Promise<{ repository: PipelinesJobFetchRepository }> => {
     const repository = new PipelinesJobFetchRepository(
       configuration,
       githubWorkflowClient,
@@ -39,7 +39,7 @@ describe('Fetch jobs pipeline repository', () => {
     return { repository };
   };
 
-  const storeFetchedWorkflows = async (runs: WorkflowJsonResponse[]) => {
+  const storeFetchedWorkflows = async (runs: WorkflowJsonResponse[]): Promise<void> => {
     await pipelineRunRepository.saveAll(runs);
   };
 

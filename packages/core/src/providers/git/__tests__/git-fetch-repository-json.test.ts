@@ -8,7 +8,13 @@ import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-buil
 describe('GitFetchRepository', () => {
   const logger = new MockLoggerBuilder().build();
 
-  const createMocks = (commits?: Commit[]) => {
+  const createMocks = (
+    commits?: Commit[]
+  ): {
+    traverseCommits: ReturnType<typeof vi.fn>;
+    commitTraverser: ICommitTraverser;
+    commitCache: InMemoryRepository<Commit>;
+  } => {
     const traverseCommits = vi.fn().mockResolvedValue({
       totalAnalyzedCommits: commits?.length ?? 0,
       pairedCommits: 0,

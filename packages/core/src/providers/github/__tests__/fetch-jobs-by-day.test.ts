@@ -18,7 +18,9 @@ describe('Fetch jobs pipeline repository - By day', () => {
   const pipelineJobsRepository = new InMemoryRepository<WorkflowJobJsonResponse>();
   const logger = new MockLoggerBuilder().build();
 
-  const createRepository = async (githubWorkflowClient: IGithubWorkflowJobClient) => {
+  const createRepository = async (
+    githubWorkflowClient: IGithubWorkflowJobClient
+  ): Promise<{ repository: PipelinesJobFetchRepository }> => {
     const repository = new PipelinesJobFetchRepository(
       configuration,
       githubWorkflowClient,
@@ -31,7 +33,7 @@ describe('Fetch jobs pipeline repository - By day', () => {
     return { repository };
   };
 
-  const storeFetchedWorkflows = async (runs: WorkflowJsonResponse[]) => {
+  const storeFetchedWorkflows = async (runs: WorkflowJsonResponse[]): Promise<void> => {
     await pipelineRunRepository.saveAll(runs);
   };
 

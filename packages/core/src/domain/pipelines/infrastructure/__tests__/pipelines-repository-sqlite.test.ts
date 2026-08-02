@@ -153,7 +153,7 @@ describe('PipelinesSqliteRepository loadPipelines', () => {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       );
       const namespace = RepositoryFactory.getPipelineRunsSqliteNamespace(config);
-      const insertPoisonRun = (id: string, overrides: Record<string, string | number>) => {
+      const insertPoisonRun = (id: string, overrides: Record<string, string | number>): void => {
         const run = {
           run_number: 999,
           name: 'Poison',

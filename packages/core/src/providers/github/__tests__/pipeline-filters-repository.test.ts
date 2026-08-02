@@ -12,7 +12,7 @@ describe('PipelineFiltersRepository', () => {
   const createRepository = async (
     runs: WorkflowJsonResponse[],
     jobs: WorkflowJobJsonResponse[]
-  ) => {
+  ): Promise<PipelineFiltersRepositoryJson> => {
     const pipelineRunRepository = new InMemoryRepository<WorkflowJsonResponse>();
     const pipelineJobsRepository = new InMemoryRepository<WorkflowJobJsonResponse>();
     const pipelineFiltersRepository = new InMemoryRepository<PipelineFilterOptions>();

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import type { PipelineRun } from '..';
 import { PipelinesService } from '..';
+import type { Configuration } from '../../../infrastructure';
 import { TimeZoneProvider } from '../../../infrastructure';
 import { PipelineJobBuilder, PipelineRunBuilder } from '../../../test/domain/domain-builders';
 import { TestConfigurationBuilder } from '../../../test/domain/configuration-builder';
@@ -8,7 +10,7 @@ import { PipelinesRepositoryBuilder } from '../../../test/repositories/repositor
 
 const logger = new MockLoggerBuilder().build();
 
-function buildDeploymentTargetConfig() {
+function buildDeploymentTargetConfig(): Configuration {
   return new TestConfigurationBuilder()
     .withExtra('getDeploymentFrequencyTargets', () => [
       { pipeline: '.github/workflows/release.yml', job: 'deploy-production' },
@@ -257,7 +259,12 @@ describe('PipelinesService behavior', () => {
   });
 });
 
-function buildDeployRun(id: string, number: number, completedAt: string, jobId: string) {
+function buildDeployRun(
+  id: string,
+  number: number,
+  completedAt: string,
+  jobId: string
+): PipelineRun {
   return new PipelineRunBuilder()
     .withId(id)
     .withNumber(number)

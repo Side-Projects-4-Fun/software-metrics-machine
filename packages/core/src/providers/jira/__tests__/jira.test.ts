@@ -92,7 +92,18 @@ describe('JiraIssuesClient', () => {
     });
 
     it('should paginate until all issues are fetched', async () => {
-      const makeIssue = (key: string) => ({
+      const makeIssue = (
+        key: string
+      ): {
+        key: string;
+        fields: {
+          summary: string;
+          status: { name: string };
+          created: string;
+          assignee: null;
+          labels: string[];
+        };
+      } => ({
         key,
         fields: { summary: key, status: { name: 'Open' }, created: '', assignee: null, labels: [] },
       });

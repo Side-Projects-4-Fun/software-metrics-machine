@@ -16,17 +16,19 @@ describe('PipelinesFetchRepository - pagination error handling and resume', () =
   let pipelineRunRepository: InMemoryRepository<WorkflowJsonResponse>;
   const logger = new MockLoggerBuilder().build();
 
-  beforeEach(() => {
+  beforeEach((): void => {
     tempDir = mkdtempSync(join(tmpdir(), 'smm-pipelines-resume-'));
-    configuration = { getPathFromGitProvider: () => tempDir };
+    configuration = { getPathFromGitProvider: (): string => tempDir };
     pipelineRunRepository = new InMemoryRepository<WorkflowJsonResponse>();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
-  const createRepository = (githubWorkflowClient: IGithubWorkflowClient) =>
+  const createRepository = (
+    githubWorkflowClient: IGithubWorkflowClient
+  ): PipelinesFetchRepository =>
     new PipelinesFetchRepository(
       configuration as never,
       githubWorkflowClient,
@@ -35,7 +37,7 @@ describe('PipelinesFetchRepository - pagination error handling and resume', () =
       logger
     );
 
-  const buildRun = (id: string, createdAt: string) =>
+  const buildRun = (id: string, createdAt: string): WorkflowJsonResponse =>
     new PipelineGitHubRunBuilder()
       .id(id)
       .number('1')
@@ -157,15 +159,17 @@ describe('PipelinesFetchRepository - resume from existing partial progress', () 
 
   beforeEach(() => {
     tempDir = mkdtempSync(join(tmpdir(), 'smm-pipelines-resume-progress-'));
-    configuration = { getPathFromGitProvider: () => tempDir };
+    configuration = { getPathFromGitProvider: (): string => tempDir };
     pipelineRunRepository = new InMemoryRepository<WorkflowJsonResponse>();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
-  const createRepository = (githubWorkflowClient: IGithubWorkflowClient) =>
+  const createRepository = (
+    githubWorkflowClient: IGithubWorkflowClient
+  ): PipelinesFetchRepository =>
     new PipelinesFetchRepository(
       configuration as never,
       githubWorkflowClient,
@@ -174,7 +178,7 @@ describe('PipelinesFetchRepository - resume from existing partial progress', () 
       logger
     );
 
-  const buildRun = (id: string, createdAt: string) =>
+  const buildRun = (id: string, createdAt: string): WorkflowJsonResponse =>
     new PipelineGitHubRunBuilder()
       .id(id)
       .number('1')
@@ -185,10 +189,10 @@ describe('PipelinesFetchRepository - resume from existing partial progress', () 
       .path('.github/workflows/ci.yml')
       .build();
 
-  const writeProgress = (progress: { page: number }) =>
+  const writeProgress = (progress: { page: number }): Promise<void> =>
     writeFile(join(tempDir, 'workflows_progress.json'), JSON.stringify(progress), 'utf-8');
 
-  const writeIncompleted = (runs: WorkflowJsonResponse[]) =>
+  const writeIncompleted = (runs: WorkflowJsonResponse[]): Promise<void> =>
     writeFile(join(tempDir, 'workflows_incompleted.json'), JSON.stringify(runs), 'utf-8');
 
   it('should resume pagination from the saved page rather than starting at page 1', async () => {
@@ -249,15 +253,17 @@ describe('PipelinesFetchRepository - empty and missing runs branches', () => {
 
   beforeEach(() => {
     tempDir = mkdtempSync(join(tmpdir(), 'smm-pipelines-empty-runs-'));
-    configuration = { getPathFromGitProvider: () => tempDir };
+    configuration = { getPathFromGitProvider: (): string => tempDir };
     pipelineRunRepository = new InMemoryRepository<WorkflowJsonResponse>();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
-  const createRepository = (githubWorkflowClient: IGithubWorkflowClient) =>
+  const createRepository = (
+    githubWorkflowClient: IGithubWorkflowClient
+  ): PipelinesFetchRepository =>
     new PipelinesFetchRepository(
       configuration as never,
       githubWorkflowClient,
@@ -312,11 +318,11 @@ describe('PipelinesFetchRepository - readJson malformed content', () => {
 
   beforeEach(() => {
     tempDir = mkdtempSync(join(tmpdir(), 'smm-pipelines-malformed-'));
-    configuration = { getPathFromGitProvider: () => tempDir };
+    configuration = { getPathFromGitProvider: (): string => tempDir };
     pipelineRunRepository = new InMemoryRepository<WorkflowJsonResponse>();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 

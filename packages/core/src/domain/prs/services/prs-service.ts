@@ -356,7 +356,7 @@ export class PRsService implements IPRsService {
       }
     }
 
-    const dates = Array.from(counts.keys()).sort();
+    const dates = Array.from(counts.keys()).sort((a, b) => a.localeCompare(b));
     const rows: Array<{ date: string; kind: string; count: number }> = [];
 
     for (const date of dates) {

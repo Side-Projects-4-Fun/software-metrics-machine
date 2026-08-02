@@ -220,7 +220,7 @@ describe('GitHubPullRequestsFetchRepository', () => {
       fetchPRComments: vi.fn(),
     };
     const config = {
-      getPathFromGitProvider: () => providerDir,
+      getPathFromGitProvider: (): string => providerDir,
     };
 
     const repository = new GitHubPullRequestsFetchRepository(

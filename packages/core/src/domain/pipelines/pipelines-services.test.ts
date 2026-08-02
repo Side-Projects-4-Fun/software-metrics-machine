@@ -4,6 +4,7 @@ import { PipelinesService } from '../..';
 import { PipelineJobBuilder, PipelineRunBuilder, PipelineStepBuilder } from '../../test/domain';
 import { PipelinesRepositoryBuilder } from '../../test/repositories/repository-builders';
 import { MockLoggerBuilder } from '../../test/infrastructure/mock-logger-builder';
+import type { Configuration } from '../../infrastructure';
 import { TimeZoneProvider } from '../../infrastructure';
 import { TestConfigurationBuilder } from '../../test/domain/configuration-builder';
 
@@ -13,7 +14,7 @@ describe('PipelinesService', () => {
   let pipelinesService: PipelinesService;
   let mockPipelineRepo: PipelinesRepository;
 
-  function buildDeploymentTargetConfig() {
+  function buildDeploymentTargetConfig(): Configuration {
     return new TestConfigurationBuilder()
       .withExtra('getDeploymentFrequencyTargets', () => [
         { pipeline: '.github/workflows/release.yml', job: 'deploy-production' },
@@ -43,7 +44,7 @@ describe('PipelinesService', () => {
     jobName: string;
     jobStartedAt: string;
     jobCompletedAt?: string;
-  }) {
+  }): PipelineRun {
     const jobs =
       jobId && jobName
         ? [
@@ -1102,7 +1103,7 @@ describe('PipelinesService', () => {
       id: string,
       createdAt: string,
       options: { completedAt?: string; runAttempt?: number } = {}
-    ) {
+    ): PipelineRun {
       return new PipelineRunBuilder()
         .withId(id)
         .withNumber(1)
@@ -1199,7 +1200,7 @@ describe('PipelinesService', () => {
     function runWithSteps(
       id: string,
       steps: Array<{ name?: string; startedAt?: string; completedAt?: string }>
-    ) {
+    ): PipelineRun {
       return new PipelineRunBuilder()
         .withId(id)
         .withNumber(1)
@@ -1376,7 +1377,7 @@ describe('PipelinesService', () => {
       createdAt: string,
       steps: Array<{ name?: string; startedAt?: string; completedAt?: string }>,
       completedAt?: string
-    ) {
+    ): PipelineRun {
       return new PipelineRunBuilder()
         .withId(id)
         .withNumber(1)
@@ -1584,7 +1585,7 @@ describe('PipelinesService', () => {
   });
 
   describe('loadUniqueWorkflows', () => {
-    function runWithPath(id: string, path: string) {
+    function runWithPath(id: string, path: string): PipelineRun {
       return new PipelineRunBuilder()
         .withId(id)
         .withNumber(1)

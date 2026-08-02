@@ -5,7 +5,11 @@ import { describe, expect, it } from 'vitest';
 import { Configuration, BigOService } from '../../..';
 
 describe('BigOService', () => {
-  function createRepository(files: Record<string, string>) {
+  function createRepository(files: Record<string, string>): {
+    root: string;
+    service: BigOService;
+    cleanup: () => void;
+  } {
     const root = path.join(tmpdir(), `smm-big-o-${Date.now()}-${Math.random()}`);
     mkdirSync(root, { recursive: true });
 
@@ -18,7 +22,7 @@ describe('BigOService', () => {
     return {
       root,
       service: new BigOService(new Configuration({ gitRepositoryLocation: root })),
-      cleanup: () => rmSync(root, { recursive: true, force: true }),
+      cleanup: (): void => rmSync(root, { recursive: true, force: true }),
     };
   }
 

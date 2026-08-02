@@ -46,7 +46,7 @@ describe('sqlite repository implementations', () => {
     return [
       [
         'sqlite',
-        () =>
+        (): IRepository<TestRecord> =>
           new SqliteRepository<TestRecord>(
             join(createTempDir(), 'smm.sqlite'),
             'records.json',

@@ -78,6 +78,8 @@ Use helpers from `support/bootstrap.sh`:
 
 Do not call the real GitHub API in acceptance tests. Use cached JSON fixtures or the MSW runner.
 
+`assert_smm_success` always go last in the list of assertions.
+
 ## Workspace and Environment Pattern
 
 For tests that need persisted stores:

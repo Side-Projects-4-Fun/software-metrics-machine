@@ -15,7 +15,7 @@ function buildAnalysis(
   configurationRepository: { save: () => void } = { save: () => {} }
 ): SonarqubeLocalAnalysis {
   const configuration = {
-    getSonarqubePath: () => sonarqubePath,
+    getSonarqubePath: (): string => sonarqubePath,
     ...configOverrides,
   };
   const logger = new MockLoggerBuilder().build();
