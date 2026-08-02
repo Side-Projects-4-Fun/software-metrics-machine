@@ -69,7 +69,7 @@ export async function saveSavedFilter(
   }
 
   const entry: SavedFilterEntry = {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+    id: `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
     name: finalName,
     section,
     pathname,
@@ -125,7 +125,7 @@ export async function saveReport(
   }
 
   const entry: ReportEntry = {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+    id: `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
     name: finalName,
     repository,
     sections,

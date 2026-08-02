@@ -4,15 +4,15 @@ vi.mock(import('child_process'), async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    execSync: vi.fn(),
+    execFileSync: vi.fn(),
   };
 });
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { CommitTraverser } from '../../..';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
-const mockExecSync = vi.mocked(execSync);
+const mockExecFileSync = vi.mocked(execFileSync);
 const logger = new MockLoggerBuilder().build();
 
 describe('CommitTraverser', () => {
@@ -21,14 +21,15 @@ describe('CommitTraverser', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockExecSync.mockReturnValue(Buffer.from(GIT_OUTPUT));
+    mockExecFileSync.mockReturnValue(Buffer.from(GIT_OUTPUT));
   });
 
-  it('should convert maxBuffer from MB to bytes for execSync', async () => {
+  it('should convert maxBuffer from MB to bytes for execFileSync', async () => {
     await traverser.traverseCommits({ maxBuffer: 200 });
 
-    expect(mockExecSync).toHaveBeenCalledWith(
-      expect.any(String),
+    expect(mockExecFileSync).toHaveBeenCalledWith(
+      'git',
+      expect.any(Array),
       expect.objectContaining({ maxBuffer: 200 * 1024 * 1024 })
     );
   });
@@ -36,8 +37,9 @@ describe('CommitTraverser', () => {
   it('should default maxBuffer to 100MB when not provided', async () => {
     await traverser.traverseCommits();
 
-    expect(mockExecSync).toHaveBeenCalledWith(
-      expect.any(String),
+    expect(mockExecFileSync).toHaveBeenCalledWith(
+      'git',
+      expect.any(Array),
       expect.objectContaining({ maxBuffer: 100 * 1024 * 1024 })
     );
   });
@@ -54,8 +56,8 @@ describe('CommitTraverser', () => {
     expect(result.pairedCommits).toBe(1);
   });
 
-  it('should throw error when execSync exceeds maxBuffer', async () => {
-    mockExecSync.mockImplementation(() => {
+  it('should throw error when execFileSync exceeds maxBuffer', async () => {
+    mockExecFileSync.mockImplementation(() => {
       throw new Error('stdout maxBuffer length exceeded');
     });
 

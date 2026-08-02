@@ -119,7 +119,7 @@ export class SavedFiltersStore {
     const finalName = nextAvailableName(existingNames, normalizedName);
     const now = new Date().toISOString();
     const entry: SavedFilterEntry = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+      id: `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
       name: finalName,
       section,
       pathname,
@@ -184,7 +184,7 @@ export class SavedFiltersStore {
     const finalName = nextAvailableName(existingNames, normalizedName);
     const now = new Date().toISOString();
     const entry: ReportEntry = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+      id: `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
       name: finalName,
       repository,
       sections,

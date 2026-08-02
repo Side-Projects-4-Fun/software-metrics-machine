@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import type { Commit, TraverserResult } from '../../domain-types';
 import type { Logger } from '@smmachine/utils';
 
@@ -101,14 +101,17 @@ export class CommitTraverser implements ICommitTraverser {
   }): Promise<Commit[]> {
     try {
       // Build git log command — no date flags, filtering is done by the caller
-      const gitCommand =
-        'git log --format=%H%n%an%n%ae%n%cI%n%s%n%b%n---COMMIT-SEPARATOR--- --reverse';
+      const gitArgs = [
+        'log',
+        '--format=%H%n%an%n%ae%n%cI%n%s%n%b%n---COMMIT-SEPARATOR---',
+        '--reverse',
+      ];
 
       const maxBufferBytes = (options?.maxBuffer ?? 100) * 1024 * 1024;
 
       // Execute git command
-      this.logger.info(`Executing: ${gitCommand}`);
-      const output = execSync(gitCommand, {
+      this.logger.info(`Executing: git log --format=... --reverse`);
+      const output = execFileSync('git', gitArgs, {
         cwd: this.gitRepositoryPath,
         timeout: 120000, // 120 seconds timeout
         maxBuffer: maxBufferBytes,

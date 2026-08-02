@@ -35,7 +35,7 @@ export class CodemaatFetchCsvRepository implements ICodeMaatFetchRepository {
     this.logger.info(`Running CodeMaat fetch script at ${scriptPath}`);
 
     const stdout = execFileSync(
-      'bash',
+      '/bin/bash',
       [
         scriptPath,
         repositoryPath,

@@ -418,7 +418,7 @@ export class TestDataFactory {
         new PipelineRunBuilder()
           .withNumber(i + 1)
           .withCommit(`commit${i}`)
-          .withDuration(Math.random() * 3600)
+          .withDuration((crypto.getRandomValues(new Uint32Array(1))[0] / 0xffffffff) * 3600)
           .build()
       );
     }

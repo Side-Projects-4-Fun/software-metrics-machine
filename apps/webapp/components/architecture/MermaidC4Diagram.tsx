@@ -10,7 +10,7 @@ type MermaidC4DiagramProps = {
 export default function MermaidC4Diagram({ chart }: MermaidC4DiagramProps) {
   const [svg, setSvg] = useState<string>('');
   const [error, setError] = useState<string>('');
-  const [renderId] = useState(() => `mermaid-${Math.random().toString(36).slice(2, 10)}`);
+  const [renderId] = useState(() => `mermaid-${crypto.randomUUID()}`);
 
   useEffect(() => {
     let mounted = true;

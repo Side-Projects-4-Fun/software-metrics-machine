@@ -6,7 +6,7 @@ RUN apt-get update \
 
 RUN	git config --global --add safe.directory /app/react
 
-RUN npm i msw -g
+RUN npm i msw@2.14.6 -g --ignore-scripts
 
 WORKDIR /tmp/smm-install-test
 
@@ -15,4 +15,4 @@ ARG PACKED_FILE
 COPY ${PACKED_FILE} /tmp/package.tgz
 
 # installing given package to check if it can be installed without errors
-RUN npm i -g /tmp/package.tgz
+RUN npm i -g /tmp/package.tgz --ignore-scripts
