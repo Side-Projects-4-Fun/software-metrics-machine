@@ -23,8 +23,6 @@ PROJECT=marabesi/json-tool
 start_date=2025-01-10
 end_date=2026-06-06
 
-pnpm run build
-
 # code
 smm code fetch-commits --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
 smm code codemaat-fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
