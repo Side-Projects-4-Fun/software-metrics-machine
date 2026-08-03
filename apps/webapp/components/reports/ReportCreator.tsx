@@ -187,7 +187,7 @@ export default function ReportCreator({
       }));
 
       let activeDateWindows: ReportDateWindow[] | undefined;
-      if (multiWindow && startDate) {
+      if (multiWindow) {
         if (windowInterval === 'manual') {
           const filled = manualWindows.filter((w) => w.startDate || w.endDate);
           if (filled.length > 0) {
@@ -197,7 +197,7 @@ export default function ReportCreator({
               label: `${formatShort(w.startDate)} – ${formatShort(w.endDate)}`,
             }));
           }
-        } else {
+        } else if (startDate) {
           activeDateWindows = generateWindows(startDate, endDate, windowInterval, windowCount);
         }
       }
