@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import ReportsClient from '@/components/reports/ReportsClient';
 import * as savedFiltersActions from '@/components/filters/saved-filters-actions';
 
@@ -116,5 +117,29 @@ describe('ReportsClient', () => {
 
     expect(window.confirm).toHaveBeenCalled();
     expect(mockRemoveReport).toHaveBeenCalledWith('r1');
+  });
+
+  it('shows edit icon for each report and opens edit dialog', async () => {
+    render(
+      <ReportsClient
+        resolvedReports={[
+          { report: makeReport('Report 42', 'r1'), windows: [] },
+        ]}
+        repository="owner/repo"
+      />,
+    );
+
+    const editButton = screen.getByRole('button', { name: /Edit Report 42/ });
+    expect(editButton).toBeVisible();
+
+    await userEvent.click(editButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeVisible();
+    });
+
+    // Dialog should be in edit mode
+    expect(screen.getByText('Edit Report')).toBeVisible();
+    expect(screen.getByRole('button', { name: /Update Report/ })).toBeVisible();
   });
 });

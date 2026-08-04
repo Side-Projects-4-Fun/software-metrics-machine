@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ReportCreator from '@/components/reports/ReportCreator';
+import type { ReportEntry } from '@/components/reports/reports-store';
 import * as savedFiltersActions from '@/components/filters/saved-filters-actions';
 
 jest.mock('@/components/filters/saved-filters-actions');
@@ -151,8 +152,98 @@ describe('ReportCreator', () => {
       expect(dateWindows[0]).toMatchObject({
         startDate: '2026-06-01',
         endDate: '2026-06-07',
-        label: 'Jun 1 – Jun 7',
+        label: 'Jun 1, 2026 – Jun 7, 2026',
       });
+    });
+  });
+
+  describe('edit mode', () => {
+    const existingReport: ReportEntry = {
+      id: 'r1',
+      name: 'Sprint 42',
+      repository: 'owner/repo',
+      sections: [
+        { section: 'pipelines', savedFilterId: 'f_pipelines' },
+        { section: 'source-code', savedFilterId: 'f_source_code' },
+      ],
+      startDateOverride: '2026-06-01',
+      endDateOverride: '2026-06-30',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      dateWindows: [
+        { startDate: '2026-06-01', endDate: '2026-06-07', label: 'Jun 1, 2026 – Jun 7, 2026' },
+        { startDate: '2026-06-08', endDate: '2026-06-14', label: 'Jun 8, 2026 – Jun 14, 2026' },
+      ],
+    };
+
+    beforeEach(() => {
+      mockGetSavedFiltersBySection.mockResolvedValue([]);
+    });
+
+    it('shows Edit Report title when editing', () => {
+      render(
+        <ReportCreator
+          {...defaultProps}
+          existingReport={existingReport}
+        />,
+      );
+
+      expect(screen.getByText('Edit Report')).toBeVisible();
+      expect(screen.queryByText('New Report')).toBeNull();
+    });
+
+    it('shows Update Report button text when editing', () => {
+      render(
+        <ReportCreator
+          {...defaultProps}
+          existingReport={existingReport}
+        />,
+      );
+
+      expect(screen.getByRole('button', { name: /Update Report/ })).toBeVisible();
+      expect(screen.queryByRole('button', { name: /Save Report/ })).toBeNull();
+    });
+
+    it('pre-populates the report name', () => {
+      render(
+        <ReportCreator
+          {...defaultProps}
+          existingReport={existingReport}
+        />,
+      );
+
+      const nameInput = screen.getByLabelText('Report name') as HTMLInputElement;
+      expect(nameInput.value).toBe('Sprint 42');
+    });
+
+    it('pre-populates date overrides', () => {
+      render(
+        <ReportCreator
+          {...defaultProps}
+          existingReport={existingReport}
+        />,
+      );
+
+      const dateRangeInput = screen.getByLabelText('Date range') as HTMLInputElement;
+      expect(dateRangeInput.value).toContain('2026-06-01');
+      expect(dateRangeInput.value).toContain('2026-06-30');
+    });
+
+    it('pre-populates multi-window config with manual mode', () => {
+      render(
+        <ReportCreator
+          {...defaultProps}
+          existingReport={existingReport}
+        />,
+      );
+
+      // Multi-window should be enabled
+      expect(screen.getByText('Multi-window timeline')).toBeVisible();
+
+      // Manual window date inputs should be visible
+      const startInputs = screen.getAllByLabelText('Start');
+      const endInputs = screen.getAllByLabelText('End');
+      expect(startInputs).toHaveLength(2);
+      expect(endInputs).toHaveLength(2);
     });
   });
 });

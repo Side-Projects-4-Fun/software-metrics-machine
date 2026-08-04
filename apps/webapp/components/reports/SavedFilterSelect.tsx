@@ -9,9 +9,10 @@ import type { EvaluatableSection } from './reports-store';
 interface SavedFilterSelectProps {
   section: EvaluatableSection;
   repository: string;
-  value?: string;
+  value?: string | string[];
   label?: string;
-  onChange: (savedFilterId: string | undefined) => void;
+  multiple?: boolean;
+  onChange: (savedFilterId: string | string[] | undefined) => void;
 }
 
 export default function SavedFilterSelect({
@@ -19,6 +20,7 @@ export default function SavedFilterSelect({
   repository,
   value,
   label = 'Saved Filter',
+  multiple = false,
   onChange,
 }: SavedFilterSelectProps) {
   const [filters, setFilters] = useState<SavedFilterEntry[]>([]);
@@ -30,6 +32,31 @@ export default function SavedFilterSelect({
   }, [section, repository]);
 
   const options = filters.map((f) => f.name);
+
+  if (multiple) {
+    const selectedIds = Array.isArray(value) ? value : [];
+    const selected = filters.filter((f) => selectedIds.includes(f.id));
+
+    return (
+      <Autocomplete
+        multiple
+        disablePortal
+        options={options}
+        value={selected.map((f) => f.name)}
+        onChange={(_event, newValues) => {
+          const ids = newValues
+            .map((name) => filters.find((f) => f.name === name)?.id)
+            .filter((id): id is string => id !== undefined);
+          onChange(ids);
+        }}
+        isOptionEqualToValue={(option, val) => option === val}
+        sx={{ minWidth: 260 }}
+        renderInput={(params) => <TextField {...params} label={label} placeholder="None" />}
+        noOptionsText="No saved filters for this section"
+      />
+    );
+  }
+
   const selected = filters.find((f) => f.id === value);
 
   return (

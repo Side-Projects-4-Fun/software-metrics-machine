@@ -5,13 +5,15 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Typography, IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ReportCreator from './ReportCreator';
 import {
   saveReport,
+  updateReport,
   removeReport,
 } from '@/components/filters/saved-filters-actions';
-import type { ReportSectionRef, ReportDateWindow } from './reports-store';
+import type { ReportSectionRef, ReportDateWindow, ReportEntry } from './reports-store';
 import type { ResolvedReport } from '@/app/reports/shared';
 
 interface ReportsClientProps {
@@ -20,7 +22,7 @@ interface ReportsClientProps {
 }
 
 function formatDate(isoString: string): string {
-  return new Date(isoString).toLocaleDateString(undefined, {
+  return new Date(isoString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -33,6 +35,9 @@ export default function ReportsClient({
 }: ReportsClientProps) {
   const router = useRouter();
   const [isCreatorOpen, setCreatorOpen] = useState(false);
+  const [editingReport, setEditingReport] = useState<ReportEntry | undefined>(
+    undefined,
+  );
 
   const handleCreate = useCallback(
     async (
@@ -47,6 +52,34 @@ export default function ReportsClient({
     },
     [repository, router],
   );
+
+  const handleUpdate = useCallback(
+    async (
+      name: string,
+      sections: ReportSectionRef[],
+      startDateOverride?: string,
+      endDateOverride?: string,
+      dateWindows?: ReportDateWindow[],
+    ) => {
+      if (!editingReport) { return; }
+      await updateReport(
+        editingReport.id,
+        name,
+        sections,
+        repository,
+        startDateOverride,
+        endDateOverride,
+        dateWindows,
+      );
+      router.refresh();
+    },
+    [editingReport, repository, router],
+  );
+
+  const handleCloseCreator = useCallback(() => {
+    setCreatorOpen(false);
+    setEditingReport(undefined);
+  }, []);
 
   const handleDelete = useCallback(
     async (id: string) => {
@@ -110,6 +143,17 @@ export default function ReportsClient({
             <div className="flex items-center gap-2">
               <IconButton
                 size="small"
+                color="primary"
+                onClick={() => {
+                  setEditingReport(resolved.report);
+                  setCreatorOpen(true);
+                }}
+                aria-label={`Edit ${resolved.report.name}`}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+              <IconButton
+                size="small"
                 color="error"
                 onClick={() => handleDelete(resolved.report.id)}
                 aria-label={`Delete ${resolved.report.name}`}
@@ -131,8 +175,9 @@ export default function ReportsClient({
       <ReportCreator
         open={isCreatorOpen}
         repository={repository}
-        onClose={() => setCreatorOpen(false)}
-        onSave={handleCreate}
+        onClose={handleCloseCreator}
+        onSave={editingReport ? handleUpdate : handleCreate}
+        existingReport={editingReport}
       />
     </div>
   );

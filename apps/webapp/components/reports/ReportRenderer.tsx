@@ -67,15 +67,15 @@ export default function ReportRenderer({
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(
     new Set(),
   );
-  const allCollapsed = report.sections.length > 0 && report.sections.every((s) => collapsedSections.has(s.section));
+  const allCollapsed = report.sections.length > 0 && report.sections.every((s) => collapsedSections.has(`${s.section}-${s.savedFilterId}`));
 
-  const toggleSection = useCallback((section: string) => {
+  const toggleSection = useCallback((sectionKey: string) => {
     setCollapsedSections((prev) => {
       const next = new Set(prev);
-      if (next.has(section)) {
-        next.delete(section);
+      if (next.has(sectionKey)) {
+        next.delete(sectionKey);
       } else {
-        next.add(section);
+        next.add(sectionKey);
       }
       return next;
     });
@@ -85,7 +85,7 @@ export default function ReportRenderer({
     if (allCollapsed) {
       setCollapsedSections(new Set());
     } else {
-      setCollapsedSections(new Set(report.sections.map((s) => s.section)));
+      setCollapsedSections(new Set(report.sections.map((s) => `${s.section}-${s.savedFilterId}`)));
     }
   }, [allCollapsed, report.sections]);
 
@@ -145,10 +145,11 @@ export default function ReportRenderer({
             const data = evaluations[ref.section];
             const error = errors[ref.section];
             const saved = savedFiltersMap.get(ref.savedFilterId);
-            const isCollapsed = collapsedSections.has(ref.section);
+            const sectionKey = `${ref.section}-${ref.savedFilterId}`;
+            const isCollapsed = collapsedSections.has(sectionKey);
 
             return (
-              <Box key={ref.section}>
+              <Box key={sectionKey}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -160,11 +161,11 @@ export default function ReportRenderer({
                   <Box
                     role="button"
                     tabIndex={0}
-                    onClick={() => toggleSection(ref.section)}
+                    onClick={() => toggleSection(sectionKey)}
                     onKeyDown={(e: React.KeyboardEvent) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        toggleSection(ref.section);
+                        toggleSection(sectionKey);
                       }
                     }}
                     aria-label={`${EVALUATABLE_SECTION_LABELS[ref.section]}${saved ? ` — ${saved.name}` : ''}`}
@@ -212,7 +213,7 @@ export default function ReportRenderer({
                   )}
                   <IconButton
                     size="small"
-                    onClick={() => toggleSection(ref.section)}
+                    onClick={() => toggleSection(sectionKey)}
                     aria-label={`Toggle ${EVALUATABLE_SECTION_LABELS[ref.section]}`}
                   >
                     {isCollapsed ? <ExpandMoreIcon fontSize="small" /> : <ExpandLessIcon fontSize="small" />}

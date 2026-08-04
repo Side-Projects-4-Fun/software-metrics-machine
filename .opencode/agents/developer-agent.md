@@ -542,6 +542,7 @@ MUI major versions commonly move or rename props. Always verify with `next build
 - List pages show summary cards; clicking navigates to `/<feature>/${id}` for full detail
 - Multi-state views (tabs, timelines, windows) use a client wrapper managing active index, delegating rendering to pure presentational components
 - Collapsible sections track collapsed state in `useState<Set<string>>`, with a toggle-all driven by `allCollapsed` check
+- Loading states use the reusable `PageLoading` component from `components/ui/PageLoading.tsx` with customizable messages, ensuring consistent UX across all pages during data fetching
 
 ### Webapp test patterns
 
@@ -550,6 +551,17 @@ MUI major versions commonly move or rename props. Always verify with `next build
 - Ref-based focus following: `useRef<Map<number, HTMLElement>>` with callback refs + `useEffect` to focus on index change
 - Avoid `<button>` inside `<button>` — use `<Box role="button" tabIndex={0} onClick onKeyDown>` for clickable wrappers containing `IconButton`
 - Collapsible UI: assert collapsed content is absent from DOM (`.not.toBeInTheDocument()`) rather than just hidden
+
+### Report composition patterns
+
+- Reports support multi-select for saved filters across all evaluatable sections (pipelines, pull-requests, source-code, architecture, sonarqube)
+- Each section can have multiple saved filters selected, creating separate evaluation cards per filter
+- The `SavedFilterSelect` component uses MUI Autocomplete with `multiple` prop for multi-selection
+- Report state stores selections as arrays of filter IDs per section
+- When saving, each selected filter generates a separate `ReportSectionRef` entry
+- Edit mode pre-populates all previously selected filters for each section
+- Report navigation uses context-aware breadcrumbs: the reports list shows a "Home" link, while report detail pages show a "Back to Reports" link
+- The reports layout includes a loading indicator with a spinner and message while data is being fetched
 
 ## Adding a new CLI command
 

@@ -140,6 +140,33 @@ export async function saveReport(
   return entry;
 }
 
+export async function updateReport(
+  id: string,
+  name: string,
+  sections: ReportSectionRef[],
+  repository: string,
+  startDateOverride?: string,
+  endDateOverride?: string,
+  dateWindows?: ReportDateWindow[],
+): Promise<ReportEntry> {
+  const normalizedName = name.trim();
+  if (!normalizedName) { throw new Error('Sprint report name is required.'); }
+
+  const doc = await readDocument();
+  const reports = doc.reports ?? [];
+  const existing = reports.find((r) => r.id === id);
+  if (!existing) { throw new Error('Report not found.'); }
+
+  existing.name = normalizedName;
+  existing.sections = sections;
+  existing.startDateOverride = startDateOverride;
+  existing.endDateOverride = endDateOverride;
+  existing.dateWindows = dateWindows && dateWindows.length > 0 ? dateWindows : undefined;
+
+  await writeDocument(doc);
+  return existing;
+}
+
 export async function removeReport(id: string): Promise<void> {
   const doc = await readDocument();
   const reports = doc.reports ?? [];

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Button,
   Dialog,
@@ -20,7 +20,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import SavedFilterSelect from './SavedFilterSelect';
 import { StandaloneDateRangePicker } from '@/components/filters/DateRangePicker';
-import type { EvaluatableSection, ReportSectionRef, ReportDateWindow } from './reports-store';
+import type { EvaluatableSection, ReportSectionRef, ReportDateWindow, ReportEntry } from './reports-store';
 import {
   EVALUATABLE_SECTIONS,
   EVALUATABLE_SECTION_LABELS,
@@ -54,6 +54,7 @@ interface ReportCreatorProps {
     endDateOverride?: string,
     dateWindows?: ReportDateWindow[],
   ) => Promise<void>;
+  existingReport?: ReportEntry;
 }
 
 function addDays(dateStr: string, days: number): string {
@@ -64,7 +65,7 @@ function addDays(dateStr: string, days: number): string {
 
 function formatShort(iso: string): string {
   if (!iso) { return ''; }
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function generateWindows(
@@ -106,18 +107,19 @@ export default function ReportCreator({
   repository,
   onClose,
   onSave,
+  existingReport,
 }: ReportCreatorProps) {
   const [name, setName] = useState(defaultReportName());
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selections, setSelections] = useState<
-    Record<EvaluatableSection, string | undefined>
+    Record<EvaluatableSection, string[]>
   >({
-    pipelines: undefined,
-    'pull-requests': undefined,
-    'source-code': undefined,
-    architecture: undefined,
-    sonarqube: undefined,
+    pipelines: [],
+    'pull-requests': [],
+    'source-code': [],
+    architecture: [],
+    sonarqube: [],
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -127,6 +129,43 @@ export default function ReportCreator({
   const [manualWindows, setManualWindows] = useState<
     Array<{ startDate: string; endDate: string }>
   >([]);
+
+  // Pre-populate fields when opening in edit mode
+  useEffect(() => {
+    if (!open || !existingReport) { return; }
+
+    const nameToUse = existingReport.name || defaultReportName();
+    setName(nameToUse);
+    setStartDate(existingReport.startDateOverride ?? '');
+    setEndDate(existingReport.endDateOverride ?? '');
+
+    const existingSelections: Record<EvaluatableSection, string[]> = {
+      pipelines: [],
+      'pull-requests': [],
+      'source-code': [],
+      architecture: [],
+      sonarqube: [],
+    };
+    for (const ref of existingReport.sections) {
+      existingSelections[ref.section].push(ref.savedFilterId);
+    }
+    setSelections(existingSelections);
+
+    if (existingReport.dateWindows && existingReport.dateWindows.length > 0) {
+      setMultiWindow(true);
+      setWindowInterval('manual');
+      setManualWindows(
+        existingReport.dateWindows.map((w) => ({
+          startDate: w.startDate,
+          endDate: w.endDate,
+        })),
+      );
+    } else {
+      setMultiWindow(false);
+      setWindowInterval('weekly');
+      setManualWindows([]);
+    }
+  }, [open, existingReport]);
 
   const autoPreview = useMemo(() => {
     if (!multiWindow || !startDate) { return []; }
@@ -150,11 +189,11 @@ export default function ReportCreator({
     setStartDate('');
     setEndDate('');
     setSelections({
-      pipelines: undefined,
-      'pull-requests': undefined,
-      'source-code': undefined,
-      architecture: undefined,
-      sonarqube: undefined,
+      pipelines: [],
+      'pull-requests': [],
+      'source-code': [],
+      architecture: [],
+      sonarqube: [],
     });
     setError(null);
     setMultiWindow(false);
@@ -164,7 +203,7 @@ export default function ReportCreator({
     onClose();
   };
 
-  const hasSelection = Object.values(selections).some((v) => v !== undefined);
+  const hasSelection = Object.values(selections).some((ids) => ids.length > 0);
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -179,12 +218,12 @@ export default function ReportCreator({
     setSaving(true);
     setError(null);
     try {
-      const sections: ReportSectionRef[] = EVALUATABLE_SECTIONS.filter(
-        (section) => selections[section] !== undefined,
-      ).map((section) => ({
-        section,
-        savedFilterId: selections[section]!,
-      }));
+      const sections: ReportSectionRef[] = [];
+      for (const section of EVALUATABLE_SECTIONS) {
+        for (const savedFilterId of selections[section]) {
+          sections.push({ section, savedFilterId });
+        }
+      }
 
       let activeDateWindows: ReportDateWindow[] | undefined;
       if (multiWindow) {
@@ -219,7 +258,7 @@ export default function ReportCreator({
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-      <DialogTitle>New Report</DialogTitle>
+      <DialogTitle>{existingReport ? 'Edit Report' : 'New Report'}</DialogTitle>
       <DialogContent>
         <Stack spacing={3} sx={{ mt: 1 }}>
           <TextField
@@ -386,17 +425,21 @@ export default function ReportCreator({
               repository={repository}
               label={EVALUATABLE_SECTION_LABELS[section]}
               value={selections[section]}
-              onChange={(id) =>
-                setSelections((prev) => ({ ...prev, [section]: id }))
+              multiple
+              onChange={(ids) =>
+                setSelections((prev) => ({
+                  ...prev,
+                  [section]: Array.isArray(ids) ? ids : [],
+                }))
               }
             />
           ))}
 
-          {EVALUATABLE_SECTIONS.filter((s) => selections[s]).length > 0 && (
+          {Object.values(selections).some((ids) => ids.length > 0) && (
             <Typography variant="caption" color="text.secondary">
               Selected:{' '}
-              {EVALUATABLE_SECTIONS.filter((s) => selections[s])
-                .map((s) => EVALUATABLE_SECTION_LABELS[s])
+              {EVALUATABLE_SECTIONS.filter((s) => selections[s].length > 0)
+                .map((s) => `${EVALUATABLE_SECTION_LABELS[s]} (${selections[s].length})`)
                 .join(', ')}
             </Typography>
           )}
@@ -417,7 +460,7 @@ export default function ReportCreator({
           variant="contained"
           disabled={!hasSelection || saving}
         >
-          {saving ? 'Saving...' : 'Save Report'}
+          {saving ? 'Saving...' : existingReport ? 'Update Report' : 'Save Report'}
         </Button>
       </DialogActions>
     </Dialog>

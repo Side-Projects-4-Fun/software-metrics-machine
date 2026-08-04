@@ -1,0 +1,87 @@
+import { render, screen } from '@testing-library/react';
+import ReportsFrame from '@/app/reports/reports-frame';
+import { usePathname } from 'next/navigation';
+
+jest.mock('next/navigation', () => ({
+  usePathname: jest.fn(),
+}));
+
+jest.mock('@/components/ThemeToggle', () => ({
+  ThemeToggle: () => <div data-testid="theme-toggle">Theme Toggle</div>,
+}));
+
+const mockUsePathname = usePathname as jest.Mock;
+
+describe('ReportsFrame', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('shows "Home" link when on reports list page', () => {
+    mockUsePathname.mockReturnValue('/reports');
+
+    render(
+      <ReportsFrame>
+        <div>Test Content</div>
+      </ReportsFrame>,
+    );
+
+    const homeLink = screen.getByRole('link', { name: /← Home/i });
+    expect(homeLink).toBeVisible();
+    expect(homeLink).toHaveAttribute('href', '/');
+  });
+
+  it('shows "Back to Reports" link when on report detail page', () => {
+    mockUsePathname.mockReturnValue('/reports/abc123');
+
+    render(
+      <ReportsFrame>
+        <div>Test Content</div>
+      </ReportsFrame>,
+    );
+
+    const backLink = screen.getByRole('link', { name: /← Back to Reports/i });
+    expect(backLink).toBeVisible();
+    expect(backLink).toHaveAttribute('href', '/reports');
+  });
+
+  it('shows "Back to Reports" link for any report detail path', () => {
+    mockUsePathname.mockReturnValue('/reports/some-report-id');
+
+    render(
+      <ReportsFrame>
+        <div>Test Content</div>
+      </ReportsFrame>,
+    );
+
+    const backLink = screen.getByRole('link', { name: /← Back to Reports/i });
+    expect(backLink).toBeVisible();
+    expect(backLink).toHaveAttribute('href', '/reports');
+  });
+
+  it('renders children content', () => {
+    mockUsePathname.mockReturnValue('/reports');
+
+    render(
+      <ReportsFrame>
+        <div data-testid="child-content">Child Content</div>
+      </ReportsFrame>,
+    );
+
+    expect(screen.getByTestId('child-content')).toBeVisible();
+  });
+
+  it('renders the app title link', () => {
+    mockUsePathname.mockReturnValue('/reports');
+
+    render(
+      <ReportsFrame>
+        <div>Test Content</div>
+      </ReportsFrame>,
+    );
+
+    const titleLink = screen.getByRole('link', { name: /Software Metrics Machine/i });
+    expect(titleLink).toBeVisible();
+    expect(titleLink).toHaveAttribute('href', '/');
+  });
+});
