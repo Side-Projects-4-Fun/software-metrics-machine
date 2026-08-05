@@ -26,6 +26,11 @@ const mockGetSavedFiltersBySection = getSavedFiltersBySection as jest.MockedFunc
 const mockDuplicateReport = duplicateReport as jest.MockedFunction<typeof duplicateReport>;
 
 describe('Duplicate Existing Report Flow', () => {
+  // These tests render an async ReportsPage server component and drive
+  // userEvent interactions; they need headroom beyond the default 5000ms
+  // when the host is under parallel-suite load.
+  jest.setTimeout(15000);
+
   beforeEach(() => {
     mockGetSavedFiltersBySection.mockResolvedValue([]);
   });

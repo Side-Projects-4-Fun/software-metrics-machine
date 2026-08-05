@@ -26,6 +26,11 @@ const mockGetSavedFiltersBySection = getSavedFiltersBySection as jest.MockedFunc
 const mockUpdateReport = updateReport as jest.MockedFunction<typeof updateReport>;
 
 describe('Edit Existing Report Flow', () => {
+  // These tests render an async ReportsPage server component and drive several
+  // userEvent interactions through the dialog; they need headroom beyond the
+  // default 5000ms when the host is under parallel-suite load.
+  jest.setTimeout(15000);
+
   beforeEach(() => {
     mockGetSavedFiltersBySection.mockResolvedValue([]);
   });
