@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import SelectFilter from '@/components/filters/SelectFilter';
 
 describe('SelectFilter', () => {
@@ -11,22 +12,17 @@ describe('SelectFilter', () => {
     onChange: mockOnChange,
   };
 
-  beforeEach(() => {
-    mockOnChange.mockClear();
-  });
-
   it('renders with label', () => {
     render(<SelectFilter {...defaultProps} />);
     const selectElement = screen.getByRole('combobox');
     expect(selectElement).toBeInTheDocument();
   });
 
-  it('renders and can open dropdown', () => {
+  it('renders and can open dropdown', async () => {
     render(<SelectFilter {...defaultProps} />);
     const selectElement = screen.getByRole('combobox');
-    fireEvent.mouseDown(selectElement);
-    // Verify dropdown opened (menu appears in document)
-    expect(document.body).toBeInTheDocument();
+    await userEvent.click(selectElement);
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
   });
 
   it('displays the current value', () => {
@@ -34,26 +30,25 @@ describe('SelectFilter', () => {
     expect(screen.getByRole('combobox')).toHaveValue('option2');
   });
 
-  it('calls onChange when selection changes', () => {
+  it('calls onChange when selection changes', async () => {
     render(<SelectFilter {...defaultProps} />);
     
     const selectElement = screen.getByRole('combobox');
-    fireEvent.mouseDown(selectElement);
+    await userEvent.click(selectElement);
     
-    // Get all elements with text 'option3' and click the one in the listbox
-    const allOptions = screen.getAllByText('option3');
-    fireEvent.click(allOptions[allOptions.length - 1]); // Click the one in the menu
+    const option = await screen.findByRole('option', { name: 'option3' });
+    await userEvent.click(option);
     
     expect(mockOnChange).toHaveBeenCalled();
   });
 
   it('disables when disabled prop is true', () => {
-    const { container } = render(<SelectFilter {...defaultProps} disabled={true} />);
-    expect(container).toBeInTheDocument();
+    render(<SelectFilter {...defaultProps} disabled={true} />);
+    expect(screen.getByRole('combobox')).toBeDisabled();
   });
 
   it('is enabled by default', () => {
-    const { container } = render(<SelectFilter {...defaultProps} />);
-    expect(container).toBeInTheDocument();
+    render(<SelectFilter {...defaultProps} />);
+    expect(screen.getByRole('combobox')).not.toBeDisabled();
   });
 });

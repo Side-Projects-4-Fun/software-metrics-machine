@@ -1,16 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import ReferencesPage from '@/app/dashboard/references/page';
 import { METRIC_TARGETS } from '@/components/charts/targets';
-
-// Mock Next.js navigation
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(() => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-  })),
-  usePathname: jest.fn(() => '/dashboard/references'),
-  useSearchParams: jest.fn(() => new URLSearchParams()),
-}));
 
 // Mock MUI icons to avoid SVG issues in jsdom
 jest.mock('@mui/icons-material/ExpandMore', () => {
@@ -96,12 +87,12 @@ describe('ReferencesPage', () => {
     expect(sourceHints.length).toBeGreaterThan(0);
   });
 
-  it('expands sources when expand button is clicked', () => {
+  it('expands sources when expand button is clicked', async () => {
     render(<ReferencesPage />);
 
     // Find the first expand button (for Pairing Index)
     const expandButtons = screen.getAllByLabelText('expand sources');
-    fireEvent.click(expandButtons[0]);
+    await userEvent.click(expandButtons[0]);
 
     // After expanding, the sources should be visible
     expect(
@@ -117,11 +108,11 @@ describe('ReferencesPage', () => {
 
     // Expand first
     const expandButtons = screen.getAllByLabelText('expand sources');
-    fireEvent.click(expandButtons[0]);
+    await userEvent.click(expandButtons[0]);
 
     // Now collapse
     const collapseButton = screen.getByLabelText('collapse sources');
-    fireEvent.click(collapseButton);
+    await userEvent.click(collapseButton);
 
     // Wait for animation to complete and verify expand button is back
     await waitFor(() => {

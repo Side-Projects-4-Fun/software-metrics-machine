@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TimelineScroller from '@/components/reports/TimelineScroller';
 
@@ -32,14 +32,14 @@ describe('TimelineScroller', () => {
     expect(buttons[0].className).not.toContain('bg-blue-600');
   });
 
-  it('calls onSelect with the clicked index', () => {
+  it('calls onSelect with the clicked index', async () => {
     const onSelect = jest.fn();
     const windows = makeWindows(3);
     render(
       <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
     );
 
-    fireEvent.click(screen.getByText('Week 2'));
+    await userEvent.click(screen.getByText('Week 2'));
     expect(onSelect).toHaveBeenCalledWith(1);
   });
 

@@ -375,6 +375,81 @@ describe('GitlabMrClient', () => {
     expect(endpoint).toContain('order_by=created_at');
     expect(endpoint).toContain('sort=desc');
   });
+
+  it('should pass --hostname to glab api when gitlabUrl is provided', async () => {
+    const runner = vi.fn().mockResolvedValue('[]');
+    const client = new GitlabMrClient(
+      token,
+      projectId,
+      logger,
+      runner,
+      'https://gitlab.example.com'
+    );
+
+    await client.fetchPRs();
+
+    const args: string[] = runner.mock.lastCall![0];
+    expect(args).toEqual(['api', '--hostname', 'gitlab.example.com', expect.any(String)]);
+  });
+
+  it('should not include --hostname when gitlabUrl is not provided', async () => {
+    const runner = vi.fn().mockResolvedValue('[]');
+    const client = new GitlabMrClient(token, projectId, logger, runner);
+
+    await client.fetchPRs();
+
+    const args: string[] = runner.mock.lastCall![0];
+    expect(args).toEqual(['api', expect.any(String)]);
+    expect(args).not.toContain('--hostname');
+  });
+
+  it('should extract hostname from gitlabUrl with trailing path', async () => {
+    const runner = vi.fn().mockResolvedValue('[]');
+    const client = new GitlabMrClient(
+      token,
+      projectId,
+      logger,
+      runner,
+      'https://gitlab.internal.com/group/subgroup'
+    );
+
+    await client.fetchPRs();
+
+    const args: string[] = runner.mock.lastCall![0];
+    expect(args).toEqual(['api', '--hostname', 'gitlab.internal.com', expect.any(String)]);
+  });
+
+  it('should construct correct pull_request_url using gitlabUrl for notes without web_url', async () => {
+    const runner = vi.fn().mockResolvedValue(notesResponse({ web_url: undefined }));
+    const client = new GitlabMrClient(
+      token,
+      projectId,
+      logger,
+      runner,
+      'https://gitlab.example.com'
+    );
+
+    const comments = await client.fetchPRComments(7);
+
+    expect(comments).toHaveLength(1);
+    expect(comments[0].pull_request_url).toBe(
+      'https://gitlab.example.com/acme/widgets/-/merge_requests/7'
+    );
+  });
+
+  it('should default pull_request_url to gitlab.com when no gitlabUrl provided', async () => {
+    const runner = createMockRunner({
+      [`projects/${encodedProjectId}/merge_requests/7/notes`]: notesResponse({
+        web_url: undefined,
+      }),
+    });
+    const client = new GitlabMrClient(token, projectId, logger, runner);
+
+    const comments = await client.fetchPRComments(7);
+
+    expect(comments).toHaveLength(1);
+    expect(comments[0].pull_request_url).toBe('https://gitlab.com/acme/widgets/-/merge_requests/7');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -799,5 +874,32 @@ describe('GitlabPipelineClient', () => {
     const env = getEnv(runner)!;
     expect(env.GITLAB_TOKEN).toBe(token);
     expect(env.GLAB_TOKEN).toBe(token);
+  });
+
+  it('should pass --hostname to glab api when gitlabUrl is provided', async () => {
+    const runner = vi.fn().mockResolvedValue('[]');
+    const client = new GitlabPipelineClient(
+      token,
+      projectId,
+      logger,
+      runner,
+      'https://gitlab.example.com'
+    );
+
+    await client.fetchWorkflowRunsPage(1);
+
+    const args: string[] = runner.mock.lastCall![0];
+    expect(args).toEqual(['api', '--hostname', 'gitlab.example.com', expect.any(String)]);
+  });
+
+  it('should not include --hostname when gitlabUrl is not provided', async () => {
+    const runner = vi.fn().mockResolvedValue('[]');
+    const client = new GitlabPipelineClient(token, projectId, logger, runner);
+
+    await client.fetchWorkflowRunsPage(1);
+
+    const args: string[] = runner.mock.lastCall![0];
+    expect(args).toEqual(['api', expect.any(String)]);
+    expect(args).not.toContain('--hostname');
   });
 });

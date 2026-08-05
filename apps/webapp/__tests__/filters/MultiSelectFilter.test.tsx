@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import MultiSelectFilter from '@/components/filters/MultiSelectFilter';
 
 describe('MultiSelectFilter', () => {
@@ -11,21 +12,17 @@ describe('MultiSelectFilter', () => {
     onChange: mockOnChange,
   };
 
-  beforeEach(() => {
-    mockOnChange.mockClear();
-  });
-
   it('renders with label', () => {
     render(<MultiSelectFilter {...defaultProps} />);
     const selectElement = screen.getByRole('combobox');
     expect(selectElement).toBeInTheDocument();
   });
 
-  it('renders and can open dropdown', () => {
+  it('renders and can open dropdown', async () => {
     render(<MultiSelectFilter {...defaultProps} />);
     const selectElement = screen.getByRole('combobox');
-    fireEvent.mouseDown(selectElement);
-    expect(document.body).toBeInTheDocument();
+    await userEvent.click(selectElement);
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
   });
 
   it('displays selected values as chips', () => {
@@ -34,26 +31,25 @@ describe('MultiSelectFilter', () => {
     expect(elements.length).toBeGreaterThan(0);
   });
 
-  it('calls onChange with array when selections change', () => {
+  it('calls onChange with array when selections change', async () => {
     render(<MultiSelectFilter {...defaultProps} />);
     
     const selectElement = screen.getByRole('combobox');
-    fireEvent.mouseDown(selectElement);
+    await userEvent.click(selectElement);
     
-    // Get all elements with text 'option1' and click the one in the menu
-    const allOptions = screen.getAllByText('option1');
-    fireEvent.click(allOptions[allOptions.length - 1]); // Click the one in the menu
+    const option = await screen.findByRole('option', { name: 'option1' });
+    await userEvent.click(option);
     
     expect(mockOnChange).toHaveBeenCalled();
   });
 
   it('disables when disabled prop is true', () => {
-    const { container } = render(<MultiSelectFilter {...defaultProps} disabled={true} />);
-    expect(container).toBeInTheDocument();
+    render(<MultiSelectFilter {...defaultProps} disabled={true} />);
+    expect(screen.getByRole('combobox')).toBeDisabled();
   });
 
   it('is enabled by default', () => {
-    const { container } = render(<MultiSelectFilter {...defaultProps} />);
-    expect(container).toBeInTheDocument();
+    render(<MultiSelectFilter {...defaultProps} />);
+    expect(screen.getByRole('combobox')).not.toBeDisabled();
   });
 });

@@ -1,39 +1,10 @@
 import { buildDashboardLink } from '@/lib/dashboard-links';
-import type { DashboardFilters } from '@/components/filters/DashboardFilters';
-
-function createFilters(overrides: Partial<DashboardFilters> = {}): DashboardFilters {
-  return {
-    startDate: '',
-    endDate: '',
-    workflowStatus: [],
-    workflowConclusions: [],
-    jobSelector: [],
-    branch: [],
-    event: [],
-    authorSelect: [],
-    excludeAuthorSelect: [],
-    excludeCommenterSelect: [],
-    labelSelector: [],
-    aggregateBy: 'week',
-    weekends: 'include',
-    outlierMode: 'include',
-    compareStartDate: '',
-    compareEndDate: '',
-    rawFilters: '',
-    period: 'week',
-    ignorePatternFiles: '',
-    includePatternFiles: '',
-    authorSelectSourceCode: [],
-    topEntries: 20,
-    aggregateMetric: 'avg',
-    sonarqubeRemoveFolders: true,
-    ...overrides,
-  };
-}
+import { DashboardFiltersBuilder } from '../builders/builders';
 
 describe('buildDashboardLink', () => {
   it('builds a pipelines dashboard link with default filters', () => {
-    const link = buildDashboardLink('pipelines', createFilters());
+    const filters = new DashboardFiltersBuilder().build();
+    const link = buildDashboardLink('pipelines', filters);
 
     expect(link).toContain('/dashboard/pipelines?');
     // serializeDashboardFilters includes all non-empty values for URL fidelity
@@ -43,10 +14,10 @@ describe('buildDashboardLink', () => {
   });
 
   it('builds a pipelines dashboard link with date range filters', () => {
-    const filters = createFilters({
-      startDate: '2026-01-01',
-      endDate: '2026-06-30',
-    });
+    const filters = new DashboardFiltersBuilder()
+      .withStartDate('2026-01-01')
+      .withEndDate('2026-06-30')
+      .build();
 
     const link = buildDashboardLink('pipelines', filters);
 
@@ -56,13 +27,13 @@ describe('buildDashboardLink', () => {
   });
 
   it('builds a pull-requests dashboard link with author and label filters', () => {
-    const filters = createFilters({
-      startDate: '2026-03-01',
-      endDate: '2026-03-31',
-      authorSelect: ['alice', 'bob'],
-      labelSelector: ['bug', 'feature'],
-      aggregateBy: 'month',
-    });
+    const filters = new DashboardFiltersBuilder()
+      .withStartDate('2026-03-01')
+      .withEndDate('2026-03-31')
+      .withAuthorSelect(['alice', 'bob'])
+      .withLabelSelector(['bug', 'feature'])
+      .withAggregateBy('month')
+      .build();
 
     const link = buildDashboardLink('pull-requests', filters);
 
@@ -75,15 +46,15 @@ describe('buildDashboardLink', () => {
   });
 
   it('builds a source-code dashboard link with file pattern and author filters', () => {
-    const filters = createFilters({
-      startDate: '2026-01-01',
-      endDate: '2026-06-01',
-      ignorePatternFiles: '*.test.ts,*.spec.ts',
-      includePatternFiles: 'src/**/*.ts',
-      authorSelectSourceCode: ['charlie'],
-      topEntries: 15,
-      typeChurn: 'removed',
-    });
+    const filters = new DashboardFiltersBuilder()
+      .withStartDate('2026-01-01')
+      .withEndDate('2026-06-01')
+      .withIgnorePatternFiles('*.test.ts,*.spec.ts')
+      .withIncludePatternFiles('src/**/*.ts')
+      .withAuthorSelectSourceCode(['charlie'])
+      .withTopEntries(15)
+      .withTypeChurn('removed')
+      .build();
 
     const link = buildDashboardLink('source-code', filters);
 
@@ -96,10 +67,10 @@ describe('buildDashboardLink', () => {
   });
 
   it('builds an architecture dashboard link', () => {
-    const filters = createFilters({
-      startDate: '2026-04-01',
-      endDate: '2026-04-30',
-    });
+    const filters = new DashboardFiltersBuilder()
+      .withStartDate('2026-04-01')
+      .withEndDate('2026-04-30')
+      .build();
 
     const link = buildDashboardLink('architecture', filters);
 
@@ -109,9 +80,9 @@ describe('buildDashboardLink', () => {
   });
 
   it('builds a sonarqube dashboard link with remove-folders setting', () => {
-    const filters = createFilters({
-      sonarqubeRemoveFolders: false,
-    });
+    const filters = new DashboardFiltersBuilder()
+      .withSonarqubeRemoveFolders(false)
+      .build();
 
     const link = buildDashboardLink('sonarqube', filters);
 
@@ -120,11 +91,11 @@ describe('buildDashboardLink', () => {
   });
 
   it('builds a pipelines dashboard link with outlier and weekend settings', () => {
-    const filters = createFilters({
-      outlierMode: 'flag',
-      weekends: 'exclude',
-      method: 'median',
-    });
+    const filters = new DashboardFiltersBuilder()
+      .withOutlierMode('flag')
+      .withWeekends('exclude')
+      .withMethod('median')
+      .build();
 
     const link = buildDashboardLink('pipelines', filters);
 
@@ -134,9 +105,9 @@ describe('buildDashboardLink', () => {
   });
 
   it('includes default filter values in query string for explicitness', () => {
-    const filters = createFilters({
-      startDate: '2026-01-01',
-    });
+    const filters = new DashboardFiltersBuilder()
+      .withStartDate('2026-01-01')
+      .build();
 
     const link = buildDashboardLink('pull-requests', filters);
 

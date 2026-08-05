@@ -1,1 +1,6 @@
-export { GitlabMrClient, GitlabPipelineClient, type GitlabCliRunner } from './gitlab-clients';
+export {
+  GitlabMrClient,
+  GitlabPipelineClient,
+  defaultGitlabCliRunner,
+  type GitlabCliRunner,
+} from './gitlab-clients';

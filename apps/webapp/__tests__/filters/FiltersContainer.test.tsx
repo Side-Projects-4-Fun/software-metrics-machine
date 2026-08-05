@@ -2,8 +2,8 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { FiltersProvider } from '@/components/filters/FiltersContext';
 import FiltersContainer from '@/components/filters/FiltersContainer';
-import { defaultFilters } from '@/components/filters/DashboardFilters';
 import * as api from '@/server/api';
+import { DashboardFiltersBuilder } from '../builders/builders';
 
 const navigation = jest.requireMock('next/navigation');
 
@@ -22,7 +22,6 @@ const FiltersContainerWithProvider = () => (
 
 describe('FiltersContainer', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     navigation.usePathname.mockReturnValue('/');
     navigation.useSearchParams.mockReturnValue(new URLSearchParams());
 
@@ -49,6 +48,12 @@ describe('FiltersContainer', () => {
   it('shows saved filter as selected when URL filters match a saved option', async () => {
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+    const savedFilters = new DashboardFiltersBuilder()
+      .withTimezone(timezone)
+      .withStartDate('2024-01-01')
+      .withWorkflowStatus(['completed'])
+      .build();
+
     mockFetchAPI.mockResolvedValue({
       version: 1,
       filters: [
@@ -59,12 +64,7 @@ describe('FiltersContainer', () => {
           pathname: '/dashboard/insights',
           repository: 'test/repository',
           createdAt: '2026-07-11T00:00:00.000Z',
-          filters: {
-            ...defaultFilters,
-            timezone,
-            startDate: '2024-01-01',
-            workflowStatus: ['completed'],
-          },
+          filters: savedFilters,
         },
       ],
     });
@@ -82,6 +82,12 @@ describe('FiltersContainer', () => {
   it('keeps pipelines saved filter selected when PR-only filters change', async () => {
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+    const savedFilters = new DashboardFiltersBuilder()
+      .withTimezone(timezone)
+      .withStartDate('2024-01-01')
+      .withWorkflowStatus(['completed'])
+      .build();
+
     mockFetchAPI.mockResolvedValue({
       version: 1,
       filters: [
@@ -92,12 +98,7 @@ describe('FiltersContainer', () => {
           pathname: '/dashboard/pipelines',
           repository: 'test/repository',
           createdAt: '2026-07-11T00:00:00.000Z',
-          filters: {
-            ...defaultFilters,
-            timezone,
-            startDate: '2024-01-01',
-            workflowStatus: ['completed'],
-          },
+          filters: savedFilters,
         },
       ],
     });
@@ -122,7 +123,7 @@ describe('FiltersContainer', () => {
   });
 
   it('renders without crashing', () => {
-    const { container } = render(<FiltersContainerWithProvider />);
-    expect(container).toBeInTheDocument();
+    render(<FiltersContainerWithProvider />);
+    expect(screen.getByText('Filters')).toBeInTheDocument();
   });
 });

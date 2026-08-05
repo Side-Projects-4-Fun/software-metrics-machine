@@ -84,8 +84,8 @@ async function evaluateSection(
 
 export interface ResolvedReportWindow {
   window: ReportDateWindow | null;
-  evaluations: Partial<Record<EvaluatableSection, unknown>>;
-  errors: Partial<Record<EvaluatableSection, string>>;
+  evaluations: Record<string, unknown>;
+  errors: Record<string, string>;
 }
 
 export interface ResolvedReport {
@@ -113,14 +113,15 @@ async function resolveWindow(
   savedFiltersById: Map<string, SavedFilterEntry>,
   window: ReportDateWindow | null,
 ): Promise<Omit<ResolvedReportWindow, 'window'> & { window: ReportDateWindow | null }> {
-  const evaluations: Partial<Record<EvaluatableSection, unknown>> = {};
-  const errors: Partial<Record<EvaluatableSection, string>> = {};
+  const evaluations: Record<string, unknown> = {};
+  const errors: Record<string, string> = {};
 
   await Promise.all(
     report.sections.map(async (ref: ReportSectionRef) => {
+      const sectionKey = `${ref.section}-${ref.savedFilterId}`;
       const saved = savedFiltersById.get(ref.savedFilterId);
       if (!saved) {
-        errors[ref.section] = 'Referenced saved filter not found.';
+        errors[sectionKey] = 'Referenced saved filter not found.';
         return;
       }
 
@@ -143,10 +144,10 @@ async function resolveWindow(
 
       try {
         const data = await evaluateSection(ref.section, mergedFilters);
-        evaluations[ref.section] = data;
+        evaluations[sectionKey] = data;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Evaluation failed.';
-        errors[ref.section] = message;
+        errors[sectionKey] = message;
       }
     }),
   );

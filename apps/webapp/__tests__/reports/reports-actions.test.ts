@@ -5,6 +5,7 @@ import {
   removeReport,
 } from '@/components/filters/saved-filters-actions';
 import * as api from '@/server/api';
+import { ReportEntryBuilder, SavedFilterBuilder } from '../builders/builders';
 
 jest.mock('@/server/api');
 
@@ -12,23 +13,17 @@ const mockFetchAPI = api.fetchAPI as jest.Mock;
 const mockFetchPutAPI = api.fetchPutAPI as jest.Mock;
 
 describe('reports-actions', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   describe('getReports', () => {
     it('returns reports from the document', async () => {
       mockFetchAPI.mockResolvedValue({
         version: 1,
         filters: [],
         reports: [
-          {
-            id: 'r1',
-            name: 'Sprint 42',
-            repository: 'owner/repo',
-            sections: [{ section: 'pipelines', savedFilterId: 'f1' }],
-            createdAt: '2026-01-01T00:00:00.000Z',
-          },
+          new ReportEntryBuilder()
+            .withId('r1')
+            .withName('Sprint 42')
+            .withSections([{ section: 'pipelines', savedFilterId: 'f1' }])
+            .build(),
         ],
       });
 
@@ -42,20 +37,17 @@ describe('reports-actions', () => {
         version: 1,
         filters: [],
         reports: [
-          {
-            id: 'r1',
-            name: 'Sprint 42',
-            repository: 'owner/repo-a',
-            sections: [],
-            createdAt: '2026-01-01T00:00:00.000Z',
-          },
-          {
-            id: 'r2',
-            name: 'Sprint 43',
-            repository: 'owner/repo-b',
-            sections: [],
-            createdAt: '2026-01-02T00:00:00.000Z',
-          },
+          new ReportEntryBuilder()
+            .withId('r1')
+            .withName('Sprint 42')
+            .withRepository('owner/repo-a')
+            .build(),
+          new ReportEntryBuilder()
+            .withId('r2')
+            .withName('Sprint 43')
+            .withRepository('owner/repo-b')
+            .withCreatedAt('2026-01-02T00:00:00.000Z')
+            .build(),
         ],
       });
 
@@ -75,15 +67,11 @@ describe('reports-actions', () => {
   describe('saveReport', () => {
     it('creates a new report and persists the document', async () => {
       const existingFilters = [
-        {
-          id: 'f1',
-          name: 'CI Main',
-          section: 'pipelines',
-          pathname: '/dashboard/pipelines',
-          filters: { startDate: '', endDate: '' },
-          repository: 'owner/repo',
-          createdAt: '2026-01-01T00:00:00.000Z',
-        },
+        new SavedFilterBuilder()
+          .withId('f1')
+          .withName('CI Main')
+          .withSection('pipelines')
+          .build(),
       ];
       mockFetchAPI.mockResolvedValue({
         version: 1,
@@ -173,13 +161,11 @@ describe('reports-actions', () => {
   });
 
   describe('updateReport', () => {
-    const existingReport = {
-      id: 'r1',
-      name: 'Sprint 42',
-      repository: 'owner/repo',
-      sections: [{ section: 'pipelines' as const, savedFilterId: 'f1' }],
-      createdAt: '2026-01-01T00:00:00.000Z',
-    };
+    const existingReport = new ReportEntryBuilder()
+      .withId('r1')
+      .withName('Sprint 42')
+      .withSections([{ section: 'pipelines', savedFilterId: 'f1' }])
+      .build();
 
     it('updates report fields and persists the document', async () => {
       mockFetchAPI.mockResolvedValue({
@@ -237,25 +223,13 @@ describe('reports-actions', () => {
   describe('removeReport', () => {
     it('removes a report by id', async () => {
       const reports = [
-        {
-          id: 'r1',
-          name: 'Sprint 42',
-          repository: 'owner/repo',
-          sections: [],
-          createdAt: '2026-01-01T00:00:00.000Z',
-        },
-        {
-          id: 'r2',
-          name: 'Sprint 43',
-          repository: 'owner/repo',
-          sections: [],
-          createdAt: '2026-01-02T00:00:00.000Z',
-        },
+        new ReportEntryBuilder().withId('r1').withName('Sprint 42').build(),
+        new ReportEntryBuilder().withId('r2').withName('Sprint 43').withCreatedAt('2026-01-02T00:00:00.000Z').build(),
       ];
       mockFetchAPI.mockResolvedValue({
         version: 1,
         filters: [],
-        reports: reports,
+        reports,
       });
       mockFetchPutAPI.mockResolvedValue({});
 

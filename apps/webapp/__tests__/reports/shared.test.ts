@@ -1,4 +1,5 @@
 import { resolveReport } from '@/app/reports/shared';
+import { SavedFilterBuilder, ReportEntryBuilder } from '../builders/builders';
 
 jest.mock('@/server/api/client');
 jest.mock('@/server/api/pipeline', () => ({ pipelineAPI: { evaluate: jest.fn() } }));
@@ -25,51 +26,15 @@ function evaluateMock(section: TestFilterSection): jest.Mock {
   }
 }
 
-function makeFilter(section: TestFilterSection, overrides: Record<string, unknown> = {}) {
-  return {
-    id: `f_${section}`,
-    name: `Filter for ${section}`,
-    section,
-    pathname: `/dashboard/${section}`,
-    filters: {
-      startDate: '',
-      endDate: '',
-      timezone: '',
-      workflowStatus: [],
-      workflowConclusions: [],
-      jobSelector: [],
-      branch: [],
-      event: [],
-      authorSelect: [],
-      excludeAuthorSelect: [],
-      excludeCommenterSelect: [],
-      labelSelector: [],
-      aggregateBy: 'week' as const,
-      weekends: 'include' as const,
-      outlierMode: 'include' as const,
-      compareStartDate: '',
-      compareEndDate: '',
-      rawFilters: '',
-      period: 'week' as const,
-      ignorePatternFiles: '',
-      includePatternFiles: '',
-      authorSelectSourceCode: [],
-      topEntries: 20,
-      aggregateMetric: 'avg',
-      sonarqubeRemoveFolders: true,
-      method: 'average',
-      ...overrides,
-    },
-    repository: 'owner/repo',
-    createdAt: '2026-01-01T00:00:00.000Z',
-  };
+function buildFilter(section: TestFilterSection) {
+  return new SavedFilterBuilder()
+    .withId(`f_${section}`)
+    .withName(`Filter for ${section}`)
+    .withSection(section)
+    .build();
 }
 
 describe('resolveReport', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('dispatches to the correct evaluate endpoint per section and returns results', async () => {
     const pipelineEval = evaluateMock('pipelines');
     const prEval = evaluateMock('pull-requests');
@@ -78,41 +43,37 @@ describe('resolveReport', () => {
     prEval.mockResolvedValue({ generatedAt: 't2', signals: [], summary: { totalPRs: 7 } });
 
     const result = await resolveReport(
-      {
-        id: 'r1',
-        name: 'Report 1',
-        repository: 'owner/repo',
-        sections: [
+      new ReportEntryBuilder()
+        .withId('r1')
+        .withName('Report 1')
+        .withSections([
           { section: 'pipelines', savedFilterId: 'f_pipelines' },
-          { section: 'pull-requests' as const, savedFilterId: 'f_pull-requests' },
-        ],
-        createdAt: '2026-01-01T00:00:00.000Z',
-      },
+          { section: 'pull-requests', savedFilterId: 'f_pull-requests' },
+        ])
+        .build(),
       new Map([
-        ['f_pipelines', makeFilter('pipelines')],
-        ['f_pull-requests', makeFilter('pull-requests')],
+        ['f_pipelines', buildFilter('pipelines')],
+        ['f_pull-requests', buildFilter('pull-requests')],
       ]),
     );
 
-    expect(result.windows[0].evaluations.pipelines).toEqual({ generatedAt: 't1', signals: [], summary: { totalRuns: 42 } });
-    expect(result.windows[0].evaluations['pull-requests']).toEqual({ generatedAt: 't2', signals: [], summary: { totalPRs: 7 } });
+    expect(result.windows[0].evaluations['pipelines-f_pipelines']).toEqual({ generatedAt: 't1', signals: [], summary: { totalRuns: 42 } });
+    expect(result.windows[0].evaluations['pull-requests-f_pull-requests']).toEqual({ generatedAt: 't2', signals: [], summary: { totalPRs: 7 } });
     expect(result.windows[0].errors).toEqual({});
   });
 
   it('reports missing filter references in errors', async () => {
     const result = await resolveReport(
-      {
-        id: 'r1',
-        name: 'Report 1',
-        repository: 'owner/repo',
-        sections: [{ section: 'pipelines', savedFilterId: 'deleted-id' }],
-        createdAt: '2026-01-01T00:00:00.000Z',
-      },
+      new ReportEntryBuilder()
+        .withId('r1')
+        .withName('Report 1')
+        .withSections([{ section: 'pipelines', savedFilterId: 'deleted-id' }])
+        .build(),
       new Map(),
     );
 
-    expect(result.windows[0].errors.pipelines).toBe('Referenced saved filter not found.');
-    expect(result.windows[0].evaluations.pipelines).toBeUndefined();
+    expect(result.windows[0].errors['pipelines-deleted-id']).toBe('Referenced saved filter not found.');
+    expect(result.windows[0].evaluations['pipelines-deleted-id']).toBeUndefined();
   });
 
   it('overrides startDate and endDate from the report onto the saved filter before evaluate', async () => {
@@ -120,16 +81,14 @@ describe('resolveReport', () => {
     pipelineEval.mockResolvedValue({ generatedAt: '', signals: [], summary: {} });
 
     await resolveReport(
-      {
-        id: 'r1',
-        name: 'Override Report',
-        repository: 'owner/repo',
-        sections: [{ section: 'pipelines', savedFilterId: 'f_pipelines' }],
-        startDateOverride: '2026-06-01',
-        endDateOverride: '2026-06-30',
-        createdAt: '2026-01-01T00:00:00.000Z',
-      },
-      new Map([['f_pipelines', makeFilter('pipelines')]]),
+      new ReportEntryBuilder()
+        .withId('r1')
+        .withName('Override Report')
+        .withSections([{ section: 'pipelines', savedFilterId: 'f_pipelines' }])
+        .withStartDateOverride('2026-06-01')
+        .withEndDateOverride('2026-06-30')
+        .build(),
+      new Map([['f_pipelines', buildFilter('pipelines')]]),
     );
 
     const params = pipelineEval.mock.calls[0][0];
@@ -142,18 +101,16 @@ describe('resolveReport', () => {
     pipelineEval.mockRejectedValue(new Error('Service unavailable'));
 
     const result = await resolveReport(
-      {
-        id: 'r1',
-        name: 'Error Report',
-        repository: 'owner/repo',
-        sections: [{ section: 'pipelines', savedFilterId: 'f_pipelines' }],
-        createdAt: '2026-01-01T00:00:00.000Z',
-      },
-      new Map([['f_pipelines', makeFilter('pipelines')]]),
+      new ReportEntryBuilder()
+        .withId('r1')
+        .withName('Error Report')
+        .withSections([{ section: 'pipelines', savedFilterId: 'f_pipelines' }])
+        .build(),
+      new Map([['f_pipelines', buildFilter('pipelines')]]),
     );
 
-    expect(result.windows[0].errors.pipelines).toBe('Service unavailable');
-    expect(result.windows[0].evaluations.pipelines).toBeUndefined();
+    expect(result.windows[0].errors['pipelines-f_pipelines']).toBe('Service unavailable');
+    expect(result.windows[0].evaluations['pipelines-f_pipelines']).toBeUndefined();
   });
 
   it('dispatches to every section type correctly', async () => {
@@ -162,33 +119,31 @@ describe('resolveReport', () => {
     }
 
     const result = await resolveReport(
-      {
-        id: 'r1',
-        name: 'Full Report',
-        repository: 'owner/repo',
-        sections: [
+      new ReportEntryBuilder()
+        .withId('r1')
+        .withName('Full Report')
+        .withSections([
           { section: 'pipelines', savedFilterId: 'f_pipelines' },
-          { section: 'pull-requests' as const, savedFilterId: 'f_pull-requests' },
-          { section: 'source-code' as const, savedFilterId: 'f_source-code' },
-          { section: 'architecture' as const, savedFilterId: 'f_architecture' },
-          { section: 'sonarqube' as const, savedFilterId: 'f_sonarqube' },
-        ],
-        createdAt: '2026-01-01T00:00:00.000Z',
-      },
+          { section: 'pull-requests', savedFilterId: 'f_pull-requests' },
+          { section: 'source-code', savedFilterId: 'f_source-code' },
+          { section: 'architecture', savedFilterId: 'f_architecture' },
+          { section: 'sonarqube', savedFilterId: 'f_sonarqube' },
+        ])
+        .build(),
       new Map([
-        ['f_pipelines', makeFilter('pipelines')],
-        ['f_pull-requests', makeFilter('pull-requests')],
-        ['f_source-code', makeFilter('source-code')],
-        ['f_architecture', makeFilter('architecture')],
-        ['f_sonarqube', makeFilter('sonarqube')],
+        ['f_pipelines', buildFilter('pipelines')],
+        ['f_pull-requests', buildFilter('pull-requests')],
+        ['f_source-code', buildFilter('source-code')],
+        ['f_architecture', buildFilter('architecture')],
+        ['f_sonarqube', buildFilter('sonarqube')],
       ]),
     );
 
-    expect(result.windows[0].evaluations.pipelines).toBeDefined();
-    expect(result.windows[0].evaluations['pull-requests']).toBeDefined();
-    expect(result.windows[0].evaluations['source-code']).toBeDefined();
-    expect(result.windows[0].evaluations.architecture).toBeDefined();
-    expect(result.windows[0].evaluations.sonarqube).toBeDefined();
+    expect(result.windows[0].evaluations['pipelines-f_pipelines']).toBeDefined();
+    expect(result.windows[0].evaluations['pull-requests-f_pull-requests']).toBeDefined();
+    expect(result.windows[0].evaluations['source-code-f_source-code']).toBeDefined();
+    expect(result.windows[0].evaluations['architecture-f_architecture']).toBeDefined();
+    expect(result.windows[0].evaluations['sonarqube-f_sonarqube']).toBeDefined();
     expect(result.windows[0].errors).toEqual({});
   });
 
@@ -199,27 +154,25 @@ describe('resolveReport', () => {
       .mockResolvedValueOnce({ generatedAt: 'w2', signals: [], summary: { totalRuns: 20 } });
 
     const result = await resolveReport(
-      {
-        id: 'r1',
-        name: 'Multi Window Report',
-        repository: 'owner/repo',
-        sections: [{ section: 'pipelines', savedFilterId: 'f_pipelines' }],
-        dateWindows: [
+      new ReportEntryBuilder()
+        .withId('r1')
+        .withName('Multi Window Report')
+        .withSections([{ section: 'pipelines', savedFilterId: 'f_pipelines' }])
+        .withDateWindows([
           { startDate: '2026-06-01', endDate: '2026-06-07', label: 'Week 1' },
           { startDate: '2026-06-08', endDate: '2026-06-14', label: 'Week 2' },
-        ],
-        createdAt: '2026-01-01T00:00:00.000Z',
-      },
-      new Map([['f_pipelines', makeFilter('pipelines')]]),
+        ])
+        .build(),
+      new Map([['f_pipelines', buildFilter('pipelines')]]),
     );
 
     expect(result.windows).toHaveLength(2);
     expect(result.windows[0].window?.label).toBe('Week 1');
     expect(result.windows[1].window?.label).toBe('Week 2');
-    expect(result.windows[0].evaluations.pipelines).toEqual({
+    expect(result.windows[0].evaluations['pipelines-f_pipelines']).toEqual({
       generatedAt: 'w1', signals: [], summary: { totalRuns: 10 },
     });
-    expect(result.windows[1].evaluations.pipelines).toEqual({
+    expect(result.windows[1].evaluations['pipelines-f_pipelines']).toEqual({
       generatedAt: 'w2', signals: [], summary: { totalRuns: 20 },
     });
   });

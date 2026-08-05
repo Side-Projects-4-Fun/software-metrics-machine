@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import SettingsPage from '@/app/dashboard/settings/page';
 
 function getWebappSettingsCookie() {
@@ -29,7 +30,7 @@ describe('SettingsPage', () => {
     render(<SettingsPage />);
 
     const toggle = await screen.findByRole('switch', { name: 'toggle REST API cache' });
-    fireEvent.click(toggle);
+    await userEvent.click(toggle);
 
     expect(getWebappSettingsCookie()).toEqual({ fetchCache: true });
   });

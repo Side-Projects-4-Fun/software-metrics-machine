@@ -4,16 +4,6 @@ import InsightsSection from "@/app/dashboard/insights/page";
 import { FiltersProvider, useFilters } from "@/components/filters/FiltersContext";
 import { pipelineAPI, pullRequestAPI, sourceCodeAPI } from "@/server/api";
 
-// Mock Next.js router
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(() => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-  })),
-  usePathname: jest.fn(() => '/dashboard/insights'),
-  useSearchParams: jest.fn(() => new URLSearchParams()),
-}));
-
 jest.mock('@/server/api', () => ({
   sourceCodeAPI: {
     pairingIndex: jest.fn(),

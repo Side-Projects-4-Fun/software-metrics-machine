@@ -9,6 +9,7 @@ import type {
 import {
   GithubPrsClient,
   GitlabMrClient,
+  defaultGitlabCliRunner,
   GitHubRateLimitManager,
   GitHubPullRequestsFetchRepository,
   parseMetricCleaningOptions,
@@ -34,7 +35,13 @@ function createPRsOrchestratorFetch(command: SmmCommand): GitHubPullRequestsFetc
 
   const rateLimitManager = new GitHubRateLimitManager(logger);
   const prsClient = isGitlab
-    ? new GitlabMrClient(config.gitlabToken, config.githubRepository!, logger)
+    ? new GitlabMrClient(
+        config.gitlabToken,
+        config.githubRepository!,
+        logger,
+        defaultGitlabCliRunner,
+        config.gitlabUrl
+      )
     : new GithubPrsClient(config.githubToken!, githubOwner, githubRepo, rateLimitManager, logger);
 
   return new GitHubPullRequestsFetchRepository(prsClient, config, logger);

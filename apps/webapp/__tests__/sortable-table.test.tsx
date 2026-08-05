@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { SortableTable } from '@/components/ui/sortable-table';
 
 interface TestRow {
@@ -61,9 +62,9 @@ describe('SortableTable', () => {
     expect(countHeader).toHaveStyle({ textAlign: 'right' });
   });
 
-  it('sorts ascending when a column header is clicked', () => {
+  it('sorts ascending when a column header is clicked', async () => {
     renderTable();
-    fireEvent.click(screen.getByText('Name'));
+    await userEvent.click(screen.getByText('Name'));
 
     const rows = screen.getAllByRole('row');
     // row 0 is header, rows 1-3 are data
@@ -72,10 +73,10 @@ describe('SortableTable', () => {
     expect(rows[3]).toHaveTextContent('Charlie');
   });
 
-  it('sorts descending on second click', () => {
+  it('sorts descending on second click', async () => {
     renderTable();
-    fireEvent.click(screen.getByText('Name'));
-    fireEvent.click(screen.getByText('Name'));
+    await userEvent.click(screen.getByText('Name'));
+    await userEvent.click(screen.getByText('Name'));
 
     const rows = screen.getAllByRole('row');
     expect(rows[1]).toHaveTextContent('Charlie');
@@ -83,9 +84,9 @@ describe('SortableTable', () => {
     expect(rows[3]).toHaveTextContent('Alice');
   });
 
-  it('sorts numbers correctly', () => {
+  it('sorts numbers correctly', async () => {
     renderTable();
-    fireEvent.click(screen.getByText('Count'));
+    await userEvent.click(screen.getByText('Count'));
 
     const rows = screen.getAllByRole('row');
     // ascending: 10, 20, 30
@@ -94,10 +95,10 @@ describe('SortableTable', () => {
     expect(rows[3]).toHaveTextContent('Alice');
   });
 
-  it('sorts numbers descending', () => {
+  it('sorts numbers descending', async () => {
     renderTable();
-    fireEvent.click(screen.getByText('Count'));
-    fireEvent.click(screen.getByText('Count'));
+    await userEvent.click(screen.getByText('Count'));
+    await userEvent.click(screen.getByText('Count'));
 
     const rows = screen.getAllByRole('row');
     // descending: 30, 20, 10
@@ -130,7 +131,7 @@ describe('SortableTable', () => {
     expect(rows[3]).toHaveTextContent('Alice');
   });
 
-  it('switches sort direction when clicking a different column', () => {
+  it('switches sort direction when clicking a different column', async () => {
     renderTable({ defaultSort: { key: 'count', direction: 'desc' } });
 
     // Currently sorted by count desc: Alice(30), Charlie(20), Bob(10)
@@ -138,7 +139,7 @@ describe('SortableTable', () => {
     expect(rows[1]).toHaveTextContent('Alice');
 
     // Click Name -> sorts by name ascending
-    fireEvent.click(screen.getByText('Name'));
+    await userEvent.click(screen.getByText('Name'));
     rows = screen.getAllByRole('row');
     expect(rows[1]).toHaveTextContent('Alice');
     expect(rows[2]).toHaveTextContent('Bob');
@@ -255,21 +256,21 @@ describe('SortableTable', () => {
     expect(rows[3]).toHaveTextContent('Bob');
   });
 
-  it('toggles direction multiple times on same column', () => {
+  it('toggles direction multiple times on same column', async () => {
     renderTable();
 
     // click 1: asc
-    fireEvent.click(screen.getByText('Count'));
+    await userEvent.click(screen.getByText('Count'));
     let rows = screen.getAllByRole('row');
     expect(rows[1]).toHaveTextContent('Bob'); // 10
 
     // click 2: desc
-    fireEvent.click(screen.getByText('Count'));
+    await userEvent.click(screen.getByText('Count'));
     rows = screen.getAllByRole('row');
     expect(rows[1]).toHaveTextContent('Alice'); // 30
 
     // click 3: asc again
-    fireEvent.click(screen.getByText('Count'));
+    await userEvent.click(screen.getByText('Count'));
     rows = screen.getAllByRole('row');
     expect(rows[1]).toHaveTextContent('Bob'); // 10
   });

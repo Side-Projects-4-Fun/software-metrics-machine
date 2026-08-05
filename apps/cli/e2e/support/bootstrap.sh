@@ -109,6 +109,31 @@ JSON
   printf '%s\n' "${workspace}"
 }
 
+create_gitlab_workspace() {
+  local workspace
+  local tmp_root="${SMM_REPO_ROOT}/tmp/e2e"
+
+  mkdir -p "${tmp_root}"
+  workspace="$(mktemp -d "${tmp_root}/smm-gitlab-e2e.XXXXXX")"
+  mkdir -p "${workspace}/repo"
+
+  cat >"${workspace}/smm_config.json" <<JSON
+{
+  "projects": [
+    {
+      "git_provider": "gitlab",
+      "gitlab_token": "glpat-test-token",
+      "github_repository": "acme/widgets",
+      "git_repository_location": "${workspace}/repo",
+      "log_level": "CRITICAL"
+    }
+  ]
+}
+JSON
+
+  printf '%s\n' "${workspace}"
+}
+
 run_smm_with_github_prs_msw() {
   SMM_E2E_OUTPUT="$(node "${SMM_E2E_DIR}/support/github-prs-msw-runner.mjs" "$@" 2>&1)"
   SMM_E2E_STATUS=$?
@@ -117,6 +142,12 @@ run_smm_with_github_prs_msw() {
 
 run_smm_with_github_pipelines_msw() {
   SMM_E2E_OUTPUT="$(node "${SMM_E2E_DIR}/support/github-pipelines-msw-runner.mjs" "$@" 2>&1)"
+  SMM_E2E_STATUS=$?
+  return 0
+}
+
+run_smm_with_gitlab_api() {
+  SMM_E2E_OUTPUT="$(node "${SMM_E2E_DIR}/support/gitlab-api-runner.mjs" "$@" 2>&1)"
   SMM_E2E_STATUS=$?
   return 0
 }
@@ -739,4 +770,361 @@ seed_sqlite_architecture_fixture() {
 seed_sqlite_code_analysis_fixture() {
   local workspace="$1"
   seed_sqlite_fixture "${workspace}" code-analysis
+}
+
+seed_sqlite_gitlab_prs_fixture() {
+  local workspace="$1"
+
+  node - "${workspace}" <<'NODE'
+const fs = require('fs');
+const path = require('path');
+const { DatabaseSync } = require('node:sqlite');
+
+const [workspace] = process.argv.slice(2);
+const projectDir = path.join(workspace, 'gitlab_acme_widgets');
+const dbPath = path.join(projectDir, 'smm.sqlite');
+fs.mkdirSync(projectDir, { recursive: true });
+
+const db = new DatabaseSync(dbPath);
+
+// Ensure schema (same as seed_sqlite_fixture)
+db.exec(`
+  CREATE TABLE IF NOT EXISTS pull_requests (
+    namespace TEXT NOT NULL,
+    id TEXT NOT NULL,
+    number INTEGER,
+    state TEXT,
+    title TEXT,
+    author_login TEXT,
+    author_id TEXT,
+    created_at TEXT,
+    updated_at TEXT,
+    closed_at TEXT,
+    merged_at TEXT,
+    html_url TEXT,
+    payload TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    stored_at TEXT NOT NULL,
+    PRIMARY KEY (namespace, id)
+  );
+
+  CREATE TABLE IF NOT EXISTS pull_request_comments (
+    namespace TEXT NOT NULL,
+    id TEXT NOT NULL,
+    pull_request_number INTEGER,
+    pull_request_url TEXT,
+    author_login TEXT,
+    author_id TEXT,
+    path TEXT,
+    created_at TEXT,
+    updated_at TEXT,
+    html_url TEXT,
+    payload TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    stored_at TEXT NOT NULL,
+    PRIMARY KEY (namespace, id)
+  );
+
+  CREATE TABLE IF NOT EXISTS workflow_runs (
+    namespace TEXT NOT NULL,
+    id TEXT NOT NULL,
+    run_number INTEGER,
+    name TEXT,
+    path TEXT,
+    event TEXT,
+    status TEXT,
+    conclusion TEXT,
+    head_branch TEXT,
+    created_at TEXT,
+    updated_at TEXT,
+    run_started_at TEXT,
+    run_attempt INTEGER,
+    payload TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    stored_at TEXT NOT NULL,
+    PRIMARY KEY (namespace, id)
+  );
+
+  CREATE TABLE IF NOT EXISTS workflow_jobs (
+    namespace TEXT NOT NULL,
+    id TEXT NOT NULL,
+    run_id TEXT NOT NULL,
+    name TEXT,
+    status TEXT,
+    conclusion TEXT,
+    started_at TEXT,
+    completed_at TEXT,
+    payload TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    stored_at TEXT NOT NULL,
+    PRIMARY KEY (namespace, id)
+  );
+`);
+
+const storedAt = new Date().toISOString();
+const nsPrs = 'gitlab/prs.json';
+const nsComments = 'gitlab/pr-comments.json';
+
+const prs = [
+  {
+    id: 1001,
+    number: 7,
+    state: 'merged',
+    title: 'Add checkout flow',
+    user: { id: 501, login: 'alice' },
+    labels: [{ id: '1001:0:feature', name: 'feature' }],
+    created_at: '2026-01-05T09:00:00Z',
+    updated_at: '2026-01-07T09:00:00Z',
+    closed_at: null,
+    merged_at: '2026-01-07T09:00:00Z',
+    html_url: 'https://gitlab.com/acme/widgets/-/merge_requests/7',
+  },
+  {
+    id: 1002,
+    number: 8,
+    state: 'opened',
+    title: 'Refine cart metrics',
+    user: { id: 502, login: 'bob' },
+    labels: [{ id: '1002:0:analytics', name: 'analytics' }],
+    created_at: '2026-01-12T09:00:00Z',
+    updated_at: '2026-01-12T11:00:00Z',
+    closed_at: null,
+    merged_at: null,
+    html_url: 'https://gitlab.com/acme/widgets/-/merge_requests/8',
+  },
+];
+
+const insertPr = db.prepare(`
+  INSERT INTO pull_requests
+  (namespace, id, number, state, title, author_login, author_id, created_at, updated_at, closed_at, merged_at, html_url, payload, position, stored_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`);
+prs.forEach((pr, index) => {
+  insertPr.run(
+    nsPrs,
+    String(pr.id),
+    pr.number,
+    pr.state,
+    pr.title,
+    pr.user.login,
+    String(pr.user.id),
+    pr.created_at,
+    pr.updated_at,
+    pr.closed_at || null,
+    pr.merged_at || null,
+    pr.html_url,
+    JSON.stringify(pr),
+    index,
+    storedAt
+  );
+});
+
+const comment = {
+  id: 9001,
+  body: 'Please add a checkout regression test.',
+  user: { id: 601, login: 'reviewer' },
+  path: 'src/checkout.ts',
+  created_at: '2026-01-05T13:00:00Z',
+  updated_at: '2026-01-05T13:05:00Z',
+  html_url: 'https://gitlab.com/acme/widgets/-/merge_requests/7#note_9001',
+  pull_request_url: 'https://gitlab.com/acme/widgets/acme/widgets/-/merge_requests/7',
+};
+
+db.prepare(`
+  INSERT INTO pull_request_comments
+  (namespace, id, pull_request_number, pull_request_url, author_login, author_id, path, created_at, updated_at, html_url, payload, position, stored_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`).run(
+  nsComments,
+  String(comment.id),
+  7,
+  comment.pull_request_url,
+  comment.user.login,
+  String(comment.user.id),
+  comment.path,
+  comment.created_at,
+  comment.updated_at,
+  comment.html_url,
+  JSON.stringify(comment),
+  0,
+  storedAt
+);
+
+db.close();
+NODE
+}
+
+seed_sqlite_gitlab_pipelines_fixture() {
+  local workspace="$1"
+
+  node - "${workspace}" <<'NODE'
+const fs = require('fs');
+const path = require('path');
+const { DatabaseSync } = require('node:sqlite');
+
+const [workspace] = process.argv.slice(2);
+const projectDir = path.join(workspace, 'gitlab_acme_widgets');
+const dbPath = path.join(projectDir, 'smm.sqlite');
+fs.mkdirSync(projectDir, { recursive: true });
+
+const db = new DatabaseSync(dbPath);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS workflow_runs (
+    namespace TEXT NOT NULL,
+    id TEXT NOT NULL,
+    run_number INTEGER,
+    name TEXT,
+    path TEXT,
+    event TEXT,
+    status TEXT,
+    conclusion TEXT,
+    head_branch TEXT,
+    created_at TEXT,
+    updated_at TEXT,
+    run_started_at TEXT,
+    run_attempt INTEGER,
+    payload TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    stored_at TEXT NOT NULL,
+    PRIMARY KEY (namespace, id)
+  );
+
+  CREATE TABLE IF NOT EXISTS workflow_jobs (
+    namespace TEXT NOT NULL,
+    id TEXT NOT NULL,
+    run_id TEXT NOT NULL,
+    name TEXT,
+    status TEXT,
+    conclusion TEXT,
+    started_at TEXT,
+    completed_at TEXT,
+    payload TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    stored_at TEXT NOT NULL,
+    PRIMARY KEY (namespace, id)
+  );
+`);
+
+const storedAt = new Date().toISOString();
+const runsNs = 'gitlab/pipeline-runs';
+const jobsNs = 'gitlab/pipeline-jobs';
+
+const runs = [
+  {
+    id: '2001',
+    name: '.gitlab-ci.yml',
+    path: '.gitlab-ci.yml',
+    run_number: 41,
+    event: 'push',
+    status: 'completed',
+    conclusion: 'success',
+    head_branch: 'main',
+    head_sha: 'abc123def456',
+    created_at: '2026-02-03T10:00:00Z',
+    updated_at: '2026-02-03T10:10:00Z',
+    run_started_at: '2026-02-03T10:00:00Z',
+    run_attempt: '1',
+    html_url: 'https://gitlab.com/acme/widgets/-/pipelines/2001',
+  },
+  {
+    id: '2002',
+    name: '.gitlab-ci.yml',
+    path: '.gitlab-ci.yml',
+    run_number: 42,
+    event: 'push',
+    status: 'completed',
+    conclusion: 'failure',
+    head_branch: 'main',
+    head_sha: 'def456abc123',
+    created_at: '2026-02-04T11:00:00Z',
+    updated_at: '2026-02-04T11:20:00Z',
+    run_started_at: '2026-02-04T11:00:00Z',
+    run_attempt: '1',
+    html_url: 'https://gitlab.com/acme/widgets/-/pipelines/2002',
+  },
+];
+
+const insertRun = db.prepare(`
+  INSERT INTO workflow_runs
+  (namespace, id, run_number, name, path, event, status, conclusion, head_branch, created_at, updated_at, run_started_at, run_attempt, payload, position, stored_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`);
+runs.forEach((run, index) => {
+  insertRun.run(
+    runsNs,
+    run.id,
+    run.run_number,
+    run.name,
+    run.path,
+    run.event,
+    run.status,
+    run.conclusion,
+    run.head_branch,
+    run.created_at,
+    run.updated_at,
+    run.run_started_at,
+    run.run_attempt,
+    JSON.stringify(run),
+    index,
+    storedAt
+  );
+});
+
+const jobs = [
+  {
+    id: '5001',
+    run_id: '2001',
+    run_url: 'https://gitlab.com/acme/widgets/-/pipelines/2001',
+    name: 'build',
+    status: 'completed',
+    conclusion: 'success',
+    started_at: '2026-02-03T10:00:00Z',
+    completed_at: '2026-02-03T10:05:00Z',
+  },
+  {
+    id: '5002',
+    run_id: '2001',
+    run_url: 'https://gitlab.com/acme/widgets/-/pipelines/2001',
+    name: 'deploy',
+    status: 'completed',
+    conclusion: 'success',
+    started_at: '2026-02-03T10:05:00Z',
+    completed_at: '2026-02-03T10:10:00Z',
+  },
+  {
+    id: '5003',
+    run_id: '2002',
+    run_url: 'https://gitlab.com/acme/widgets/-/pipelines/2002',
+    name: 'build',
+    status: 'completed',
+    conclusion: 'failure',
+    started_at: '2026-02-04T11:00:00Z',
+    completed_at: '2026-02-04T11:20:00Z',
+  },
+];
+
+const insertJob = db.prepare(`
+  INSERT INTO workflow_jobs
+  (namespace, id, run_id, name, status, conclusion, started_at, completed_at, payload, position, stored_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`);
+jobs.forEach((job, index) => {
+  insertJob.run(
+    jobsNs,
+    job.id,
+    job.run_id,
+    job.name,
+    job.status,
+    job.conclusion,
+    job.started_at,
+    job.completed_at,
+    JSON.stringify(job),
+    index,
+    storedAt
+  );
+});
+
+db.close();
+NODE
 }

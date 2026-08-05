@@ -2,22 +2,6 @@ import {render, screen, waitFor} from "@testing-library/react";
 import DashboardLayout from "@/app/dashboard/layout";
 import React from "react";
 
-jest.mock('next/headers', () => ({
-  cookies: jest.fn().mockResolvedValue({
-    get: jest.fn(() => undefined),
-  }),
-}));
-
-// Mock Next.js router
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(() => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-  })),
-  usePathname: jest.fn(() => '/dashboard/insights'),
-  useSearchParams: jest.fn(() => new URLSearchParams()),
-}));
-
 jest.mock('@smmachine/core', () => ({
   Configuration: jest.fn().mockImplementation(() => ({
     githubRepository: 'owner/repo',

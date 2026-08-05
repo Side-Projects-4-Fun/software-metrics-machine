@@ -2,28 +2,15 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import JobsRerunCard from '@/components/charts/pipeline/JobsRerunCard';
 import { LinkBuilderProvider } from '@/components/providers/LinkBuilderContext';
-import { DashboardGlobalConfiguration } from '@/server/api/configuration';
 import { FiltersProvider } from '@/components/filters/FiltersContext';
 import { defaultFilters } from '@/components/filters/DashboardFilters';
+import { DashboardConfigurationBuilder } from '../builders/builders';
 
-const configuration: DashboardGlobalConfiguration = {
-  git_provider: 'github',
-  github_repository: 'acme/widgets',
-  git_repository_location: '',
-  store_data: false,
-  deployment_frequency_targets: [],
-  main_branch: 'main',
-  dashboard_start_date: null,
-  dashboard_end_date: null,
-  dashboard_color: '',
-  logging_level: 'info',
-  jira_url: null,
-  jira_email: null,
-  jira_token: null,
-  jira_project: null,
-  sonar_url: null,
-  sonar_project: null,
-};
+const configuration = new DashboardConfigurationBuilder()
+  .withGithubRepository('acme/widgets')
+  .withGitRepositoryLocation('')
+  .withDashboardColor('')
+  .build();
 
 describe('JobsRerunCard', () => {
   it('renders job names as external links to provider job metrics', () => {

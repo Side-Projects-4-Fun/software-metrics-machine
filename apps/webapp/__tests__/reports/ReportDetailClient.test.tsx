@@ -1,6 +1,8 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import ReportDetailClient from '@/components/reports/ReportDetailClient';
 import type { ResolvedReport } from '@/app/reports/shared';
+import { ReportEntryBuilder, SavedFilterBuilder } from '../builders/builders';
 
 jest.mock('@/components/charts/pipeline/PipelineEvaluationCard', () => ({
   __esModule: true,
@@ -23,15 +25,9 @@ jest.mock('@/components/charts/sonarqube/SonarqubeEvaluationCard', () => ({
   default: () => <div data-testid="sonar-eval">SonarQube Eval</div>,
 }));
 
-function makeResolved(overrides: Partial<ResolvedReport> = {}): ResolvedReport {
+function buildResolved(overrides: Partial<ResolvedReport> = {}): ResolvedReport {
   return {
-    report: {
-      id: 'r1',
-      name: 'Report 42',
-      repository: 'owner/repo',
-      sections: [],
-      createdAt: '2026-01-01T00:00:00.000Z',
-    },
+    report: new ReportEntryBuilder().withId('r1').withName('Report 42').build(),
     windows: [
       {
         window: { startDate: '2026-06-01', endDate: '2026-06-07', label: 'Week 1' },
@@ -52,7 +48,7 @@ describe('ReportDetailClient', () => {
   it('renders the report name', () => {
     render(
       <ReportDetailClient
-        resolved={makeResolved()}
+        resolved={buildResolved()}
         savedFiltersMap={new Map()}
       />,
     );
@@ -63,7 +59,7 @@ describe('ReportDetailClient', () => {
   it('renders timeline when multiple windows exist', () => {
     render(
       <ReportDetailClient
-        resolved={makeResolved()}
+        resolved={buildResolved()}
         savedFiltersMap={new Map()}
       />,
     );
@@ -73,7 +69,7 @@ describe('ReportDetailClient', () => {
   });
 
   it('does not render timeline for single-window reports', () => {
-    const single = makeResolved();
+    const single = buildResolved();
     single.windows = single.windows.slice(0, 1);
 
     render(
@@ -86,25 +82,18 @@ describe('ReportDetailClient', () => {
     expect(screen.queryByText('Week 1')).toBeNull();
   });
 
-  it('shows active window data when switching timeline items', () => {
-    const resolved = makeResolved();
+  it('shows active window data when switching timeline items', async () => {
+    const resolved = buildResolved();
     resolved.windows[1].evaluations = {
-      pipelines: { generatedAt: '', signals: [], summary: { totalRuns: 5 } },
+      'pipelines-f1': { generatedAt: '', signals: [], summary: { totalRuns: 5 } },
     };
     resolved.report.sections = [
       { section: 'pipelines', savedFilterId: 'f1' },
     ];
 
-    const savedFiltersMap = new Map();
-    savedFiltersMap.set('f1', {
-      id: 'f1',
-      name: 'CI Filter',
-      section: 'pipelines',
-      pathname: '/dashboard/pipelines',
-      filters: {} as unknown,
-      repository: 'owner/repo',
-      createdAt: '',
-    });
+    const savedFiltersMap = new Map([
+      ['f1', new SavedFilterBuilder().withId('f1').withName('CI Filter').withSection('pipelines').build()],
+    ]);
 
     render(
       <ReportDetailClient
@@ -113,8 +102,7 @@ describe('ReportDetailClient', () => {
       />,
     );
 
-    // Default is window 0, switch to window 1
-    fireEvent.click(screen.getByText('Week 2'));
+    await userEvent.click(screen.getByText('Week 2'));
 
     expect(screen.getByTestId('pipeline-eval')).toBeVisible();
   });
@@ -122,12 +110,11 @@ describe('ReportDetailClient', () => {
   it('shows window label in the report header when multiple windows', () => {
     render(
       <ReportDetailClient
-        resolved={makeResolved()}
+        resolved={buildResolved()}
         savedFiltersMap={new Map()}
       />,
     );
 
-    // The window label appears in both the timeline and the report header
     const occurrences = screen.getAllByText(/Week 1/);
     expect(occurrences.length).toBeGreaterThanOrEqual(2);
   });
@@ -135,7 +122,7 @@ describe('ReportDetailClient', () => {
   it('returns null when windows array is empty', () => {
     const { container } = render(
       <ReportDetailClient
-        resolved={{ ...makeResolved(), windows: [] }}
+        resolved={{ ...buildResolved(), windows: [] }}
         savedFiltersMap={new Map()}
       />,
     );

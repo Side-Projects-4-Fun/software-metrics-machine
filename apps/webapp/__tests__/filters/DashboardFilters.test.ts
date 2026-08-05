@@ -3,23 +3,24 @@ import {
   parseDashboardFilters,
   serializeDashboardFilters,
 } from '@/components/filters/DashboardFilters';
+import { DashboardFiltersBuilder } from '../builders/builders';
 
 describe('DashboardFilters', () => {
   it('serializes filter state', () => {
-    const params = serializeDashboardFilters({
-      ...defaultFilters,
-      workflowSelector: 'release.yml',
-      workflowStatus: ['completed'],
-      timezone: 'Europe/Madrid',
-      weekends: 'weekends_only',
-      outlierMode: 'flag',
-      metric: 'coverage',
-      category: 'quality',
-      compareStartDate: '2026-06-01',
-      compareEndDate: '2026-06-30',
-      rawFilters: 'status=success',
-      period: 'month',
-    });
+    const filters = new DashboardFiltersBuilder()
+      .withWorkflowSelector('release.yml')
+      .withWorkflowStatus(['completed'])
+      .withTimezone('Europe/Madrid')
+      .withWeekends('weekends_only')
+      .withOutlierMode('flag')
+      .withMetric('coverage')
+      .withCategory('quality')
+      .withCompareDates('2026-06-01', '2026-06-30')
+      .withRawFilters('status=success')
+      .withPeriod('month')
+      .build();
+
+    const params = serializeDashboardFilters(filters);
 
     expect(params.get('workflowSelector')).toBe('release.yml');
     expect(params.get('workflowStatus')).toBe('completed');
@@ -75,10 +76,11 @@ describe('DashboardFilters', () => {
   });
 
   it('does not serialize the default engineering health period', () => {
-    const params = serializeDashboardFilters({
-      ...defaultFilters,
-      workflowSelector: 'release.yml',
-    });
+    const filters = new DashboardFiltersBuilder()
+      .withWorkflowSelector('release.yml')
+      .build();
+
+    const params = serializeDashboardFilters(filters);
 
     expect(params.get('period')).toBeNull();
   });

@@ -1,19 +1,7 @@
-import React from "react";
-import { render, screen } from "@testing-library/react";
-import ReportsPage from "@/app/reports/page";
-import { FiltersProvider } from "@/components/filters/FiltersContext";
-
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn() })),
-  usePathname: jest.fn(() => '/reports'),
-  useSearchParams: jest.fn(() => new URLSearchParams()),
-}));
-
-jest.mock('next/headers', () => ({
-  cookies: jest.fn(() => ({
-    get: jest.fn(() => undefined),
-  })),
-}));
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import ReportsPage from '@/app/reports/page';
+import { FiltersProvider } from '@/components/filters/FiltersContext';
 
 jest.mock('@/app/reports/shared', () => ({
   fetchSavedFiltersDocument: jest.fn(),
@@ -26,10 +14,6 @@ const mockFetchDoc = fetchSavedFiltersDocument as jest.MockedFunction<typeof fet
 const mockResolveReports = resolveReports as jest.MockedFunction<typeof resolveReports>;
 
 describe('Reports Page - User Journey', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('renders reports list with create button when reports exist', async () => {
     mockFetchDoc.mockResolvedValue({
       version: 1,

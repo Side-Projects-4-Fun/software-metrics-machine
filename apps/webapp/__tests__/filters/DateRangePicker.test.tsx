@@ -1,11 +1,11 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { FiltersProvider } from '@/components/filters/FiltersContext';
 import DateRangePicker, { FilterDateRangePicker } from '@/components/filters/DateRangePicker';
 import { defaultFilters, DashboardFilters } from '@/components/filters/DashboardFilters';
 import dayjs from 'dayjs';
 
-// Test wrapper component
 const DateRangePickerWithProvider = ({ initialFilters }: { initialFilters?: DashboardFilters }) => (
   <FiltersProvider initialFilters={initialFilters}>
     <DateRangePicker />
@@ -34,15 +34,15 @@ describe('DateRangePicker', () => {
   });
 
   it('renders within provider without errors', () => {
-    const { container } = render(<DateRangePickerWithProvider />);
-    expect(container).toBeInTheDocument();
+    render(<DateRangePickerWithProvider />);
+    expect(screen.getByLabelText('Date range')).toBeInTheDocument();
   });
 
-  it('opens range options and applies a preset', () => {
+  it('opens range options and applies a preset', async () => {
     render(<DateRangePickerWithProvider />);
 
-    fireEvent.click(screen.getByLabelText('Date range'));
-    fireEvent.click(screen.getByRole('button', { name: 'Last 7 days' }));
+    await userEvent.click(screen.getByLabelText('Date range'));
+    await userEvent.click(screen.getByRole('button', { name: 'Last 7 days' }));
 
     const today = dayjs();
     const startDate = today.subtract(7, 'day');
@@ -52,7 +52,7 @@ describe('DateRangePicker', () => {
     );
   });
 
-  it('lets users select date and time for a custom range', () => {
+  it('lets users select date and time for a custom range', async () => {
     render(
       <DateRangePickerWithProvider
         initialFilters={{
@@ -63,21 +63,21 @@ describe('DateRangePicker', () => {
       />,
     );
 
-    fireEvent.click(screen.getByLabelText('Date range'));
-    fireEvent.click(screen.getByRole('gridcell', { name: '5' }));
-    fireEvent.click(screen.getByRole('gridcell', { name: '10' }));
+    await userEvent.click(screen.getByLabelText('Date range'));
+    await userEvent.click(screen.getByRole('gridcell', { name: '5' }));
+    await userEvent.click(screen.getByRole('gridcell', { name: '10' }));
     fireEvent.change(screen.getByLabelText('Start date and time'), {
       target: { value: '2026-01-05T08:30' },
     });
     fireEvent.change(screen.getByLabelText('End date and time'), {
       target: { value: '2026-01-10T17:45' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Apply' }));
 
     expect(screen.getByLabelText('Date range')).toHaveValue('2026-01-05 08:30 - 2026-01-10 17:45');
   });
 
-  it('supports a reusable compare date range picker', () => {
+  it('supports a reusable compare date range picker', async () => {
     render(
       <CompareDateRangePickerWithProvider
         initialFilters={{
@@ -88,14 +88,14 @@ describe('DateRangePicker', () => {
       />,
     );
 
-    fireEvent.click(screen.getByLabelText('Compare date range'));
+    await userEvent.click(screen.getByLabelText('Compare date range'));
     fireEvent.change(screen.getByLabelText('Start date and time'), {
       target: { value: '2026-02-03T09:15' },
     });
     fireEvent.change(screen.getByLabelText('End date and time'), {
       target: { value: '2026-02-12T18:05' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Apply' }));
 
     expect(screen.getByLabelText('Compare date range')).toHaveValue('2026-02-03 09:15 - 2026-02-12 18:05');
   });

@@ -1,21 +1,9 @@
-import React from "react";
-import { render, screen } from "@testing-library/react";
-import ArchitecturePage from "@/app/dashboard/architecture/page";
-import { architectureAPI } from "@/server/api/architecture";
-import type { ArchitectureSummary, ArchitectureView, ArchitectureEvaluation } from "@/server/api/architecture";
-import { FiltersProvider } from "@/components/filters/FiltersContext";
-
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn() })),
-  usePathname: jest.fn(() => '/dashboard/architecture'),
-  useSearchParams: jest.fn(() => new URLSearchParams()),
-}));
-
-jest.mock('next/headers', () => ({
-  cookies: jest.fn(() => ({
-    get: jest.fn(() => undefined),
-  })),
-}));
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import ArchitecturePage from '@/app/dashboard/architecture/page';
+import { architectureAPI } from '@/server/api/architecture';
+import type { ArchitectureSummary, ArchitectureView, ArchitectureEvaluation } from '@/server/api/architecture';
+import { FiltersProvider } from '@/components/filters/FiltersContext';
 
 jest.mock('next/link', () => {
   const MockLink = ({ children, href }: { children: React.ReactNode; href: string }) =>
@@ -81,10 +69,9 @@ const mockEvaluation: ArchitectureEvaluation = {
 
 describe('Architecture Dashboard - User Journey', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockArchitectureAPI.summary.mockResolvedValue({ result: mockSummary } as never);
-    mockArchitectureAPI.view.mockResolvedValue({ result: mockView } as never);
-    mockArchitectureAPI.evaluate.mockResolvedValue(mockEvaluation as never);
+    mockArchitectureAPI.summary.mockResolvedValue({ result: mockSummary });
+    mockArchitectureAPI.view.mockResolvedValue({ result: mockView });
+    mockArchitectureAPI.evaluate.mockResolvedValue(mockEvaluation);
   });
 
   it('shows snapshot metadata when data is loaded', async () => {
@@ -140,8 +127,8 @@ describe('Architecture Dashboard - User Journey', () => {
   });
 
   it('shows empty state when no snapshot is available', async () => {
-    mockArchitectureAPI.summary.mockResolvedValue({ result: null } as never);
-    mockArchitectureAPI.view.mockResolvedValue({ result: null } as never);
+    mockArchitectureAPI.summary.mockResolvedValue({ result: null });
+    mockArchitectureAPI.view.mockResolvedValue({ result: null });
 
     const ui = await ArchitecturePage({ searchParams: Promise.resolve({}) });
     render(<FiltersProvider>{ui}</FiltersProvider>);
@@ -151,7 +138,7 @@ describe('Architecture Dashboard - User Journey', () => {
   });
 
   it('hides evaluation card when evaluate returns null', async () => {
-    mockArchitectureAPI.evaluate.mockResolvedValue(null as never);
+    mockArchitectureAPI.evaluate.mockResolvedValue(null);
 
     const ui = await ArchitecturePage({ searchParams: Promise.resolve({}) });
     render(<FiltersProvider>{ui}</FiltersProvider>);
@@ -160,9 +147,8 @@ describe('Architecture Dashboard - User Journey', () => {
   });
 
   it('renders with selected level from search params', async () => {
-    // Override view mock to return context-level view for this test
     const contextView: ArchitectureView = { ...mockView, level: 'context', title: 'System Context' };
-    mockArchitectureAPI.view.mockResolvedValue({ result: contextView } as never);
+    mockArchitectureAPI.view.mockResolvedValue({ result: contextView });
 
     const ui = await ArchitecturePage({ searchParams: Promise.resolve({ level: 'context' }) });
     render(<FiltersProvider>{ui}</FiltersProvider>);

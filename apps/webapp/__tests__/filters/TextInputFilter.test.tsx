@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import TextInputFilter from '@/components/filters/TextInputFilter';
 
 describe('TextInputFilter', () => {
@@ -9,10 +10,6 @@ describe('TextInputFilter', () => {
     value: '',
     onChange: mockOnChange,
   };
-
-  beforeEach(() => {
-    mockOnChange.mockClear();
-  });
 
   it('renders with label', () => {
     render(<TextInputFilter {...defaultProps} />);
@@ -24,11 +21,11 @@ describe('TextInputFilter', () => {
     expect(screen.getByDisplayValue('test value')).toBeInTheDocument();
   });
 
-  it('calls onChange when input changes', () => {
+  it('calls onChange when input changes', async () => {
     render(<TextInputFilter {...defaultProps} />);
     
     const input = screen.getByRole('textbox');
-    fireEvent.change(input, { target: { value: 'new value' } });
+    await userEvent.type(input, 'new value');
     
     expect(mockOnChange).toHaveBeenCalled();
   });

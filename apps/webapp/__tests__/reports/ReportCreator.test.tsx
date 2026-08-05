@@ -1,24 +1,12 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ReportCreator from '@/components/reports/ReportCreator';
-import type { ReportEntry } from '@/components/reports/reports-store';
 import * as savedFiltersActions from '@/components/filters/saved-filters-actions';
+import { SavedFilterBuilder, ReportEntryBuilder } from '../builders/builders';
 
 jest.mock('@/components/filters/saved-filters-actions');
 
 const mockGetSavedFiltersBySection = savedFiltersActions.getSavedFiltersBySection as jest.Mock;
-
-function makeFilter(id: string, section: string) {
-  return {
-    id,
-    name: `Filter for ${section}`,
-    section,
-    pathname: `/dashboard/${section}`,
-    filters: { startDate: '', endDate: '' },
-    repository: 'owner/repo',
-    createdAt: '2026-01-01T00:00:00.000Z',
-  };
-}
 
 describe('ReportCreator', () => {
   const defaultProps = {
@@ -29,7 +17,6 @@ describe('ReportCreator', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
     mockGetSavedFiltersBySection.mockResolvedValue([]);
   });
 
@@ -44,34 +31,31 @@ describe('ReportCreator', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it('disables save button when no sections are selected and no name', () => {
+  it('disables save button when no sections are selected and no name', async () => {
     render(<ReportCreator {...defaultProps} />);
 
-    fireEvent.change(
-      screen.getByLabelText('Report name'),
-      { target: { value: '' } },
-    );
+    const nameInput = screen.getByLabelText('Report name');
+    await userEvent.clear(nameInput);
 
     const saveButton = screen.getByRole('button', { name: /Save Report/ });
     expect(saveButton).toBeDisabled();
   });
 
-  it('disables save when no filter section is selected', () => {
+  it('disables save when no filter section is selected', async () => {
     render(<ReportCreator {...defaultProps} />);
 
-    fireEvent.change(
-      screen.getByLabelText('Report name'),
-      { target: { value: 'Sprint 42' } },
-    );
+    const nameInput = screen.getByLabelText('Report name');
+    await userEvent.clear(nameInput);
+    await userEvent.type(nameInput, 'Sprint 42');
 
     const saveButton = screen.getByRole('button', { name: /Save Report/ });
     expect(saveButton).toBeDisabled();
   });
 
-  it('calls onClose when cancel is clicked', () => {
+  it('calls onClose when cancel is clicked', async () => {
     render(<ReportCreator {...defaultProps} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Cancel/ }));
+    await userEvent.click(screen.getByRole('button', { name: /Cancel/ }));
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
@@ -102,7 +86,13 @@ describe('ReportCreator', () => {
     beforeEach(() => {
       mockGetSavedFiltersBySection.mockImplementation((section: string) => {
         if (section === 'pipelines') {
-          return Promise.resolve([makeFilter('f_pipelines', 'pipelines')]);
+          return Promise.resolve([
+            new SavedFilterBuilder()
+              .withId('f_pipelines')
+              .withName('Filter for pipelines')
+              .withSection('pipelines')
+              .build(),
+          ]);
         }
         return Promise.resolve([]);
       });
@@ -158,22 +148,20 @@ describe('ReportCreator', () => {
   });
 
   describe('edit mode', () => {
-    const existingReport: ReportEntry = {
-      id: 'r1',
-      name: 'Sprint 42',
-      repository: 'owner/repo',
-      sections: [
+    const existingReport = new ReportEntryBuilder()
+      .withId('r1')
+      .withName('Sprint 42')
+      .withSections([
         { section: 'pipelines', savedFilterId: 'f_pipelines' },
         { section: 'source-code', savedFilterId: 'f_source_code' },
-      ],
-      startDateOverride: '2026-06-01',
-      endDateOverride: '2026-06-30',
-      createdAt: '2026-01-01T00:00:00.000Z',
-      dateWindows: [
+      ])
+      .withStartDateOverride('2026-06-01')
+      .withEndDateOverride('2026-06-30')
+      .withDateWindows([
         { startDate: '2026-06-01', endDate: '2026-06-07', label: 'Jun 1, 2026 – Jun 7, 2026' },
         { startDate: '2026-06-08', endDate: '2026-06-14', label: 'Jun 8, 2026 – Jun 14, 2026' },
-      ],
-    };
+      ])
+      .build();
 
     beforeEach(() => {
       mockGetSavedFiltersBySection.mockResolvedValue([]);

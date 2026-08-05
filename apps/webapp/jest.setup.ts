@@ -8,3 +8,8 @@ jest.mock('next/navigation', () => ({
   useSearchParams: jest.fn(() => mockSearchParams),
 }));
 
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(() => ({
+    get: jest.fn(() => undefined),
+  })),
+}));

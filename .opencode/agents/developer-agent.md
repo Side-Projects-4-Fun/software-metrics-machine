@@ -244,6 +244,7 @@ All config comes from environment variables consumed by `Configuration` class (`
 - Implement all data generation/persistence flows through CLI commands
 - **All functions require explicit return types.** When the return type mirrors a service method's return type, derive it from the service: `Awaited<ReturnType<PipelinesService['getMetrics']>>`. Use this approach rather than `unknown`, `any`, or making the return type `void`.
 - **Prevent ESLint regressions.** After any code change, run `pnpm lint` to confirm zero errors and zero warnings. Never introduce new lint violations.
+- Use always the `tmp` folder from the repository, avoid using /tmp or other system temp folders for temporary files
 
 ### ❌ NEVER DO
 - Add `"type": "module"` to `packages/core` or `packages/utils`
@@ -259,6 +260,8 @@ All config comes from environment variables consumed by `Configuration` class (`
 - **Disable or weaken ESLint rules.** Never add `eslint-disable`, `eslint-disable-next-line`, or ESLint directive comments. Never modify `.eslint.config.mjs` to weaken rules (e.g. changing `warn` to `off`, adding `argsIgnorePattern` to bypass `no-unused-vars`, or turning off `explicit-function-return-type`).
 - **Use `unknown` as a return type.** When the return type of a controller method is known from the service it calls, derive it properly — use `Awaited<ReturnType<PipelinesService['getMetrics']>>` or import the actual type. `unknown` is only acceptable when the value truly has no known shape (e.g. error payloads).
 - **Leave lint regressions unfixed.** If your changes introduce new lint warnings or errors, fix them before submitting. Run `pnpm lint` after every change to verify.
+- use filters, maps, for loops or other dynamic code in test code. Test code must be self explanatory and explicit, with all inputs and expected outputs clearly defined.
+- use `as unknown` or such type of casting only when explicitly required.
 
 ## Development Workflows
 

@@ -1,8 +1,9 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import SavedFiltersOverview from '@/components/home/SavedFiltersOverview';
-import { defaultFilters } from '@/components/filters/DashboardFilters';
 import { ProjectsProvider } from '@/components/providers/ProjectsContext';
 import * as api from '@/server/api';
+import { SavedFilterBuilder } from '../builders/builders';
 
 jest.mock('@/server/api');
 
@@ -24,60 +25,55 @@ function renderSavedFiltersOverview() {
 
 describe('SavedFiltersOverview', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     mockFetchAPI.mockResolvedValue({ version: 1, filters: [] });
   });
 
   it('groups saved filters by project and page with direct links', async () => {
+    const insightsFilter = new SavedFilterBuilder()
+      .withId('insights-filter')
+      .withName('Team Alpha')
+      .withSection('insights')
+      .withFilters({
+        startDate: '2024-01-01',
+        endDate: '2024-01-31',
+        typeChurn: 'commits',
+        aggregateMetric: 'sum',
+      })
+      .withRepository('owner/repo-a')
+      .withCreatedAt('2026-06-18T10:00:00.000Z')
+      .build();
+
+    const pipelineFilter = new SavedFilterBuilder()
+      .withId('pipeline-filter')
+      .withName('Release Jobs')
+      .withSection('pipelines')
+      .withFilters({
+        workflowSelector: 'release.yml',
+        workflowStatus: ['completed'],
+        typeChurn: 'commits',
+        aggregateMetric: 'sum',
+      })
+      .withRepository('owner/repo-a')
+      .withCreatedAt('2026-06-18T09:00:00.000Z')
+      .build();
+
+    const sourceCodeFilter = new SavedFilterBuilder()
+      .withId('source-code-filter')
+      .withName('Hotspots')
+      .withSection('source-code')
+      .withFilters({
+        ignorePatternFiles: 'dist/**',
+        includePatternFiles: 'src/**',
+        typeChurn: 'commits',
+        aggregateMetric: 'sum',
+      })
+      .withRepository('owner/repo-b')
+      .withCreatedAt('2026-06-18T08:00:00.000Z')
+      .build();
+
     mockFetchAPI.mockResolvedValue({
       version: 1,
-      filters: [
-        {
-          id: 'insights-filter',
-          name: 'Team Alpha',
-          section: 'insights',
-          pathname: '/dashboard/insights',
-          filters: {
-            ...defaultFilters,
-            startDate: '2024-01-01',
-            endDate: '2024-01-31',
-            typeChurn: 'commits',
-            aggregateMetric: 'sum',
-          },
-          repository: 'owner/repo-a',
-          createdAt: '2026-06-18T10:00:00.000Z',
-        },
-        {
-          id: 'pipeline-filter',
-          name: 'Release Jobs',
-          section: 'pipelines',
-          pathname: '/dashboard/pipelines',
-          filters: {
-            ...defaultFilters,
-            workflowSelector: 'release.yml',
-            workflowStatus: ['completed'],
-            typeChurn: 'commits',
-            aggregateMetric: 'sum',
-          },
-          repository: 'owner/repo-a',
-          createdAt: '2026-06-18T09:00:00.000Z',
-        },
-        {
-          id: 'source-code-filter',
-          name: 'Hotspots',
-          section: 'source-code',
-          pathname: '/dashboard/source-code',
-          filters: {
-            ...defaultFilters,
-            ignorePatternFiles: 'dist/**',
-            includePatternFiles: 'src/**',
-            typeChurn: 'commits',
-            aggregateMetric: 'sum',
-          },
-          repository: 'owner/repo-b',
-          createdAt: '2026-06-18T08:00:00.000Z',
-        },
-      ],
+      filters: [insightsFilter, pipelineFilter, sourceCodeFilter],
     });
 
     renderSavedFiltersOverview();
@@ -103,32 +99,30 @@ describe('SavedFiltersOverview', () => {
   it('selects the saved filter project before opening it', async () => {
     document.cookie = 'smm_active_project=owner%2Frepo-a;path=/;max-age=31536000';
 
+    const sourceCodeFilter = new SavedFilterBuilder()
+      .withId('source-code-filter')
+      .withName('Repo B Hotspots')
+      .withSection('source-code')
+      .withFilters({
+        ignorePatternFiles: 'dist/**',
+        includePatternFiles: 'src/**',
+        typeChurn: 'commits',
+        aggregateMetric: 'sum',
+      })
+      .withRepository('owner/repo-b')
+      .withCreatedAt('2026-06-18T08:00:00.000Z')
+      .build();
+
     mockFetchAPI.mockResolvedValue({
       version: 1,
-      filters: [
-        {
-          id: 'source-code-filter',
-          name: 'Repo B Hotspots',
-          section: 'source-code',
-          pathname: '/dashboard/source-code',
-          filters: {
-            ...defaultFilters,
-            ignorePatternFiles: 'dist/**',
-            includePatternFiles: 'src/**',
-            typeChurn: 'commits',
-            aggregateMetric: 'sum',
-          },
-          repository: 'owner/repo-b',
-          createdAt: '2026-06-18T08:00:00.000Z',
-        },
-      ],
+      filters: [sourceCodeFilter],
     });
 
     renderSavedFiltersOverview();
 
     const savedFilterLink = await screen.findByRole('link', { name: /Repo B Hotspots/i });
     savedFilterLink.addEventListener('click', (event) => event.preventDefault());
-    fireEvent.click(savedFilterLink);
+    await userEvent.click(savedFilterLink);
 
     expect(document.cookie).toContain('smm_active_project=owner%2Frepo-b');
   });

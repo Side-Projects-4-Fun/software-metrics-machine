@@ -10,10 +10,6 @@ describe('SliderFilter', () => {
     onChange: mockOnChange,
   };
 
-  beforeEach(() => {
-    mockOnChange.mockClear();
-  });
-
   it('renders with label and current value', () => {
     render(<SliderFilter {...defaultProps} />);
     expect(screen.getByText(/Test Slider: 50/)).toBeInTheDocument();

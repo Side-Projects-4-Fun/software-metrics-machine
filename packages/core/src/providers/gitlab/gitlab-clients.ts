@@ -101,14 +101,19 @@ type GitlabFetchOptions = {
 export class GitlabMrClient implements IGithubPrsClient {
   private readonly encodedProjectId: string;
   private readonly rawFiltersParser = new RawFiltersParser();
+  private readonly hostname?: string;
+  private readonly gitlabBaseUrl: string;
 
   constructor(
     private token: string | undefined,
     private projectId: string,
     private logger: Logger,
-    private runner: GitlabCliRunner = defaultGitlabCliRunner
+    private runner: GitlabCliRunner = defaultGitlabCliRunner,
+    gitlabUrl?: string
   ) {
     this.encodedProjectId = encodeURIComponent(projectId);
+    this.gitlabBaseUrl = gitlabUrl || 'https://gitlab.com';
+    this.hostname = gitlabUrl ? new URL(this.gitlabBaseUrl).hostname : undefined;
   }
 
   async fetchPRs(options?: {
@@ -284,7 +289,7 @@ export class GitlabMrClient implements IGithubPrsClient {
   }
 
   private syntheticPullRequestUrl(mrIid: number): string {
-    return `https://gitlab.local/${this.projectId}/pulls/${mrIid}`;
+    return `${this.gitlabBaseUrl}/${this.projectId}/-/merge_requests/${mrIid}`;
   }
 
   private projectApiUrl(resource: string): string {
@@ -306,7 +311,8 @@ export class GitlabMrClient implements IGithubPrsClient {
   }
 
   private async runJson<T>(endpoint: string): Promise<T> {
-    const output = await this.runner(['api', endpoint], this.buildEnv());
+    const args = this.hostname ? ['api', '--hostname', this.hostname, endpoint] : ['api', endpoint];
+    const output = await this.runner(args, this.buildEnv());
     return JSON.parse(output) as T;
   }
 
@@ -326,14 +332,17 @@ export class GitlabMrClient implements IGithubPrsClient {
 export class GitlabPipelineClient implements IGithubWorkflowClient, IGithubWorkflowJobClient {
   private readonly encodedProjectId: string;
   private readonly rawFiltersParser = new RawFiltersParser();
+  private readonly hostname?: string;
 
   constructor(
     private token: string | undefined,
     private projectId: string,
     private logger: Logger,
-    private runner: GitlabCliRunner = defaultGitlabCliRunner
+    private runner: GitlabCliRunner = defaultGitlabCliRunner,
+    gitlabUrl?: string
   ) {
     this.encodedProjectId = encodeURIComponent(projectId);
+    this.hostname = gitlabUrl ? new URL(gitlabUrl).hostname : undefined;
   }
 
   async fetchWorkflows(options?: {
@@ -604,7 +613,8 @@ export class GitlabPipelineClient implements IGithubWorkflowClient, IGithubWorkf
   }
 
   private async runJson<T>(endpoint: string): Promise<T> {
-    const output = await this.runner(['api', endpoint], this.buildEnv());
+    const args = this.hostname ? ['api', '--hostname', this.hostname, endpoint] : ['api', endpoint];
+    const output = await this.runner(args, this.buildEnv());
     return JSON.parse(output) as T;
   }
 
@@ -621,7 +631,10 @@ export class GitlabPipelineClient implements IGithubWorkflowClient, IGithubWorkf
   }
 }
 
-async function defaultGitlabCliRunner(args: string[], env?: NodeJS.ProcessEnv): Promise<string> {
+export async function defaultGitlabCliRunner(
+  args: string[],
+  env?: NodeJS.ProcessEnv
+): Promise<string> {
   const { stdout } = await execFileAsync('glab', args, {
     env,
     maxBuffer: 20 * 1024 * 1024,

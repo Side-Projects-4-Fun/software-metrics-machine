@@ -168,7 +168,7 @@ Offset-aware date-time values such as `2026-01-01T09:00:00+01:00` are treated as
 | `git_provider` | Git provider (`github` or `gitlab`) | Yes |
 | `github_token` | GitHub personal access token | Yes for GitHub PR/pipeline |
 | `gitlab_token` | GitLab personal access token | Yes for GitLab MR/pipeline |
-| `gitlab_url` | GitLab instance URL (for self-hosted GitLab, e.g. `https://gitlab.example.com/group/project`) | No |
+| `gitlab_url` | GitLab instance URL for self-hosted GitLab (e.g. `https://gitlab.example.com`). Used for both `glab api --hostname` provider calls and dashboard links. No effect when `git_provider` is not `gitlab`. | No |
 | `github_repository` | Repository in `owner/repo` format (also used as project identifier) | Yes |
 | `git_repository_location` | Local clone path for git/code metrics | Yes for source-code metrics |
 | `deployment_frequency_targets` | Deployment frequency workflow/job targets as `{ "pipeline": "...", "job": "..." }` objects | No |

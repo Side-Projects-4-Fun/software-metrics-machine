@@ -1,21 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import ReportsFrame from '@/app/reports/reports-frame';
-import { usePathname } from 'next/navigation';
-
-jest.mock('next/navigation', () => ({
-  usePathname: jest.fn(),
-}));
 
 jest.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <div data-testid="theme-toggle">Theme Toggle</div>,
 }));
 
-const mockUsePathname = usePathname as jest.Mock;
+const mockUsePathname = jest.requireMock('next/navigation').usePathname as jest.Mock;
 
 describe('ReportsFrame', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
 
   it('shows "Home" link when on reports list page', () => {
     mockUsePathname.mockReturnValue('/reports');

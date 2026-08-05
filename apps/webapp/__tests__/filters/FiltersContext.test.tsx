@@ -2,6 +2,7 @@ import React from 'react';
 import { renderHook, act, render, screen, waitFor } from '@testing-library/react';
 import { useSearchParams } from 'next/navigation';
 import { FiltersProvider, useFilters } from '@/components/filters/FiltersContext';
+import { suppressConsoleError } from '../utils/suppress-console';
 
 const mockUseSearchParams = useSearchParams as jest.Mock;
 
@@ -11,14 +12,13 @@ describe('FiltersContext', () => {
   });
 
   it('throws error when useFilters is used outside provider', () => {
-    // Suppress console.error for this test
-    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const suppression = suppressConsoleError();
     
     expect(() => {
       renderHook(() => useFilters());
     }).toThrow('useFilters must be used within a FiltersProvider');
     
-    spy.mockRestore();
+    suppression.restore();
   });
 
   it('provides initial filter state', () => {
@@ -164,7 +164,6 @@ describe('FiltersContext', () => {
 
     const { result } = renderHook(() => useFilters(), { wrapper });
 
-    // Change some filters
     act(() => {
       result.current.updateFilter('startDate', '2023-01-01');
       result.current.updateFilter('workflowStatus', ['completed']);
@@ -175,7 +174,6 @@ describe('FiltersContext', () => {
     expect(result.current.filters.workflowStatus).toEqual(['completed']);
     expect(result.current.filters.topEntries).toBe(50);
 
-    // Reset
     act(() => {
       result.current.resetFilters();
     });
@@ -196,11 +194,9 @@ describe('FiltersContext', () => {
     const { result } = renderHook(() => useFilters(), { wrapper });
     const filters = result.current.filters;
 
-    // Date filters
     expect(filters).toHaveProperty('startDate');
     expect(filters).toHaveProperty('endDate');
 
-    // Pipeline filters
     expect(filters).toHaveProperty('workflowSelector');
     expect(filters).toHaveProperty('workflowStatus');
     expect(filters).toHaveProperty('workflowConclusions');
@@ -208,20 +204,17 @@ describe('FiltersContext', () => {
     expect(filters).toHaveProperty('branch');
     expect(filters).toHaveProperty('event');
 
-    // PR filters
     expect(filters).toHaveProperty('authorSelect');
     expect(filters).toHaveProperty('labelSelector');
     expect(filters).toHaveProperty('pullRequestStatus');
     expect(filters).toHaveProperty('aggregateBy');
 
-    // Source code filters
     expect(filters).toHaveProperty('ignorePatternFiles');
     expect(filters).toHaveProperty('includePatternFiles');
     expect(filters).toHaveProperty('authorSelectSourceCode');
     expect(filters).toHaveProperty('topEntries');
     expect(filters).toHaveProperty('typeChurn');
 
-    // Metrics filters
     expect(filters).toHaveProperty('aggregateMetric');
   });
 
@@ -244,7 +237,6 @@ describe('FiltersContext', () => {
       result.current.updateFilter('endDate', '2023-12-31');
     });
 
-    // Verify unchanged filters remain the same
     expect(result.current.filters.aggregateBy).toBe(originalAggregateBy);
     expect(result.current.filters.topEntries).toBe(originalTopEntries);
     expect(result.current.filters.startDate).toBe('2023-01-01');

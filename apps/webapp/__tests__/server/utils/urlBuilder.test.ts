@@ -1,31 +1,12 @@
 import { createUrlBuilder } from '@/server/utils/urlBuilder';
-import { DashboardGlobalConfiguration } from '@/server/api/configuration';
-
-function createConfig(overrides: Partial<DashboardGlobalConfiguration> = {}): DashboardGlobalConfiguration {
-  return {
-    git_provider: 'github',
-    github_repository: 'acme/widgets',
-    git_repository_location: '',
-    store_data: false,
-    deployment_frequency_targets: [],
-    main_branch: 'main',
-    dashboard_start_date: null,
-    dashboard_end_date: null,
-    dashboard_color: '',
-    logging_level: 'info',
-    jira_url: null,
-    jira_email: null,
-    jira_token: null,
-    jira_project: null,
-    sonar_url: null,
-    sonar_project: null,
-    ...overrides,
-  };
-}
+import { DashboardConfigurationBuilder } from '../../builders/builders';
 
 describe('createUrlBuilder', () => {
   it('builds a GitHub Actions job metrics link with workflow and job filters', () => {
-    const builder = createUrlBuilder(createConfig());
+    const config = new DashboardConfigurationBuilder()
+      .withGithubRepository('acme/widgets')
+      .build();
+    const builder = createUrlBuilder(config);
 
     expect(builder.getJobRunsUrl('Build and Test', '.github/workflows/ci.yml')).toBe(
       'https://github.com/acme/widgets/actions/metrics/performance?tab=jobs&filters=workflow_file_name%3A%22ci.yml%22+job_name%3A%22Build%20and%20Test%22'
@@ -33,7 +14,10 @@ describe('createUrlBuilder', () => {
   });
 
   it('builds a GitHub Actions job metrics link without a workflow filter', () => {
-    const builder = createUrlBuilder(createConfig());
+    const config = new DashboardConfigurationBuilder()
+      .withGithubRepository('acme/widgets')
+      .build();
+    const builder = createUrlBuilder(config);
 
     expect(builder.getJobRunsUrl('deploy')).toBe(
       'https://github.com/acme/widgets/actions/metrics/performance?tab=jobs&filters=job_name%3A%22deploy%22'
@@ -41,7 +25,10 @@ describe('createUrlBuilder', () => {
   });
 
   it('builds a GitHub Actions job metrics link with the dashboard date range', () => {
-    const builder = createUrlBuilder(createConfig());
+    const config = new DashboardConfigurationBuilder()
+      .withGithubRepository('acme/widgets')
+      .build();
+    const builder = createUrlBuilder(config);
 
     expect(
       builder.getJobRunsUrl('deploy', '.github/workflows/release.yml', {
@@ -54,7 +41,10 @@ describe('createUrlBuilder', () => {
   });
 
   it('builds a GitHub Actions job metrics link with GitHub-visible date boundaries', () => {
-    const builder = createUrlBuilder(createConfig());
+    const config = new DashboardConfigurationBuilder()
+      .withGithubRepository('acme/widgets')
+      .build();
+    const builder = createUrlBuilder(config);
 
     expect(
       builder.getJobRunsUrl('deploy', '.github/workflows/release.yml', {
@@ -68,7 +58,10 @@ describe('createUrlBuilder', () => {
   });
 
   it('builds a GitHub Actions workflow metrics link with the dashboard date range', () => {
-    const builder = createUrlBuilder(createConfig());
+    const config = new DashboardConfigurationBuilder()
+      .withGithubRepository('acme/widgets')
+      .build();
+    const builder = createUrlBuilder(config);
 
     expect(
       builder.getWorkflowJobsMetricsUrl('.github/workflows/ci.yml', {
@@ -81,7 +74,10 @@ describe('createUrlBuilder', () => {
   });
 
   it('builds a GitHub Actions metrics link with exact dashboard datetime boundaries', () => {
-    const builder = createUrlBuilder(createConfig());
+    const config = new DashboardConfigurationBuilder()
+      .withGithubRepository('acme/widgets')
+      .build();
+    const builder = createUrlBuilder(config);
 
     expect(
       builder.getJobRunsUrl('deploy', '.github/workflows/release.yml', {
@@ -94,7 +90,10 @@ describe('createUrlBuilder', () => {
   });
 
   it('preserves the selected Madrid wall-clock datetimes for GitHub metrics links', () => {
-    const builder = createUrlBuilder(createConfig());
+    const config = new DashboardConfigurationBuilder()
+      .withGithubRepository('acme/widgets')
+      .build();
+    const builder = createUrlBuilder(config);
 
     expect(
       builder.getJobRunsUrl('deploy', '.github/workflows/release.yml', {
@@ -108,7 +107,10 @@ describe('createUrlBuilder', () => {
   });
 
   it('builds a GitHub Actions usage link with GitHub-visible DST day boundaries', () => {
-    const builder = createUrlBuilder(createConfig());
+    const config = new DashboardConfigurationBuilder()
+      .withGithubRepository('acme/widgets')
+      .build();
+    const builder = createUrlBuilder(config);
 
     expect(
       builder.getActionPerformanceForJobUrl('deploy', 'release.yml', 'day', '2026-03-29', 'Europe/Madrid')
@@ -118,7 +120,10 @@ describe('createUrlBuilder', () => {
   });
 
   it('builds a GitHub Actions usage link with GitHub-visible month boundaries', () => {
-    const builder = createUrlBuilder(createConfig());
+    const config = new DashboardConfigurationBuilder()
+      .withGithubRepository('acme/widgets')
+      .build();
+    const builder = createUrlBuilder(config);
 
     expect(
       builder.getActionPerformanceForJobUrl('deploy', 'release.yml', 'month', '2026-03-15', 'Europe/Madrid')
@@ -128,7 +133,11 @@ describe('createUrlBuilder', () => {
   });
 
   it('builds a GitLab CI jobs link filtered by job search and ref', () => {
-    const builder = createUrlBuilder(createConfig({ git_provider: 'gitlab' }));
+    const config = new DashboardConfigurationBuilder()
+      .withGitProvider('gitlab')
+      .withGithubRepository('acme/widgets')
+      .build();
+    const builder = createUrlBuilder(config);
 
     expect(
       builder.getJobRunsUrl('Build and Test', 'main', {
@@ -141,10 +150,11 @@ describe('createUrlBuilder', () => {
   });
 
   it('builds a GitLab MR link using a self-hosted instance URL', () => {
-    const builder = createUrlBuilder(createConfig({
-      git_provider: 'gitlab',
-      gitlab_url: 'https://gitlab.example.com/acme/widgets',
-    }));
+    const config = new DashboardConfigurationBuilder()
+      .withGitProvider('gitlab')
+      .withGitlabUrl('https://gitlab.example.com/acme/widgets')
+      .build();
+    const builder = createUrlBuilder(config);
 
     expect(builder.getPRUrl(42)).toBe(
       'https://gitlab.example.com/acme/widgets/-/merge_requests/42'
@@ -152,7 +162,11 @@ describe('createUrlBuilder', () => {
   });
 
   it('builds a GitLab CI action performance link for a deployment frequency dot', () => {
-    const builder = createUrlBuilder(createConfig({ git_provider: 'gitlab' }));
+    const config = new DashboardConfigurationBuilder()
+      .withGitProvider('gitlab')
+      .withGithubRepository('acme/widgets')
+      .build();
+    const builder = createUrlBuilder(config);
 
     const url = builder.getActionPerformanceForJobUrl('deploy', 'main', 'day', '2026-03-29');
     expect(url).toContain('/-/jobs?');

@@ -84,15 +84,19 @@ minimal example:
 
 ### Self-hosted GitLab instances
 
-If you use a self-hosted GitLab instance, add the `gitlab_url` key to your project configuration so that the
-dashboard generates correct links:
+If you use a self-hosted GitLab instance, add the `gitlab_url` key to your project configuration. SMM uses it for two
+purposes:
+
+1. **API calls**: SMM passes the hostname to `glab api --hostname` so requests target your instance instead of
+   `gitlab.com`.
+2. **Dashboard links**: links in the web UI point to the correct instance.
 
 ```json
 {
   "projects": [
     {
       "git_provider": "gitlab",
-      "gitlab_url": "https://gitlab.example.com/your-group/your-project",
+      "gitlab_url": "https://gitlab.example.com",
       "gitlab_token": "glpat-your-gitlab-token",
       "github_repository": "your-group/your-project",
       "git_repository_location": "/your/local/repo"
@@ -101,10 +105,21 @@ dashboard generates correct links:
 }
 ```
 
+The `gitlab_url` value should be the base URL of your GitLab instance (for example
+`https://gitlab.example.com`). SMM extracts the hostname from the URL and passes it to `glab`. Including a
+trailing project path (like `https://gitlab.example.com/your-group/your-project`) also works — only the hostname
+part is used for API routing.
+
+Make sure you have authenticated `glab` against the same hostname:
+
+```bash
+glab auth login --hostname gitlab.example.com
+```
+
 You can also set the instance URL through the project-specific environment variable:
 
 ```bash
-export YOUR_GROUP_YOUR_PROJECT_GITLAB_URL=https://gitlab.example.com/your-group/your-project
+export YOUR_GROUP_YOUR_PROJECT_GITLAB_URL=https://gitlab.example.com
 ```
 
 ## Checking the token works

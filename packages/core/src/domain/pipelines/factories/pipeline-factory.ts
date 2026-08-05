@@ -10,6 +10,7 @@ import {
   GithubWorkflowClient,
   GithubWorkflowJobClient,
   GitlabPipelineClient,
+  defaultGitlabCliRunner,
   GitHubRateLimitManager,
 } from '../../../providers';
 import { PipelinesJobFetchRepository } from '../../../providers/github/pipelines-job-fetch-repository-json';
@@ -40,7 +41,13 @@ export default class PipelineFactory {
     const rateLimitManager = new GitHubRateLimitManager(logger);
 
     const workflowClient = isGitlab
-      ? new GitlabPipelineClient(config.gitlabToken, config.githubRepository!, logger)
+      ? new GitlabPipelineClient(
+          config.gitlabToken,
+          config.githubRepository!,
+          logger,
+          defaultGitlabCliRunner,
+          config.gitlabUrl
+        )
       : new GithubWorkflowClient(
           config.githubToken!,
           githubOwner,
@@ -49,7 +56,13 @@ export default class PipelineFactory {
           logger
         );
     const workflowJobClient = isGitlab
-      ? new GitlabPipelineClient(config.gitlabToken, config.githubRepository!, logger)
+      ? new GitlabPipelineClient(
+          config.gitlabToken,
+          config.githubRepository!,
+          logger,
+          defaultGitlabCliRunner,
+          config.gitlabUrl
+        )
       : new GithubWorkflowJobClient(
           config.githubToken!,
           githubOwner,

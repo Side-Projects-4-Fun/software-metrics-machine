@@ -1,23 +1,11 @@
-import React from "react";
-import { render, screen } from "@testing-library/react";
-import PipelinesPage from "@/app/dashboard/pipelines/page";
-import { FiltersProvider } from "@/components/filters/FiltersContext";
-import { LinkBuilderProvider } from "@/components/providers/LinkBuilderContext";
-import { ConfigurationProvider } from "@/components/providers/ConfigurationContext";
-import { pipelineAPI } from "@/server/api";
-import type { DashboardGlobalConfiguration } from "@/server/api/configuration";
-
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn() })),
-  usePathname: jest.fn(() => '/dashboard/pipelines'),
-  useSearchParams: jest.fn(() => new URLSearchParams()),
-}));
-
-jest.mock('next/headers', () => ({
-  cookies: jest.fn(() => ({
-    get: jest.fn(() => undefined),
-  })),
-}));
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import PipelinesPage from '@/app/dashboard/pipelines/page';
+import { FiltersProvider } from '@/components/filters/FiltersContext';
+import { LinkBuilderProvider } from '@/components/providers/LinkBuilderContext';
+import { ConfigurationProvider } from '@/components/providers/ConfigurationContext';
+import { pipelineAPI } from '@/server/api';
+import { DashboardConfigurationBuilder } from '../builders/builders';
 
 jest.mock('@/server/api', () => ({
   pipelineAPI: {
@@ -28,26 +16,11 @@ jest.mock('@/server/api', () => ({
 
 const mockPipeline = pipelineAPI as jest.Mocked<typeof pipelineAPI>;
 
-const mockConfig: DashboardGlobalConfiguration = {
-  git_provider: 'github',
-  github_repository: 'owner/repo',
-  git_repository_location: '/tmp/repo',
-  store_data: false,
-  deployment_frequency_targets: [{ pipeline: '.github/workflows/deploy.yml', job: 'deploy' }],
-  main_branch: 'main',
-  dashboard_start_date: null,
-  dashboard_end_date: null,
-  dashboard_color: '#1976d2',
-  logging_level: 'info',
-  jira_url: null,
-  jira_email: null,
-  jira_token: null,
-  jira_project: null,
-  sonar_url: null,
-  sonar_project: null,
-};
+const mockConfig = new DashboardConfigurationBuilder()
+  .withDeploymentFrequencyTargets([{ pipeline: '.github/workflows/deploy.yml', job: 'deploy' }])
+  .build();
 
-function Providers({ children }: { children: React.ReactNode }) {
+function Providers({ children }: { children: React.ReactNode }): React.ReactElement {
   return (
     <ConfigurationProvider config={mockConfig}>
       <FiltersProvider>
@@ -77,13 +50,12 @@ function makeDashboardResponse() {
 
 describe('Pipelines Dashboard - User Journey', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockPipeline.dashboard.mockResolvedValue(makeDashboardResponse() as never);
+    mockPipeline.dashboard.mockResolvedValue(makeDashboardResponse());
     mockPipeline.evaluate.mockResolvedValue({
       generatedAt: '2026-01-01T00:00:00Z',
       signals: [{ id: 'stability', title: 'Stability', description: 'Good', severity: 'good', category: 'stability', metrics: [] }],
       summary: { totalRuns: 100, averageDurationMinutes: 2.5, successRate: 80, failureRate: 20, totalReruns: 3 },
-    } as never);
+    });
   });
 
   it('renders pipeline health summary and evaluation', async () => {

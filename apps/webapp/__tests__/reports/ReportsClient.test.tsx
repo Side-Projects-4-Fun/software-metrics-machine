@@ -1,30 +1,16 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ReportsClient from '@/components/reports/ReportsClient';
 import * as savedFiltersActions from '@/components/filters/saved-filters-actions';
+import { ReportEntryBuilder } from '../builders/builders';
 
 jest.mock('@/components/filters/saved-filters-actions');
 
 const mockRemoveReport = savedFiltersActions.removeReport as jest.Mock;
 const mockGetSavedFiltersBySection = savedFiltersActions.getSavedFiltersBySection as jest.Mock;
 
-function makeReport(
-  name: string,
-  id: string,
-  sections: Array<{ section: 'pipelines' | 'pull-requests' | 'source-code' | 'architecture' | 'sonarqube'; savedFilterId: string }> = [],
-) {
-  return {
-    id,
-    name,
-    repository: 'owner/repo',
-    sections,
-    createdAt: '2026-01-01T00:00:00.000Z',
-  };
-}
-
 describe('ReportsClient', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     mockGetSavedFiltersBySection.mockResolvedValue([]);
   });
 
@@ -49,7 +35,7 @@ describe('ReportsClient', () => {
     render(
       <ReportsClient
         resolvedReports={[
-          { report: makeReport('Report 42', 'r1'), windows: [] },
+          { report: new ReportEntryBuilder().withId('r1').withName('Report 42').build(), windows: [] },
         ]}
         repository="owner/repo"
       />,
@@ -69,10 +55,14 @@ describe('ReportsClient', () => {
       <ReportsClient
         resolvedReports={[
           {
-            report: makeReport('Report 42', 'r1', [
-              { section: 'pipelines' as const, savedFilterId: 'f1' },
-              { section: 'pull-requests' as const, savedFilterId: 'f2' },
-            ]),
+            report: new ReportEntryBuilder()
+              .withId('r1')
+              .withName('Report 42')
+              .withSections([
+                { section: 'pipelines', savedFilterId: 'f1' },
+                { section: 'pull-requests', savedFilterId: 'f2' },
+              ])
+              .build(),
             windows: [],
           },
         ]}
@@ -92,7 +82,7 @@ describe('ReportsClient', () => {
     );
 
     const newReportButton = await screen.findByRole('button', { name: /New Report/ });
-    fireEvent.click(newReportButton);
+    await userEvent.click(newReportButton);
 
     await waitFor(() => {
       expect(screen.getByRole('dialog')).toBeVisible();
@@ -105,13 +95,13 @@ describe('ReportsClient', () => {
     render(
       <ReportsClient
         resolvedReports={[
-          { report: makeReport('Report 42', 'r1'), windows: [] },
+          { report: new ReportEntryBuilder().withId('r1').withName('Report 42').build(), windows: [] },
         ]}
         repository="owner/repo"
       />,
     );
 
-    fireEvent.click(
+    await userEvent.click(
       screen.getByRole('button', { name: /Delete Report 42/ }),
     );
 
@@ -123,7 +113,7 @@ describe('ReportsClient', () => {
     render(
       <ReportsClient
         resolvedReports={[
-          { report: makeReport('Report 42', 'r1'), windows: [] },
+          { report: new ReportEntryBuilder().withId('r1').withName('Report 42').build(), windows: [] },
         ]}
         repository="owner/repo"
       />,
@@ -138,7 +128,6 @@ describe('ReportsClient', () => {
       expect(screen.getByRole('dialog')).toBeVisible();
     });
 
-    // Dialog should be in edit mode
     expect(screen.getByText('Edit Report')).toBeVisible();
     expect(screen.getByRole('button', { name: /Update Report/ })).toBeVisible();
   });

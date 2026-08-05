@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { BigOAnalysisCard } from '@/components/charts/source-code/BigOAnalysisCard';
 import type { BigOFileSummary } from '@/server/api/sourceCode';
 
@@ -44,10 +45,10 @@ describe('BigOAnalysisCard', () => {
     expect(dataRows()[2]).toHaveTextContent('low.ts');
   });
 
-  it('shows Big O notation references from the info icon', () => {
+  it('shows Big O notation references from the info icon', async () => {
     render(<BigOAnalysisCard files={files} search="" />);
 
-    fireEvent.click(screen.getByText('i'));
+    await userEvent.click(screen.getByText('i'));
 
     expect(screen.getByText('Target: Review O(n^2+) hotspots')).toBeInTheDocument();
     expect(screen.getByText(/Introduction to Algorithms/)).toBeInTheDocument();
@@ -55,7 +56,7 @@ describe('BigOAnalysisCard', () => {
     expect(screen.getByText(/NIST Dictionary/)).toBeInTheDocument();
   });
 
-  it('toggles score sorting client side when the Score header is clicked', () => {
+  it('toggles score sorting client side when the Score header is clicked', async () => {
     const push = jest.fn();
     const fetchMock = jest.fn();
 
@@ -71,7 +72,7 @@ describe('BigOAnalysisCard', () => {
 
     render(<BigOAnalysisCard files={files} search="" />);
 
-    fireEvent.click(screen.getByRole('button', { name: /score/i }));
+    await userEvent.click(screen.getByRole('button', { name: /score/i }));
 
     expect(dataRows()[0]).toHaveTextContent('low.ts');
     expect(dataRows()[1]).toHaveTextContent('medium.ts');

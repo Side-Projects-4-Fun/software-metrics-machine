@@ -20,8 +20,8 @@ import { EVALUATABLE_SECTION_LABELS } from './reports-store';
 interface ReportRendererProps {
   report: ReportEntry;
   savedFiltersMap: Map<string, SavedFilterEntry>;
-  evaluations: Partial<Record<EvaluatableSection, unknown>>;
-  errors: Partial<Record<EvaluatableSection, string>>;
+  evaluations: Record<string, unknown>;
+  errors: Record<string, string>;
   windowLabel?: string;
   /** Effective dates from the active window or report overrides. */
   effectiveStartDate: string;
@@ -142,10 +142,10 @@ export default function ReportRenderer({
         )}
         <div className="space-y-6">
           {report.sections.map((ref) => {
-            const data = evaluations[ref.section];
-            const error = errors[ref.section];
-            const saved = savedFiltersMap.get(ref.savedFilterId);
             const sectionKey = `${ref.section}-${ref.savedFilterId}`;
+            const data = evaluations[sectionKey];
+            const error = errors[sectionKey];
+            const saved = savedFiltersMap.get(ref.savedFilterId);
             const isCollapsed = collapsedSections.has(sectionKey);
 
             return (

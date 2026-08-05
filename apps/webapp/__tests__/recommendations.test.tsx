@@ -4,16 +4,6 @@ import { Recommendations } from '@/components/charts/Recommendations';
 import { FiltersProvider } from '@/components/filters/FiltersContext';
 import type { RecommendationsProps } from '@/components/charts/recommendations-types';
 
-// Mock Next.js navigation
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(() => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-  })),
-  usePathname: jest.fn(() => '/dashboard/insights'),
-  useSearchParams: jest.fn(() => new URLSearchParams()),
-}));
-
 // Mock MUI icons to avoid SVG issues in jsdom
 jest.mock('@mui/icons-material/Link', () => {
   const MockIcon = () => <span data-testid="icon-link" />;
