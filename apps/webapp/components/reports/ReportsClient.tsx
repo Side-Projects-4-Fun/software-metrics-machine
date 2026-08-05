@@ -7,11 +7,13 @@ import { Button, Typography, IconButton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ReportCreator from './ReportCreator';
 import {
   saveReport,
   updateReport,
   removeReport,
+  duplicateReport,
 } from '@/components/filters/saved-filters-actions';
 import type { ReportSectionRef, ReportDateWindow, ReportEntry } from './reports-store';
 import type { ResolvedReport } from '@/app/reports/shared';
@@ -90,6 +92,14 @@ export default function ReportsClient({
     [router],
   );
 
+  const handleDuplicate = useCallback(
+    async (id: string) => {
+      await duplicateReport(id);
+      router.refresh();
+    },
+    [router],
+  );
+
   const sectionCount = (resolved: ResolvedReport): number =>
     resolved.report.sections?.length ?? 0;
 
@@ -141,6 +151,14 @@ export default function ReportsClient({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <IconButton
+                size="small"
+                color="primary"
+                onClick={() => handleDuplicate(resolved.report.id)}
+                aria-label={`Duplicate ${resolved.report.name}`}
+              >
+                <ContentCopyIcon fontSize="small" />
+              </IconButton>
               <IconButton
                 size="small"
                 color="primary"

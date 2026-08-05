@@ -173,3 +173,41 @@ export async function removeReport(id: string): Promise<void> {
   doc.reports = reports.filter((r) => r.id !== id);
   await writeDocument(doc);
 }
+
+export async function duplicateReport(id: string): Promise<ReportEntry> {
+  const doc = await readDocument();
+  const reports = doc.reports ?? [];
+  const existing = reports.find((r) => r.id === id);
+  if (!existing) { throw new Error('Report not found.'); }
+
+  const baseName = existing.name;
+  const existingNames = reports
+    .filter((r) => r.repository === existing.repository)
+    .map((r) => r.name);
+
+  const copyName = `${baseName} (copy)`;
+  let finalName = copyName;
+  if (existingNames.includes(finalName)) {
+    let suffix = 2;
+    while (existingNames.includes(`${baseName} (copy ${suffix})`)) { suffix += 1; }
+    finalName = `${baseName} (copy ${suffix})`;
+  }
+
+  const entry: ReportEntry = {
+    id: `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+    name: finalName,
+    repository: existing.repository,
+    sections: JSON.parse(JSON.stringify(existing.sections)) as ReportSectionRef[],
+    startDateOverride: existing.startDateOverride,
+    endDateOverride: existing.endDateOverride,
+    dateWindows:
+      existing.dateWindows && existing.dateWindows.length > 0
+        ? JSON.parse(JSON.stringify(existing.dateWindows)) as ReportDateWindow[]
+        : undefined,
+    createdAt: new Date().toISOString(),
+  };
+
+  doc.reports = [entry, ...reports];
+  await writeDocument(doc);
+  return entry;
+}

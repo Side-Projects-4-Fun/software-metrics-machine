@@ -3,6 +3,7 @@ import {
   saveReport,
   updateReport,
   removeReport,
+  duplicateReport,
 } from '@/components/filters/saved-filters-actions';
 import * as api from '@/server/api';
 import { ReportEntryBuilder, SavedFilterBuilder } from '../builders/builders';
@@ -241,6 +242,99 @@ describe('reports-actions', () => {
       expect(writtenDoc.filters).toEqual([]);
       expect(writtenDoc.reports).toHaveLength(1);
       expect(writtenDoc.reports[0].id).toBe('r2');
+    });
+  });
+
+  describe('duplicateReport', () => {
+    const existingReport = new ReportEntryBuilder()
+      .withId('r-original')
+      .withName('Sprint 42')
+      .withRepository('owner/repo')
+      .withSections([{ section: 'pipelines', savedFilterId: 'f1' }])
+      .withStartDateOverride('2026-06-01')
+      .withEndDateOverride('2026-06-30')
+      .withDateWindows([
+        { startDate: '2026-06-01', endDate: '2026-06-07', label: 'Week 1' },
+      ])
+      .build();
+
+    it('creates a new report copying all fields except id and createdAt with " (copy)" name', async () => {
+      mockFetchAPI.mockResolvedValue({
+        version: 1,
+        filters: [],
+        reports: [existingReport],
+      });
+      mockFetchPutAPI.mockResolvedValue({});
+
+      const duplicate = await duplicateReport('r-original');
+
+      expect(duplicate.id).not.toBe('r-original');
+      expect(duplicate.id).toBeTruthy();
+      expect(duplicate.createdAt).not.toBe(existingReport.createdAt);
+      expect(duplicate.createdAt).toBeTruthy();
+      expect(duplicate.name).toBe('Sprint 42 (copy)');
+      expect(duplicate.repository).toBe('owner/repo');
+      expect(duplicate.sections).toEqual([
+        { section: 'pipelines', savedFilterId: 'f1' },
+      ]);
+      expect(duplicate.startDateOverride).toBe('2026-06-01');
+      expect(duplicate.endDateOverride).toBe('2026-06-30');
+      expect(duplicate.dateWindows).toEqual([
+        { startDate: '2026-06-01', endDate: '2026-06-07', label: 'Week 1' },
+      ]);
+    });
+
+    it('persists the duplicated report alongside the original in the document', async () => {
+      mockFetchAPI.mockResolvedValue({
+        version: 1,
+        filters: [],
+        reports: [existingReport],
+      });
+      mockFetchPutAPI.mockResolvedValue({});
+
+      await duplicateReport('r-original');
+
+      const putCall = mockFetchPutAPI.mock.calls[0];
+      expect(putCall[0]).toBe('/filters');
+      const writtenDoc = putCall[1];
+      expect(writtenDoc.reports).toHaveLength(2);
+      const original = writtenDoc.reports.find((r: { id: string }) => r.id === 'r-original');
+      const copy = writtenDoc.reports.find((r: { id: string }) => r.id !== 'r-original');
+      expect(original).toBeDefined();
+      expect(original.name).toBe('Sprint 42');
+      expect(copy).toBeDefined();
+      expect(copy.name).toBe('Sprint 42 (copy)');
+    });
+
+    it('appends " (copy 2)" when "Sprint 42 (copy)" already exists', async () => {
+      const existingCopy = new ReportEntryBuilder()
+        .withId('r-copy-1')
+        .withName('Sprint 42 (copy)')
+        .withRepository('owner/repo')
+        .withSections([{ section: 'pipelines', savedFilterId: 'f1' }])
+        .build();
+      mockFetchAPI.mockResolvedValue({
+        version: 1,
+        filters: [],
+        reports: [existingReport, existingCopy],
+      });
+      mockFetchPutAPI.mockResolvedValue({});
+
+      const duplicate = await duplicateReport('r-original');
+
+      expect(duplicate.name).toBe('Sprint 42 (copy 2)');
+    });
+
+    it('throws when the source report is not found', async () => {
+      mockFetchAPI.mockResolvedValue({
+        version: 1,
+        filters: [],
+        reports: [],
+      });
+
+      await expect(
+        duplicateReport('r-missing'),
+      ).rejects.toThrow('Report not found.');
     });
   });
 });
