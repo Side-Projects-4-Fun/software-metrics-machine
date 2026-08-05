@@ -144,7 +144,7 @@ describe('ReportCreator', () => {
         endDate: '2026-06-07',
         label: 'Jun 1, 2026 – Jun 7, 2026',
       });
-    });
+    }, 15000); // userEvent.type simulates per-character typing which is slow under jsdom
   });
 
   describe('edit mode', () => {
