@@ -112,8 +112,9 @@ architecture, and one-off analysis.
 
 ### Testing
 - **Vitest** 4.x — for `apps/cli`, `apps/rest`, `packages/core`, `packages/utils`
-- **Jest** 30.x — for `apps/webapp` (via `next/jest`)
-- **Testing Library** — React component tests
+- **Jest** 30.x — for `apps/webapp` (via `next/jest`); global mocks in `jest.setup.ts`, `clearMocks: true`
+- **Testing Library** — React component tests; `userEvent` preferred over `fireEvent`
+- **Webapp test infrastructure** — builders in `__tests__/builders/builders.ts`, shared providers in `__tests__/utils/test-providers.tsx`, console suppression in `__tests__/utils/suppress-console.ts`
 
 ### Code Quality
 - **ESLint** 9.x (flat config `eslint.config.mjs`) + Prettier
@@ -245,6 +246,10 @@ All config comes from environment variables consumed by `Configuration` class (`
 - **All functions require explicit return types.** When the return type mirrors a service method's return type, derive it from the service: `Awaited<ReturnType<PipelinesService['getMetrics']>>`. Use this approach rather than `unknown`, `any`, or making the return type `void`.
 - **Prevent ESLint regressions.** After any code change, run `pnpm lint` to confirm zero errors and zero warnings. Never introduce new lint violations.
 - Use always the `tmp` folder from the repository, avoid using /tmp or other system temp folders for temporary files
+- **Webapp tests: use builders** (`apps/webapp/__tests__/builders/builders.ts`) for all test data — `DashboardConfigurationBuilder`, `SavedFilterBuilder`, `ReportEntryBuilder`, `DashboardFiltersBuilder`. Never inline config objects or ad-hoc `makeX()` helpers.
+- **Webapp tests: use `renderWithProviders()`** (`apps/webapp/__tests__/utils/test-providers.tsx`) to mount all required providers. Never manually wrap components with individual providers.
+- **Webapp tests: use `userEvent`** over `fireEvent` for all user interactions. Set per-test timeouts (`}, 15000)`) for tests with multiple `userEvent.type()` calls to avoid jsdom flaky timeouts.
+- **Webapp tests: prioritize user flow tests** in `apps/webapp/__tests__/dashboard-pages/` over granular component tests — they give confidence to refactor without breaking tests.
 
 ### ❌ NEVER DO
 - Add `"type": "module"` to `packages/core` or `packages/utils`
@@ -262,6 +267,12 @@ All config comes from environment variables consumed by `Configuration` class (`
 - **Leave lint regressions unfixed.** If your changes introduce new lint warnings or errors, fix them before submitting. Run `pnpm lint` after every change to verify.
 - use filters, maps, for loops or other dynamic code in test code. Test code must be self explanatory and explicit, with all inputs and expected outputs clearly defined.
 - use `as unknown` or such type of casting only when explicitly required.
+- **Webapp tests: never inline test data.** Do NOT create inline config/report/filter objects or ad-hoc `makeX()` helper functions. Use the builders in `apps/webapp/__tests__/builders/builders.ts`.
+- **Webapp tests: never manually wrap with individual providers.** Use `renderWithProviders()` from `apps/webapp/__tests__/utils/test-providers.tsx` instead.
+- **Webapp tests: never re-declare `next/navigation` or `next/headers` mocks.** They are provided globally by `jest.setup.ts`. Use `jest.requireMock()` to customize.
+- **Webapp tests: never call `jest.clearAllMocks()` or `mockFn.mockClear()` manually.** The Jest config `clearMocks: true` handles this automatically.
+- **Webapp tests: never use meaningless assertions** like `expect(container).toBeInTheDocument()` or `expect(document.body).toBeInTheDocument()`. Assert actual rendered content or element state.
+- **Webapp tests: never use `as never` or `as unknown`** to bypass TypeScript when mocking API return values. Match the actual type shape or add a typed builder.
 
 ## Development Workflows
 
@@ -549,7 +560,17 @@ MUI major versions commonly move or rename props. Always verify with `next build
 
 ### Webapp test patterns
 
-- Keyboard navigation: focus the element, then `await userEvent.keyboard('{ArrowRight}')` and assert handler called — prefer `userEvent` over `fireEvent` (Testing Library recommendation)
+- **Builder pattern (REQUIRED):** All webapp test data MUST use builders from `apps/webapp/__tests__/builders/builders.ts` (`DashboardConfigurationBuilder`, `SavedFilterBuilder`, `ReportEntryBuilder`, `DashboardFiltersBuilder`). Never inline config objects, report entries, or filter state directly in test files. If a builder doesn't exist for a type, add one — don't create inline `makeX()` helpers.
+- **Shared provider setup (REQUIRED):** All webapp tests that render components MUST use `renderWithProviders()` from `apps/webapp/__tests__/utils/test-providers.tsx`. This mounts all required providers (ConfigurationProvider, ProjectsProvider, FiltersProvider, LinkBuilderProvider) in one call. Do NOT manually wrap components with individual providers.
+- **Global mocks:** `jest.setup.ts` provides global mocks for `next/navigation` and `next/headers`. Do NOT re-declare these mocks in individual test files. Use `jest.requireMock('next/navigation')` to customize mock return values per test.
+- **Mock clearing:** Jest config has `clearMocks: true` — mock state is auto-cleared between tests. Do NOT call `jest.clearAllMocks()` or `mockFn.mockClear()` manually.
+- **userEvent over fireEvent:** Prefer `userEvent` over `fireEvent` for all user interactions. Keep `fireEvent` only when `userEvent` cannot simulate the scenario.
+- **userEvent timeout:** `userEvent.type()` is slow under jsdom. Set per-test timeouts (e.g. `}, 15000)`) for tests with multiple sequential `userEvent.type()` calls to avoid flaky timeouts.
+- **No meaningless assertions:** Never use `expect(container).toBeInTheDocument()` or `expect(document.body).toBeInTheDocument()` — they verify nothing. Assert actual rendered content, element state, or role.
+- **No `as never` / `as unknown` casts:** Do NOT use `as never` or `as unknown` to bypass TypeScript when mocking API return values. Match the actual type shape or add a typed builder.
+- **Console suppression:** Use `suppressConsoleError()` from `apps/webapp/__tests__/utils/suppress-console.ts` instead of inline `jest.spyOn(console, 'error')`.
+- **User flow tests:** Flow tests in `apps/webapp/__tests__/dashboard-pages/` test complete user journeys (report creation, multi-window editing, dashboard navigation). Prioritize user flow tests over granular component tests for refactoring confidence.
+- Keyboard navigation: focus the element, then `await userEvent.keyboard('{ArrowRight}')` and assert handler called
 - Focus after state change: `rerender` the component with updated props, then `expect(el).toHaveFocus()`
 - Ref-based focus following: `useRef<Map<number, HTMLElement>>` with callback refs + `useEffect` to focus on index change
 - Avoid `<button>` inside `<button>` — use `<Box role="button" tabIndex={0} onClick onKeyDown>` for clickable wrappers containing `IconButton`

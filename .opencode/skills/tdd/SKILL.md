@@ -24,9 +24,11 @@ description: "Test-Driven Development workflow for Software Metrics Machine. Cov
 
 ### Webapp Jest config
 - Environment: `jsdom`
-- Setup: `jest.setup.ts`
+- Setup: `jest.setup.ts` (provides global mocks for `next/navigation` and `next/headers`)
 - Module alias: `@/` maps to `<rootDir>/`
 - Imports via `next/jest`
+- `clearMocks: true` — mock call/instance state is auto-cleared between tests; do NOT call `jest.clearAllMocks()` manually
+- `testPathIgnorePatterns` excludes `__tests__/builders/` and `__tests__/utils/` from test discovery
 
 ## Test Commands
 
@@ -152,9 +154,78 @@ const spy = vi.spyOn(prRepo, 'loadPrsWithFilters');
 - Prefer specific expectations over generic ones
 - Validate field types, ranges, and formats (e.g. regex for date strings)
 - Use `expect.objectContaining()` and `expect.arrayContaining()` for partial matching
+- **Never use meaningless assertions** like `expect(container).toBeInTheDocument()` or `expect(document.body).toBeInTheDocument()` — they always pass and verify nothing. Assert the actual rendered content, element state, or role instead.
 
-### Webapp: user events (Jest + React Testing Library)
+### Webapp test conventions (REQUIRED)
 
+#### Builder pattern for webapp test data
+All webapp test data MUST be created through the builders in `apps/webapp/__tests__/builders/builders.ts`. Do NOT inline config objects, report entries, saved filters, or filter state directly in test files.
+
+```typescript
+import {
+  DashboardConfigurationBuilder,
+  SavedFilterBuilder,
+  ReportEntryBuilder,
+  DashboardFiltersBuilder,
+} from '../builders/builders';
+
+// DashboardGlobalConfiguration — replaces inline mockConfig objects
+const config = new DashboardConfigurationBuilder()
+  .withGithubRepository('acme/widgets')
+  .withDeploymentFrequencyTargets([{ pipeline: '.github/workflows/deploy.yml', job: 'deploy' }])
+  .build();
+
+// SavedFilterEntry — replaces inline filter objects and makeFilter() helpers
+const filter = new SavedFilterBuilder()
+  .withId('f-pipelines')
+  .withName('CI Main')
+  .withSection('pipelines')
+  .withFilters(new DashboardFiltersBuilder().withStartDate('2026-01-01').build())
+  .build();
+
+// ReportEntry — replaces inline report objects and makeReport() helpers
+const report = new ReportEntryBuilder()
+  .withId('r1')
+  .withName('Sprint 42')
+  .withSections([{ section: 'pipelines', savedFilterId: 'f-pipelines' }])
+  .withDateWindows([{ startDate: '2026-06-01', endDate: '2026-06-07', label: 'Week 1' }])
+  .build();
+```
+
+When adding a new builder, follow the naming convention: `{TypeName}Builder` with `with{FieldName}()` methods returning `this` for chaining, and a `build(): TypeName` method that returns a shallow clone.
+
+#### Shared provider setup
+All webapp tests that render components MUST use `renderWithProviders()` from `apps/webapp/__tests__/utils/test-providers.tsx`. This mounts all required providers (ConfigurationProvider, ProjectsProvider, FiltersProvider, LinkBuilderProvider) in one call.
+
+```typescript
+import { renderWithProviders } from '../utils/test-providers';
+
+// Default — uses DashboardConfigurationBuilder defaults
+renderWithProviders(<MyComponent />);
+
+// With options
+renderWithProviders(<MyComponent />, {
+  config: new DashboardConfigurationBuilder().withGithubRepository('acme/widgets').build(),
+  initialFilters: new DashboardFiltersBuilder().withStartDate('2026-01-01').build(),
+  projects: [{ github_repository: 'acme/widgets' }],
+  initialActiveProject: 'acme/widgets',
+});
+```
+
+Do NOT manually wrap components with individual providers in test files — use `renderWithProviders()` to avoid repetition and ensure all required context is present.
+
+#### Global mocks (jest.setup.ts)
+`jest.setup.ts` provides global mocks for `next/navigation` and `next/headers`. Do NOT re-declare `jest.mock('next/navigation', ...)` or `jest.mock('next/headers', ...)` in individual test files. If a test needs custom mock return values (e.g. `usePathname` returning a specific path), use `jest.requireMock('next/navigation')` to access and configure the existing mock:
+
+```typescript
+const navigation = jest.requireMock('next/navigation');
+navigation.usePathname.mockReturnValue('/dashboard/pipelines');
+```
+
+#### Mock clearing
+The Jest config has `clearMocks: true` which auto-clears all mock calls, instances, and results before every test. Do NOT call `jest.clearAllMocks()` or `mockFn.mockClear()` manually in `beforeEach` blocks. Keep `beforeEach` only for setting up mock return values.
+
+#### userEvent over fireEvent
 Prefer `userEvent` over `fireEvent` for simulating user interactions. `userEvent` fires the full sequence of events a real user would trigger (focus, keyDown, keyUp, etc.) while `fireEvent` only dispatches a single event.
 
 ```typescript
@@ -170,6 +241,34 @@ await userEvent.type(screen.getByLabelText('Name'), 'hello');
 ```
 
 Keep `fireEvent` only when `userEvent` cannot simulate the scenario (rare edge cases).
+
+#### userEvent timeout (jsdom)
+`userEvent.type()` simulates per-character typing which is slow under jsdom. Tests that perform multiple sequential `userEvent.type()` or `userEvent.click()` calls may exceed the default 5000ms Jest timeout. Set a higher per-test timeout for these tests:
+
+```typescript
+it('persists manual window dateWindows', async () => {
+  // ... multiple userEvent.type() calls ...
+}, 15000); // increase timeout for slow jsdom typing
+```
+
+#### Console suppression utility
+When a test intentionally triggers `console.error` (e.g. testing error boundaries or context-missing throws), use the shared `suppressConsoleError()` utility instead of inline `jest.spyOn`:
+
+```typescript
+import { suppressConsoleError } from '../utils/suppress-console';
+
+it('throws when used outside provider', () => {
+  const suppression = suppressConsoleError();
+  expect(() => renderHook(() => useFilters())).toThrow('useFilters must be used within a FiltersProvider');
+  suppression.restore();
+});
+```
+
+#### User flow tests
+User flow tests live in `apps/webapp/__tests__/dashboard-pages/` and test complete user journeys across multiple components (e.g. report creation, multi-window editing, dashboard navigation). They verify behavior at the journey level rather than implementation details, giving confidence to refactor components without breaking tests. Flow tests MUST use `renderWithProviders()` and builders for all test data.
+
+#### No `as never` or `as unknown` type casts
+Do NOT use `as never` or `as unknown` to bypass TypeScript when mocking API return values. If mock data shape doesn't match the API type, either adjust the mock data to match or add a properly typed builder. Type casts hide type mismatches and make refactoring harder.
 
 ## Coverage
 
