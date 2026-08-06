@@ -1,6 +1,5 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import type { MetricMethod } from '@smmachine/core';
 import {
   cleanMetricSamples,
   computeMetricSamples,
@@ -10,6 +9,7 @@ import {
   PipelineFiltersRepository,
   type MetricSample,
 } from '@smmachine/core';
+import { normalizeMetricMethod } from '../utils/metric-method';
 import type {
   PipelineSummaryResponse,
   PipelineByStatusResponse,
@@ -50,23 +50,6 @@ interface PipelineFiltersQuery {
   weekends?: string;
   outlier_mode?: string;
   method?: string;
-}
-
-const VALID_METRIC_METHODS: MetricMethod[] = [
-  'average',
-  'median',
-  'p75',
-  'p90',
-  'p95',
-  'min',
-  'max',
-];
-
-function normalizeMetricMethod(value?: string): MetricMethod {
-  const normalized = (value || 'average').toLowerCase();
-  return VALID_METRIC_METHODS.includes(normalized as MetricMethod)
-    ? (normalized as MetricMethod)
-    : 'average';
 }
 
 interface RunLike {

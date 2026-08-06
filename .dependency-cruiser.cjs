@@ -72,6 +72,78 @@ module.exports = {
       from: { path: '^apps/rest/src/' },
       to: { path: '^@smmachine/webapp($|/)' },
     },
+    {
+      name: 'mcp-source-must-not-import-cli',
+      severity: 'error',
+      from: { path: '^apps/mcp/src/' },
+      to: { path: '^apps/cli/' },
+    },
+    {
+      name: 'mcp-source-must-not-import-cli-package',
+      severity: 'error',
+      from: { path: '^apps/mcp/src/' },
+      to: { path: '^@smmachine/cli($|/)' },
+    },
+    {
+      name: 'mcp-source-must-not-import-rest',
+      severity: 'error',
+      from: { path: '^apps/mcp/src/' },
+      to: { path: '^apps/rest/' },
+    },
+    {
+      name: 'mcp-source-must-not-import-rest-package',
+      severity: 'error',
+      from: { path: '^apps/mcp/src/' },
+      to: { path: '^@smmachine/rest($|/)' },
+    },
+    {
+      name: 'mcp-source-must-not-import-webapp',
+      severity: 'error',
+      from: { path: '^apps/mcp/src/' },
+      to: { path: '^apps/webapp/' },
+    },
+    {
+      name: 'mcp-source-must-not-import-webapp-package',
+      severity: 'error',
+      from: { path: '^apps/mcp/src/' },
+      to: { path: '^@smmachine/webapp($|/)' },
+    },
+    {
+      name: 'rest-source-must-not-import-mcp-package',
+      severity: 'error',
+      from: { path: '^apps/rest/src/' },
+      to: { path: '^@smmachine/mcp($|/)' },
+    },
+    {
+      name: 'webapp-source-must-not-import-mcp-package',
+      severity: 'error',
+      from: { path: '^apps/webapp/' },
+      to: { path: '^@smmachine/mcp($|/)' },
+    },
+    {
+      name: 'core-must-not-import-any-app',
+      severity: 'error',
+      from: { path: '^packages/core/src/' },
+      to: { path: '^apps/' },
+    },
+    {
+      name: 'core-must-not-import-any-app-package',
+      severity: 'error',
+      from: { path: '^packages/core/src/' },
+      to: { path: '^@smmachine/(cli|rest|webapp|mcp)($|/)' },
+    },
+    {
+      name: 'utils-must-not-import-any-workspace-package',
+      severity: 'error',
+      from: { path: '^packages/utils/src/' },
+      to: { path: '^@smmachine/' },
+    },
+    {
+      name: 'webapp-must-not-import-core-package',
+      severity: 'error',
+      from: { path: '^apps/webapp/' },
+      to: { path: '^@smmachine/core($|/)' },
+    },
   ],
   options: {
     doNotFollow: {

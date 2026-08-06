@@ -2,7 +2,7 @@
 
 Date: 2026-06-13
 
-Status: Proposed
+Status: Accepted (Phase 1 & 2 implemented; Phase 3 deferred)
 
 ## Context
 

@@ -11,6 +11,7 @@ The diagram models the main runtime containers and workspace packages:
 - `@smmachine/webapp` (Next.js dashboard)
 - `@smmachine/rest` (NestJS API)
 - `@smmachine/cli` (CLI application)
+- `@smmachine/mcp` (MCP stdio server)
 - `@smmachine/core` (domain and orchestration library)
 - `@smmachine/utils` (shared utility library)
 
@@ -21,6 +22,14 @@ The diagram models the main runtime containers and workspace packages:
 - Provides command-line workflows for metrics analysis.
 - Uses `@smmachine/core` for domain operations.
 - Uses `@smmachine/utils` for cross-cutting helpers (for example logging).
+- Uses `@smmachine/mcp` for the MCP server start command.
+
+### `@smmachine/mcp`
+
+- Provides a read-only MCP stdio server for agent clients.
+- Uses `@smmachine/core` for domain operations.
+- Uses `@smmachine/utils` for shared concerns.
+- Exposes tools, resources, and prompts for metrics access.
 
 ### `@smmachine/webapp`
 
@@ -48,9 +57,13 @@ The diagram models the main runtime containers and workspace packages:
 
 - Developer -> `@smmachine/cli`
 - Developer -> `@smmachine/webapp`
+- Agent Client -> `@smmachine/mcp`
 - `@smmachine/webapp` -> `@smmachine/rest`
 - `@smmachine/cli` -> `@smmachine/core`
 - `@smmachine/cli` -> `@smmachine/utils`
+- `@smmachine/cli` -> `@smmachine/mcp`
+- `@smmachine/mcp` -> `@smmachine/core`
+- `@smmachine/mcp` -> `@smmachine/utils`
 - `@smmachine/rest` -> `@smmachine/core`
 - `@smmachine/rest` -> `@smmachine/utils`
 - `@smmachine/core` -> `@smmachine/utils`

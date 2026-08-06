@@ -1,6 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import type { MetricMethod } from '@smmachine/core';
 import {
   parseMetricCleaningOptions,
   PRsService,
@@ -19,23 +18,7 @@ import type {
   PRFirstCommentTimeResponse,
   PRFilterOptionsResponse,
 } from '../dtos/response.dto';
-
-const VALID_METRIC_METHODS: MetricMethod[] = [
-  'average',
-  'median',
-  'p75',
-  'p90',
-  'p95',
-  'min',
-  'max',
-];
-
-function normalizeMetricMethod(value?: string): MetricMethod {
-  const normalized = (value || 'average').toLowerCase();
-  return VALID_METRIC_METHODS.includes(normalized as MetricMethod)
-    ? (normalized as MetricMethod)
-    : 'average';
-}
+import { normalizeMetricMethod } from '../utils/metric-method';
 
 @ApiTags('Pull Request Metrics')
 @Controller()

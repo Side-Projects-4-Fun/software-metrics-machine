@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Logger, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { SonarqubeDashboardData, SonarqubeEvaluation } from '@smmachine/core';
 import { SonarqubeEvaluationService, SonarqubeRepository } from '@smmachine/core';
@@ -18,6 +18,7 @@ function metricNumber(
 @Controller()
 export class SonarqubeEvaluationController {
   private readonly evaluationService = new SonarqubeEvaluationService();
+  private readonly logger = new Logger(SonarqubeEvaluationController.name);
 
   constructor(private readonly sonarqubeRepository: SonarqubeRepository) {}
 
@@ -30,7 +31,12 @@ export class SonarqubeEvaluationController {
     const removeFolders = removeFoldersRaw === 'true' || removeFoldersRaw === '1';
 
     const [quality, componentTree] = await Promise.all([
-      this.sonarqubeRepository.loadAll().catch(() => null),
+      this.sonarqubeRepository.loadAll().catch((error: unknown) => {
+        this.logger.warn(
+          `Failed to load SonarQube quality data: ${error instanceof Error ? error.message : String(error)}`
+        );
+        return null;
+      }),
       this.sonarqubeRepository
         .loadComponentTree({
           ignore_files: ignoreFiles,
@@ -38,7 +44,12 @@ export class SonarqubeEvaluationController {
           remove_folders: removeFolders,
           metrics: ['complexity', 'cognitive_complexity', 'ncloc', 'coverage', 'sqale_rating'],
         })
-        .catch(() => []),
+        .catch((error: unknown) => {
+          this.logger.warn(
+            `Failed to load SonarQube component tree: ${error instanceof Error ? error.message : String(error)}`
+          );
+          return [];
+        }),
     ]);
 
     const dashboardData: SonarqubeDashboardData = {

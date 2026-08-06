@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Query } from '@nestjs/common';
+import { Controller, Get, Inject, Logger, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { CodeDashboardData, CodeEvaluation } from '@smmachine/core';
 import {
@@ -67,6 +67,7 @@ function toCrapEntries(components: SonarqubeRawComponentMeasure[]): CrapMetricEn
 @Controller()
 export class CodeEvaluationController {
   private readonly evaluationService = new CodeEvaluationService();
+  private readonly logger = new Logger(CodeEvaluationController.name);
 
   constructor(
     private readonly pairingService: PairingService,
@@ -118,20 +119,35 @@ export class CodeEvaluationController {
           endDate,
           includeAuthors: authors,
         })
-        .catch(() => null),
+        .catch((error: unknown) => {
+          this.logger.warn(
+            `Failed to get pairing index: ${error instanceof Error ? error.message : String(error)}`
+          );
+          return null;
+        }),
       this.bigOService
         .listFiles({
           ignorePatterns: ignoreFiles,
           includePatterns: includeOnly,
           limit: top ? Number(top) : 200,
         })
-        .catch(() => []),
+        .catch((error: unknown) => {
+          this.logger.warn(
+            `Failed to list Big O files: ${error instanceof Error ? error.message : String(error)}`
+          );
+          return [];
+        }),
       this.sonarqubeClient
         .fetchComponentTree({
           metrics: ['complexity', 'coverage'],
           depth: -1,
         })
-        .catch(() => []),
+        .catch((error: unknown) => {
+          this.logger.warn(
+            `Failed to fetch SonarQube component tree: ${error instanceof Error ? error.message : String(error)}`
+          );
+          return [];
+        }),
     ]);
 
     const crapMetrics = toCrapEntries(sonarqubeComponents as SonarqubeRawComponentMeasure[]);

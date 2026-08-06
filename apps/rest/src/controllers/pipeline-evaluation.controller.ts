@@ -1,28 +1,12 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import type { MetricMethod, PipelineEvaluation, PipelineFilters } from '@smmachine/core';
+import type { PipelineEvaluation, PipelineFilters } from '@smmachine/core';
 import {
   PipelineImplementation,
   PipelineEvaluationService,
   parseMetricCleaningOptions,
 } from '@smmachine/core';
-
-const VALID_METRIC_METHODS: MetricMethod[] = [
-  'average',
-  'median',
-  'p75',
-  'p90',
-  'p95',
-  'min',
-  'max',
-];
-
-function normalizeMetricMethod(value?: string): MetricMethod {
-  const normalized = (value || 'average').toLowerCase();
-  return VALID_METRIC_METHODS.includes(normalized as MetricMethod)
-    ? (normalized as MetricMethod)
-    : 'average';
-}
+import { normalizeMetricMethod } from '../utils/metric-method';
 
 @ApiTags('Pipeline Evaluation')
 @Controller()

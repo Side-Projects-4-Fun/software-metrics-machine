@@ -27,10 +27,8 @@ export function redirectConsoleToStderr(): void {
   );
 
   // Keep references so consumers that need the originals can access them.
-  (console as unknown as { __smmOriginalInfo?: (...args: unknown[]) => void }).__smmOriginalInfo =
-    originalInfo;
-  (console as unknown as { __smmOriginalLog?: (...args: unknown[]) => void }).__smmOriginalLog =
-    originalLog;
+  Reflect.set(console, '__smmOriginalInfo', originalInfo);
+  Reflect.set(console, '__smmOriginalLog', originalLog);
 }
 
 function formatLine(args: unknown[]): string {

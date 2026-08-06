@@ -8,8 +8,7 @@
     "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
-      "@utils/*": ["../utils/src/*"],
-      "@types/*": ["../types/src/*"]
+      "@utils/*": ["../utils/src/*"]
     }
   },
   "include": ["src"],

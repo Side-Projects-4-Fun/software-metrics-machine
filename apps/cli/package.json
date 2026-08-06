@@ -34,8 +34,6 @@
   "devDependencies": {
     "@smmachine/core": "workspace:*",
     "@smmachine/utils": "workspace:*",
-    "@smmachine/rest": "workspace:*",
-    "@smmachine/webapp": "workspace:*",
     "@smmachine/mcp": "workspace:*",
     "@types/node": "catalog:",
     "@typescript-eslint/eslint-plugin": "catalog:",

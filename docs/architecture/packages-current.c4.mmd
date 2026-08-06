@@ -2,6 +2,7 @@ C4Container
 title Software Metrics Machine - Current Package Architecture
 
 Person(developer, "Developer", "Runs local analysis and explores metrics")
+Person(agent, "Agent Client", "AI agent consuming metrics via MCP")
 
 System_Ext(codeHosts, "Code Hosting / PM Systems", "GitHub, GitLab, Jira, SonarQube and related APIs")
 
@@ -9,16 +10,21 @@ System_Boundary(smm, "software-metrics-machine monorepo") {
   Container(cli, "@smmachine/cli", "TypeScript (CommonJS)", "Command-line entrypoint for metric collection and orchestration")
   Container(webapp, "@smmachine/webapp", "Next.js + React", "Dashboard UI for software metrics")
   Container(rest, "@smmachine/rest", "NestJS", "REST API exposing metrics and configuration endpoints")
+  Container(mcp, "@smmachine/mcp", "TypeScript (CommonJS)", "MCP stdio server for agent clients")
   Container(core, "@smmachine/core", "TypeScript library", "Domain logic, providers, orchestration and metric computation")
   Container(utils, "@smmachine/utils", "TypeScript library", "Shared helpers such as logging and utility functions")
 }
 
 Rel(developer, cli, "Runs analysis commands", "CLI")
 Rel(developer, webapp, "Uses dashboard", "Browser")
+Rel(agent, mcp, "Reads metrics", "stdio/MCP")
 Rel(webapp, rest, "Reads metrics and configuration", "HTTP/JSON")
 
 Rel(cli, core, "Invokes domain services", "workspace package")
 Rel(cli, utils, "Uses logging/utilities", "workspace package")
+Rel(cli, mcp, "Starts MCP server", "workspace package")
+Rel(mcp, core, "Uses domain services", "workspace package")
+Rel(mcp, utils, "Uses logging/utilities", "workspace package")
 Rel(rest, core, "Uses domain services", "workspace package")
 Rel(rest, utils, "Uses logging/utilities", "workspace package")
 Rel(core, utils, "Uses shared utilities", "workspace package")

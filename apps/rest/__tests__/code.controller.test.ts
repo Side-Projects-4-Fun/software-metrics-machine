@@ -93,10 +93,10 @@ describe('CodeController', () => {
   });
 
   describe('codeChurn', () => {
-    it('forwards query params and returns churn.data as-is', async () => {
+    it('forwards query params and transforms churn data to response shape', async () => {
       const { controller, codemaat } = createController();
-      const data = [{ date: '2026-01-01', type: 'added', value: 10 }];
-      codemaat.getCodeChurn.mockResolvedValue({ data });
+      const coreData = [{ date: '2026-01-01', added: 7, deleted: 3, commits: 2 }];
+      codemaat.getCodeChurn.mockResolvedValue({ data: coreData });
 
       const result = await controller.codeChurn('2026-01-01', '2026-06-01', 'added');
 
@@ -105,7 +105,7 @@ describe('CodeController', () => {
         endDate: '2026-06-01',
         typeChurn: 'added',
       });
-      expect(result).toBe(data);
+      expect(result).toEqual([{ date: '2026-01-01', type: 'added', value: 10 }]);
     });
   });
 

@@ -63,7 +63,7 @@
     "mean-time-recovery"
   ],
   "engines": {
-    "node": ">=25.2.1",
+    "node": ">=26.4.0",
     "pnpm": ">=10.0.0"
   },
   "packageManager": "pnpm@10.34.3",

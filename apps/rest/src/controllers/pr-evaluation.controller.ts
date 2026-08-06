@@ -1,29 +1,8 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { parseMetricCleaningOptions, PRsService, PREvaluationService } from '@smmachine/core';
-import type {
-  MetricCleaningOptions,
-  MetricMethod,
-  PRDashboardData,
-  PREvaluation,
-} from '@smmachine/core';
-
-const VALID_METRIC_METHODS: MetricMethod[] = [
-  'average',
-  'median',
-  'p75',
-  'p90',
-  'p95',
-  'min',
-  'max',
-];
-
-function normalizeMetricMethod(value?: string): MetricMethod {
-  const normalized = (value || 'average').toLowerCase();
-  return VALID_METRIC_METHODS.includes(normalized as MetricMethod)
-    ? (normalized as MetricMethod)
-    : 'average';
-}
+import type { MetricCleaningOptions, PRDashboardData, PREvaluation } from '@smmachine/core';
+import { normalizeMetricMethod } from '../utils/metric-method';
 
 function toFilters(
   startDate?: string,

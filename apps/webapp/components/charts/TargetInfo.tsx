@@ -25,6 +25,13 @@ export function TargetInfo({ metric, target, description }: TargetInfoProps) {
     setAnchorEl(e.currentTarget);
   }, []);
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setAnchorEl(e.currentTarget);
+    }
+  }, []);
+
   const handleClose = useCallback(() => {
     setAnchorEl(null);
   }, []);
@@ -37,7 +44,7 @@ export function TargetInfo({ metric, target, description }: TargetInfoProps) {
     <>
       <div
         onClick={handleClick}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(e as unknown as React.MouseEvent<HTMLDivElement>); } }}
+        onKeyDown={handleKeyDown}
         role="button"
         tabIndex={0}
         className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-600 cursor-pointer hover:bg-blue-200 transition-colors shrink-0 select-none"

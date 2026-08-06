@@ -2,7 +2,7 @@
 
 Date: 2025-12-29
 
-Status: Accepted
+Status: Superseded by ADR 0002
 
 ## Context
 

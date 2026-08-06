@@ -21,7 +21,6 @@
       "@/*": ["./src/*"],
       "@packages/*": ["./packages/*/src"],
       "@core/*": ["./packages/core/src/*"],
-      "@types/*": ["./packages/types/src/*"],
       "@utils/*": ["./packages/utils/src/*"]
     },
     "types": ["node", "vitest/globals"]

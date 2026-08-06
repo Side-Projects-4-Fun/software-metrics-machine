@@ -148,7 +148,6 @@ const pairingService = new PairingIndexService(commitRepo);
 // If spying is needed, use vi.spyOn() in the test — builders never use vi.fn():
 const spy = vi.spyOn(prRepo, 'loadPrsWithFilters');
 ```
-```
 
 ### Assertions
 - Prefer specific expectations over generic ones
@@ -297,3 +296,5 @@ Run with: `pnpm --filter <workspace> exec vitest run --coverage`
 - **Builders must NEVER use `vi.fn()`** — they create real objects (plain data objects, in-memory implementations). If a test needs to spy on method calls or mock specific behavior, use `vi.spyOn()` or `vi.fn()` directly in the test file.
 - When adding a new builder, follow the naming convention: `{TypeName}Builder` with `with{FieldName}()` methods returning `this` for chaining, and a `build(): TypeName` method that returns a shallow clone (`{ ...this.data }`).
 - Source-level builders (like `PipelineGitHubRunBuilder` in `packages/core/src/test/`) are acceptable for production code, but test-only builders belong in `packages/core/__tests__/builders/builders.ts`.
+- Do NOT mock components under `@/components/` or reactjs hooks. 
+- Do NOT use map, filters, foor loops in test code. Use builders to create test data and repositories instead. Prefer jest.each, vitest.each, or parameterized tests for multiple scenarios.

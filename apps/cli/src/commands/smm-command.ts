@@ -53,6 +53,12 @@ export class SmmCommand extends Command {
 
     try {
       applySqliteMigrations(db);
+    } catch (error) {
+      const logger = new Logger('SmmCommand', 'CRITICAL');
+      logger.error(
+        `SQLite migration failed: ${error instanceof Error ? error.message : String(error)}`
+      );
+      throw error;
     } finally {
       db.close();
     }

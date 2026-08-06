@@ -96,7 +96,11 @@ export class CodeController {
       typeChurn,
     });
 
-    return churn.data as unknown as CodeChurnResponse;
+    return churn.data.map((entry) => ({
+      date: entry.date,
+      type: typeChurn || 'total',
+      value: entry.added + entry.deleted,
+    }));
   }
 
   @Get('/code/code-churn/history')
