@@ -10,9 +10,9 @@ const mocks = vi.hoisted(() => ({
   getDatasetLevel: vi.fn(),
 }));
 
-vi.mock('../../src/services/health-check-report', () => ({
-  HealthCheckReportBuilder: class {
-    build = mocks.build;
+vi.mock('@smmachine/core/domain/health-check/health-check-service', () => ({
+  HealthCheckService: class {
+    generateReport = mocks.build;
 
     static getDatasetLevel = mocks.getDatasetLevel;
   },

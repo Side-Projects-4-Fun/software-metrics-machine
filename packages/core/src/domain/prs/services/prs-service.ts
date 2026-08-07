@@ -406,6 +406,9 @@ export class PRsService implements IPRsService {
     for (const pr of merged) {
       const start = this.toTimestamp(pr.createdAt);
       const end = this.toTimestamp(pr.mergedAt || pr.closedAt);
+      if (Number.isNaN(start) || Number.isNaN(end)) {
+        continue;
+      }
       const days = (end - start) / (1000 * 60 * 60 * 24);
       const author = pr.author?.login || 'unknown';
       const existing = grouped.get(author) || [];
@@ -462,6 +465,9 @@ export class PRsService implements IPRsService {
       const period = this.toPeriodKey(pr.createdAt, mode);
       const start = this.toTimestamp(pr.createdAt);
       const end = this.toTimestamp(pr.mergedAt || pr.closedAt || pr.createdAt);
+      if (Number.isNaN(start) || Number.isNaN(end)) {
+        continue;
+      }
       const days = (end - start) / (1000 * 60 * 60 * 24);
       const existing = grouped.get(period) || [];
       existing.push(this.toPRSample(pr, days));
@@ -665,7 +671,13 @@ export class PRsService implements IPRsService {
 
       const prOpenedAt = this.toTimestamp(pr.createdAt);
       const firstCommentAt = this.toTimestamp(firstComment.createdAt);
-      if (prOpenedAt === 0 || firstCommentAt === 0 || firstCommentAt < prOpenedAt) {
+      if (
+        !Number.isFinite(prOpenedAt) ||
+        !Number.isFinite(firstCommentAt) ||
+        prOpenedAt === 0 ||
+        firstCommentAt === 0 ||
+        firstCommentAt < prOpenedAt
+      ) {
         continue;
       }
 
@@ -702,8 +714,7 @@ export class PRsService implements IPRsService {
     if (!value) {
       return 0;
     }
-    const parsed = new Date(value).getTime();
-    return Number.isFinite(parsed) ? parsed : 0;
+    return new Date(value).getTime();
   }
 
   async getCommentsByAuthor(
@@ -746,7 +757,13 @@ export class PRsService implements IPRsService {
 
       const prOpenedAt = this.toTimestamp(pr.createdAt);
       const firstCommentAt = this.toTimestamp(firstComment.createdAt);
-      if (prOpenedAt === 0 || firstCommentAt === 0 || firstCommentAt < prOpenedAt) {
+      if (
+        !Number.isFinite(prOpenedAt) ||
+        !Number.isFinite(firstCommentAt) ||
+        prOpenedAt === 0 ||
+        firstCommentAt === 0 ||
+        firstCommentAt < prOpenedAt
+      ) {
         continue;
       }
 

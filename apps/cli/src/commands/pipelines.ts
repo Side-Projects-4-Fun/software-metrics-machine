@@ -756,22 +756,22 @@ export function createPipelinesCommands(program: SmmCommand): void {
 
         const { summary } = await pipelineImplementation.dashboard(buildPipelineFilters(merged));
 
-        const leadTime = summary.average_duration_minutes;
+        const leadTimeHours = summary.average_duration_minutes / 60;
 
         if (options.output === 'json') {
-          screen.printLine(JSON.stringify({ leadTime }, null, 2));
+          screen.printLine(JSON.stringify({ leadTime: leadTimeHours }, null, 2));
         } else {
           screen.printLine('\n=== Lead Time for Changes (DORA) ===\n');
-          screen.printLine(`Lead Time: ${leadTime.toFixed(2)} hours`);
+          screen.printLine(`Lead Time: ${leadTimeHours.toFixed(2)} hours`);
 
           // DORA rating
           let rating = 'Low';
-          if (leadTime < 24) {
+          if (leadTimeHours < 24) {
             rating = 'Elite';
-          } else if (leadTime < 168) {
+          } else if (leadTimeHours < 168) {
             // 1 week
             rating = 'High';
-          } else if (leadTime < 720) {
+          } else if (leadTimeHours < 720) {
             // 1 month
             rating = 'Medium';
           }

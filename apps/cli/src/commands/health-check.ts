@@ -1,8 +1,11 @@
 import type { SmmCommand } from './smm-command';
 import type { Screen } from '../screen';
-import { HealthCheckReportBuilder, type HealthReport } from '../services/health-check-report';
+import {
+  HealthCheckService,
+  type HealthReport,
+} from '@smmachine/core/domain/health-check/health-check-service';
 
-const reportBuilder = new HealthCheckReportBuilder();
+const healthCheckService = new HealthCheckService();
 
 export function createHealthCheckCommand(program: SmmCommand): void {
   const screen = program.getScreen();
@@ -27,7 +30,11 @@ export function createHealthCheckCommand(program: SmmCommand): void {
           throw new Error('--max-gap-days must be a positive integer');
         }
 
-        const report = await reportBuilder.build(config, options.provider, maxGapDays);
+        const report = await healthCheckService.generateReport(
+          config,
+          options.provider,
+          maxGapDays
+        );
 
         if (options.output === 'json') {
           screen.printLine(JSON.stringify(report, null, 2));
@@ -56,7 +63,7 @@ function printTextReport(report: HealthReport, maxGapDays: number, screen: Scree
   screen.printLine('');
 
   for (const dataset of report.datasets) {
-    const level = HealthCheckReportBuilder.getDatasetLevel(dataset);
+    const level = HealthCheckService.getDatasetLevel(dataset);
     const icon = level === 'healthy' ? '✅' : level === 'warning' ? '⚠️' : '❌';
 
     screen.printLine(`${icon} ${dataset.id}`);

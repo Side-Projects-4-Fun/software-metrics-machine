@@ -62,7 +62,7 @@ export class RepositoryFactory {
     );
   }
 
-  private static resolveBaseDirectory(config: Configuration): string {
+  public static resolveBaseDirectory(config: Configuration): string {
     const asUnknownConfig = config as unknown as {
       getBaseDirectory?: () => string;
       getSonarqubePath?: () => string;

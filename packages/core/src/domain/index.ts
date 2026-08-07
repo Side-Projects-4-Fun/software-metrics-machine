@@ -13,3 +13,7 @@ export * from './issues/index';
 export * from './code/codemaat/index';
 
 export * from './filters/index';
+
+export * from './health-check/index';
+
+export * from './metrics/index';

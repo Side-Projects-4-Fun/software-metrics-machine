@@ -1,10 +1,10 @@
-import type { Configuration } from '@smmachine/core/infrastructure/configuration';
-import { RepositoryFactory } from '@smmachine/core/infrastructure/repository-factory';
-import { applySqliteMigrations } from '@smmachine/core/infrastructure/sqlite-migrations';
-import { openSqliteConnection } from '@smmachine/core/infrastructure/sqlite-connection';
+import type { Configuration } from '../../infrastructure/configuration';
+import { RepositoryFactory } from '../../infrastructure/repository-factory';
+import { applySqliteMigrations } from '../../infrastructure/sqlite-migrations';
+import { openSqliteConnection } from '../../infrastructure/sqlite-connection';
 import * as fs from 'fs/promises';
 
-type DatasetCheck = {
+export type DatasetCheck = {
   id: string;
   source: string;
   exists: boolean;
@@ -20,7 +20,7 @@ type DatasetCheck = {
   notes: string[];
 };
 
-type HealthReport = {
+export type HealthReport = {
   generatedAt: string;
   baseDirectory: string;
   summary: {
@@ -44,8 +44,8 @@ type DatasetDefinition = {
   };
 };
 
-export class HealthCheckReportBuilder {
-  async build(
+export class HealthCheckService {
+  async generateReport(
     config: Configuration,
     providerFilter: string,
     maxGapDays: number
@@ -59,7 +59,7 @@ export class HealthCheckReportBuilder {
 
     const summary = datasets.reduce(
       (acc, dataset) => {
-        const level = HealthCheckReportBuilder.getDatasetLevel(dataset);
+        const level = HealthCheckService.getDatasetLevel(dataset);
         if (level === 'healthy') acc.healthyDatasets += 1;
         if (level === 'warning') acc.warningDatasets += 1;
         if (level === 'error') acc.errorDatasets += 1;
@@ -420,5 +420,3 @@ export class HealthCheckReportBuilder {
     return Math.floor(ms / (1000 * 60 * 60 * 24));
   }
 }
-
-export type { DatasetCheck, HealthReport, DatasetDefinition };

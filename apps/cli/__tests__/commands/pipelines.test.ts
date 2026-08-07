@@ -490,14 +490,130 @@ describe('cli: Pipelines Commands', () => {
   });
 
   describe('pipelines lead-time', () => {
-    it('prints lead time and DORA rating', async () => {
+    it('converts minutes to hours and rates 42 minutes as Elite', async () => {
       await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
 
       const output = getOutput();
 
       expect(output).toContain('=== Lead Time for Changes (DORA) ===');
-      expect(output).toContain('Lead Time: 42.00 hours');
+      expect(output).toContain('Lead Time: 0.70 hours');
+      expect(output).toContain('📈 DORA Rating: Elite');
+    });
+
+    it('rates exactly 23h59m as Elite (boundary below 24 hours)', async () => {
+      dashboardMock.mockResolvedValue({
+        summary: {
+          total_runs: 1,
+          successful_runs: 1,
+          failed_runs: 0,
+          cancelled_runs: 0,
+          skipped_runs: 0,
+          timed_out_runs: 0,
+          success_rate: 100,
+          average_duration_minutes: 1439,
+          first_run: null,
+          last_run: null,
+          in_progress: 0,
+          queued: 0,
+        },
+        runs_by: [],
+        jobs_summary: [],
+        job_steps_average_time: [],
+      } as never);
+
+      await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
+
+      const output = getOutput();
+
+      expect(output).toContain('Lead Time: 23.98 hours');
+      expect(output).toContain('📈 DORA Rating: Elite');
+    });
+
+    it('rates exactly 24 hours as High (boundary at Elite threshold)', async () => {
+      dashboardMock.mockResolvedValue({
+        summary: {
+          total_runs: 1,
+          successful_runs: 1,
+          failed_runs: 0,
+          cancelled_runs: 0,
+          skipped_runs: 0,
+          timed_out_runs: 0,
+          success_rate: 100,
+          average_duration_minutes: 1440,
+          first_run: null,
+          last_run: null,
+          in_progress: 0,
+          queued: 0,
+        },
+        runs_by: [],
+        jobs_summary: [],
+        job_steps_average_time: [],
+      } as never);
+
+      await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
+
+      const output = getOutput();
+
+      expect(output).toContain('Lead Time: 24.00 hours');
       expect(output).toContain('📈 DORA Rating: High');
+    });
+
+    it('rates exactly 168 hours as Medium (boundary at High threshold)', async () => {
+      dashboardMock.mockResolvedValue({
+        summary: {
+          total_runs: 1,
+          successful_runs: 1,
+          failed_runs: 0,
+          cancelled_runs: 0,
+          skipped_runs: 0,
+          timed_out_runs: 0,
+          success_rate: 100,
+          average_duration_minutes: 10080,
+          first_run: null,
+          last_run: null,
+          in_progress: 0,
+          queued: 0,
+        },
+        runs_by: [],
+        jobs_summary: [],
+        job_steps_average_time: [],
+      } as never);
+
+      await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
+
+      const output = getOutput();
+
+      expect(output).toContain('Lead Time: 168.00 hours');
+      expect(output).toContain('📈 DORA Rating: Medium');
+    });
+
+    it('rates exactly 720 hours as Low (boundary at Medium threshold)', async () => {
+      dashboardMock.mockResolvedValue({
+        summary: {
+          total_runs: 1,
+          successful_runs: 1,
+          failed_runs: 0,
+          cancelled_runs: 0,
+          skipped_runs: 0,
+          timed_out_runs: 0,
+          success_rate: 100,
+          average_duration_minutes: 43200,
+          first_run: null,
+          last_run: null,
+          in_progress: 0,
+          queued: 0,
+        },
+        runs_by: [],
+        jobs_summary: [],
+        job_steps_average_time: [],
+      } as never);
+
+      await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
+
+      const output = getOutput();
+
+      expect(output).toContain('Lead Time: 720.00 hours');
+      expect(output).toContain('📈 DORA Rating: Low');
     });
   });
 });

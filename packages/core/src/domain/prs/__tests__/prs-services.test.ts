@@ -850,9 +850,17 @@ describe('PRsService', () => {
   });
 
   describe('toTimestamp (via getAverageReviewTime)', () => {
-    it('should treat an unparseable date string as timestamp 0', async () => {
-      const invalidDatePr = new PullRequestBuilder()
+    it('excludes PRs with unparseable createdAt dates from review time', async () => {
+      const validPr = new PullRequestBuilder()
         .withId(1)
+        .withTitle('Valid date')
+        .withAuthor('alice')
+        .withCreatedAt('2025-01-01T00:00:00Z')
+        .withClosedAt('2025-01-03T00:00:00Z')
+        .build();
+
+      const invalidDatePr = new PullRequestBuilder()
+        .withId(2)
         .withTitle('Invalid date')
         .withAuthor('alice')
         .withCreatedAt('not-a-real-date')
@@ -860,15 +868,16 @@ describe('PRsService', () => {
         .build();
 
       prsService = new PRsService(
-        new ReadPullRequestsRepositoryBuilder().withPullRequests([invalidDatePr]).build(),
+        new ReadPullRequestsRepositoryBuilder().withPullRequests([validPr, invalidDatePr]).build(),
         new TimeZoneProvider('UTC'),
         logger
       );
 
       const result = await prsService.getAverageReviewTime();
 
-      expect(result[0].avg_days).toEqual(expect.any(Number));
-      expect(Number.isFinite(result[0].avg_days)).toBe(true);
+      expect(result).toHaveLength(1);
+      expect(result[0].author).toBe('alice');
+      expect(result[0].avg_days).toBe(2);
     });
   });
 
