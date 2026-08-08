@@ -29,9 +29,19 @@ export type EntityOwnershipRecord = {
   deleted: number;
 };
 
+export type AuthorChurnRecord = {
+  author: string;
+  added: number;
+  deleted: number;
+  commits: number;
+};
+
 export interface ICodeMetricsRepository {
   getCodeChurn(options?: CodeMaatChurnOptions): Promise<CodeChurnResult>;
   getCodeChurnHistory(options?: CodeMaatChurnOptions): Promise<CodeMaatCodeChurnEntry[]>;
+  getAuthorChurn(
+    options?: CodeMaatChurnOptions & { authors?: string[] }
+  ): Promise<AuthorChurnRecord[]>;
   getFileCoupling(options?: CodeMaatEntityFilterOptions): Promise<FileCoupling[]>;
   getFileCouplingHistory(
     options?: CodeMaatEntityFilterOptions
@@ -62,6 +72,9 @@ export type CodeMaatEntityFilterOptions = {
   top?: string | number;
   sortBy?: 'degree' | 'churn' | 'revs';
   select?: 'authors';
+  startDate?: string;
+  endDate?: string;
+  minCoupling?: number;
 };
 
 export type CodeMaatChurnOptions = {

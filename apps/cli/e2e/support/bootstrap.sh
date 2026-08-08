@@ -277,6 +277,17 @@ function ensureSchema() {
       PRIMARY KEY (date, position)
     );
 
+    CREATE TABLE IF NOT EXISTS codemaat_author_churn (
+      author TEXT NOT NULL,
+      added INTEGER NOT NULL,
+      deleted INTEGER NOT NULL,
+      commits INTEGER NOT NULL,
+      position INTEGER NOT NULL,
+      stored_at TEXT NOT NULL,
+      fetched_at TEXT,
+      PRIMARY KEY (author, position)
+    );
+
     CREATE TABLE IF NOT EXISTS codemaat_file_coupling (
       entity TEXT NOT NULL,
       coupled TEXT NOT NULL,
@@ -658,6 +669,7 @@ function seedCodeAnalysis() {
   });
 
   db.exec('DELETE FROM codemaat_code_churn;');
+  db.exec('DELETE FROM codemaat_author_churn;');
   db.exec('DELETE FROM codemaat_file_coupling;');
   db.exec('DELETE FROM codemaat_entity_churn;');
   db.exec('DELETE FROM codemaat_entity_effort;');
@@ -673,6 +685,17 @@ function seedCodeAnalysis() {
     (date, added, deleted, commits, position, stored_at, fetched_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `).run('2026-03-02', 7, 3, 2, 1, storedAt, storedAt);
+
+  db.prepare(`
+    INSERT INTO codemaat_author_churn
+    (author, added, deleted, commits, position, stored_at, fetched_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run('Alice', 10, 2, 1, 0, storedAt, storedAt);
+  db.prepare(`
+    INSERT INTO codemaat_author_churn
+    (author, added, deleted, commits, position, stored_at, fetched_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run('Bob', 7, 3, 2, 1, storedAt, storedAt);
 
   db.prepare(`
     INSERT INTO codemaat_file_coupling

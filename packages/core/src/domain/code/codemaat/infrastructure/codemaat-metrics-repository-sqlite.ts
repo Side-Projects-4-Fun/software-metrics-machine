@@ -18,6 +18,7 @@ import { openSqliteConnection } from '../../../../infrastructure/sqlite-connecti
 import { normalizePatternList } from '../../../../domain/code/pattern-filters';
 import { CodeMaatMetricsCsvRepository } from './codemaat-metrics-repository-csv';
 import type {
+  AuthorChurnRecord,
   CodeMaatChurnOptions,
   CodeMaatEntityFilterOptions,
   EntityChurnRecord,
@@ -84,6 +85,51 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
         startDate: options?.startDate,
         endDate: options?.endDate,
       };
+    } finally {
+      db.close();
+    }
+  }
+
+  override async getAuthorChurn(
+    options?: CodeMaatChurnOptions & { authors?: string[] }
+  ): Promise<AuthorChurnRecord[]> {
+    const db = this.openSqlite();
+    try {
+      if (!this.tableExists(db, 'codemaat_author_churn')) {
+        return [];
+      }
+
+      const latestFetchedAt = this.getLatestFetchedAt(db, 'codemaat_author_churn');
+      const authorFilter = options?.authors
+        ? options.authors.map((a) => a.toLowerCase())
+        : undefined;
+
+      let query = `SELECT author, added, deleted, commits
+                   FROM codemaat_author_churn
+                   WHERE (? IS NULL OR COALESCE(fetched_at, stored_at) = ?)`;
+      const params: Array<string | number | null> = [latestFetchedAt, latestFetchedAt];
+
+      if (authorFilter && authorFilter.length > 0) {
+        const placeholders = authorFilter.map(() => '?').join(', ');
+        query += ` AND LOWER(author) IN (${placeholders})`;
+        params.push(...authorFilter);
+      }
+
+      query += ' ORDER BY position ASC';
+
+      const rows = db.prepare(query).all(...params) as Array<{
+        author: string;
+        added: number;
+        deleted: number;
+        commits: number;
+      }>;
+
+      return rows.map((row) => ({
+        author: row.author,
+        added: this.toNumber(row.added),
+        deleted: this.toNumber(row.deleted),
+        commits: this.toNumber(row.commits),
+      }));
     } finally {
       db.close();
     }
@@ -167,7 +213,8 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
           degree: this.toNumber(row.degree),
           averageRevs: this.toNumber(row.averageRevs),
         }))
-        .filter((row) => this.matchesCouplingFilters(row.entity, row.coupled, options));
+        .filter((row) => this.matchesCouplingFilters(row.entity, row.coupled, options))
+        .filter((row) => options?.minCoupling === undefined || row.degree >= options.minCoupling);
 
       const sorted =
         options?.sortBy === 'degree' ? filtered.sort((a, b) => b.degree - a.degree) : filtered;

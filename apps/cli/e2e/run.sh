@@ -26,4 +26,4 @@ if [[ ! -x "${BASHUNIT_BIN}" ]]; then
   exit 1
 fi
 
-exec "${BASHUNIT_BIN}" "${TEST_DIR}"
+exec "${BASHUNIT_BIN}" -p "${TEST_DIR}"

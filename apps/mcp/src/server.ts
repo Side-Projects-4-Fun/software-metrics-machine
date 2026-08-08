@@ -93,6 +93,7 @@ async function handleRequestWithLogging(
               get: true,
               listChanged: false,
             },
+            logging: {},
           },
           serverInfo: SERVER_INFO,
         });
@@ -182,6 +183,30 @@ async function handleRequestWithLogging(
 
         log?.(`Reading prompt: ${name}`);
         return ok(request.id, await getPrompt(name, request.params?.arguments));
+      }
+
+      case 'logging/setLevel': {
+        const level = getStringParam(request.params, 'level');
+        if (!level) {
+          return error(request.id, -32602, 'logging/setLevel requires a level parameter');
+        }
+        const normalized = level.toLowerCase();
+        if (normalized !== 'debug' && normalized !== 'info' && normalized !== 'critical') {
+          return error(
+            request.id,
+            -32602,
+            `Invalid log level: ${level}. Must be debug, info, or critical.`
+          );
+        }
+        log?.(`Setting MCP log level to ${normalized}`);
+        configureMcpLogging(
+          normalized === 'debug'
+            ? { debug: true }
+            : normalized === 'critical'
+              ? { quiet: true }
+              : {}
+        );
+        return ok(request.id, {});
       }
 
       default:

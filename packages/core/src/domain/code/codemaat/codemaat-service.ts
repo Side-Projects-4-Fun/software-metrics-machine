@@ -1,4 +1,7 @@
-import type { ICodeMetricsRepository } from './repositories/codemaat-metrics-repository';
+import type {
+  ICodeMetricsRepository,
+  AuthorChurnRecord,
+} from './repositories/codemaat-metrics-repository';
 import type { CodeChurnResult, FileCoupling } from '../../../providers/codemaat/types';
 
 export class CodemaatService {
@@ -8,7 +11,20 @@ export class CodemaatService {
     return this.metricsRepository.getCodeChurn(options);
   }
 
-  async getFileCoupling(options?: { ignorePatterns?: string[] }): Promise<FileCoupling[]> {
+  async getAuthorChurn(options?: {
+    startDate?: string;
+    endDate?: string;
+    authors?: string[];
+  }): Promise<AuthorChurnRecord[]> {
+    return this.metricsRepository.getAuthorChurn(options);
+  }
+
+  async getFileCoupling(options?: {
+    ignorePatterns?: string[];
+    startDate?: string;
+    endDate?: string;
+    minCoupling?: number;
+  }): Promise<FileCoupling[]> {
     return this.metricsRepository.getFileCoupling(options);
   }
 

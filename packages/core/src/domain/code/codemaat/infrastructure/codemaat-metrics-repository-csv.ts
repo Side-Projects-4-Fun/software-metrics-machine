@@ -17,6 +17,7 @@ import type { Configuration } from '../../../../infrastructure/configuration';
 import path from 'path';
 import { matchesPathPattern, normalizePatternList } from '../../../../domain/code/pattern-filters';
 import type {
+  AuthorChurnRecord,
   CodeMaatChurnOptions,
   CodeMaatEntityFilterOptions,
   EntityChurnRecord,
@@ -155,9 +156,95 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
     ];
   }
 
+  async getAuthorChurn(
+    options?: CodeMaatChurnOptions & { authors?: string[] }
+  ): Promise<AuthorChurnRecord[]> {
+    try {
+      const csvPath = path.join(
+        this.resolveDataDirectory({ startDate: options?.startDate, endDate: options?.endDate }),
+        'author-churn.csv'
+      );
+
+      this.logger.info(`Reading author churn from ${csvPath}`);
+
+      if (!fs.existsSync(csvPath)) {
+        this.logger.warn(`Author churn file not found: ${csvPath}`);
+        return [];
+      }
+
+      const content = fs.readFileSync(csvPath, 'utf-8');
+      const lines = content.trim().split('\n');
+
+      if (lines.length < 2) {
+        return [];
+      }
+
+      const delimiter = this.detectCsvDelimiter(lines[0]);
+      const header = this.parseCsvLine(lines[0], delimiter).map((h) =>
+        h.trim().replace(/^"|"$/g, '')
+      );
+
+      const authorIdx = header.findIndex((h) => h.toLowerCase() === 'author');
+      const addedIdx = header.findIndex(
+        (h) => h.toLowerCase().includes('added') || h.toLowerCase().includes('insertions')
+      );
+      const deletedIdx = header.findIndex(
+        (h) => h.toLowerCase().includes('deleted') || h.toLowerCase().includes('deletions')
+      );
+      const commitsIdx = header.findIndex((h) => h.toLowerCase().includes('commit'));
+
+      if (authorIdx < 0 || addedIdx < 0 || deletedIdx < 0) {
+        this.logger.warn('Invalid author churn CSV format. Missing required columns.');
+        return [];
+      }
+
+      const authorFilter = options?.authors
+        ? new Set(options.authors.map((a) => a.toLowerCase()))
+        : undefined;
+
+      const data: AuthorChurnRecord[] = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const row = this.parseCsvLine(lines[i], delimiter).map((v) =>
+          v.trim().replace(/^"|"$/g, '')
+        );
+
+        if (row.length <= Math.max(authorIdx, addedIdx, deletedIdx)) {
+          continue;
+        }
+
+        const author = row[authorIdx];
+        const added = parseInt(row[addedIdx], 10);
+        const deleted = parseInt(row[deletedIdx], 10);
+
+        if (!author || isNaN(added) || isNaN(deleted)) {
+          continue;
+        }
+
+        if (authorFilter && !authorFilter.has(author.toLowerCase())) {
+          continue;
+        }
+
+        const commits = commitsIdx >= 0 ? parseInt(row[commitsIdx], 10) || 0 : 1;
+
+        data.push({ author, added, deleted, commits });
+      }
+
+      this.logger.info(`Parsed ${data.length} author churn records`);
+      return data;
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to read author churn: ${errorMsg}`);
+      throw error;
+    }
+  }
+
   async getFileCoupling(options?: CodeMaatEntityFilterOptions): Promise<FileCoupling[]> {
     try {
-      const csvPath = path.join(this.resolveDataDirectory(), 'coupling.csv');
+      const csvPath = path.join(
+        this.resolveDataDirectory({ startDate: options?.startDate, endDate: options?.endDate }),
+        'coupling.csv'
+      );
 
       this.logger.info(`Reading file coupling from ${csvPath}`);
 
@@ -226,6 +313,10 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
         const averageRevs = averageRevsIdx >= 0 ? parseInt(row[averageRevsIdx], 10) || 0 : 0;
 
         if (!this.matchesCouplingFilters(entity, coupled, options)) {
+          continue;
+        }
+
+        if (options?.minCoupling !== undefined && degree < options.minCoupling) {
           continue;
         }
 

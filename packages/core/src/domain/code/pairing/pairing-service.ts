@@ -14,6 +14,7 @@ export interface IPairingIndexService {
     endDate?: string;
     includeAuthors?: string;
     excludeAuthors?: string;
+    minShared?: number;
   }): Promise<PairingIndexResult>;
 }
 
@@ -40,12 +41,14 @@ export class PairingService implements IPairingIndexService {
     endDate?: string;
     includeAuthors?: string;
     excludeAuthors?: string;
+    minShared?: number;
   }): Promise<PairingIndexResult> {
     let selectedAuthors = options?.selectedAuthors || [];
     const startDate = options?.startDate;
     const endDate = options?.endDate;
     const includeAuthorsStr = options?.includeAuthors;
     const excludeAuthorsStr = options?.excludeAuthors;
+    const minShared = options?.minShared ?? 0;
 
     // Parse additional authors from string
     if (includeAuthorsStr) {
@@ -106,7 +109,7 @@ export class PairingService implements IPairingIndexService {
 
     const index = (pairedCommits / totalCommits) * 100;
     const pairingIndex = Math.round(index * 100) / 100; // Round to 2 decimal places
-    const topPairings = this.calculateTopPairings(filteredCommits);
+    const topPairings = this.calculateTopPairings(filteredCommits, minShared);
     const latestPairedCommits = this.getLatestPairedCommits(filteredCommits);
 
     return {
@@ -118,7 +121,7 @@ export class PairingService implements IPairingIndexService {
     };
   }
 
-  private calculateTopPairings(commits: Commit[]): PairingAuthorsStat[] {
+  private calculateTopPairings(commits: Commit[], minShared: number): PairingAuthorsStat[] {
     const pairs = new Map<string, PairingAuthorsStat>();
 
     for (const commit of commits) {
@@ -160,17 +163,19 @@ export class PairingService implements IPairingIndexService {
       }
     }
 
-    return Array.from(pairs.values()).sort((a, b) => {
-      if (b.pairedCommits !== a.pairedCommits) {
-        return b.pairedCommits - a.pairedCommits;
-      }
+    return Array.from(pairs.values())
+      .filter((pair) => pair.pairedCommits >= minShared)
+      .sort((a, b) => {
+        if (b.pairedCommits !== a.pairedCommits) {
+          return b.pairedCommits - a.pairedCommits;
+        }
 
-      if (a.author !== b.author) {
-        return a.author.localeCompare(b.author);
-      }
+        if (a.author !== b.author) {
+          return a.author.localeCompare(b.author);
+        }
 
-      return a.coAuthor.localeCompare(b.coAuthor);
-    });
+        return a.coAuthor.localeCompare(b.coAuthor);
+      });
   }
 
   private getLatestPairedCommits(commits: Commit[]): PairedCommitSummary[] {

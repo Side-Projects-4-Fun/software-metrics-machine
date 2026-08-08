@@ -1,10 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildBigOAnalyzeInputSchema,
+  buildBigOListInputSchema,
   buildEngineeringHealthInputSchema,
+  buildEvaluationInputSchema,
+  buildHealthCheckInputSchema,
   parseArchitectureViewArguments,
+  parseBigOAnalyzeArguments,
+  parseBigOFileArguments,
   parseCodeMetricsArguments,
   parseDoraMetricsArguments,
   parseEngineeringHealthArguments,
+  parseHealthCheckArguments,
   parseIssueMetricsArguments,
   parseMetricsToolArguments,
 } from '../src/validation';
@@ -144,5 +151,110 @@ describe('parseArchitectureViewArguments', () => {
     expect(() => parseArchitectureViewArguments({ level: 'universe' })).toThrow(
       /level must be one of/
     );
+  });
+});
+
+describe('parseBigOFileArguments', () => {
+  it('returns an empty object for non-object input', () => {
+    expect(parseBigOFileArguments(null)).toEqual({});
+    expect(parseBigOFileArguments(undefined)).toEqual({});
+  });
+
+  it('parses search, patterns, and limit', () => {
+    expect(
+      parseBigOFileArguments({
+        project: 'owner/repo',
+        search: 'sort',
+        ignorePatterns: '**/*.spec.ts',
+        includePatterns: 'src/**',
+        limit: 50,
+      })
+    ).toEqual({
+      project: 'owner/repo',
+      search: 'sort',
+      ignorePatterns: '**/*.spec.ts',
+      includePatterns: 'src/**',
+      limit: 50,
+    });
+  });
+
+  it('ignores non-number limit values', () => {
+    expect(parseBigOFileArguments({ limit: 'fifty' })).toEqual({});
+  });
+
+  it('builds a Big-O list schema with expected properties', () => {
+    const schema = buildBigOListInputSchema();
+    const properties = (schema.properties ?? {}) as Record<string, { type: string }>;
+    expect(properties.search?.type).toBe('string');
+    expect(properties.limit?.type).toBe('number');
+  });
+});
+
+describe('parseBigOAnalyzeArguments', () => {
+  it('throws when filePath is missing', () => {
+    expect(() => parseBigOAnalyzeArguments({})).toThrow(/filePath is required/);
+    expect(() => parseBigOAnalyzeArguments(null)).toThrow(/filePath is required/);
+  });
+
+  it('parses the filePath and project', () => {
+    expect(
+      parseBigOAnalyzeArguments({
+        project: 'owner/repo',
+        filePath: 'src/sort.ts',
+      })
+    ).toEqual({
+      project: 'owner/repo',
+      filePath: 'src/sort.ts',
+    });
+  });
+
+  it('builds a Big-O analyze schema with required filePath', () => {
+    const schema = buildBigOAnalyzeInputSchema();
+    expect(schema.required).toEqual(['filePath']);
+    const properties = (schema.properties ?? {}) as Record<string, { type: string }>;
+    expect(properties.filePath?.type).toBe('string');
+  });
+});
+
+describe('parseHealthCheckArguments', () => {
+  it('returns an empty object for non-object input', () => {
+    expect(parseHealthCheckArguments(null)).toEqual({});
+  });
+
+  it('parses provider filter and max gap days', () => {
+    expect(
+      parseHealthCheckArguments({
+        project: 'owner/repo',
+        providerFilter: 'github',
+        maxGapDays: 14,
+      })
+    ).toEqual({
+      project: 'owner/repo',
+      providerFilter: 'github',
+      maxGapDays: 14,
+    });
+  });
+
+  it('ignores non-number maxGapDays', () => {
+    expect(parseHealthCheckArguments({ maxGapDays: 'fourteen' })).toEqual({});
+  });
+
+  it('builds a health check schema with expected properties', () => {
+    const schema = buildHealthCheckInputSchema();
+    const properties = (schema.properties ?? {}) as Record<string, { type: string }>;
+    expect(properties.providerFilter?.type).toBe('string');
+    expect(properties.maxGapDays?.type).toBe('number');
+  });
+});
+
+describe('buildEvaluationInputSchema', () => {
+  it('includes project, startDate, endDate, and timezone', () => {
+    const schema = buildEvaluationInputSchema('Test evaluation.');
+    const properties = (schema.properties ?? {}) as Record<string, { type: string }>;
+    expect(properties.project?.type).toBe('string');
+    expect(properties.startDate?.type).toBe('string');
+    expect(properties.endDate?.type).toBe('string');
+    expect(properties.timezone?.type).toBe('string');
+    expect(schema.description).toBe('Test evaluation.');
   });
 });

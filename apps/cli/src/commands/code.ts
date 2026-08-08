@@ -340,6 +340,30 @@ export function createCodeCommands(program: SmmCommand): void {
         screen.printLine('📊 Calculating code churn...');
         const repository = CodemaatFactory.create(command.getConfiguration(), logger);
         const codemaatService = new CodemaatService(repository);
+
+        if (options.authors) {
+          const authors = parseAuthors(options.authors);
+          const authorChurn = await codemaatService.getAuthorChurn({
+            startDate: options.startDate,
+            endDate: options.endDate,
+            authors,
+          });
+
+          if (options.output === 'json') {
+            screen.printLine(JSON.stringify({ authorChurn }, null, 2));
+          } else {
+            screen.printLine('\n=== Author Churn Metrics ===\n');
+            screen.printLine(`Authors: ${authors.join(', ')}`);
+            screen.printLine(`Records: ${authorChurn.length}`);
+            for (const row of authorChurn) {
+              screen.printLine(
+                `  ${row.author}: +${row.added} -${row.deleted} (${row.commits} commits)`
+              );
+            }
+          }
+          return;
+        }
+
         const metrics = await codemaatService.getCodeChurn({
           startDate: options.startDate,
           endDate: options.endDate,
@@ -389,6 +413,9 @@ export function createCodeCommands(program: SmmCommand): void {
         const codemaatService = new CodemaatService(repository);
         const coupling = await codemaatService.getFileCoupling({
           ignorePatterns: undefined,
+          startDate: options.startDate,
+          endDate: options.endDate,
+          minCoupling: options.minCoupling ? Number(options.minCoupling) : undefined,
         });
 
         if (options.output === 'json') {
@@ -526,6 +553,7 @@ export function createCodeCommands(program: SmmCommand): void {
         const pairing = await pairingService.getPairingIndex({
           startDate: options.startDate,
           endDate: options.endDate,
+          minShared: options.minShared ? Number(options.minShared) : undefined,
         });
 
         if (options.output === 'json') {

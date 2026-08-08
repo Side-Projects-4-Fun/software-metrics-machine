@@ -53,6 +53,12 @@ date,added,deleted,commits
 2026-03-02,7,3,2
 CSV
 
+  cat >"${codemaat_dir}/author-churn.csv" <<'CSV'
+author,added,deleted,commits
+Alice,10,2,1
+Bob,7,3,2
+CSV
+
   cat >"${codemaat_dir}/coupling.csv" <<'CSV'
 entity,coupled,degree,average-revs
 src/checkout.ts,src/cart.ts,75,4
@@ -228,6 +234,27 @@ function test_code_churn_reads_codemaat_churn_csv() {
   assert_smm_output_contains '"date": "2026-03-02"'
   assert_smm_output_contains '"added": 10'
   assert_smm_output_contains '"added": 7'
+}
+
+function test_code_churn_filters_by_author() {
+  local workspace
+
+  workspace="$(create_smm_e2e_workspace)"
+  seed_code_analysis_workspace "${workspace}"
+  export SMM_STORE_DATA_AT="${workspace}"
+
+  run_smm code churn \
+    --start-date 2026-03-01 \
+    --end-date 2026-03-31 \
+    --authors Alice \
+    --output json
+
+  unset SMM_STORE_DATA_AT
+
+  assert_smm_success
+  assert_smm_output_contains '"author": "Alice"'
+  assert_smm_output_contains '"added": 10'
+  assert_smm_output_not_contains '"author": "Bob"'
 }
 
 function test_code_coupling_reads_codemaat_coupling_csv() {

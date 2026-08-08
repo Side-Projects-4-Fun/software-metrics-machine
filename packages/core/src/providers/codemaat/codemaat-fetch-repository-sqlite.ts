@@ -50,6 +50,7 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
         const dataDirectory = sourceDirectory || this.resolveLatestDataDirectory();
         const imported =
           this.importCodeChurn(db, fetchedAt, dataDirectory) +
+          this.importAuthorChurn(db, fetchedAt, dataDirectory) +
           this.importFileCoupling(db, fetchedAt, dataDirectory) +
           this.importLayeredCoupling(db, fetchedAt, dataDirectory) +
           this.importEntityChurn(db, fetchedAt, dataDirectory) +

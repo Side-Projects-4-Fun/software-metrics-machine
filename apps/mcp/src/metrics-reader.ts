@@ -1,31 +1,44 @@
 import type { Configuration } from '@smmachine/core';
 import {
+  ArchitectureEvaluationService,
   ArchitectureService,
+  BigOService,
+  CodeEvaluationService,
   createEngineeringHealthOrchestrator,
   DeploymentFrequencyService,
+  HealthCheckService,
   IssuesRepository,
   JiraIssuesClient,
   PairingFactory,
+  PipelineEvaluationService,
+  PipelineFactory,
+  PipelineImplementation,
   PipelinesService,
+  PREvaluationService,
   PRsService,
   PullRequestFactory,
-  SonarQubeService,
+  SonarqubeEvaluationService,
   SonarqubeFactory,
+  SonarQubeService,
+  type ArchitectureDashboardData,
+  type ArchitectureViewLevel,
+  type CodeDashboardData,
   type CodeMaatChurnOptions,
   type CodeMaatEntityFilterOptions,
   type EngineeringHealthEvaluationInput,
   type MetricCategory,
   type MetricId,
+  type PipelineDashboard,
   type PipelineFilters,
+  type PRDashboardData,
   type PRFilters,
+  type SonarqubeDashboardData,
   TimeZoneProvider,
   ConfigurationRepository,
-  PipelineFactory,
   CodemaatFactory,
   parseMetricCleaningOptions,
-  type ArchitectureViewLevel,
 } from '@smmachine/core';
-import { Logger, type LogLevel } from '@smmachine/utils';
+import { getApplicationVersion, Logger, type LogLevel } from '@smmachine/utils';
 import { operationLogger } from './mcp-logger';
 import type {
   ArchitectureViewArguments,
@@ -471,6 +484,435 @@ export class McpMetricsReader {
               }
             : null,
         };
+      }
+    );
+  }
+
+  async evaluatePRs(filters: MetricFilters = {}): Promise<unknown> {
+    return traceOperation(
+      'evaluatePRs',
+      {
+        project: this.configuration.githubRepository,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+      },
+      async () => {
+        const repository = PullRequestFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'PullRequestsRepository'),
+          this.timeZoneProvider
+        );
+        const service = new PRsService(
+          repository,
+          this.timeZoneProvider,
+          createLogger(this.configuration, 'PRsService')
+        );
+        const evaluationService = new PREvaluationService();
+
+        const prFilters = filters as PRFilters;
+
+        const [
+          summary,
+          reviewTime,
+          openTime,
+          byAuthor,
+          commentsByAuthor,
+          firstCommentTime,
+          throughputRaw,
+        ] = await Promise.all([
+          service.getSummary(prFilters),
+          service.getReviewTime(prFilters, 20),
+          service.getOpenTimeBy(prFilters),
+          service.getByAuthor(prFilters, 20),
+          service.getCommentsByAuthor(prFilters, 20),
+          service.getFirstCommentTime(prFilters, 20),
+          service.getThroughTime(prFilters),
+        ]);
+
+        const throughput = [throughputRaw]
+          .flat()
+          .reduce<Array<{ period: string; opened: number; closed: number }>>((acc, item) => {
+            const existing = acc.find((e) => e.period === item.date);
+            if (existing) {
+              if (item.kind === 'Opened') existing.opened += item.count;
+              if (item.kind === 'Closed') existing.closed += item.count;
+            } else {
+              acc.push({
+                period: item.date,
+                opened: item.kind === 'Opened' ? item.count : 0,
+                closed: item.kind === 'Closed' ? item.count : 0,
+              });
+            }
+            return acc;
+          }, [])
+          .sort((a, b) => a.period.localeCompare(b.period));
+
+        const unwrap = <T>(wrapped: { result: T } | T): T =>
+          (wrapped && typeof wrapped === 'object' && 'result' in wrapped
+            ? wrapped.result
+            : wrapped) as T;
+
+        const dashboardData: PRDashboardData = {
+          summary: summary
+            ? (unwrap(summary as { result: unknown } | unknown) as PRDashboardData['summary'])
+            : null,
+          reviewTime: Array.isArray(unwrap(reviewTime))
+            ? (unwrap(reviewTime) as PRDashboardData['reviewTime'])
+            : [],
+          openTime: Array.isArray(openTime) ? openTime : [],
+          byAuthor: Array.isArray(unwrap(byAuthor))
+            ? (unwrap(byAuthor) as PRDashboardData['byAuthor'])
+            : [],
+          commentsByAuthor: Array.isArray(unwrap(commentsByAuthor))
+            ? (unwrap(commentsByAuthor) as PRDashboardData['commentsByAuthor'])
+            : [],
+          firstCommentTime: Array.isArray(unwrap(firstCommentTime))
+            ? (unwrap(firstCommentTime) as PRDashboardData['firstCommentTime'])
+            : [],
+          throughput,
+        };
+
+        return evaluationService.evaluate(dashboardData);
+      }
+    );
+  }
+
+  async evaluatePipelines(filters: MetricFilters = {}): Promise<unknown> {
+    return traceOperation(
+      'evaluatePipelines',
+      {
+        project: this.configuration.githubRepository,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+      },
+      async () => {
+        const repositories = PipelineFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'PipelinesRepository'),
+          this.timeZoneProvider
+        );
+        const pipelineImpl = new PipelineImplementation(
+          repositories.pipelineRepository,
+          this.configuration.getDeploymentFrequencyTargets(),
+          createLogger(this.configuration, 'PipelineImplementation'),
+          this.timeZoneProvider
+        );
+        const evaluationService = new PipelineEvaluationService();
+
+        const pipelineFilters = filters as PipelineFilters;
+        const dashboard: PipelineDashboard = await pipelineImpl.dashboard(pipelineFilters);
+
+        return evaluationService.evaluate(dashboard);
+      }
+    );
+  }
+
+  async evaluateCode(filters: CodeMetricFilters = {}): Promise<unknown> {
+    return traceOperation(
+      'evaluateCode',
+      {
+        project: this.configuration.githubRepository,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        authors: filters.authors,
+      },
+      async () => {
+        const codeRepository = CodemaatFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'CodeMetricsRepository')
+        );
+        const pairingService = PairingFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'PairingService'),
+          this.timeZoneProvider
+        );
+        const bigOService = new BigOService(this.configuration);
+        const evaluationService = new CodeEvaluationService();
+
+        const [
+          entityChurn,
+          coupling,
+          entityEffort,
+          churnResult,
+          entityOwnership,
+          pairing,
+          bigOFiles,
+        ] = await Promise.all([
+          codeRepository.getEntityChurn({}),
+          codeRepository.getFileCoupling({ sortBy: 'degree' as const }),
+          codeRepository.getEntityEffort({}),
+          codeRepository.getCodeChurn({
+            startDate: filters.startDate,
+            endDate: filters.endDate,
+          } as CodeMaatChurnOptions),
+          codeRepository.getEntityOwnership({ authors: filters.authors }),
+          pairingService.getPairingIndex(filters).catch(() => null),
+          bigOService.listFiles({ limit: 200 }).catch(() => []),
+        ]);
+
+        const dashboardData: CodeDashboardData = {
+          entityChurn: Array.isArray(entityChurn) ? entityChurn : [],
+          coupling: Array.isArray(coupling) ? coupling : [],
+          entityEffort: Array.isArray(entityEffort) ? entityEffort : [],
+          codeChurn: churnResult && Array.isArray(churnResult.data) ? churnResult.data : [],
+          entityOwnership: Array.isArray(entityOwnership) ? entityOwnership : [],
+          pairing: {
+            pairingIndexPercentage: pairing?.pairingIndexPercentage ?? 0,
+            totalAnalyzedCommits: pairing?.totalAnalyzedCommits ?? 0,
+            pairedCommits: pairing?.pairedCommits ?? 0,
+            topPairs: (pairing?.topPairings || []).map((p) => ({
+              author: p.author,
+              coAuthor: p.coAuthor,
+              pairedCommits: p.pairedCommits,
+            })),
+          },
+          bigOFiles: Array.isArray(bigOFiles) ? bigOFiles : [],
+          crapMetrics: [],
+        };
+
+        return evaluationService.evaluate(dashboardData);
+      }
+    );
+  }
+
+  async evaluateQuality(): Promise<unknown> {
+    return traceOperation(
+      'evaluateQuality',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const repository = SonarqubeFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'SonarqubeRepository')
+        );
+        const evaluationService = new SonarqubeEvaluationService();
+
+        const [quality, componentTree] = await Promise.all([
+          repository.loadAll().catch(() => null),
+          repository
+            .loadComponentTree({
+              metrics: ['complexity', 'cognitive_complexity', 'ncloc', 'coverage', 'sqale_rating'],
+            })
+            .catch(() => []),
+        ]);
+
+        const metricNumber = (
+          measures: Array<{
+            metric?: string;
+            name?: string;
+            key?: string;
+            value?: string | number;
+          }>,
+          metric: string
+        ): number => {
+          const measure = measures.find(
+            (item) => item.metric === metric || item.name === metric || item.key === metric
+          );
+          const numeric = Number(measure?.value ?? 0);
+          return Number.isFinite(numeric) ? numeric : 0;
+        };
+
+        const dashboardData: SonarqubeDashboardData = {
+          quality: quality
+            ? {
+                reliabilityRating: metricNumber(quality.measures, 'reliability_rating'),
+                securityRating: metricNumber(quality.measures, 'security_rating'),
+                maintainabilityRating: metricNumber(quality.measures, 'sqale_rating'),
+                duplicationDensity: metricNumber(quality.measures, 'duplicated_lines_density'),
+              }
+            : null,
+          componentTree: componentTree.map((c) => ({
+            key: c.key,
+            name: c.name,
+            complexity: metricNumber(c.measures, 'complexity'),
+            cognitiveComplexity: metricNumber(c.measures, 'cognitive_complexity'),
+            ncloc: metricNumber(c.measures, 'ncloc'),
+            coverage: metricNumber(c.measures, 'coverage'),
+            maintainabilityRating: metricNumber(c.measures, 'sqale_rating'),
+          })),
+        };
+
+        return evaluationService.evaluate(dashboardData);
+      }
+    );
+  }
+
+  async evaluateArchitecture(args: ArchitectureViewArguments): Promise<unknown> {
+    return traceOperation(
+      'evaluateArchitecture',
+      {
+        project: this.configuration.githubRepository,
+        level: args.level,
+        snapshotId: args.snapshotId,
+      },
+      async () => {
+        const service = new ArchitectureService(
+          this.configuration,
+          createLogger(this.configuration, 'ArchitectureService')
+        );
+        const evaluationService = new ArchitectureEvaluationService();
+
+        const level: ArchitectureViewLevel =
+          args.level === 'context' ||
+          args.level === 'container' ||
+          args.level === 'component' ||
+          args.level === 'code'
+            ? args.level
+            : 'container';
+
+        const snapshot = await service.getSnapshot(args.snapshotId);
+        let viewResult = snapshot?.views.find((v) => v.level === level) || null;
+
+        if (snapshot && viewResult && (args.ignorePatterns || args.includePatterns)) {
+          const filtered = await service.getView(level, snapshot.snapshotId, {
+            ignorePatterns: args.ignorePatterns,
+            includePatterns: args.includePatterns,
+          });
+          viewResult = filtered || viewResult;
+        }
+
+        if (!snapshot || !viewResult) {
+          return {
+            generatedAt: new Date().toISOString(),
+            signals: [
+              {
+                id: 'no_snapshot',
+                title: 'No architecture snapshot available',
+                description:
+                  'Generate an architecture snapshot via `smm architecture generate` before running evaluation.',
+                severity: 'good',
+                category: 'structure',
+                metrics: [],
+              },
+            ],
+            summary: {
+              totalContainers: 0,
+              totalEdges: 0,
+              avgConfidence: 0,
+              orphanNodes: 0,
+            },
+          };
+        }
+
+        const dashboardData: ArchitectureDashboardData = {
+          snapshotId: snapshot.snapshotId,
+          generatedAt: snapshot.generatedAt,
+          commitCount: snapshot.commitCount,
+          view: {
+            level: viewResult.level,
+            title: viewResult.title,
+            nodes: viewResult.nodes.map((n) => ({
+              id: n.id,
+              kind: n.kind,
+              name: n.name,
+              technology: n.technology,
+            })),
+            edges: viewResult.edges.map((e) => ({
+              id: e.id,
+              source: e.source,
+              target: e.target,
+              confidence: e.confidence,
+            })),
+          },
+        };
+
+        return evaluationService.evaluate(dashboardData);
+      }
+    );
+  }
+
+  async listBigOFiles(options?: {
+    search?: string;
+    ignorePatterns?: string;
+    includePatterns?: string;
+    limit?: number;
+  }): Promise<unknown> {
+    return traceOperation(
+      'listBigOFiles',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const bigOService = new BigOService(this.configuration);
+        return bigOService.listFiles({
+          search: options?.search,
+          ignorePatterns: options?.ignorePatterns,
+          includePatterns: options?.includePatterns,
+          limit: options?.limit ?? 200,
+        });
+      }
+    );
+  }
+
+  async analyzeBigOFile(filePath: string): Promise<unknown> {
+    return traceOperation(
+      'analyzeBigOFile',
+      { project: this.configuration.githubRepository, filePath },
+      async () => {
+        const bigOService = new BigOService(this.configuration);
+        return bigOService.analyzeFile(filePath);
+      }
+    );
+  }
+
+  async healthCheck(providerFilter?: string, maxGapDays?: number): Promise<unknown> {
+    return traceOperation(
+      'healthCheck',
+      { project: this.configuration.githubRepository, providerFilter, maxGapDays },
+      async () => {
+        const service = new HealthCheckService();
+        return service.generateReport(
+          this.configuration,
+          providerFilter || 'all',
+          maxGapDays ?? 30
+        );
+      }
+    );
+  }
+
+  getVersion(): unknown {
+    return {
+      version: getApplicationVersion(),
+      name: 'software-metrics-machine',
+    };
+  }
+
+  async listPRFilterOptions(): Promise<unknown> {
+    return traceOperation(
+      'listPRFilterOptions',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const filtersRepository = PullRequestFactory.createFilters(
+          this.configuration,
+          createLogger(this.configuration, 'PullRequestFiltersRepository')
+        );
+        return filtersRepository.loadOptions();
+      }
+    );
+  }
+
+  async listPipelineFilterOptions(): Promise<unknown> {
+    return traceOperation(
+      'listPipelineFilterOptions',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const repositories = PipelineFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'PipelinesRepository'),
+          this.timeZoneProvider
+        );
+        return repositories.pipelineFiltersRepository.loadOptions();
+      }
+    );
+  }
+
+  async listCodeAuthors(): Promise<unknown> {
+    return traceOperation(
+      'listCodeAuthors',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const codeRepository = CodemaatFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'CodeMetricsRepository')
+        );
+        return codeRepository.getEntityOwnership({ select: 'authors' });
       }
     );
   }

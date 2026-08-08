@@ -17,6 +17,7 @@ describe('cli: Code Commands', () => {
   let analyzeFileSpy: ReturnType<typeof vi.spyOn>;
   let pairingIndexSpy: ReturnType<typeof vi.fn>;
   let getCodeChurnSpy: ReturnType<typeof vi.spyOn>;
+  let getAuthorChurnSpy: ReturnType<typeof vi.spyOn>;
   let getFileCouplingSpy: ReturnType<typeof vi.spyOn>;
   let getEntityEffortSpy: ReturnType<typeof vi.spyOn>;
   let getEntityOwnershipSpy: ReturnType<typeof vi.spyOn>;
@@ -91,6 +92,12 @@ describe('cli: Code Commands', () => {
     getCodeChurnSpy = vi.spyOn(CodemaatService.prototype, 'getCodeChurn').mockResolvedValue({
       data: [{ commits: 2, added: 10, deleted: 4 }],
     } as unknown as Awaited<ReturnType<CodemaatService['getCodeChurn']>>);
+
+    getAuthorChurnSpy = vi
+      .spyOn(CodemaatService.prototype, 'getAuthorChurn')
+      .mockResolvedValue([
+        { author: 'Alice', added: 10, deleted: 4, commits: 2 },
+      ] as unknown as Awaited<ReturnType<CodemaatService['getAuthorChurn']>>);
 
     getFileCouplingSpy = vi
       .spyOn(CodemaatService.prototype, 'getFileCoupling')
@@ -311,6 +318,31 @@ describe('cli: Code Commands', () => {
         endDate: '2025-02-28',
       });
     });
+
+    it('calls getAuthorChurn when --authors is provided', async () => {
+      await program.parseAsync(
+        [
+          'code',
+          'churn',
+          '--start-date',
+          '2025-02-01',
+          '--end-date',
+          '2025-02-28',
+          '--authors',
+          'Alice,Bob',
+          '--output',
+          'json',
+        ],
+        { from: 'user' }
+      );
+
+      expect(getAuthorChurnSpy).toHaveBeenCalledWith({
+        startDate: '2025-02-01',
+        endDate: '2025-02-28',
+        authors: ['Alice', 'Bob'],
+      });
+      expect(getCodeChurnSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('code coupling', () => {
@@ -333,6 +365,9 @@ describe('cli: Code Commands', () => {
 
       expect(getFileCouplingSpy).toHaveBeenCalledWith({
         ignorePatterns: undefined,
+        startDate: '2025-03-01',
+        endDate: '2025-03-31',
+        minCoupling: 0.7,
       });
     });
   });
@@ -428,6 +463,7 @@ describe('cli: Code Commands', () => {
       expect(pairingIndexSpy).toHaveBeenCalledWith({
         startDate: '2025-07-01',
         endDate: '2025-07-31',
+        minShared: 5,
       });
     });
   });

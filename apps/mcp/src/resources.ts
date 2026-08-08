@@ -63,6 +63,48 @@ export function listResourceTemplates(): McpResourceTemplateDefinition[] {
       description: 'List of architecture snapshots stored for a project.',
       mimeType: 'application/json',
     },
+    {
+      uriTemplate: 'smm://project/{project}/evaluation/prs',
+      name: 'Project PR evaluation',
+      description: 'Pull request health evaluation for a project.',
+      mimeType: 'application/json',
+    },
+    {
+      uriTemplate: 'smm://project/{project}/evaluation/pipelines',
+      name: 'Project pipeline evaluation',
+      description: 'Pipeline health evaluation for a project.',
+      mimeType: 'application/json',
+    },
+    {
+      uriTemplate: 'smm://project/{project}/evaluation/code',
+      name: 'Project code evaluation',
+      description: 'Code health evaluation for a project.',
+      mimeType: 'application/json',
+    },
+    {
+      uriTemplate: 'smm://project/{project}/evaluation/quality',
+      name: 'Project quality evaluation',
+      description: 'SonarQube quality evaluation for a project.',
+      mimeType: 'application/json',
+    },
+    {
+      uriTemplate: 'smm://project/{project}/evaluation/architecture',
+      name: 'Project architecture evaluation',
+      description: 'Architecture health evaluation for a project.',
+      mimeType: 'application/json',
+    },
+    {
+      uriTemplate: 'smm://project/{project}/big-o',
+      name: 'Project Big-O files',
+      description: 'Big-O complexity classification for source files in a project.',
+      mimeType: 'application/json',
+    },
+    {
+      uriTemplate: 'smm://project/{project}/health-check',
+      name: 'Project health check',
+      description: 'Dataset health report for a project.',
+      mimeType: 'application/json',
+    },
   ];
 }
 
@@ -115,6 +157,48 @@ export function listResources(): McpResourceDefinition[] {
         description: 'Architecture snapshots stored for the project.',
         mimeType: 'application/json',
       },
+      {
+        uri: `smm://project/${encodeProject(project)}/evaluation/prs`,
+        name: `${project} PR evaluation`,
+        description: 'Pull request health evaluation for the project.',
+        mimeType: 'application/json',
+      },
+      {
+        uri: `smm://project/${encodeProject(project)}/evaluation/pipelines`,
+        name: `${project} pipeline evaluation`,
+        description: 'Pipeline health evaluation for the project.',
+        mimeType: 'application/json',
+      },
+      {
+        uri: `smm://project/${encodeProject(project)}/evaluation/code`,
+        name: `${project} code evaluation`,
+        description: 'Code health evaluation for the project.',
+        mimeType: 'application/json',
+      },
+      {
+        uri: `smm://project/${encodeProject(project)}/evaluation/quality`,
+        name: `${project} quality evaluation`,
+        description: 'SonarQube quality evaluation for the project.',
+        mimeType: 'application/json',
+      },
+      {
+        uri: `smm://project/${encodeProject(project)}/evaluation/architecture`,
+        name: `${project} architecture evaluation`,
+        description: 'Architecture health evaluation for the project.',
+        mimeType: 'application/json',
+      },
+      {
+        uri: `smm://project/${encodeProject(project)}/big-o`,
+        name: `${project} Big-O files`,
+        description: 'Big-O complexity classification for source files.',
+        mimeType: 'application/json',
+      },
+      {
+        uri: `smm://project/${encodeProject(project)}/health-check`,
+        name: `${project} health check`,
+        description: 'Dataset health report for the project.',
+        mimeType: 'application/json',
+      },
     ]),
   ];
 }
@@ -147,7 +231,7 @@ export async function readResource(uri: string): Promise<ResourceReadResult> {
   }
 
   const match = uri.match(
-    /^smm:\/\/project\/([^/]+)\/(configuration|report|engineering-health|dora|architecture\/snapshots)$/
+    /^smm:\/\/project\/([^/]+)\/(configuration|report|engineering-health|dora|architecture\/snapshots|evaluation\/(prs|pipelines|code|quality|architecture)|big-o|health-check)$/
   );
   if (!match) {
     resourceLogger.warn(`Unknown MCP resource requested: ${uri}`);
@@ -193,6 +277,51 @@ export async function readResource(uri: string): Promise<ResourceReadResult> {
       uri,
       (await reader.getDoraMetrics({ project: projectName })) as JsonValue
     );
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
+  }
+
+  if (resourceType === 'evaluation/prs') {
+    const result = jsonResource(uri, (await reader.evaluatePRs()) as JsonValue);
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
+  }
+
+  if (resourceType === 'evaluation/pipelines') {
+    const result = jsonResource(uri, (await reader.evaluatePipelines()) as JsonValue);
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
+  }
+
+  if (resourceType === 'evaluation/code') {
+    const result = jsonResource(uri, (await reader.evaluateCode()) as JsonValue);
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
+  }
+
+  if (resourceType === 'evaluation/quality') {
+    const result = jsonResource(uri, (await reader.evaluateQuality()) as JsonValue);
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
+  }
+
+  if (resourceType === 'evaluation/architecture') {
+    const result = jsonResource(
+      uri,
+      (await reader.evaluateArchitecture({ project: projectName })) as JsonValue
+    );
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
+  }
+
+  if (resourceType === 'big-o') {
+    const result = jsonResource(uri, (await reader.listBigOFiles()) as JsonValue);
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
+  }
+
+  if (resourceType === 'health-check') {
+    const result = jsonResource(uri, (await reader.healthCheck()) as JsonValue);
     resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
     return result;
   }

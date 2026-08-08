@@ -149,6 +149,7 @@ The server advertises the following MCP capabilities during `initialize`:
 | Tools | `tools/list`, `tools/call` |
 | Resources | `resources/list`, `resources/templates/list`, `resources/read` |
 | Prompts | `prompts/list`, `prompts/get` |
+| Logging | `logging/setLevel` |
 
 ## Tools
 
@@ -168,6 +169,19 @@ The MCP server exposes these tools:
 | `smm_list_architecture_snapshots` | Lists architecture snapshots previously generated for a project. |
 | `smm_get_architecture_view` | Reads a C4 architecture view (context, container, component, or code) for a project. |
 | `smm_get_full_report` | Reads a combined project report (PRs, deployment, code, issues, quality). |
+| `smm_evaluate_prs` | Evaluates pull request health signals (review bottlenecks, throughput, collaboration) and produces severity-graded recommendations. |
+| `smm_evaluate_pipelines` | Evaluates pipeline health signals (duration, stability, throughput) and produces severity-graded recommendations. |
+| `smm_evaluate_code` | Evaluates code health signals (churn, coupling, ownership, complexity, collaboration) and produces severity-graded recommendations. |
+| `smm_evaluate_quality` | Evaluates SonarQube quality signals (ratings, complexity, coverage, duplication) and produces severity-graded recommendations. |
+| `smm_evaluate_architecture` | Evaluates architecture health signals (container count, dependency concentration, orphan nodes, confidence) and produces severity-graded recommendations. |
+| `smm_list_big_o_files` | Lists source files with their Big-O complexity classification (O(1), O(log n), O(n), O(n log n), O(n^2), O(n^3+)). Supports search and file pattern filters. |
+| `smm_analyze_big_o_file` | Analyzes a specific source file for Big-O complexity, returning line-by-line classifications with reasons. |
+| `smm_health_check` | Generates a health report on dataset freshness, gaps, missing fields, and item counts across all data providers. |
+| `smm_get_version` | Returns the Software Metrics Machine version and server name. |
+| `smm_get_configuration` | Returns the redacted project configuration (tokens and secrets are masked). |
+| `smm_list_pr_filter_options` | Lists available pull request filter values (authors, labels, commenters). |
+| `smm_list_pipeline_filter_options` | Lists available pipeline filter values (workflows, statuses, conclusions, branches, events, jobs). |
+| `smm_list_code_authors` | Lists all code authors available in the CodeMaat data. |
 
 ### Shared metric filters
 
@@ -255,7 +269,7 @@ Discover available metric ids with `smm_list_engineering_health_metrics`.
 
 ### Architecture view filters
 
-`smm_get_architecture_view` accepts:
+`smm_get_architecture_view` and `smm_evaluate_architecture` accept:
 
 ```json
 {
@@ -270,6 +284,50 @@ Discover available metric ids with `smm_list_engineering_health_metrics`.
 `level` is one of `context`, `container`, `component`, or `code` and defaults to `container`. When `snapshotId` is
 omitted, the latest snapshot is used.
 
+### Evaluation filters
+
+`smm_evaluate_prs`, `smm_evaluate_pipelines`, and `smm_evaluate_code` accept the shared metric filters
+(`project`, `startDate`, `endDate`, `timezone`). `smm_evaluate_code` also accepts `authors` and file pattern filters
+matching `smm_get_code_metrics`. `smm_evaluate_quality` accepts only `project` since it evaluates the latest SonarQube
+snapshot. `smm_evaluate_architecture` accepts the architecture view filters above.
+
+### Big-O filters
+
+`smm_list_big_o_files` accepts:
+
+```json
+{
+  "project": "owner/repo",
+  "search": "sort",
+  "ignorePatterns": "**/*.spec.ts",
+  "includePatterns": "src/**",
+  "limit": 50
+}
+```
+
+`smm_analyze_big_o_file` requires a `filePath` and optionally accepts `project`:
+
+```json
+{
+  "project": "owner/repo",
+  "filePath": "src/algorithms/sort.ts"
+}
+```
+
+### Health check filters
+
+`smm_health_check` accepts:
+
+```json
+{
+  "project": "owner/repo",
+  "providerFilter": "github",
+  "maxGapDays": 14
+}
+```
+
+`providerFilter` defaults to `all` and `maxGapDays` defaults to `30`.
+
 ## Resources
 
 The MCP server exposes these static resources:
@@ -283,6 +341,13 @@ The MCP server exposes these static resources:
 | `smm://project/{name}/engineering-health` | Engineering health evaluation for the project. |
 | `smm://project/{name}/dora` | DORA and pipeline metrics for the project. |
 | `smm://project/{name}/architecture/snapshots` | Architecture snapshots stored for the project. |
+| `smm://project/{name}/evaluation/prs` | Pull request health evaluation for the project. |
+| `smm://project/{name}/evaluation/pipelines` | Pipeline health evaluation for the project. |
+| `smm://project/{name}/evaluation/code` | Code health evaluation for the project. |
+| `smm://project/{name}/evaluation/quality` | SonarQube quality evaluation for the project. |
+| `smm://project/{name}/evaluation/architecture` | Architecture health evaluation for the project. |
+| `smm://project/{name}/big-o` | Big-O complexity classification for source files. |
+| `smm://project/{name}/health-check` | Dataset health report for the project. |
 
 The server also advertises these resource templates through `resources/templates/list`:
 
@@ -291,6 +356,13 @@ The server also advertises these resource templates through `resources/templates
 | `smm://project/{project}/engineering-health` | Engineering health evaluation for a project. |
 | `smm://project/{project}/dora` | DORA metrics for a project. |
 | `smm://project/{project}/architecture/snapshots` | Architecture snapshots for a project. |
+| `smm://project/{project}/evaluation/prs` | Pull request health evaluation for a project. |
+| `smm://project/{project}/evaluation/pipelines` | Pipeline health evaluation for a project. |
+| `smm://project/{project}/evaluation/code` | Code health evaluation for a project. |
+| `smm://project/{project}/evaluation/quality` | SonarQube quality evaluation for a project. |
+| `smm://project/{project}/evaluation/architecture` | Architecture health evaluation for a project. |
+| `smm://project/{project}/big-o` | Big-O complexity classification for a project. |
+| `smm://project/{project}/health-check` | Dataset health report for a project. |
 
 Configuration resources redact token-like fields before returning data to the MCP client.
 
@@ -397,6 +469,24 @@ DEBUG level. Example output with `DEBUG=true`:
 Metric readers and data access services use the SMM Logger and respect the project's configured `log_level`,
 `<REPO>_LOGGING_LEVEL` env var, or fall back to `CRITICAL`. These logs can also write to the log file if `store_logs` is
 enabled in the project's `smm_config.json`.
+
+### Client-controlled logging
+
+MCP clients can dynamically change the server's log level at runtime by sending a `logging/setLevel` notification.
+Accepted levels are `debug`, `info`, and `critical`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "logging/setLevel",
+  "params": {
+    "level": "debug"
+  }
+}
+```
+
+This is equivalent to starting the server with `--debug` (for `debug`) or running in quiet mode (for `critical`).
+The `info` level enables transport and request lifecycle logs without the detailed operation traces.
 
 ```{tip}
 Transport and operation logs are independent of `smm_config.json` because the server may not have a project loaded at the

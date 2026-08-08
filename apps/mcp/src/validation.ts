@@ -56,6 +56,25 @@ export type ArchitectureViewArguments = {
   ignorePatterns?: string;
 };
 
+export type BigOFileArguments = {
+  project?: string;
+  search?: string;
+  ignorePatterns?: string;
+  includePatterns?: string;
+  limit?: number;
+};
+
+export type BigOAnalyzeArguments = {
+  project?: string;
+  filePath: string;
+};
+
+export type HealthCheckArguments = {
+  project?: string;
+  providerFilter?: string;
+  maxGapDays?: number;
+};
+
 export function readString(value: unknown, fieldName: string): string | undefined {
   if (value === undefined || value === null) {
     return undefined;
@@ -217,6 +236,51 @@ export function parseArchitectureViewArguments(argumentsValue: unknown): Archite
     snapshotId: readString(args.snapshotId, 'snapshotId'),
     includePatterns: readString(args.includePatterns, 'includePatterns'),
     ignorePatterns: readString(args.ignorePatterns, 'ignorePatterns'),
+  };
+}
+
+export function parseBigOFileArguments(argumentsValue: unknown): BigOFileArguments {
+  const args = readObject(argumentsValue);
+  if (!args) {
+    return {};
+  }
+
+  return {
+    project: readString(args.project, 'project'),
+    search: readString(args.search, 'search'),
+    ignorePatterns: readString(args.ignorePatterns, 'ignorePatterns'),
+    includePatterns: readString(args.includePatterns, 'includePatterns'),
+    limit: typeof args.limit === 'number' ? args.limit : undefined,
+  };
+}
+
+export function parseBigOAnalyzeArguments(argumentsValue: unknown): BigOAnalyzeArguments {
+  const args = readObject(argumentsValue);
+  if (!args) {
+    throw new Error('filePath is required');
+  }
+
+  const filePath = readString(args.filePath, 'filePath');
+  if (!filePath) {
+    throw new Error('filePath is required');
+  }
+
+  return {
+    project: readString(args.project, 'project'),
+    filePath,
+  };
+}
+
+export function parseHealthCheckArguments(argumentsValue: unknown): HealthCheckArguments {
+  const args = readObject(argumentsValue);
+  if (!args) {
+    return {};
+  }
+
+  return {
+    project: readString(args.project, 'project'),
+    providerFilter: readString(args.providerFilter, 'providerFilter'),
+    maxGapDays: typeof args.maxGapDays === 'number' ? args.maxGapDays : undefined,
   };
 }
 
@@ -439,6 +503,103 @@ export function buildArchitectureViewInputSchema(): JsonObject {
       ignorePatterns: {
         type: 'string',
         description: 'Optional comma or newline separated file patterns to ignore.',
+      },
+    },
+  };
+}
+
+export function buildBigOListInputSchema(): JsonObject {
+  return {
+    type: 'object',
+    description: 'Big-O file listing filters.',
+    additionalProperties: false,
+    properties: {
+      project: {
+        type: 'string',
+        description: 'Optional github_repository project name from smm_config.json.',
+      },
+      search: {
+        type: 'string',
+        description: 'Optional search string to filter file paths.',
+      },
+      ignorePatterns: {
+        type: 'string',
+        description: 'Optional comma or newline separated file patterns to ignore.',
+      },
+      includePatterns: {
+        type: 'string',
+        description: 'Optional comma or newline separated file patterns to include.',
+      },
+      limit: {
+        type: 'number',
+        description: 'Optional maximum number of files to return. Defaults to 200.',
+      },
+    },
+  };
+}
+
+export function buildBigOAnalyzeInputSchema(): JsonObject {
+  return {
+    type: 'object',
+    description: 'Big-O file analysis input.',
+    additionalProperties: false,
+    required: ['filePath'],
+    properties: {
+      project: {
+        type: 'string',
+        description: 'Optional github_repository project name from smm_config.json.',
+      },
+      filePath: {
+        type: 'string',
+        description: 'Required path to the file to analyze for Big-O complexity.',
+      },
+    },
+  };
+}
+
+export function buildHealthCheckInputSchema(): JsonObject {
+  return {
+    type: 'object',
+    description: 'Health check report filters.',
+    additionalProperties: false,
+    properties: {
+      project: {
+        type: 'string',
+        description: 'Optional github_repository project name from smm_config.json.',
+      },
+      providerFilter: {
+        type: 'string',
+        description: 'Optional provider filter (e.g. github, jira, sonarqube). Defaults to all.',
+      },
+      maxGapDays: {
+        type: 'number',
+        description: 'Optional maximum gap days threshold for warnings. Defaults to 30.',
+      },
+    },
+  };
+}
+
+export function buildEvaluationInputSchema(description: string): JsonObject {
+  return {
+    type: 'object',
+    description,
+    additionalProperties: false,
+    properties: {
+      project: {
+        type: 'string',
+        description: 'Optional github_repository project name from smm_config.json.',
+      },
+      startDate: {
+        type: 'string',
+        description: 'Optional ISO 8601 start date.',
+      },
+      endDate: {
+        type: 'string',
+        description: 'Optional ISO 8601 end date.',
+      },
+      timezone: {
+        type: 'string',
+        description: 'Optional IANA timezone used for date boundaries.',
       },
     },
   };

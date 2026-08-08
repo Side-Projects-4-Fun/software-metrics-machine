@@ -1,20 +1,28 @@
 import { ConfigurationRepository } from '@smmachine/core';
-import { Logger } from '@smmachine/utils';
+import { getApplicationVersion, Logger } from '@smmachine/utils';
 import { toolLogger } from './mcp-logger';
 import { createMcpMetricsReader } from './metrics-reader';
 import type { JsonObject, McpToolDefinition, McpToolResult } from './mcp-types';
+import { redactSecrets } from './redaction';
 import {
   buildArchitectureViewInputSchema,
+  buildBigOAnalyzeInputSchema,
+  buildBigOListInputSchema,
   buildCodeMetricsInputSchema,
   buildDoraMetricsInputSchema,
   buildEngineeringHealthInputSchema,
+  buildEvaluationInputSchema,
+  buildHealthCheckInputSchema,
   buildIssueMetricsInputSchema,
   buildMetricsInputSchema,
   listEngineeringHealthMetricCatalog,
   parseArchitectureViewArguments,
+  parseBigOAnalyzeArguments,
+  parseBigOFileArguments,
   parseCodeMetricsArguments,
   parseDoraMetricsArguments,
   parseEngineeringHealthArguments,
+  parseHealthCheckArguments,
   parseIssueMetricsArguments,
   parseMetricsToolArguments,
 } from './validation';
@@ -247,6 +255,203 @@ export const tools: RegisteredTool[] = [
           endDate: args.endDate,
         })
       );
+    },
+  },
+  {
+    name: 'smm_evaluate_prs',
+    description:
+      'Evaluate pull request health signals (review bottlenecks, throughput, collaboration) and produce severity-graded recommendations.',
+    inputSchema: buildEvaluationInputSchema('PR evaluation filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const { args, reader } = getReader(argumentsValue);
+      return asToolResult(
+        await reader.evaluatePRs({
+          startDate: args.startDate,
+          endDate: args.endDate,
+        })
+      );
+    },
+  },
+  {
+    name: 'smm_evaluate_pipelines',
+    description:
+      'Evaluate pipeline health signals (duration, stability, throughput) and produce severity-graded recommendations.',
+    inputSchema: buildEvaluationInputSchema('Pipeline evaluation filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const { args, reader } = getReader(argumentsValue);
+      return asToolResult(
+        await reader.evaluatePipelines({
+          startDate: args.startDate,
+          endDate: args.endDate,
+        })
+      );
+    },
+  },
+  {
+    name: 'smm_evaluate_code',
+    description:
+      'Evaluate code health signals (churn, coupling, ownership, complexity, collaboration) and produce severity-graded recommendations.',
+    inputSchema: buildCodeMetricsInputSchema(),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseCodeMetricsArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(
+        await reader.evaluateCode({
+          startDate: parsed.startDate,
+          endDate: parsed.endDate,
+          authors: parsed.authors,
+        })
+      );
+    },
+  },
+  {
+    name: 'smm_evaluate_quality',
+    description:
+      'Evaluate SonarQube quality signals (ratings, complexity, coverage, duplication) and produce severity-graded recommendations.',
+    inputSchema: {
+      type: 'object',
+      description:
+        'SonarQube quality evaluation. No date filters needed — evaluates the latest snapshot.',
+      additionalProperties: false,
+      properties: {
+        project: {
+          type: 'string',
+          description: 'Optional github_repository project name from smm_config.json.',
+        },
+      },
+    },
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const args = parseMetricsToolArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: args.project,
+      });
+      return asToolResult(await reader.evaluateQuality());
+    },
+  },
+  {
+    name: 'smm_evaluate_architecture',
+    description:
+      'Evaluate architecture health signals (container count, dependency concentration, orphan nodes, confidence) and produce severity-graded recommendations.',
+    inputSchema: buildArchitectureViewInputSchema(),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseArchitectureViewArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+      });
+      return asToolResult(await reader.evaluateArchitecture(parsed));
+    },
+  },
+  {
+    name: 'smm_list_big_o_files',
+    description:
+      'List source files with their Big-O complexity classification (O(1), O(log n), O(n), O(n log n), O(n^2), O(n^3+)). Supports search and file pattern filters.',
+    inputSchema: buildBigOListInputSchema(),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseBigOFileArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+      });
+      return asToolResult(
+        await reader.listBigOFiles({
+          search: parsed.search,
+          ignorePatterns: parsed.ignorePatterns,
+          includePatterns: parsed.includePatterns,
+          limit: parsed.limit,
+        })
+      );
+    },
+  },
+  {
+    name: 'smm_analyze_big_o_file',
+    description:
+      'Analyze a specific source file for Big-O complexity, returning line-by-line classifications with reasons.',
+    inputSchema: buildBigOAnalyzeInputSchema(),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseBigOAnalyzeArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+      });
+      return asToolResult(await reader.analyzeBigOFile(parsed.filePath));
+    },
+  },
+  {
+    name: 'smm_health_check',
+    description:
+      'Generate a health report on dataset freshness, gaps, missing fields, and item counts across all data providers (GitHub, Jira, SonarQube, CodeMaat).',
+    inputSchema: buildHealthCheckInputSchema(),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseHealthCheckArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+      });
+      return asToolResult(await reader.healthCheck(parsed.providerFilter, parsed.maxGapDays));
+    },
+  },
+  {
+    name: 'smm_get_version',
+    description: 'Get the Software Metrics Machine version and server name.',
+    inputSchema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {},
+    },
+    async handler(): Promise<McpToolResult> {
+      return asToolResult({
+        version: getApplicationVersion(),
+        name: 'software-metrics-machine',
+      });
+    },
+  },
+  {
+    name: 'smm_get_configuration',
+    description:
+      'Get the redacted project configuration (tokens and secrets are masked) for a configured SMM project.',
+    inputSchema: buildMetricsInputSchema('Configuration lookup filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const args = parseMetricsToolArguments(argumentsValue);
+      const repository = new ConfigurationRepository(
+        process.env,
+        args.project,
+        new Logger('SmmMcpServer', 'CRITICAL')
+      );
+      const project = repository.getProjectByName(args.project || '');
+      if (!project) {
+        throw new Error(`Unknown project: ${args.project || '<default>'}`);
+      }
+      return asToolResult(redactSecrets(project as unknown as JsonObject));
+    },
+  },
+  {
+    name: 'smm_list_pr_filter_options',
+    description:
+      'List available pull request filter values (authors, labels, commenters) for a configured SMM project.',
+    inputSchema: buildMetricsInputSchema('PR filter options lookup.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const { reader } = getReader(argumentsValue);
+      return asToolResult(await reader.listPRFilterOptions());
+    },
+  },
+  {
+    name: 'smm_list_pipeline_filter_options',
+    description:
+      'List available pipeline filter values (workflows, statuses, conclusions, branches, events, jobs) for a configured SMM project.',
+    inputSchema: buildMetricsInputSchema('Pipeline filter options lookup.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const { reader } = getReader(argumentsValue);
+      return asToolResult(await reader.listPipelineFilterOptions());
+    },
+  },
+  {
+    name: 'smm_list_code_authors',
+    description:
+      'List all code authors available in the CodeMaat data for a configured SMM project.',
+    inputSchema: buildMetricsInputSchema('Code authors lookup.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const { reader } = getReader(argumentsValue);
+      return asToolResult(await reader.listCodeAuthors());
     },
   },
 ];
