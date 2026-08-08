@@ -52,83 +52,85 @@ export default async function Home() {
   const versionResponse = await versionAPI.getVersion();
   const applicationVersion = versionResponse.result.version;
 
-  return (
-    <AppProviders {...providerData}>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center space-y-8 mb-16">
-            <h1 className="text-5xl font-bold text-gray-900">
-              <Link href="/" className="inline-block">
-                Software Metrics Machine
-              </Link>
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Analyze your repository&apos;s health with comprehensive metrics for source code,
-              CI/CD pipelines, and pull requests.
-            </p>
-            <div className="flex gap-4 justify-center flex-wrap">
-              <Link
-                href="/dashboard"
-                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
-              >
-                View Dashboard
-              </Link>
-              <Link
-                href="/reports"
-                className="px-8 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-semibold"
-              >
-                View Reports
-              </Link>
-              <Link
-                href="/engineering-health"
-                className="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold"
-              >
-                Engineering Health
-              </Link>
-              <a
-                href={`${apiBaseUrl}/api/docs`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-8 py-3 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
-              >
-                API Docs
-              </a>
-            </div>
-          </div>
-
-          <div className="mb-16">
-            <div className="mb-4 text-center text-sm font-medium text-gray-600">
-              Version {applicationVersion}
-            </div>
-            <SavedFiltersOverview />
-          </div>
-
-          {/* Resources Section */}
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-900">Learn More</h2>
-              <p className="text-gray-600 mt-2">Explore additional resources and documentation</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {resources.map((resource) => (
+    return (
+      <AppProviders {...providerData}>
+        <div className="relative min-h-screen py-12 px-4">
+          {/* Fixed background layer to prevent scroll jank */}
+          <div className="fixed inset-0 -z-10 bg-gradient-to-br from-blue-50 to-indigo-100" />
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center space-y-8 mb-16">
+              <h1 className="text-5xl font-bold text-gray-900">
+                <Link href="/" className="inline-block">
+                  Software Metrics Machine
+                </Link>
+              </h1>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Analyze your repository&apos;s health with comprehensive metrics for source code,
+                CI/CD pipelines, and pull requests.
+              </p>
+              <div className="flex gap-4 justify-center flex-wrap">
+                <Link
+                  href="/dashboard"
+                  className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                >
+                  View Dashboard
+                </Link>
+                <Link
+                  href="/reports"
+                  className="px-8 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-semibold"
+                >
+                  View Reports
+                </Link>
+                <Link
+                  href="/engineering-health"
+                  className="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold"
+                >
+                  Engineering Health
+                </Link>
                 <a
-                  key={resource.title}
-                  href={resource.href}
+                  href={`${apiBaseUrl}/api/docs`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
+                  className="px-8 py-3 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
                 >
-                  <div className="text-4xl mb-3">{resource.icon}</div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {resource.title}
-                  </h3>
-                  <p className="text-gray-600">{resource.description}</p>
+                  API Docs
                 </a>
-              ))}
+              </div>
+            </div>
+
+            <div className="mb-16">
+              <div className="mb-4 text-center text-sm font-medium text-gray-600">
+                Version {applicationVersion}
+              </div>
+              <SavedFiltersOverview />
+            </div>
+
+            {/* Resources Section */}
+            <div className="space-y-8">
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-gray-900">Learn More</h2>
+                <p className="text-gray-600 mt-2">Explore additional resources and documentation</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {resources.map((resource) => (
+                  <a
+                    key={resource.title}
+                    href={resource.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
+                  >
+                    <div className="text-4xl mb-3">{resource.icon}</div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      {resource.title}
+                    </h3>
+                    <p className="text-gray-600">{resource.description}</p>
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </AppProviders>
-  );
+      </AppProviders>
+    );
 }
