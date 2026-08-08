@@ -18,14 +18,14 @@ export interface PRBottleneckSignal {
 
 export interface PROpenTimeItem {
   period: string;
-  avg_days: number;
+  value: number;
   method: MetricMethod;
   outliers?: PRAverageOutlier[];
 }
 
 export interface PRDashboardData {
   summary: PRSummary | null;
-  reviewTime: Array<{ author: string; avg_days?: number; avg_hours?: number }>;
+  reviewTime: Array<{ author: string; value?: number; method?: MetricMethod }>;
   openTime: PROpenTimeItem[];
   byAuthor: Array<{ author: string; count: number }>;
   commentsByAuthor: CommentAuthor[];
@@ -41,8 +41,9 @@ export interface PREvaluation {
     mergedPRs: number;
     openPRs: number;
     avgCommentsPerPR: number;
-    avgReviewHours: number;
-    avgOpenDays: number;
+    reviewHours: number;
+    openDays: number;
+    method: MetricMethod;
     uniqueAuthors: number;
     topReviewer?: string;
     bottleneckAuthor?: string;

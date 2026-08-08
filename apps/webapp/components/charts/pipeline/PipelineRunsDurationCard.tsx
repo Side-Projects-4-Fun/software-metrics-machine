@@ -113,7 +113,7 @@ export default function PipelineRunsDurationCard({
   const durationTickMap = useMemo(() => {
     const map = new Map<number, string>();
     for (const item of sourceData) {
-      map.set(item.avg_duration, item.avg_duration_formatted);
+      map.set(item.value, item.value_formatted);
       map.set(item.min_duration, item.min_duration_formatted);
       map.set(item.max_duration, item.max_duration_formatted);
     }
@@ -127,8 +127,8 @@ export default function PipelineRunsDurationCard({
       min: item.min_duration,
       max: item.max_duration,
       range: Math.max(0, item.max_duration - item.min_duration),
-      avg: item.avg_duration,
-      avg_duration_formatted: item.avg_duration_formatted,
+      avg: item.value,
+      avg_duration_formatted: item.value_formatted,
       min_duration_formatted: item.min_duration_formatted,
       max_duration_formatted: item.max_duration_formatted,
     })),

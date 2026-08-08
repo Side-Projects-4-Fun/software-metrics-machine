@@ -99,13 +99,13 @@ describe('PullRequestsController', () => {
     const { controller, mockPrsService } = createController({
       getOpenTimeBy: vi
         .fn()
-        .mockResolvedValue([{ period: '2026-01-05', avg_days: 1.5, method: 'average' }]),
+        .mockResolvedValue([{ period: '2026-01-05', value: 1.5, method: 'average' }]),
     });
 
     const response = await controller.averageOpenBy(undefined, undefined, 'day');
 
     expect(response).toEqual([
-      { period: '2026-01-05', avg_days: 1.5, avg_days_formatted: '1d 12h', method: 'average' },
+      { period: '2026-01-05', value: 1.5, value_formatted: '1d 12h', method: 'average' },
     ]);
     expect(mockPrsService.getOpenTimeBy).toHaveBeenCalledWith(
       expect.objectContaining({ startDate: undefined, endDate: undefined }),
@@ -152,7 +152,7 @@ describe('PullRequestsController', () => {
       const { controller, mockPrsService } = createController({
         getReviewTime: vi
           .fn()
-          .mockResolvedValue([{ author: 'bob', avg_days: 1.2, method: 'average' }]),
+          .mockResolvedValue([{ author: 'bob', value: 1.2, method: 'average' }]),
       });
 
       const response = await controller.averageReviewTime(undefined, undefined, undefined, '4');
@@ -160,10 +160,8 @@ describe('PullRequestsController', () => {
       expect(response.result).toEqual([
         {
           author: 'bob',
-          avg_days: 1.2,
-          avg_days_formatted: '1d 4h',
-          avg_hours: 28.799999999999997,
-          avg_hours_formatted: '1d 4h',
+          value: 1.2,
+          value_formatted: '1d 4h',
           method: 'average',
         },
       ]);
@@ -194,7 +192,7 @@ describe('PullRequestsController', () => {
   describe('averageComments', () => {
     it('returns avg_comments from service metrics', async () => {
       const { controller, mockPrsService } = createController({
-        getMetrics: vi.fn().mockResolvedValue({ averageComments: 3.5 }),
+        getMetrics: vi.fn().mockResolvedValue({ comments: 3.5 }),
       });
 
       const response = await controller.averageComments();
@@ -242,13 +240,21 @@ describe('PullRequestsController', () => {
       const { controller, mockPrsService } = createController({
         getFirstCommentTime: vi
           .fn()
-          .mockResolvedValue([{ author: 'dave', avg_hours: 2.5, prs_with_comments: 4 }]),
+          .mockResolvedValue([
+            { author: 'dave', value: 2.5, method: 'average', prs_with_comments: 4 },
+          ]),
       });
 
       const response = await controller.firstCommentTime(undefined, undefined, undefined, '6');
 
       expect(response.result).toEqual([
-        { author: 'dave', avg_hours: 2.5, avg_hours_formatted: '2h 30m', prs_with_comments: 4 },
+        {
+          author: 'dave',
+          value: 2.5,
+          value_formatted: '2h 30m',
+          method: 'average',
+          prs_with_comments: 4,
+        },
       ]);
       expect(mockPrsService.getFirstCommentTime).toHaveBeenCalledWith(
         expect.anything(),

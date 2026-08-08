@@ -120,18 +120,18 @@ export interface PRByAuthorResponse {
 export interface PRAverageReviewTimeResponse {
   result: Array<{
     author: string;
-    avg_days: number;
-    avg_days_formatted: string;
-    avg_hours: number;
-    avg_hours_formatted: string;
+    value: number;
+    value_formatted: string;
+    method: string;
     outliers?: PRAverageOutlier[];
   }>;
 }
 
 export type PRAverageOpenByResponse = Array<{
   period: string;
-  avg_days: number;
-  avg_days_formatted: string;
+  value: number;
+  value_formatted: string;
+  method: string;
   outliers?: PRAverageOutlier[];
 }>;
 
@@ -147,8 +147,9 @@ export interface PRCommentsByAuthorResponse {
 export interface PRFirstCommentTimeResponse {
   result: Array<{
     author: string;
-    avg_hours: number;
-    avg_hours_formatted: string;
+    value: number;
+    value_formatted: string;
+    method: string;
     prs_with_comments: number;
     outliers?: PRAverageOutlier[];
   }>;
@@ -199,8 +200,9 @@ export interface PipelineJobsSummaryResponse {
     workflow_name?: string;
     job_name: string;
     total_runs: number;
-    avg_duration_minutes: number;
-    avg_duration_minutes_formatted: string;
+    value: number;
+    value_formatted: string;
+    method: string;
     success_count: number;
     failure_count: number;
     success_rate: number;
@@ -216,13 +218,15 @@ export interface PipelineRunsDurationResponse extends Array<
       aggregation: string;
       duration: number;
       duration_formatted: string;
+      method: string;
       total_runs: number;
       outliers?: PipelineAverageOutlier[];
     }
   | {
       workflow: string;
-      avg_duration: number;
-      avg_duration_formatted: string;
+      value: number;
+      value_formatted: string;
+      method: string;
       min_duration: number;
       min_duration_formatted: string;
       max_duration: number;
@@ -251,8 +255,9 @@ export interface PipelineJobsRerunsResponse {
 export interface PipelineStepsAverageTimeResponse {
   result: Array<{
     name: string;
-    averageDurationMinutes: number;
-    averageDurationMinutes_formatted: string;
+    value: number;
+    value_formatted: string;
+    method: string;
     count: number;
     outliers?: PipelineAverageOutlier[];
   }>;
@@ -265,8 +270,9 @@ export interface PipelineStepsAverageTimeByDayResponse {
     day: string;
     steps: Array<{
       name: string;
-      averageDurationMinutes: number;
-      averageDurationMinutes_formatted: string;
+      value: number;
+      value_formatted: string;
+      method: string;
       outliers?: PipelineAverageOutlier[];
     }>;
   }>;
@@ -276,8 +282,9 @@ export interface PipelineJobsAverageTimeResponse {
   result: Array<{
     job_name: string;
     workflow_name?: string;
-    avg_time: number;
-    avg_time_formatted: string;
+    value: number;
+    value_formatted: string;
+    method: string;
     count: number;
     outliers?: PipelineAverageOutlier[];
   }>;
@@ -286,8 +293,9 @@ export interface PipelineJobsAverageTimeResponse {
 export interface PipelineJobsAverageTimeByDayResponse {
   result: Array<{
     day: string;
-    avg_time: number;
-    avg_time_formatted: string;
+    value: number;
+    value_formatted: string;
+    method: string;
     count: number;
     outliers?: PipelineAverageOutlier[];
   }>;
@@ -310,8 +318,9 @@ export interface PipelineDashboardResponse {
     skipped_runs: number;
     timed_out_runs: number;
     success_rate: number;
-    average_duration_minutes: number;
-    average_duration_minutes_formatted: string;
+    value: number;
+    value_formatted: string;
+    method: string;
   };
   jobs_by_status: PipelineJobsByStatusResponse;
   runs_duration: PipelineRunsDurationResponse;
@@ -339,8 +348,9 @@ export interface PipelineEvaluationResponse {
   }>;
   summary: {
     totalRuns: number;
-    averageDurationMinutes: number;
-    averageDurationMinutes_formatted: string;
+    durationMinutes: number;
+    durationMinutes_formatted: string;
+    method: string;
     successRate: number;
     failureRate: number;
     totalReruns: number;
@@ -365,10 +375,11 @@ export interface PREvaluationResponse {
     mergedPRs: number;
     openPRs: number;
     avgCommentsPerPR: number;
-    avgReviewHours: number;
-    avgReviewHours_formatted: string;
-    avgOpenDays: number;
-    avgOpenDays_formatted: string;
+    reviewHours: number;
+    reviewHours_formatted: string;
+    openDays: number;
+    openDays_formatted: string;
+    method: string;
     uniqueAuthors: number;
     topReviewer?: string;
     bottleneckAuthor?: string;
@@ -498,13 +509,13 @@ export interface MetricsIssueResponse {
 }
 
 export interface MetricsPRResponse {
-  averageOpenDays: number;
-  averageOpenDays_formatted: string;
+  openDays: number;
+  openDays_formatted: string;
   totalPRs: number;
   mergedPRs: number;
   closedPRs: number;
   openPRs: number;
-  averageComments: number;
+  comments: number;
   most_commented_prs: Array<{
     pull_request_id: number;
     pull_request_title: string;
@@ -513,12 +524,13 @@ export interface MetricsPRResponse {
   }>;
   leadTime: number;
   leadTime_formatted: string;
+  method: string;
   commentSummary: Array<{ author: string; count: number }>;
   labelSummary: Array<{
     label: string;
     count: number;
-    averageOpenDays: number;
-    averageOpenDays_formatted: string;
+    openDays: number;
+    openDays_formatted: string;
   }>;
 }
 

@@ -29,6 +29,42 @@ describe('MetricsController - Code Metrics', () => {
       });
   });
 
+  it('returns the CodeChurnResult shape (added/deleted/commits rows) for codeChurn', async () => {
+    // Guards the contract: getCodeChurn is called WITHOUT typeChurn, so the
+    // response must carry added/deleted/commits rows, not {date,type,value}.
+    services.codeMetricsRepository.getCodeChurn.mockResolvedValueOnce({
+      data: [
+        { date: '2024-01-01', added: 1520, deleted: 890, commits: 3 },
+        { date: '2024-01-02', added: 40, deleted: 10, commits: 1 },
+      ],
+    });
+
+    await request(app.getHttpServer())
+      .get('/api/metrics/code')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.codeChurn.data).toEqual([
+          { date: '2024-01-01', added: 1520, deleted: 890, commits: 3 },
+          { date: '2024-01-02', added: 40, deleted: 10, commits: 1 },
+        ]);
+      });
+
+    expect(services.codeMetricsRepository.getCodeChurn).toHaveBeenCalledWith({
+      startDate: undefined,
+      endDate: undefined,
+    });
+  });
+
+  it('passes the default helper codeChurn mock through unchanged', async () => {
+    // Uses the default helper mock (no override) so this test fails if the
+    // metrics-test-app fixture itself drifts to a non-CodeChurnResult shape.
+    const response = await request(app.getHttpServer()).get('/api/metrics/code').expect(200);
+
+    expect(response.body.codeChurn).toEqual({
+      data: [{ date: '2024-01-01', added: 1520, deleted: 890, commits: 3 }],
+    });
+  });
+
   it('should handle single author parameter', async () => {
     await request(app.getHttpServer())
       .get('/api/metrics/code?selectedAuthors=Alice&selectedAuthors=Alice')

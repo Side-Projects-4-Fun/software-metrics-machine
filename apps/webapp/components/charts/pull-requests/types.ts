@@ -13,10 +13,9 @@ export interface ByAuthorData {
 
 export interface AvgReviewTimeData {
   author: string;
-  avg_days?: number;
-  avg_days_formatted?: string;
-  avg_hours?: number;
-  avg_hours_formatted?: string;
+  value: number;
+  value_formatted: string;
+  method: string;
   outliers?: MetricOutlier[];
 }
 
@@ -27,8 +26,9 @@ export interface CommentsByAuthorData {
 
 export interface FirstCommentTimeData {
   author: string;
-  avg_hours: number;
-  avg_hours_formatted: string;
+  value: number;
+  value_formatted: string;
+  method: string;
   prs_with_comments: number;
   outliers?: MetricOutlier[];
 }
@@ -41,8 +41,9 @@ export interface OpenThroughTimeData {
 
 export interface AvgOpenByData {
   period: string;
-  avg_days: number;
-  avg_days_formatted: string;
+  value: number;
+  value_formatted: string;
+  method: string;
   outliers?: MetricOutlier[];
 }
 

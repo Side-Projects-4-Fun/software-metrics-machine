@@ -22,8 +22,9 @@ describe('PipelineRunsDurationCard', () => {
               avg: [
                 {
                   workflow: '.github/workflows/ci.yml',
-                  avg_duration: 5,
-                  avg_duration_formatted: '5 min',
+                  value: 5,
+                  value_formatted: '5 min',
+                  method: 'average',
                   min_duration: 3,
                   min_duration_formatted: '3 min',
                   max_duration: 8,

@@ -32,26 +32,16 @@ export class PREvaluationService {
     }
 
     const sorted = [...items]
-      .filter((item) => {
-        const days = item.avg_days ?? (item.avg_hours ? item.avg_hours / 24 : 0);
-        return days > 0;
-      })
-      .sort((a, b) => {
-        const aDays = a.avg_days ?? (a.avg_hours ? a.avg_hours / 24 : 0);
-        const bDays = b.avg_days ?? (b.avg_hours ? b.avg_hours / 24 : 0);
-        return bDays - aDays;
-      });
+      .filter((item) => (item.value ?? 0) > 0)
+      .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
 
     if (sorted.length === 0) {
       return [this.insufficientData('review_time', 'review')];
     }
 
     const topAuthor = sorted[0];
-    const topDays = topAuthor.avg_days ?? (topAuthor.avg_hours ? topAuthor.avg_hours / 24 : 0);
-    const avgDays =
-      sorted.reduce((sum, item) => {
-        return sum + (item.avg_days ?? (item.avg_hours ? item.avg_hours / 24 : 0));
-      }, 0) / sorted.length;
+    const topDays = topAuthor.value ?? 0;
+    const avgDays = sorted.reduce((sum, item) => sum + (item.value ?? 0), 0) / sorted.length;
     const ratio = avgDays > 0 ? topDays / avgDays : 1;
 
     const severity = this.severityFromThresholds(topDays, 3, 1);
@@ -75,7 +65,7 @@ export class PREvaluationService {
 
     if (sorted.length > 1) {
       const second = sorted[1];
-      const secondDays = second.avg_days ?? (second.avg_hours ? second.avg_hours / 24 : 0);
+      const secondDays = second.value ?? 0;
       if (secondDays >= 1) {
         signals.push({
           id: 'review_time_second',
@@ -140,13 +130,12 @@ export class PREvaluationService {
     }
 
     const recentItems = items.slice(-4);
-    const recentAvg =
-      recentItems.reduce((sum, item) => sum + item.avg_days, 0) / recentItems.length;
+    const recentAvg = recentItems.reduce((sum, item) => sum + item.value, 0) / recentItems.length;
 
     const olderItems = items.slice(0, Math.max(0, items.length - 4));
     const olderAvg =
       olderItems.length > 0
-        ? olderItems.reduce((sum, item) => sum + item.avg_days, 0) / olderItems.length
+        ? olderItems.reduce((sum, item) => sum + item.value, 0) / olderItems.length
         : recentAvg;
 
     const trendRatio = olderAvg > 0 ? recentAvg / olderAvg : 1;
@@ -225,27 +214,27 @@ export class PREvaluationService {
       return this.insufficientData('first_comment', 'review');
     }
 
-    const sorted = [...items].sort((a, b) => b.avg_hours - a.avg_hours);
+    const sorted = [...items].sort((a, b) => b.value - a.value);
     const slowest = sorted[0];
-    const avgHours = sorted.reduce((sum, item) => sum + item.avg_hours, 0) / sorted.length;
+    const avgHours = sorted.reduce((sum, item) => sum + item.value, 0) / sorted.length;
 
-    const severity = this.severityFromThresholds(slowest.avg_hours, 24, 8);
+    const severity = this.severityFromThresholds(slowest.value, 24, 8);
 
     return {
       id: 'first_comment',
       title:
-        slowest.avg_hours >= 12
+        slowest.value >= 12
           ? `Slow first response for PRs by "${slowest.author}"`
           : 'First response time is healthy',
       description:
-        slowest.avg_hours >= 12
-          ? `PRs by "${slowest.author}" wait ${slowest.avg_hours.toFixed(1)} hours for the first review comment — ${(slowest.avg_hours / Math.max(avgHours, 0.1)).toFixed(1)}x the team average of ${avgHours.toFixed(1)}h.`
-          : `The slowest first response is ${slowest.avg_hours.toFixed(1)}h (team avg ${avgHours.toFixed(1)}h) — engagement is prompt.`,
+        slowest.value >= 12
+          ? `PRs by "${slowest.author}" wait ${slowest.value.toFixed(1)} hours for the first review comment — ${(slowest.value / Math.max(avgHours, 0.1)).toFixed(1)}x the team average of ${avgHours.toFixed(1)}h.`
+          : `The slowest first response is ${slowest.value.toFixed(1)}h (team avg ${avgHours.toFixed(1)}h) — engagement is prompt.`,
       severity,
       category: 'review',
       metrics: [
         { label: 'Slowest author', value: slowest.author },
-        { label: 'Avg wait', value: `${slowest.avg_hours.toFixed(1)}h` },
+        { label: 'Avg wait', value: `${slowest.value.toFixed(1)}h` },
         { label: 'Team avg', value: `${avgHours.toFixed(1)}h` },
         { label: 'PRs with comments', value: String(slowest.prs_with_comments) },
       ],
@@ -291,16 +280,16 @@ export class PREvaluationService {
     const authorItems = data.byAuthor || [];
     const commenterItems = data.commentsByAuthor || [];
 
+    const method = reviewItems[0]?.method ?? openItems[0]?.method ?? 'average';
+
     const avgReviewHours =
       reviewItems.length > 0
-        ? reviewItems.reduce((sum, item) => {
-            return sum + (item.avg_hours ?? (item.avg_days ? item.avg_days * 24 : 0));
-          }, 0) / reviewItems.length
+        ? reviewItems.reduce((sum, item) => sum + (item.value ?? 0) * 24, 0) / reviewItems.length
         : 0;
 
     const avgOpenDays =
       openItems.length > 0
-        ? openItems.reduce((sum, item) => sum + item.avg_days, 0) / openItems.length
+        ? openItems.reduce((sum, item) => sum + item.value, 0) / openItems.length
         : 0;
 
     const sortedAuthors = [...authorItems].sort((a, b) => b.count - a.count);
@@ -311,8 +300,9 @@ export class PREvaluationService {
       mergedPRs: summary?.merged_prs ?? 0,
       openPRs: summary?.open_prs ?? 0,
       avgCommentsPerPR: summary?.avg_comments_per_pr ?? 0,
-      avgReviewHours: Math.round(avgReviewHours * 10) / 10,
-      avgOpenDays: Math.round(avgOpenDays * 10) / 10,
+      reviewHours: Math.round(avgReviewHours * 10) / 10,
+      openDays: Math.round(avgOpenDays * 10) / 10,
+      method,
       uniqueAuthors: summary?.unique_authors ?? 0,
       topReviewer: sortedReviewers[0]?.author,
       bottleneckAuthor: sortedAuthors[0]?.author,

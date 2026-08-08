@@ -128,8 +128,9 @@ describe('PipelinesController', () => {
     expect(result).toEqual([
       {
         workflow: 'ci.yml',
-        avg_duration: 4,
-        avg_duration_formatted: '4 min',
+        value: 4,
+        value_formatted: '4 min',
+        method: 'average',
         min_duration: 4,
         min_duration_formatted: '4 min',
         max_duration: 4,
@@ -207,8 +208,9 @@ describe('PipelinesController', () => {
       expect(result).toEqual([
         {
           workflow: 'unknown',
-          avg_duration: 2,
-          avg_duration_formatted: '2 min',
+          value: 2,
+          value_formatted: '2 min',
+          method: 'average',
           min_duration: 2,
           min_duration_formatted: '2 min',
           max_duration: 2,
@@ -256,6 +258,7 @@ describe('PipelinesController', () => {
             aggregation,
             duration: expectedDuration,
             duration_formatted: `${expectedDuration} min`,
+            method: 'average',
             total_runs: 2,
           },
         ]);
@@ -371,9 +374,10 @@ describe('PipelinesController', () => {
           {
             job_name: 'build',
             workflow_name: 'CI',
-            avg_time: 6,
-            avg_time_formatted: '6 min',
+            value: 6,
+            value_formatted: '6 min',
             count: 2,
+            method: 'average',
           },
         ],
       });
@@ -397,9 +401,10 @@ describe('PipelinesController', () => {
           {
             job_name: 'b',
             workflow_name: undefined,
-            avg_time: 2,
-            avg_time_formatted: '2 min',
+            value: 2,
+            value_formatted: '2 min',
             count: 2,
+            method: 'average',
           },
         ],
       });
@@ -421,9 +426,10 @@ describe('PipelinesController', () => {
           {
             job_name: 'a',
             workflow_name: undefined,
-            avg_time: 1,
-            avg_time_formatted: '1 min',
+            value: 1,
+            value_formatted: '1 min',
             count: 1,
+            method: 'average',
           },
         ],
       });
@@ -552,9 +558,10 @@ describe('PipelinesController', () => {
         result: [
           {
             day: '2026-01-01',
-            avg_time: 3,
-            avg_time_formatted: '3 min',
+            value: 3,
+            value_formatted: '3 min',
             count: 2,
+            method: 'average',
             outliers: undefined,
           },
         ],
@@ -597,16 +604,18 @@ describe('PipelinesController', () => {
         result: [
           {
             day: '2026-01-01',
-            avg_time: 1,
-            avg_time_formatted: '1 min',
+            value: 1,
+            value_formatted: '1 min',
             count: 1,
+            method: 'average',
             outliers: undefined,
           },
           {
             day: '2026-01-02',
-            avg_time: 2,
-            avg_time_formatted: '2 min',
+            value: 2,
+            value_formatted: '2 min',
             count: 1,
+            method: 'average',
             outliers: undefined,
           },
         ],
@@ -642,9 +651,10 @@ describe('PipelinesController', () => {
         result: [
           {
             day: '2026-01-02',
-            avg_time: 2,
-            avg_time_formatted: '2 min',
+            value: 2,
+            value_formatted: '2 min',
             count: 1,
+            method: 'average',
             outliers: undefined,
           },
         ],
@@ -686,9 +696,10 @@ describe('PipelinesController', () => {
         result: [
           {
             name: 'install',
-            averageDurationMinutes: 2,
-            averageDurationMinutes_formatted: '2 min',
+            value: 2,
+            value_formatted: '2 min',
             count: 1,
+            method: 'average',
             outliers: undefined,
           },
         ],
@@ -726,8 +737,10 @@ describe('PipelinesController', () => {
             steps: [
               {
                 name: 'install',
-                averageDurationMinutes: 2,
-                averageDurationMinutes_formatted: '2 min',
+                value: 2,
+                value_formatted: '2 min',
+                method: 'average',
+                outliers: undefined,
               },
             ],
           },
@@ -866,8 +879,9 @@ describe('PipelinesController', () => {
             workflow_name: undefined,
             job_name: 'build',
             total_runs: 1,
-            avg_duration_minutes: 10,
-            avg_duration_minutes_formatted: '10 min',
+            value: 10,
+            value_formatted: '10 min',
+            method: 'average',
             success_count: 1,
             failure_count: 0,
             success_rate: 100,

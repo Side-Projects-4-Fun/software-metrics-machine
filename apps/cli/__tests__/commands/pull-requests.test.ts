@@ -94,16 +94,16 @@ describe('cli: Pull Request Commands', () => {
     fetchPRCommentsMock = vi.fn().mockResolvedValue([]);
     loadPrsWithFiltersMock = vi.fn().mockResolvedValue([]);
     getSummaryMock = vi.fn().mockResolvedValue(summaryResponse);
-    getMetricsMock = vi.fn().mockResolvedValue({ averageComments: 1.5 });
+    getMetricsMock = vi.fn().mockResolvedValue({ comments: 1.5, method: 'average' });
     getMetricsByMonthMock = vi
       .fn()
       .mockResolvedValue([
-        { period: '2026-01', count: 5, averageComments: 1.5, averageOpenDays: 2.5 },
+        { period: '2026-01', count: 5, comments: 1.5, openDays: 2.5, method: 'average' },
       ]);
     getMetricsByWeekMock = vi
       .fn()
       .mockResolvedValue([
-        { period: '2026-W01', count: 3, averageComments: 2, averageOpenDays: 1.5 },
+        { period: '2026-W01', count: 3, comments: 2, openDays: 1.5, method: 'average' },
       ]);
     getThroughTimeMock = vi.fn().mockResolvedValue([
       { date: '2026-01', kind: 'Opened', count: 5 },

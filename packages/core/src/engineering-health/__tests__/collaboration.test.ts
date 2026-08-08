@@ -5,8 +5,8 @@ import type { EngineeringHealthDependencies } from '../dependencies';
 describe('collaboration engineering health metrics', () => {
   it('forwards prLabels to review time PR filters', async () => {
     const getReviewTime = vi.fn().mockResolvedValue([
-      { author: 'alice', avg_days: 1.5, method: 'average' as const },
-      { author: 'bob', avg_days: 0.5, method: 'average' as const },
+      { author: 'alice', value: 1.5, method: 'average' as const },
+      { author: 'bob', value: 0.5, method: 'average' as const },
     ]);
 
     const metric = new ReviewTimeMetric({

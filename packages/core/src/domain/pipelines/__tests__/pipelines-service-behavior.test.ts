@@ -53,7 +53,7 @@ describe('PipelinesService behavior', () => {
     expect(metrics.successfulRuns).toBe(1);
     expect(metrics.failedRuns).toBe(1);
     expect(metrics.successRate).toBe(50);
-    expect(metrics.averageDurationMinutes).toBe(0);
+    expect(metrics.value).toBe(0);
   });
 
   it('filters repository runs by target branch before calculating metrics', async () => {
@@ -201,7 +201,7 @@ describe('PipelinesService behavior', () => {
         failureCount: 1,
         successRate: 66.67,
         // Parallel legs all took 5 minutes; the average is 5, not 15.
-        averageDurationMinutes: 5,
+        value: 5,
       })
     );
   });
@@ -253,7 +253,7 @@ describe('PipelinesService behavior', () => {
         failureCount: 1,
         successRate: 50,
         failureRate: 50,
-        averageDurationMinutes: 7.5,
+        value: 7.5,
       }),
     ]);
   });

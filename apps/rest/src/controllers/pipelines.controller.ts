@@ -159,8 +159,9 @@ export class PipelinesController {
         workflow_name: item.workflowName,
         job_name: item.jobName,
         total_runs: item.totalRuns,
-        avg_duration_minutes: item.averageDurationMinutes,
-        avg_duration_minutes_formatted: formatDuration(item.averageDurationMinutes, 'minutes'),
+        value: item.value,
+        value_formatted: formatDuration(item.value, 'minutes'),
+        method: item.method,
         success_count: item.successCount,
         failure_count: item.failureCount,
         success_rate: item.successRate,
@@ -238,6 +239,7 @@ export class PipelinesController {
             aggregation: normalizedAggregation,
             duration: durationValue,
             duration_formatted: formatDuration(durationValue, 'minutes'),
+            method,
             total_runs: n,
             outliers,
           };
@@ -245,8 +247,9 @@ export class PipelinesController {
 
         return {
           workflow,
-          avg_duration: avgDuration,
-          avg_duration_formatted: formatDuration(avgDuration, 'minutes'),
+          value: avgDuration,
+          value_formatted: formatDuration(avgDuration, 'minutes'),
+          method,
           min_duration: minDuration,
           min_duration_formatted: formatDuration(minDuration, 'minutes'),
           max_duration: maxDuration,
@@ -341,12 +344,16 @@ export class PipelinesController {
     );
     return {
       result: result.map((step) => ({
-        ...step,
-        averageDurationMinutes_formatted: formatDuration(step.averageDurationMinutes, 'minutes'),
+        name: step.name,
+        value: step.value,
+        value_formatted: formatDuration(step.value, 'minutes'),
+        method: step.method,
+        count: step.count,
+        outliers: step.outliers,
       })),
-      total_average_minutes: result.reduce((sum, step) => sum + step.averageDurationMinutes, 0),
+      total_average_minutes: result.reduce((sum, step) => sum + step.value, 0),
       total_average_minutes_formatted: formatDuration(
-        result.reduce((sum, step) => sum + step.averageDurationMinutes, 0),
+        result.reduce((sum, step) => sum + step.value, 0),
         'minutes'
       ),
     };
@@ -364,8 +371,11 @@ export class PipelinesController {
       result: result.map((entry) => ({
         day: entry.day,
         steps: entry.steps.map((step) => ({
-          ...step,
-          averageDurationMinutes_formatted: formatDuration(step.averageDurationMinutes, 'minutes'),
+          name: step.name,
+          value: step.value,
+          value_formatted: formatDuration(step.value, 'minutes'),
+          method: step.method,
+          outliers: step.outliers,
         })),
       })),
     };
@@ -421,6 +431,7 @@ export class PipelinesController {
     }
 
     const maxRows = top ? Number(top) : 20;
+    const method = normalizeMetricMethod(query?.method);
     const cleaning = parseMetricCleaningOptions({
       weekends: query?.weekends,
       outlierMode: query?.outlier_mode,
@@ -428,12 +439,13 @@ export class PipelinesController {
     const result = Array.from(grouped.entries())
       .map(([jobNameValue, data]) => {
         const cleaned = cleanMetricSamples(data.samples, cleaning);
-        const avgTime = computeMetricSamples(cleaned.samples, normalizeMetricMethod(query?.method));
+        const avgTime = computeMetricSamples(cleaned.samples, method);
         return {
           job_name: jobNameValue,
           workflow_name: data.workflowName,
-          avg_time: avgTime,
-          avg_time_formatted: formatDuration(avgTime, 'minutes'),
+          value: avgTime,
+          value_formatted: formatDuration(avgTime, 'minutes'),
+          method,
           count: cleaned.samples.length,
           outliers:
             cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
@@ -493,6 +505,7 @@ export class PipelinesController {
       }
     }
 
+    const method = normalizeMetricMethod(query?.method);
     const cleaning = parseMetricCleaningOptions({
       weekends: query?.weekends,
       outlierMode: query?.outlier_mode,
@@ -500,11 +513,12 @@ export class PipelinesController {
     const result = Array.from(grouped.entries())
       .map(([day, samples]) => {
         const cleaned = cleanMetricSamples(samples, cleaning);
-        const avgTime = computeMetricSamples(cleaned.samples, normalizeMetricMethod(query?.method));
+        const avgTime = computeMetricSamples(cleaned.samples, method);
         return {
           day,
-          avg_time: avgTime,
-          avg_time_formatted: formatDuration(avgTime, 'minutes'),
+          value: avgTime,
+          value_formatted: formatDuration(avgTime, 'minutes'),
+          method,
           count: cleaned.samples.length,
           outliers:
             cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'

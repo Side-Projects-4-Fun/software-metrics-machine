@@ -46,7 +46,7 @@ export class ReviewTimeMetric extends BaseMetric {
       input?.top,
       'average'
     );
-    const sum = rows.reduce((acc: number, row) => acc + row.avg_days, 0);
+    const sum = rows.reduce((acc: number, row) => acc + row.value, 0);
     const average = rows.length > 0 ? sum / rows.length : 0;
 
     return {

@@ -155,7 +155,7 @@ alice: 2.30 days
 
 ### Neutral
 
-- Output field names like `avg_days`, `avg_hours`, `averageDurationMinutes` will remain as-is for one release cycle, then can be renamed to `value` or `metric_value` in a follow-up ADR.
+- Output field names like `avg_days`, `avg_hours`, `averageDurationMinutes` will remain as-is for one release cycle, then can be renamed to `value` or `metric_value` in a follow-up ADR (now ADR 0006).
 - The engineering health framework continues to use a single scalar `value` — the method choice is opaque to the comparison/recommendation logic.
 
 ## Alternatives Considered
@@ -183,4 +183,4 @@ This ADR does NOT propose:
 - Changing how data is fetched or stored. Providers and repositories are untouched.
 - Adding new metric types (standard deviation, variance, mode). These can be added later by extending `MetricMethod`.
 - Changing the engineering health comparison/evaluation logic. The `value` scalar remains singular — which method produces it is a configuration detail.
-- Renaming output fields (`avg_days` → `value`). Deferred to a follow-up ADR for a clean cutover after aliases are removed.
+- Renaming output fields (`avg_days` → `value`). Deferred to a follow-up ADR for a clean cutover after aliases are removed — completed in ADR 0006.

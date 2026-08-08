@@ -31,11 +31,11 @@ export class PipelineEvaluationService {
       return this.insufficientData('duration_top_job', 'duration');
     }
 
-    const sortedJobs = [...jobs].sort((a, b) => b.avg_time - a.avg_time);
+    const sortedJobs = [...jobs].sort((a, b) => b.value - a.value);
     const topJob = sortedJobs[0];
 
-    const totalAvgTime = jobs.reduce((sum, j) => sum + j.avg_time, 0);
-    const share = totalAvgTime > 0 ? (topJob.avg_time / totalAvgTime) * 100 : 0;
+    const totalAvgTime = jobs.reduce((sum, j) => sum + j.value, 0);
+    const share = totalAvgTime > 0 ? (topJob.value / totalAvgTime) * 100 : 0;
 
     const severity = this.severityFromThresholds(share, 40, 20);
     const count = jobs.length;
@@ -51,7 +51,7 @@ export class PipelineEvaluationService {
       category: 'duration',
       metrics: [
         { label: 'Slowest job', value: topJob.job_name },
-        { label: 'Avg time', value: formatDuration(topJob.avg_time, 'minutes') },
+        { label: 'Avg time', value: formatDuration(topJob.value, 'minutes') },
         { label: 'Share of total', value: `${share.toFixed(1)}%` },
         { label: 'Runs', value: String(topJob.count) },
       ],
@@ -148,10 +148,10 @@ export class PipelineEvaluationService {
       return this.insufficientData('slowest_workflow', 'duration');
     }
 
-    const sorted = [...durations].sort((a, b) => b.avg_duration - a.avg_duration);
+    const sorted = [...durations].sort((a, b) => b.value - a.value);
     const slowest = sorted[0];
-    const avgAll = durations.reduce((sum, d) => sum + d.avg_duration, 0) / durations.length;
-    const ratio = avgAll > 0 ? slowest.avg_duration / avgAll : 1;
+    const avgAll = durations.reduce((sum, d) => sum + d.value, 0) / durations.length;
+    const ratio = avgAll > 0 ? slowest.value / avgAll : 1;
 
     const severity = this.severityFromThresholds(ratio, 2, 1.3);
 
@@ -163,13 +163,13 @@ export class PipelineEvaluationService {
           : 'Workflow durations are balanced',
       description:
         ratio >= 1.5
-          ? `"${slowest.workflow}" averages ${formatDuration(slowest.avg_duration, 'minutes')} — ${ratio.toFixed(1)}x slower than the average workflow (${formatDuration(avgAll, 'minutes')}). This is the throughput bottleneck.`
-          : `The slowest workflow ("${slowest.workflow}") at ${formatDuration(slowest.avg_duration, 'minutes')} is only ${ratio.toFixed(1)}x the average (${formatDuration(avgAll, 'minutes')}) — durations are well balanced.`,
+          ? `"${slowest.workflow}" averages ${formatDuration(slowest.value, 'minutes')} — ${ratio.toFixed(1)}x slower than the average workflow (${formatDuration(avgAll, 'minutes')}). This is the throughput bottleneck.`
+          : `The slowest workflow ("${slowest.workflow}") at ${formatDuration(slowest.value, 'minutes')} is only ${ratio.toFixed(1)}x the average (${formatDuration(avgAll, 'minutes')}) — durations are well balanced.`,
       severity,
       category: 'duration',
       metrics: [
         { label: 'Slowest workflow', value: slowest.workflow },
-        { label: 'Avg duration', value: formatDuration(slowest.avg_duration, 'minutes') },
+        { label: 'Avg duration', value: formatDuration(slowest.value, 'minutes') },
         { label: 'vs. average', value: `${ratio.toFixed(1)}x` },
         { label: 'Total runs', value: String(slowest.total_runs) },
       ],
@@ -213,21 +213,22 @@ export class PipelineEvaluationService {
   private buildSummary(dashboard: PipelineDashboard): PipelineEvaluation['summary'] {
     const s = dashboard.summary;
     const jobs = dashboard.jobs_average_time || [];
-    const sortedJobs = [...jobs].sort((a, b) => b.avg_time - a.avg_time);
+    const sortedJobs = [...jobs].sort((a, b) => b.value - a.value);
     const bottleneckJob = sortedJobs[0];
-    const totalAvgTime = jobs.reduce((sum, j) => sum + j.avg_time, 0);
+    const totalAvgTime = jobs.reduce((sum, j) => sum + j.value, 0);
     const bottleneckShare =
-      totalAvgTime > 0 && bottleneckJob ? (bottleneckJob.avg_time / totalAvgTime) * 100 : 0;
+      totalAvgTime > 0 && bottleneckJob ? (bottleneckJob.value / totalAvgTime) * 100 : 0;
 
     const durations = dashboard.runs_duration || [];
-    const sortedDur = [...durations].sort((a, b) => b.avg_duration - a.avg_duration);
+    const sortedDur = [...durations].sort((a, b) => b.value - a.value);
 
     const summary = dashboard.jobs_summary || [];
     const totalReruns = summary.reduce((sum, j) => sum + (j.rerun_count || 0), 0);
 
     return {
       totalRuns: s?.total_runs || 0,
-      averageDurationMinutes: s?.average_duration_minutes || 0,
+      durationMinutes: s?.value || 0,
+      method: s?.method || 'average',
       successRate: s?.success_rate || 0,
       failureRate: s?.success_rate ? 100 - s.success_rate : 0,
       totalReruns,

@@ -101,7 +101,7 @@ describe('PipelinesDataService', () => {
     expect(metrics.successfulRuns).toBe(1);
     expect(metrics.failedRuns).toBe(1);
     expect(metrics.successRate).toBe(50);
-    expect(metrics.averageDurationMinutes).toBe(0);
+    expect(metrics.value).toBe(0);
   });
 
   it('should get deployment frequency by day', async () => {
@@ -264,7 +264,7 @@ describe('PipelinesDataService', () => {
         failureCount: 1,
         successRate: 50,
         failureRate: 50,
-        averageDurationMinutes: 7.5,
+        value: 7.5,
       }),
     ]);
   });
@@ -522,7 +522,7 @@ describe('PipelinesDataService', () => {
 
       const metrics = await dataService.getMetrics();
 
-      expect(metrics.averageDurationMinutes).toBe(4);
+      expect(metrics.value).toBe(4);
     });
   });
 
@@ -975,7 +975,7 @@ describe('PipelinesDataService', () => {
 
       const jobMetrics = await dataService.getJobMetrics();
 
-      expect(jobMetrics[0].averageDurationMinutes).toBe(10);
+      expect(jobMetrics[0].value).toBe(10);
       expect(jobMetrics[0].successRate).toBe(100);
       expect(jobMetrics[0].failureRate).toBe(0);
     });
@@ -1190,7 +1190,7 @@ describe('PipelinesDataService', () => {
 
       const result = await dataService.getJobStepsAverageTime();
 
-      expect(result).toEqual([{ name: 'checkout', averageDurationMinutes: 5, count: 1 }]);
+      expect(result).toEqual([{ name: 'checkout', value: 5, method: 'average', count: 1 }]);
     });
 
     it('should average durations for the same step name across different jobs and runs', async () => {
@@ -1213,7 +1213,7 @@ describe('PipelinesDataService', () => {
 
       const result = await dataService.getJobStepsAverageTime();
 
-      expect(result).toEqual([{ name: 'checkout', averageDurationMinutes: 5, count: 2 }]);
+      expect(result).toEqual([{ name: 'checkout', value: 5, method: 'average', count: 2 }]);
     });
   });
 
@@ -1352,8 +1352,8 @@ describe('PipelinesDataService', () => {
       const result = await dataService.getJobStepsAverageTimeByDay();
 
       expect(result).toEqual([
-        { day: '2025-01-01', steps: [{ name: 'checkout', averageDurationMinutes: 4 }] },
-        { day: '2025-01-02', steps: [{ name: 'checkout', averageDurationMinutes: 6 }] },
+        { day: '2025-01-01', steps: [{ name: 'checkout', value: 4, method: 'average' }] },
+        { day: '2025-01-02', steps: [{ name: 'checkout', value: 6, method: 'average' }] },
       ]);
     });
 
@@ -1376,7 +1376,7 @@ describe('PipelinesDataService', () => {
       const result = await dataService.getJobStepsAverageTimeByDay();
 
       expect(result).toEqual([
-        { day: '2025-01-01', steps: [{ name: 'checkout', averageDurationMinutes: 5 }] },
+        { day: '2025-01-01', steps: [{ name: 'checkout', value: 5, method: 'average' }] },
       ]);
     });
 

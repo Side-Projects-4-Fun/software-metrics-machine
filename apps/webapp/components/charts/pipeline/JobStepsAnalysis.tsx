@@ -29,14 +29,14 @@ export default function JobStepsAnalysis({
 }) {
   const [hiddenStepNames, setHiddenStepNames] = useState<Set<string>>(new Set());
   const totalTime = useMemo(() => {
-    return data.reduce((sum, step) => sum + step.averageDurationMinutes, 0);
+    return data.reduce((sum, step) => sum + step.value, 0);
   }, [data]);
   const stepFormattedMap = useMemo(
-    () => new Map(data.map((step) => [step.name, step.averageDurationMinutes_formatted])),
+    () => new Map(data.map((step) => [step.name, step.value_formatted])),
     [data]
   );
   const durationTickMap = useMemo(
-    () => new Map(data.map((step) => [step.averageDurationMinutes, step.averageDurationMinutes_formatted])),
+    () => new Map(data.map((step) => [step.value, step.value_formatted])),
     [data]
   );
   const formatStepValue = (value: number, stepName: string): string =>
@@ -201,11 +201,11 @@ export default function JobStepsAnalysis({
                 ),
               },
               {
-                key: 'averageDurationMinutes',
+                key: 'value',
                 label: timeLabel,
                 align: 'right' as const,
                 renderCell: (step: JobStepsAverageTimeData) => (
-                  <span className="tabular-nums">{step.averageDurationMinutes_formatted}</span>
+                  <span className="tabular-nums">{step.value_formatted}</span>
                 ),
               },
               {
@@ -221,10 +221,10 @@ export default function JobStepsAnalysis({
             rows={data.map((step, index) => ({
               ...step,
               _colorIndex: index,
-              _percentage: totalTime > 0 ? (step.averageDurationMinutes / totalTime) * 100 : 0,
+              _percentage: totalTime > 0 ? (step.value / totalTime) * 100 : 0,
             }))}
             getRowKey={(step) => step.name}
-            defaultSort={{ key: 'averageDurationMinutes', direction: 'desc' }}
+            defaultSort={{ key: 'value', direction: 'desc' }}
             pageSize={10}
           />
         </div>

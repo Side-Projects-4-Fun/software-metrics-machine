@@ -90,15 +90,19 @@ export class CodeController {
     @Query('end_date') endDate?: string,
     @Query('type_churn') typeChurn?: string
   ): Promise<CodeChurnResponse> {
-    const churn = await this.codemaat.getCodeChurn({
-      startDate,
-      endDate,
-      typeChurn,
-    });
+    if (typeChurn) {
+      const churn = await this.codemaat.getCodeChurn({ startDate, endDate, typeChurn });
+      return churn.data.map((entry) => ({
+        date: entry.date,
+        type: typeChurn,
+        value: entry.value,
+      }));
+    }
 
+    const churn = await this.codemaat.getCodeChurn({ startDate, endDate });
     return churn.data.map((entry) => ({
       date: entry.date,
-      type: typeChurn || 'total',
+      type: 'total',
       value: entry.added + entry.deleted,
     }));
   }

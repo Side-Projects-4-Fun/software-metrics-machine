@@ -15,7 +15,8 @@ function makeSummary(overrides: Partial<PipelineDashboardSummary> = {}): Pipelin
     skipped_runs: 1,
     timed_out_runs: 0,
     success_rate: 90,
-    average_duration_minutes: 12.5,
+    value: 12.5,
+    method: 'average',
     ...overrides,
   };
 }
@@ -29,17 +30,50 @@ function makeDashboard(overrides: Partial<PipelineDashboard> = {}): PipelineDash
       { Status: 'cancelled', Count: 2 },
     ],
     runs_duration: [
-      { workflow: 'build.yml', avg_duration: 8, min_duration: 2, max_duration: 30, total_runs: 40 },
-      { workflow: 'test.yml', avg_duration: 15, min_duration: 5, max_duration: 45, total_runs: 35 },
-      { workflow: 'deploy.yml', avg_duration: 3, min_duration: 1, max_duration: 8, total_runs: 25 },
+      {
+        workflow: 'build.yml',
+        value: 8,
+        method: 'average',
+        min_duration: 2,
+        max_duration: 30,
+        total_runs: 40,
+      },
+      {
+        workflow: 'test.yml',
+        value: 15,
+        method: 'average',
+        min_duration: 5,
+        max_duration: 45,
+        total_runs: 35,
+      },
+      {
+        workflow: 'deploy.yml',
+        value: 3,
+        method: 'average',
+        min_duration: 1,
+        max_duration: 8,
+        total_runs: 25,
+      },
     ],
     runs_by: [],
     jobs_average_time: [
-      { job_name: 'slow-build', workflow_name: 'build.yml', avg_time: 40, count: 40 },
-      { job_name: 'lint', workflow_name: 'build.yml', avg_time: 3, count: 40 },
-      { job_name: 'unit-test', workflow_name: 'test.yml', avg_time: 15, count: 35 },
-      { job_name: 'integration-test', workflow_name: 'test.yml', avg_time: 25, count: 35 },
-      { job_name: 'deploy', workflow_name: 'deploy.yml', avg_time: 2, count: 25 },
+      {
+        job_name: 'slow-build',
+        workflow_name: 'build.yml',
+        value: 40,
+        method: 'average',
+        count: 40,
+      },
+      { job_name: 'lint', workflow_name: 'build.yml', value: 3, method: 'average', count: 40 },
+      { job_name: 'unit-test', workflow_name: 'test.yml', value: 15, method: 'average', count: 35 },
+      {
+        job_name: 'integration-test',
+        workflow_name: 'test.yml',
+        value: 25,
+        method: 'average',
+        count: 35,
+      },
+      { job_name: 'deploy', workflow_name: 'deploy.yml', value: 2, method: 'average', count: 25 },
     ],
     jobs_average_time_by_day: [],
     jobs_duration_by_workflow: [
@@ -51,7 +85,8 @@ function makeDashboard(overrides: Partial<PipelineDashboard> = {}): PipelineDash
         workflow_name: 'build.yml',
         job_name: 'slow-build',
         total_runs: 40,
-        avg_duration_minutes: 40,
+        value: 40,
+        method: 'average',
         success_count: 32,
         failure_count: 6,
         success_rate: 80,
@@ -62,7 +97,8 @@ function makeDashboard(overrides: Partial<PipelineDashboard> = {}): PipelineDash
         workflow_name: 'test.yml',
         job_name: 'unit-test',
         total_runs: 35,
-        avg_duration_minutes: 15,
+        value: 15,
+        method: 'average',
         success_count: 33,
         failure_count: 2,
         success_rate: 94.29,
@@ -73,7 +109,8 @@ function makeDashboard(overrides: Partial<PipelineDashboard> = {}): PipelineDash
         workflow_name: 'test.yml',
         job_name: 'integration-test',
         total_runs: 35,
-        avg_duration_minutes: 25,
+        value: 25,
+        method: 'average',
         success_count: 30,
         failure_count: 4,
         success_rate: 85.71,
@@ -118,7 +155,7 @@ describe('PipelineEvaluationService', () => {
 
       expect(result.summary.totalRuns).toBe(100);
       expect(result.summary.successRate).toBe(90);
-      expect(result.summary.averageDurationMinutes).toBe(12.5);
+      expect(result.summary.durationMinutes).toBe(12.5);
       expect(result.summary.totalReruns).toBe(9);
       expect(result.summary.bottleneckJob).toBe('slow-build');
     });
@@ -135,8 +172,20 @@ describe('PipelineEvaluationService', () => {
     it('flags job that dominates total time as critical', () => {
       const dashboard = makeDashboard({
         jobs_average_time: [
-          { job_name: 'heavy-job', workflow_name: 'ci.yml', avg_time: 60, count: 20 },
-          { job_name: 'light-job', workflow_name: 'ci.yml', avg_time: 5, count: 20 },
+          {
+            job_name: 'heavy-job',
+            workflow_name: 'ci.yml',
+            value: 60,
+            method: 'average',
+            count: 20,
+          },
+          {
+            job_name: 'light-job',
+            workflow_name: 'ci.yml',
+            value: 5,
+            method: 'average',
+            count: 20,
+          },
         ],
       });
       const result = service.evaluate(dashboard);
@@ -150,12 +199,12 @@ describe('PipelineEvaluationService', () => {
     it('reports good when jobs are balanced', () => {
       const dashboard = makeDashboard({
         jobs_average_time: [
-          { job_name: 'job-a', workflow_name: 'ci.yml', avg_time: 10, count: 20 },
-          { job_name: 'job-b', workflow_name: 'ci.yml', avg_time: 10, count: 20 },
-          { job_name: 'job-c', workflow_name: 'ci.yml', avg_time: 10, count: 20 },
-          { job_name: 'job-d', workflow_name: 'ci.yml', avg_time: 10, count: 20 },
-          { job_name: 'job-e', workflow_name: 'ci.yml', avg_time: 10, count: 20 },
-          { job_name: 'job-f', workflow_name: 'ci.yml', avg_time: 10, count: 20 },
+          { job_name: 'job-a', workflow_name: 'ci.yml', value: 10, method: 'average', count: 20 },
+          { job_name: 'job-b', workflow_name: 'ci.yml', value: 10, method: 'average', count: 20 },
+          { job_name: 'job-c', workflow_name: 'ci.yml', value: 10, method: 'average', count: 20 },
+          { job_name: 'job-d', workflow_name: 'ci.yml', value: 10, method: 'average', count: 20 },
+          { job_name: 'job-e', workflow_name: 'ci.yml', value: 10, method: 'average', count: 20 },
+          { job_name: 'job-f', workflow_name: 'ci.yml', value: 10, method: 'average', count: 20 },
         ],
       });
       const result = service.evaluate(dashboard);
@@ -174,7 +223,8 @@ describe('PipelineEvaluationService', () => {
             workflow_name: 'ci.yml',
             job_name: 'flaky-job',
             total_runs: 10,
-            avg_duration_minutes: 5,
+            value: 5,
+            method: 'average',
             success_count: 6,
             failure_count: 4,
             success_rate: 60,
@@ -198,7 +248,8 @@ describe('PipelineEvaluationService', () => {
             workflow_name: 'ci.yml',
             job_name: 'stable-job',
             total_runs: 100,
-            avg_duration_minutes: 5,
+            value: 5,
+            method: 'average',
             success_count: 98,
             failure_count: 1,
             success_rate: 98,
@@ -222,7 +273,8 @@ describe('PipelineEvaluationService', () => {
             workflow_name: 'ci.yml',
             job_name: 'test',
             total_runs: 10,
-            avg_duration_minutes: 5,
+            value: 5,
+            method: 'average',
             success_count: 8,
             failure_count: 1,
             success_rate: 80,
@@ -246,7 +298,8 @@ describe('PipelineEvaluationService', () => {
             workflow_name: 'ci.yml',
             job_name: 'test',
             total_runs: 10,
-            avg_duration_minutes: 5,
+            value: 5,
+            method: 'average',
             success_count: 10,
             failure_count: 0,
             success_rate: 100,
@@ -268,21 +321,24 @@ describe('PipelineEvaluationService', () => {
         runs_duration: [
           {
             workflow: 'fast-a.yml',
-            avg_duration: 2,
+            value: 2,
+            method: 'average',
             min_duration: 1,
             max_duration: 5,
             total_runs: 10,
           },
           {
             workflow: 'fast-b.yml',
-            avg_duration: 3,
+            value: 3,
+            method: 'average',
             min_duration: 1,
             max_duration: 6,
             total_runs: 10,
           },
           {
             workflow: 'slow.yml',
-            avg_duration: 45,
+            value: 45,
+            method: 'average',
             min_duration: 30,
             max_duration: 60,
             total_runs: 10,
@@ -302,14 +358,16 @@ describe('PipelineEvaluationService', () => {
         runs_duration: [
           {
             workflow: 'a.yml',
-            avg_duration: 10,
+            value: 10,
+            method: 'average',
             min_duration: 5,
             max_duration: 15,
             total_runs: 10,
           },
           {
             workflow: 'b.yml',
-            avg_duration: 12,
+            value: 12,
+            method: 'average',
             min_duration: 6,
             max_duration: 18,
             total_runs: 10,
@@ -361,7 +419,8 @@ describe('PipelineEvaluationService', () => {
           successful_runs: 0,
           failed_runs: 0,
           success_rate: 0,
-          average_duration_minutes: 0,
+          value: 0,
+          method: 'average',
         }),
         jobs_by_status: [],
         runs_duration: [],

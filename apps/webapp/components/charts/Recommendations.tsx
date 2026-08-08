@@ -87,7 +87,6 @@ export function Recommendations({
   jobsSummary,
   selectedWorkflow,
   averageReviewTime,
-  pipelineSummary,
 }: RecommendationsProps) {
   const recommendations = useMemo(() => {
     const recs: Recommendation[] = [];
@@ -196,16 +195,16 @@ export function Recommendations({
     if (jobsSummary && jobsSummary.length > 0) {
       const target = METRIC_TARGETS['job-avg-time'];
       const avgDuration =
-        jobsSummary.reduce((sum, j) => sum + j.avg_duration_minutes, 0) / jobsSummary.length;
-      const avgDurationFormatted = pipelineSummary?.average_duration_minutes_formatted || `${avgDuration.toFixed(1)} min`;
+        jobsSummary.reduce((sum, j) => sum + j.value, 0) / jobsSummary.length;
+      const avgDurationFormatted = jobsSummary[0]?.value_formatted || `${avgDuration.toFixed(1)} min`;
 
       if (avgDuration > 5) {
         const slowJobs = jobsSummary
-          .filter((job) => job.avg_duration_minutes > 5)
-          .sort((a, b) => b.avg_duration_minutes - a.avg_duration_minutes);
+          .filter((job) => job.value > 5)
+          .sort((a, b) => b.value - a.value);
         const slowJobsMessage = formatTopItems(
-          slowJobs.length > 0 ? slowJobs : [...jobsSummary].sort((a, b) => b.avg_duration_minutes - a.avg_duration_minutes),
-          (job) => `${formatPipelineJob(job, selectedWorkflow)} (${job.avg_duration_minutes_formatted || `${job.avg_duration_minutes.toFixed(1)} min`})`
+          slowJobs.length > 0 ? slowJobs : [...jobsSummary].sort((a, b) => b.value - a.value),
+          (job) => `${formatPipelineJob(job, selectedWorkflow)} (${job.value_formatted || `${job.value.toFixed(1)} min`})`
         );
         recs.push({
           id: 'job-duration-high',
@@ -215,9 +214,9 @@ export function Recommendations({
           severity: 'warning',
           currentValue: avgDurationFormatted,
           targetValue: target?.target,
-          contextItems: (slowJobs.length > 0 ? slowJobs : [...jobsSummary].sort((a, b) => b.avg_duration_minutes - a.avg_duration_minutes))
+          contextItems: (slowJobs.length > 0 ? slowJobs : [...jobsSummary].sort((a, b) => b.value - a.value))
             .slice(0, 3)
-            .map((job) => `${formatPipelineJob(job, selectedWorkflow)} - ${job.avg_duration_minutes_formatted || `${job.avg_duration_minutes.toFixed(1)} min`} avg`),
+            .map((job) => `${formatPipelineJob(job, selectedWorkflow)} - ${job.value_formatted || `${job.value.toFixed(1)} min`} avg`),
           href: '/dashboard/pipelines',
           hrefLabel: 'View Pipelines',
         });
@@ -227,30 +226,30 @@ export function Recommendations({
     // --- PR Review Time ---
     if (averageReviewTime && averageReviewTime.length > 0) {
       const target = METRIC_TARGETS['average-review-time'];
-      const avgReviewHours =
-        averageReviewTime.reduce((sum, a) => sum + a.avg_hours, 0) / averageReviewTime.length;
-      const avgReviewHoursFormatted = averageReviewTime[0]?.avg_hours_formatted || `${avgReviewHours.toFixed(1)}h`;
+      const avgReviewDays =
+        averageReviewTime.reduce((sum, a) => sum + a.value, 0) / averageReviewTime.length;
+      const avgReviewTimeFormatted = averageReviewTime[0]?.value_formatted || `${avgReviewDays.toFixed(1)}d`;
 
-      if (avgReviewHours > 24) {
+      if (avgReviewDays > 1) {
         recs.push({
           id: 'review-time-high',
           metric: 'average-review-time',
           title: 'Speed Up Code Reviews',
-          message: `Average review time is ${avgReviewHoursFormatted}, exceeding the 24-hour target. Slow reviews create delivery bottlenecks and reduce author productivity.`,
+          message: `Average review time is ${avgReviewTimeFormatted}, exceeding the 24-hour target. Slow reviews create delivery bottlenecks and reduce author productivity.`,
           severity: 'warning',
-          currentValue: avgReviewHoursFormatted,
+          currentValue: avgReviewTimeFormatted,
           targetValue: target?.target,
           href: '/dashboard/pull-requests',
           hrefLabel: 'View Pull Requests',
         });
-      } else if (avgReviewHours > 0) {
+      } else if (avgReviewDays > 0) {
         recs.push({
           id: 'review-time-good',
           metric: 'average-review-time',
           title: 'Review Time on Track',
-          message: `Average review time is ${avgReviewHoursFormatted}, within the 24-hour target.`,
+          message: `Average review time is ${avgReviewTimeFormatted}, within the 24-hour target.`,
           severity: 'success',
-          currentValue: avgReviewHoursFormatted,
+          currentValue: avgReviewTimeFormatted,
           targetValue: target?.target,
         });
       }
@@ -314,7 +313,7 @@ export function Recommendations({
     }
 
     return recs;
-  }, [pairingIndex, prSummary, deploymentFrequency, jobsSummary, selectedWorkflow, averageReviewTime, pipelineSummary]);
+  }, [pairingIndex, prSummary, deploymentFrequency, jobsSummary, selectedWorkflow, averageReviewTime]);
 
   if (recommendations.length === 0) {
     return null;

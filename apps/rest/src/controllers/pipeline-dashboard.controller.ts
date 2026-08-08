@@ -49,15 +49,13 @@ export class PipelineDashboardController {
       ...dashboard,
       summary: {
         ...dashboard.summary,
-        average_duration_minutes_formatted: formatDuration(
-          dashboard.summary.average_duration_minutes,
-          'minutes'
-        ),
+        value_formatted: formatDuration(dashboard.summary.value, 'minutes'),
       },
       runs_duration: dashboard.runs_duration.map((run) => ({
         workflow: run.workflow,
-        avg_duration: run.avg_duration,
-        avg_duration_formatted: formatDuration(run.avg_duration, 'minutes'),
+        value: run.value,
+        value_formatted: formatDuration(run.value, 'minutes'),
+        method: run.method,
         min_duration: run.min_duration,
         min_duration_formatted: formatDuration(run.min_duration, 'minutes'),
         max_duration: run.max_duration,
@@ -67,36 +65,33 @@ export class PipelineDashboardController {
       })),
       jobs_average_time: dashboard.jobs_average_time.map((job) => ({
         ...job,
-        avg_time_formatted: formatDuration(job.avg_time, 'minutes'),
+        value_formatted: formatDuration(job.value, 'minutes'),
       })),
       jobs_summary: dashboard.jobs_summary.map((job) => ({
         ...job,
-        avg_duration_minutes_formatted: formatDuration(job.avg_duration_minutes, 'minutes'),
+        value_formatted: formatDuration(job.value, 'minutes'),
       })),
       job_steps_average_time: dashboard.job_steps_average_time.map((step) => ({
         ...step,
-        averageDurationMinutes_formatted: formatDuration(step.averageDurationMinutes, 'minutes'),
+        value_formatted: formatDuration(step.value, 'minutes'),
       })),
       job_steps_average_time_total_minutes: dashboard.job_steps_average_time.reduce(
-        (sum, step) => sum + step.averageDurationMinutes,
+        (sum, step) => sum + step.value,
         0
       ),
       job_steps_average_time_total_minutes_formatted: formatDuration(
-        dashboard.job_steps_average_time.reduce(
-          (sum, step) => sum + step.averageDurationMinutes,
-          0
-        ),
+        dashboard.job_steps_average_time.reduce((sum, step) => sum + step.value, 0),
         'minutes'
       ),
       jobs_average_time_by_day: dashboard.jobs_average_time_by_day.map((row) => ({
         ...row,
-        avg_time_formatted: formatDuration(row.avg_time, 'minutes'),
+        value_formatted: formatDuration(row.value, 'minutes'),
       })),
       job_steps_average_time_by_day: dashboard.job_steps_average_time_by_day.map((row) => ({
         ...row,
         steps: row.steps.map((step) => ({
           ...step,
-          averageDurationMinutes_formatted: formatDuration(step.averageDurationMinutes, 'minutes'),
+          value_formatted: formatDuration(step.value, 'minutes'),
         })),
       })),
       jobs_duration_by_workflow: dashboard.jobs_duration_by_workflow.map((row) => {

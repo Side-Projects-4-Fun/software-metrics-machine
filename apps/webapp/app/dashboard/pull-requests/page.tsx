@@ -52,10 +52,11 @@ interface EvaluationData {
     mergedPRs: number;
     openPRs: number;
     avgCommentsPerPR: number;
-    avgReviewHours: number;
-    avgReviewHours_formatted: string;
-    avgOpenDays: number;
-    avgOpenDays_formatted: string;
+    reviewHours: number;
+    reviewHours_formatted: string;
+    openDays: number;
+    openDays_formatted: string;
+    method: string;
     uniqueAuthors: number;
     topReviewer?: string;
     bottleneckAuthor?: string;

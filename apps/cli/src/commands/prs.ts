@@ -558,7 +558,7 @@ export function createPRsCommands(program: SmmCommand): void {
           screen.printLine(`\n=== ${metricMethod.toUpperCase()} Review Time by Author ===\n`);
           for (const review of reviews) {
             screen.printLine(
-              `${review.author}: ${formatDuration(review.avg_days, 'days')} (method: ${review.method})`
+              `${review.author}: ${formatDuration(review.value, 'days')} (method: ${review.method})`
             );
             printOutliers(screen, review.outliers);
           }
@@ -617,7 +617,7 @@ export function createPRsCommands(program: SmmCommand): void {
           screen.printLine(`\n=== ${metricMethod.toUpperCase()} PR Open Time ===\n`);
           for (const period of periods) {
             screen.printLine(
-              `${period.period}: ${formatDuration(period.avg_days, 'days')} (method: ${period.method})`
+              `${period.period}: ${formatDuration(period.value, 'days')} (method: ${period.method})`
             );
             printOutliers(screen, period.outliers);
           }
@@ -687,7 +687,7 @@ export function createPRsCommands(program: SmmCommand): void {
             );
             for (const tf of timeframes) {
               screen.printLine(
-                `${tf.period}: ${tf.averageComments} (${tf.count} PRs, method: ${tf.method})`
+                `${tf.period}: ${tf.comments} (${tf.count} PRs, method: ${tf.method})`
               );
               printOutliers(screen, tf.outliers?.comments);
             }
@@ -699,7 +699,7 @@ export function createPRsCommands(program: SmmCommand): void {
             screen.printLine(
               JSON.stringify(
                 {
-                  avg_comments: metrics.averageComments,
+                  avg_comments: metrics.comments,
                   method: metrics.method,
                   outliers: metrics.outliers?.comments,
                 },
@@ -710,7 +710,7 @@ export function createPRsCommands(program: SmmCommand): void {
           } else {
             screen.printLine(`\n=== ${metricMethod.toUpperCase()} Comments per PR ===\n`);
             screen.printLine(
-              `${metricMethod.charAt(0).toUpperCase() + metricMethod.slice(1)} Comments: ${metrics.averageComments}`
+              `${metricMethod.charAt(0).toUpperCase() + metricMethod.slice(1)} Comments: ${metrics.comments}`
             );
             printOutliers(screen, metrics.outliers?.comments);
           }

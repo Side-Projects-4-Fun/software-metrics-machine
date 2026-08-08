@@ -34,19 +34,17 @@ export interface RecommendationsProps {
     workflow_name?: string;
     job_name: string;
     success_rate: number;
-    avg_duration_minutes: number;
-    avg_duration_minutes_formatted?: string;
+    value: number;
+    value_formatted?: string;
+    method?: string;
     rerun_count: number;
     total_runs: number;
   }>;
   selectedWorkflow?: string;
   averageReviewTime?: Array<{
     author: string;
-    avg_hours: number;
-    avg_hours_formatted?: string;
+    value: number;
+    value_formatted?: string;
+    method?: string;
   }>;
-  pipelineSummary?: {
-    average_duration_minutes?: number;
-    average_duration_minutes_formatted?: string;
-  };
 }

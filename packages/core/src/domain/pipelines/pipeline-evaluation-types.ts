@@ -1,3 +1,5 @@
+import type { MetricMethod } from '../metric-samples';
+
 export type PipelineBottleneckSeverity = 'critical' | 'warning' | 'good';
 export type PipelineBottleneckCategory = 'duration' | 'stability' | 'throughput';
 
@@ -18,7 +20,8 @@ export interface PipelineEvaluation {
   signals: PipelineBottleneckSignal[];
   summary: {
     totalRuns: number;
-    averageDurationMinutes: number;
+    durationMinutes: number;
+    method: MetricMethod;
     successRate: number;
     failureRate: number;
     totalReruns: number;

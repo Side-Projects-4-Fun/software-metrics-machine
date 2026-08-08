@@ -152,10 +152,11 @@ export class PullRequestsController {
 
     return {
       result: result.map((item) => ({
-        ...item,
-        avg_days_formatted: formatDuration(item.avg_days, 'days'),
-        avg_hours: item.avg_days * 24,
-        avg_hours_formatted: formatDuration(item.avg_days, 'days'),
+        author: item.author,
+        value: item.value,
+        value_formatted: formatDuration(item.value, 'days'),
+        method: item.method,
+        outliers: item.outliers,
       })),
     };
   }
@@ -192,8 +193,11 @@ export class PullRequestsController {
     );
 
     return rows.map((row) => ({
-      ...row,
-      avg_days_formatted: formatDuration(row.avg_days, 'days'),
+      period: row.period,
+      value: row.value,
+      value_formatted: formatDuration(row.value, 'days'),
+      method: row.method,
+      outliers: row.outliers,
     }));
   }
 
@@ -225,7 +229,7 @@ export class PullRequestsController {
       ),
       method
     );
-    return { avg_comments: metrics.averageComments, outliers: metrics.outliers?.comments };
+    return { avg_comments: metrics.comments, outliers: metrics.outliers?.comments };
   }
 
   @Get('/pull-requests/comments-by-author')
@@ -294,8 +298,12 @@ export class PullRequestsController {
 
     return {
       result: result.map((item) => ({
-        ...item,
-        avg_hours_formatted: formatDuration(item.avg_hours, 'hours'),
+        author: item.author,
+        value: item.value,
+        value_formatted: formatDuration(item.value, 'hours'),
+        method: item.method,
+        prs_with_comments: item.prs_with_comments,
+        outliers: item.outliers,
       })),
     };
   }

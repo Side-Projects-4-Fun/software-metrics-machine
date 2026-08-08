@@ -91,7 +91,9 @@ describe('Insights context', () => {
           workflow_name: '.github/workflows/ci.yml',
           job_name: 'ci',
           total_runs: 10,
-          avg_duration_minutes: 8,
+          value: 8,
+          value_formatted: '8 min',
+          method: 'average',
           success_count: 7,
           failure_count: 3,
           success_rate: 70,
@@ -101,7 +103,7 @@ describe('Insights context', () => {
       ],
     } as never);
     mockPullRequestAPI.averageReviewTime.mockResolvedValue({
-      result: [{ author: 'alice', avg_hours: 30 }],
+      result: [{ author: 'alice', value: 1.25, value_formatted: '1.25 days', method: 'average' }],
     } as never);
     mockPullRequestAPI.summary.mockResolvedValue({
       result: {

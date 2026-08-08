@@ -53,10 +53,7 @@ export class PipelineEvaluationController {
       ...evaluation,
       summary: {
         ...evaluation.summary,
-        averageDurationMinutes_formatted: formatDuration(
-          evaluation.summary.averageDurationMinutes,
-          'minutes'
-        ),
+        durationMinutes_formatted: formatDuration(evaluation.summary.durationMinutes, 'minutes'),
       },
     };
   }

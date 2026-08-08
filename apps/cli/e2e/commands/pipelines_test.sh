@@ -57,14 +57,14 @@ function test_pipelines_help_renders_successfully() {
   assert_smm_output_contains "summary"
 
   run_smm pipelines fetch --help
-  assert_smm_success
   assert_smm_output_contains "--force"
   assert_smm_output_contains "--by-day"
+  assert_smm_success
 
   run_smm pipelines fetch-jobs --help
-  assert_smm_success
   assert_smm_output_contains "--run-start-date"
   assert_smm_output_contains "--raw-filters"
+  assert_smm_success
 }
 
 function test_pipelines_fetch_uses_mocked_github_with_all_options() {
@@ -83,9 +83,9 @@ function test_pipelines_fetch_uses_mocked_github_with_all_options() {
   unset DEBUG
   unset SMM_STORE_DATA_AT
 
-  assert_smm_success
   assert_smm_output_contains "Fetching pipeline runs from the configured Git provider"
   assert_smm_output_contains "Fetch pipeline data has been completed and stored on disk"
+  assert_smm_success
 }
 
 function test_pipelines_fetch_jobs_uses_mocked_github_with_all_options() {
@@ -105,9 +105,9 @@ function test_pipelines_fetch_jobs_uses_mocked_github_with_all_options() {
   unset DEBUG
   unset SMM_STORE_DATA_AT
 
-  assert_smm_success
   assert_smm_output_contains "Fetching pipeline jobs from the configured Git provider"
   assert_smm_output_contains "Fetch pipeline jobs has been completed and stored on disk"
+  assert_smm_success
 }
 
 function test_pipelines_summary_renders_cached_workflow_metrics() {
@@ -120,11 +120,11 @@ function test_pipelines_summary_renders_cached_workflow_metrics() {
     --weekends exclude \
     --outlier-mode flag
 
-  assert_smm_success
   assert_smm_output_contains '"total_runs": 2'
   assert_smm_output_contains '"successful_runs": 1'
   assert_smm_output_contains '"failed_runs": 1'
-  assert_smm_output_contains '"average_duration_minutes": 15'
+  assert_smm_output_contains '"value": 15'
+  assert_smm_success
 }
 
 function test_pipelines_by_status_renders_cached_workflow_statuses() {
@@ -134,10 +134,10 @@ function test_pipelines_by_status_renders_cached_workflow_statuses() {
     --output json \
     --raw-filters "status=completed"
 
-  assert_smm_success
   assert_smm_output_contains '"successful": 1'
   assert_smm_output_contains '"failed": 1'
   assert_smm_output_contains '"total": 2'
+  assert_smm_success
 }
 
 function test_pipelines_runs_duration_renders_cached_duration_average() {
@@ -201,11 +201,11 @@ function test_pipelines_runs_by_period() {
     --output json \
     --raw-filters "status=completed"
 
-  assert_smm_success
   assert_smm_output_contains '"period": "2026-02-03"'
   assert_smm_output_contains '"period": "2026-02-04"'
   assert_smm_output_contains '"runs": 1'
   assert_smm_output_contains '".github/workflows/deploy.yml"'
+  assert_smm_success
 }
 
 function test_pipelines_jobs_summary_renders_cached_job_metrics() {
@@ -218,12 +218,12 @@ function test_pipelines_jobs_summary_renders_cached_job_metrics() {
     --weekends exclude \
     --outlier-mode flag
 
-  assert_smm_success
   assert_smm_output_contains '"job_name": "build"'
   assert_smm_output_contains '"total_runs": 2'
   assert_smm_output_contains '"failure_count": 1'
   assert_smm_output_contains '"job_name": "deploy"'
   assert_smm_output_contains '"total_runs": 1'
+  assert_smm_success
 }
 
 function test_pipelines_jobs_time_execution_renders_cached_job_averages() {
@@ -237,7 +237,7 @@ function test_pipelines_jobs_time_execution_renders_cached_job_averages() {
     --outlier-mode flag
 
   assert_smm_output_contains '"job_name": "build"'
-  assert_smm_output_contains '"avg_duration_minutes": 12.5'
+  assert_smm_output_contains '"value": 12.5'
   assert_smm_output_contains '"failure_count": 1'
   assert_smm_output_contains '"success_count": 1'
   assert_smm_success
@@ -276,10 +276,10 @@ function test_pipelines_jobs_steps_time_with_all_options() {
     --weekends exclude \
     --outlier-mode flag
 
-  assert_smm_success
   assert_smm_output_contains '"name": "Checkout"'
   assert_smm_output_contains '"name": "Test"'
   assert_smm_output_contains '"count": 2'
+  assert_smm_success
 }
 
 function test_pipelines_jobs_by_status_renders_cached_job_statuses() {
@@ -291,11 +291,11 @@ function test_pipelines_jobs_by_status_renders_cached_job_statuses() {
     --weekends exclude \
     --outlier-mode flag
 
-  assert_smm_success
   assert_smm_output_contains '"job_name": "build"'
   assert_smm_output_contains '"success_rate": 50'
   assert_smm_output_contains '"job_name": "deploy"'
   assert_smm_output_contains '"success_rate": 100'
+  assert_smm_success
 }
 
 function test_pipelines_deployment_frequency_renders_configured_target_counts() {
@@ -306,11 +306,11 @@ function test_pipelines_deployment_frequency_renders_configured_target_counts() 
     --output json \
     --raw-filters "status=completed"
 
-  assert_smm_success
   assert_smm_output_contains '"pipeline": ".github/workflows/deploy.yml"'
   assert_smm_output_contains '"job": "deploy"'
   assert_smm_output_contains '"daily_counts": 1'
   assert_smm_output_contains '"months": "2026-02"'
+  assert_smm_success
 }
 
 function test_pipelines_lead_time_renders_cached_average() {
@@ -322,8 +322,8 @@ function test_pipelines_lead_time_renders_cached_average() {
     --weekends exclude \
     --outlier-mode flag
 
-  assert_smm_success
   assert_smm_output_contains '"leadTime": 0.25'
+  assert_smm_success
 }
 
 function test_pipelines_summary_applies_saved_filter() {

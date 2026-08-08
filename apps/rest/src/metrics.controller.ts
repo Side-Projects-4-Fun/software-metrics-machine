@@ -98,22 +98,23 @@ export class MetricsController {
       });
 
       return {
-        averageOpenDays: metrics.averageOpenDays,
-        averageOpenDays_formatted: formatDuration(metrics.averageOpenDays, 'days'),
+        openDays: metrics.openDays,
+        openDays_formatted: formatDuration(metrics.openDays, 'days'),
         totalPRs: metrics.totalPRs,
         mergedPRs: metrics.mergedPRs,
         closedPRs: metrics.closedPRs,
         openPRs: metrics.openPRs,
-        averageComments: metrics.averageComments,
+        comments: metrics.comments,
         most_commented_prs: metrics.most_commented_prs,
         leadTime: metrics.leadTime,
         leadTime_formatted: formatDuration(metrics.leadTime, 'hours'),
+        method: metrics.method,
         commentSummary: metrics.commentSummary,
         labelSummary: metrics.labelSummary?.map((label) => ({
           label: label.label,
           count: label.count,
-          averageOpenDays: label.averageOpenDays,
-          averageOpenDays_formatted: formatDuration(label.averageOpenDays, 'days'),
+          openDays: label.openDays,
+          openDays_formatted: formatDuration(label.openDays, 'days'),
         })),
       };
     } catch (error) {
@@ -239,22 +240,23 @@ export class MetricsController {
       ]);
 
       const formattedPRs: MetricsPRResponse = {
-        averageOpenDays: pullRequests.averageOpenDays,
-        averageOpenDays_formatted: formatDuration(pullRequests.averageOpenDays, 'days'),
+        openDays: pullRequests.openDays,
+        openDays_formatted: formatDuration(pullRequests.openDays, 'days'),
         totalPRs: pullRequests.totalPRs,
         mergedPRs: pullRequests.mergedPRs,
         closedPRs: pullRequests.closedPRs,
         openPRs: pullRequests.openPRs,
-        averageComments: pullRequests.averageComments,
+        comments: pullRequests.comments,
         most_commented_prs: pullRequests.most_commented_prs,
         leadTime: pullRequests.leadTime,
         leadTime_formatted: formatDuration(pullRequests.leadTime, 'hours'),
+        method: pullRequests.method,
         commentSummary: pullRequests.commentSummary,
         labelSummary: pullRequests.labelSummary?.map((label) => ({
           label: label.label,
           count: label.count,
-          averageOpenDays: label.averageOpenDays,
-          averageOpenDays_formatted: formatDuration(label.averageOpenDays, 'days'),
+          openDays: label.openDays,
+          openDays_formatted: formatDuration(label.openDays, 'days'),
         })),
       };
 

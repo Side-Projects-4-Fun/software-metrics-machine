@@ -85,7 +85,8 @@ describe('Recommendations', () => {
               workflow_name: '.github/workflows/ci.yml',
               job_name: 'test',
               success_rate: 80,
-              avg_duration_minutes: 3,
+              value: 3,
+              method: 'average',
               rerun_count: 0,
               total_runs: 50,
             },
@@ -108,7 +109,8 @@ describe('Recommendations', () => {
             {
               job_name: 'deploy',
               success_rate: 60,
-              avg_duration_minutes: 3,
+              value: 3,
+              method: 'average',
               rerun_count: 0,
               total_runs: 10,
             },
@@ -129,7 +131,8 @@ describe('Recommendations', () => {
             {
               job_name: 'test',
               success_rate: 95,
-              avg_duration_minutes: 3,
+              value: 3,
+              method: 'average',
               rerun_count: 0,
               total_runs: 50,
             },
@@ -152,7 +155,8 @@ describe('Recommendations', () => {
               workflow_name: '.github/workflows/ci.yml',
               job_name: 'flaky-test',
               success_rate: 90,
-              avg_duration_minutes: 4,
+              value: 4,
+              method: 'average',
               rerun_count: 5,
               total_runs: 100,
             },
@@ -173,7 +177,8 @@ describe('Recommendations', () => {
             {
               job_name: 'stable-job',
               success_rate: 95,
-              avg_duration_minutes: 3,
+              value: 3,
+              method: 'average',
               rerun_count: 0,
               total_runs: 50,
             },
@@ -195,7 +200,8 @@ describe('Recommendations', () => {
               workflow_name: '.github/workflows/ci.yml',
               job_name: 'slow-job',
               success_rate: 95,
-              avg_duration_minutes: 8,
+              value: 8,
+              method: 'average',
               rerun_count: 0,
               total_runs: 50,
             },
@@ -216,7 +222,8 @@ describe('Recommendations', () => {
             {
               job_name: 'fast-job',
               success_rate: 95,
-              avg_duration_minutes: 3,
+              value: 3,
+              method: 'average',
               rerun_count: 0,
               total_runs: 50,
             },
@@ -229,19 +236,19 @@ describe('Recommendations', () => {
   });
 
   describe('PR Review Time', () => {
-    it('shows warning when average review time exceeds 24 hours', () => {
+    it('shows warning when average review time exceeds 24 hours (1 day)', () => {
       renderWithProviders(
         <Recommendations
           {...defaultProps}
           averageReviewTime={[
-            { author: 'alice', avg_hours: 30 },
-            { author: 'bob', avg_hours: 36 },
+            { author: 'alice', value: 1.25, method: 'average' },
+            { author: 'bob', value: 1.5, method: 'average' },
           ]}
         />
       );
 
       expect(screen.getByText('Speed Up Code Reviews')).toBeInTheDocument();
-      expect(screen.getByText(/Average review time is 33.0h/)).toBeInTheDocument();
+      expect(screen.getByText(/Average review time is 1.4d/)).toBeInTheDocument();
     });
 
     it('shows success when review time is within target', () => {
@@ -249,14 +256,14 @@ describe('Recommendations', () => {
         <Recommendations
           {...defaultProps}
           averageReviewTime={[
-            { author: 'alice', avg_hours: 12 },
-            { author: 'bob', avg_hours: 18 },
+            { author: 'alice', value: 0.5, method: 'average' },
+            { author: 'bob', value: 0.75, method: 'average' },
           ]}
         />
       );
 
       expect(screen.getByText('Review Time on Track')).toBeInTheDocument();
-      expect(screen.getByText(/Average review time is 15.0h/)).toBeInTheDocument();
+      expect(screen.getByText(/Average review time is 0.6d/)).toBeInTheDocument();
     });
   });
 
@@ -328,12 +335,13 @@ describe('Recommendations', () => {
             {
               job_name: 'test',
               success_rate: 95,
-              avg_duration_minutes: 3,
+              value: 3,
+              method: 'average',
               rerun_count: 0,
               total_runs: 50,
             },
           ]}
-          averageReviewTime={[{ author: 'alice', avg_hours: 12 }]}
+          averageReviewTime={[{ author: 'alice', value: 0.5, method: 'average' }]}
           prSummary={{ total: 10, merged: 9, closed: 1, open: 0 }}
           deploymentFrequency={[{ pipeline: 'deploy', job: 'prod', day_count: 5 }]}
         />

@@ -22,10 +22,11 @@ interface PREvaluationData {
     mergedPRs: number;
     openPRs: number;
     avgCommentsPerPR: number;
-    avgReviewHours: number;
-    avgReviewHours_formatted: string;
-    avgOpenDays: number;
-    avgOpenDays_formatted: string;
+    reviewHours: number;
+    reviewHours_formatted: string;
+    openDays: number;
+    openDays_formatted: string;
+    method: string;
     uniqueAuthors: number;
     topReviewer?: string;
     bottleneckAuthor?: string;
@@ -81,6 +82,9 @@ export default function PREvaluationCard({
     ? (summary.mergedPRs / summary.totalPRs) * 100
     : 0;
 
+  const openTimeRating = ratingColor(1 / Math.max(summary.openDays, 0.001), 0.8, 0.3);
+  const reviewTimeRating = ratingColor(1 / Math.max(summary.reviewHours, 0.001), 0.15, 0.05);
+
   return (
     <div className="space-y-4">
       <Card>
@@ -101,10 +105,10 @@ export default function PREvaluationCard({
                 {mergeRate.toFixed(0)}%
               </p>
             </div>
-            <div className={`rounded-lg p-3 text-center ${ratingColor(1 / Math.max(summary.avgOpenDays, 0.001), 0.8, 0.3)}`}>
+            <div className={`rounded-lg p-3 text-center ${openTimeRating}`}>
               <p className="text-xs text-gray-500">{openTimeLabel}</p>
               <p className="text-xl font-bold">
-                {summary.avgOpenDays_formatted}
+                {summary.openDays_formatted}
               </p>
             </div>
             <div className="bg-blue-50 rounded-lg p-3 text-center">
@@ -119,10 +123,10 @@ export default function PREvaluationCard({
                 {summary.avgCommentsPerPR.toFixed(1)}
               </p>
             </div>
-            <div className={`rounded-lg p-3 text-center ${ratingColor(1 / Math.max(summary.avgReviewHours, 0.001), 0.15, 0.05)}`}>
+            <div className={`rounded-lg p-3 text-center ${reviewTimeRating}`}>
               <p className="text-xs text-gray-500">{reviewTimeLabel}</p>
               <p className="text-xl font-bold">
-                {summary.avgReviewHours_formatted}
+                {summary.reviewHours_formatted}
               </p>
             </div>
             <div className="bg-blue-50 rounded-lg p-3 text-center">

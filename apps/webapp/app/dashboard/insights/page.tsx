@@ -136,8 +136,9 @@ export default async function InsightsSection({
           workflow_name: job.workflow_name,
           job_name: job.job_name || 'Unknown',
           total_runs: job.total_runs || 0,
-          avg_duration_minutes: job.avg_duration_minutes || 0,
-          avg_duration_minutes_formatted: job.avg_duration_minutes_formatted,
+          value: job.value || 0,
+          value_formatted: job.value_formatted,
+          method: job.method,
           success_count: job.success_count || 0,
           failure_count: job.failure_count || 0,
           success_rate: job.success_rate || 0,
@@ -153,8 +154,9 @@ export default async function InsightsSection({
     averageReviewTime = Array.isArray(reviewTimeResult)
       ? reviewTimeResult.map((item: AverageReviewTimeItem): AverageReviewTimeItem => ({
           author: item.author || 'Unknown',
-          avg_hours: item.avg_hours || 0,
-          avg_hours_formatted: item.avg_hours_formatted,
+          value: item.value || 0,
+          value_formatted: item.value_formatted,
+          method: item.method,
         }))
       : [];
 
@@ -191,7 +193,6 @@ export default async function InsightsSection({
         jobsSummary={jobsSummary}
         selectedWorkflow={filters.workflowSelector}
         averageReviewTime={averageReviewTime}
-        pipelineSummary={pipelineSummary ?? undefined}
       />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>

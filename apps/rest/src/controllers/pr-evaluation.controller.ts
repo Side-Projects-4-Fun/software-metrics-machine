@@ -157,8 +157,8 @@ export class PREvaluationController {
       ...evaluation,
       summary: {
         ...evaluation.summary,
-        avgReviewHours_formatted: formatDuration(evaluation.summary.avgReviewHours, 'hours'),
-        avgOpenDays_formatted: formatDuration(evaluation.summary.avgOpenDays, 'days'),
+        reviewHours_formatted: formatDuration(evaluation.summary.reviewHours, 'hours'),
+        openDays_formatted: formatDuration(evaluation.summary.openDays, 'days'),
       },
     };
   }

@@ -39,9 +39,9 @@ export interface IPRsService {
   ): Promise<
     Array<{
       author: string;
-      avg_hours: number;
-      prs_with_comments: number;
+      value: number;
       method: MetricMethod;
+      prs_with_comments: number;
       outliers?: Array<MetricOutlier<PRAverageOutlierItem>>;
     }>
   >;
@@ -57,7 +57,7 @@ export interface IPRsService {
   ): Promise<
     Array<{
       author: string;
-      avg_days: number;
+      value: number;
       method: MetricMethod;
       outliers?: Array<MetricOutlier<PRAverageOutlierItem>>;
     }>
@@ -69,7 +69,7 @@ export interface IPRsService {
   ): Promise<
     Array<{
       period: string;
-      avg_days: number;
+      value: number;
       method: MetricMethod;
       outliers?: Array<MetricOutlier<PRAverageOutlierItem>>;
     }>
@@ -132,12 +132,12 @@ export class PRsService implements IPRsService {
     );
 
     return {
-      averageOpenDays: Math.round(averageOpenDays * 100) / 100,
+      openDays: Math.round(averageOpenDays * 100) / 100,
       totalPRs: prs.length,
       mergedPRs: mergedPRs.length,
       closedPRs: closedPRs.length,
       openPRs: openPRs.length,
-      averageComments: Math.round(averageComments * 100) / 100,
+      comments: Math.round(averageComments * 100) / 100,
       most_commented_prs: mostCommentedPRs,
       leadTime: Math.round(averageOpenDays * 100) / 100,
       method,
@@ -254,7 +254,7 @@ export class PRsService implements IPRsService {
       result.push({
         label,
         count: labelPRs.length,
-        averageOpenDays: Math.round(averageOpenDays * 100) / 100,
+        openDays: Math.round(averageOpenDays * 100) / 100,
         outliers: this.shouldExposeOutliers(filters?.cleaning)
           ? cleanedOpenDays.outliers
           : undefined,
@@ -394,7 +394,7 @@ export class PRsService implements IPRsService {
   ): Promise<
     Array<{
       author: string;
-      avg_days: number;
+      value: number;
       method: MetricMethod;
       outliers?: Array<MetricOutlier<PRAverageOutlierItem>>;
     }>
@@ -422,12 +422,12 @@ export class PRsService implements IPRsService {
         const cleaned = this.cleanPRSamples(values, filters?.cleaning);
         return {
           author,
-          avg_days: computeMetricSamples(cleaned.samples, method),
+          value: computeMetricSamples(cleaned.samples, method),
           method,
           outliers: this.shouldExposeOutliers(filters?.cleaning) ? cleaned.outliers : undefined,
         };
       })
-      .sort((a, b) => b.avg_days - a.avg_days)
+      .sort((a, b) => b.value - a.value)
       .slice(0, maxRows);
   }
 
@@ -437,7 +437,7 @@ export class PRsService implements IPRsService {
   ): Promise<
     Array<{
       author: string;
-      avg_days: number;
+      value: number;
       method: MetricMethod;
       outliers?: Array<MetricOutlier<PRAverageOutlierItem>>;
     }>
@@ -452,7 +452,7 @@ export class PRsService implements IPRsService {
   ): Promise<
     Array<{
       period: string;
-      avg_days: number;
+      value: number;
       method: MetricMethod;
       outliers?: Array<MetricOutlier<PRAverageOutlierItem>>;
     }>
@@ -479,7 +479,7 @@ export class PRsService implements IPRsService {
         const cleaned = this.cleanPRSamples(values, filters?.cleaning);
         return {
           period,
-          avg_days: computeMetricSamples(cleaned.samples, method),
+          value: computeMetricSamples(cleaned.samples, method),
           method,
           outliers: this.shouldExposeOutliers(filters?.cleaning) ? cleaned.outliers : undefined,
         };
@@ -493,7 +493,7 @@ export class PRsService implements IPRsService {
   ): Promise<
     Array<{
       period: string;
-      avg_days: number;
+      value: number;
       method: MetricMethod;
       outliers?: Array<MetricOutlier<PRAverageOutlierItem>>;
     }>
@@ -549,8 +549,8 @@ export class PRsService implements IPRsService {
     return {
       period,
       count: prs.length,
-      averageOpenDays: Math.round(openDays * 100) / 100,
-      averageComments: Math.round(comments * 100) / 100,
+      openDays: Math.round(openDays * 100) / 100,
+      comments: Math.round(comments * 100) / 100,
       method,
       outliers: this.shouldExposeOutliers(cleaning)
         ? {
@@ -733,9 +733,9 @@ export class PRsService implements IPRsService {
   ): Promise<
     Array<{
       author: string;
-      avg_hours: number;
-      prs_with_comments: number;
+      value: number;
       method: MetricMethod;
+      prs_with_comments: number;
       outliers?: Array<MetricOutlier<PRAverageOutlierItem>>;
     }>
   > {
@@ -780,13 +780,13 @@ export class PRsService implements IPRsService {
         const cleaned = this.cleanPRSamples(values, filters?.cleaning);
         return {
           author,
-          avg_hours: computeMetricSamples(cleaned.samples, method),
-          prs_with_comments: cleaned.samples.length,
+          value: computeMetricSamples(cleaned.samples, method),
           method,
+          prs_with_comments: cleaned.samples.length,
           outliers: this.shouldExposeOutliers(filters?.cleaning) ? cleaned.outliers : undefined,
         };
       })
-      .sort((a, b) => b.avg_hours - a.avg_hours)
+      .sort((a, b) => b.value - a.value)
       .slice(0, maxRows);
   }
 

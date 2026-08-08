@@ -306,9 +306,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
           screen.printLine(`Successful Runs: ${summary.successful_runs}`);
           screen.printLine(`Failed Runs: ${summary.failed_runs}`);
           screen.printLine(`Success Rate: ${(summary.success_rate * 100).toFixed(1)}%`);
-          screen.printLine(
-            `Average Duration: ${formatDuration(summary.average_duration_minutes, 'minutes')}`
-          );
+          screen.printLine(`Average Duration: ${formatDuration(summary.value, 'minutes')}`);
         }
       } catch (error) {
         logger.error('Failed to generate pipeline summary', error);
@@ -392,16 +390,14 @@ export function createPipelinesCommands(program: SmmCommand): void {
         const { summary } = await pipelineImplementation.dashboard(buildPipelineFilters(merged));
 
         if (options.output === 'json') {
-          screen.printLine(
-            JSON.stringify({ averageDuration: summary.average_duration_minutes }, null, 2)
-          );
+          screen.printLine(JSON.stringify({ averageDuration: summary.value }, null, 2));
         } else {
           screen.printLine(`\n=== ${metricMethod.toUpperCase()} Pipeline Run Durations ===\n`);
           if (options.workflow) {
             screen.printLine(`Workflow: ${options.workflow}`);
           }
           screen.printLine(
-            `${metricMethod.charAt(0).toUpperCase() + metricMethod.slice(1)} Duration: ${formatDuration(summary.average_duration_minutes, 'minutes')}`
+            `${metricMethod.charAt(0).toUpperCase() + metricMethod.slice(1)} Duration: ${formatDuration(summary.value, 'minutes')}`
           );
           screen.printLine(`Total Runs: ${summary.total_runs}`);
         }
@@ -489,9 +485,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
             screen.printLine(`Reruns: ${item.rerun_count}`);
             screen.printLine(`Success rate: ${item.success_rate}%`);
             screen.printLine(`Failure rate: ${item.failure_rate}%`);
-            screen.printLine(
-              `Average Duration Minutes: ${formatDuration(item.avg_duration_minutes, 'minutes')}`
-            );
+            screen.printLine(`Average Duration Minutes: ${formatDuration(item.value, 'minutes')}`);
             printOutliers(screen, item.outliers);
             screen.printLine(`Failure count: ${item.failure_count}`);
             screen.printLine('\n\n');
@@ -549,7 +543,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
             screen.printLine(`Failure count: ${item.failure_count}`);
             screen.printLine(`Success rate: ${item.success_rate}`);
             screen.printLine(
-              `${metricMethod.charAt(0).toUpperCase() + metricMethod.slice(1)} Execution Time: ${formatDuration(item.avg_duration_minutes, 'minutes')}`
+              `${metricMethod.charAt(0).toUpperCase() + metricMethod.slice(1)} Execution Time: ${formatDuration(item.value, 'minutes')}`
             );
             printOutliers(screen, item.outliers);
           });
@@ -603,7 +597,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
           job_steps_average_time.forEach((item) => {
             screen.printLine(`Step: ${item.name}`);
             screen.printLine(
-              `Execution Time: ${formatDuration(item.averageDurationMinutes, 'minutes')} (${item.count} executions, method: ${metricMethod})`
+              `Execution Time: ${formatDuration(item.value, 'minutes')} (${item.count} executions, method: ${metricMethod})`
             );
             printOutliers(screen, item.outliers);
             screen.printLine('');
@@ -660,9 +654,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
             screen.printLine(
               `❌ Failed: ${item.failure_count}, failure rate: ${item.failure_rate}%`
             );
-            screen.printLine(
-              `Average duration: ${formatDuration(item.avg_duration_minutes, 'minutes')}`
-            );
+            screen.printLine(`Average duration: ${formatDuration(item.value, 'minutes')}`);
             printOutliers(screen, item.outliers);
           });
         }
@@ -761,15 +753,13 @@ export function createPipelinesCommands(program: SmmCommand): void {
 
         const { summary } = await pipelineImplementation.dashboard(buildPipelineFilters(merged));
 
-        const leadTimeHours = summary.average_duration_minutes / 60;
+        const leadTimeHours = summary.value / 60;
 
         if (options.output === 'json') {
           screen.printLine(JSON.stringify({ leadTime: leadTimeHours }, null, 2));
         } else {
           screen.printLine('\n=== Lead Time for Changes (DORA) ===\n');
-          screen.printLine(
-            `Lead Time: ${formatDuration(summary.average_duration_minutes, 'minutes')}`
-          );
+          screen.printLine(`Lead Time: ${formatDuration(summary.value, 'minutes')}`);
 
           // DORA rating
           let rating = 'Low';

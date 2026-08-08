@@ -83,7 +83,8 @@ export interface PipelineMetrics {
   successfulRuns: number;
   failedRuns: number;
   successRate: number; // percentage
-  averageDurationMinutes: number;
+  value: number;
+  method: MetricMethod;
   outliers?: PipelineAverageOutlier[];
 }
 
@@ -91,7 +92,8 @@ export interface JobMetrics {
   jobName: string;
   workflowName?: string;
   totalRuns: number;
-  averageDurationMinutes: number;
+  value: number;
+  method: MetricMethod;
   successCount: number;
   failureCount: number;
   successRate: number;
@@ -151,12 +153,14 @@ export interface PipelineDashboardSummary {
   skipped_runs: number;
   timed_out_runs: number;
   success_rate: number;
-  average_duration_minutes: number;
+  value: number;
+  method: MetricMethod;
 }
 
 export interface PipelineDashboardRunsDurationItem {
   workflow: string;
-  avg_duration: number;
+  value: number;
+  method: MetricMethod;
   min_duration: number;
   max_duration: number;
   total_runs: number;
@@ -172,14 +176,16 @@ export interface PipelineDashboardRunsByItem {
 export interface PipelineDashboardJobsAverageTimeItem {
   job_name: string;
   workflow_name?: string;
-  avg_time: number;
+  value: number;
+  method: MetricMethod;
   count: number;
   outliers?: PipelineAverageOutlier[];
 }
 
 export interface PipelineDashboardJobsAverageTimeByDayItem {
   day: string;
-  avg_time: number;
+  value: number;
+  method: MetricMethod;
   count: number;
   outliers?: PipelineAverageOutlier[];
 }
@@ -193,7 +199,8 @@ export interface PipelineDashboardJobsSummaryItem {
   workflow_name?: string;
   job_name: string;
   total_runs: number;
-  avg_duration_minutes: number;
+  value: number;
+  method: MetricMethod;
   success_count: number;
   failure_count: number;
   success_rate: number;
@@ -209,7 +216,8 @@ export interface PipelineDashboardRerunsByDayItem {
 
 export interface PipelineDashboardStepsAverageTimeItem {
   name: string;
-  averageDurationMinutes: number;
+  value: number;
+  method: MetricMethod;
   count: number;
   outliers?: PipelineAverageOutlier[];
 }
@@ -218,7 +226,8 @@ export interface PipelineDashboardStepsAverageTimeByDayItem {
   day: string;
   steps: Array<{
     name: string;
-    averageDurationMinutes: number;
+    value: number;
+    method: MetricMethod;
     outliers?: PipelineAverageOutlier[];
   }>;
 }

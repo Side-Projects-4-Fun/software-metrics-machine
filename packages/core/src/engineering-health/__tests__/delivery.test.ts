@@ -22,7 +22,7 @@ function buildDependencies(): EngineeringHealthDependencies {
             successfulRuns: 3,
             failedRuns: 0,
             successRate: 100,
-            averageDurationMinutes: 14,
+            value: 14,
             outliers: [],
           };
         }
@@ -32,7 +32,7 @@ function buildDependencies(): EngineeringHealthDependencies {
           successfulRuns: 1,
           failedRuns: 1,
           successRate: 50,
-          averageDurationMinutes: 9,
+          value: 9,
           outliers: [],
         };
       }),

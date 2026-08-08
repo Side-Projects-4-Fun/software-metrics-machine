@@ -34,8 +34,9 @@ interface EvaluationData {
   }>;
   summary: {
     totalRuns: number;
-    averageDurationMinutes: number;
-    averageDurationMinutes_formatted: string;
+    durationMinutes: number;
+    durationMinutes_formatted: string;
+    method: string;
     successRate: number;
     failureRate: number;
     totalReruns: number;
@@ -94,8 +95,9 @@ export default async function PipelinesPage({
     const durationData: RunsDurationData[] = Array.isArray(data.runs_duration)
       ? data.runs_duration.map((d) => ({
           workflow: d.workflow || 'Unknown',
-          avg_duration: d.avg_duration ?? 0,
-          avg_duration_formatted: d.avg_duration_formatted ?? '',
+          value: d.value ?? 0,
+          value_formatted: d.value_formatted ?? '',
+          method: d.method ?? '',
           min_duration: d.min_duration ?? 0,
           min_duration_formatted: d.min_duration_formatted ?? '',
           max_duration: d.max_duration ?? 0,
@@ -118,8 +120,9 @@ export default async function PipelinesPage({
       ? data.jobs_average_time.map((a) => ({
           job_name: a.job_name || 'Unknown',
           workflow_name: a.workflow_name,
-          avg_time: a.avg_time || 0,
-          avg_time_formatted: a.avg_time_formatted ?? '',
+          value: a.value || 0,
+          value_formatted: a.value_formatted ?? '',
+          method: a.method ?? '',
           count: a.count || 0,
           outliers: a.outliers,
         }))
@@ -128,8 +131,9 @@ export default async function PipelinesPage({
     const avgTimeByDayData: JobsAverageTimeByDayData[] = Array.isArray(data.jobs_average_time_by_day)
       ? data.jobs_average_time_by_day.map((a) => ({
           day: a.day || 'Unknown',
-          avg_time: a.avg_time || 0,
-          avg_time_formatted: a.avg_time_formatted ?? '',
+          value: a.value || 0,
+          value_formatted: a.value_formatted ?? '',
+          method: a.method ?? '',
           count: a.count || 0,
           outliers: a.outliers,
         }))
@@ -140,8 +144,9 @@ export default async function PipelinesPage({
           workflow_name: item.workflow_name,
           job_name: item.job_name || 'Unknown',
           total_runs: item.total_runs || 0,
-          avg_duration_minutes: item.avg_duration_minutes || 0,
-          avg_duration_minutes_formatted: item.avg_duration_minutes_formatted ?? '',
+          value: item.value || 0,
+          value_formatted: item.value_formatted ?? '',
+          method: item.method ?? '',
           success_count: item.success_count || 0,
           failure_count: item.failure_count || 0,
           success_rate: item.success_rate || 0,
@@ -178,8 +183,9 @@ export default async function PipelinesPage({
     if (Array.isArray(data.job_steps_average_time)) {
       jobStepsTime = data.job_steps_average_time.map((item) => ({
         name: item.name || 'Unknown',
-        averageDurationMinutes: item.averageDurationMinutes || 0,
-        averageDurationMinutes_formatted: item.averageDurationMinutes_formatted ?? '',
+        value: item.value || 0,
+        value_formatted: item.value_formatted ?? '',
+        method: item.method ?? '',
         count: item.count || 0,
         outliers: item.outliers,
       }));
@@ -191,7 +197,7 @@ export default async function PipelinesPage({
       jobStepsTimeByDay = jobStepsByDayRaw.map((item) => {
         const obj: JobStepsAverageTimeByDayData = { day: item.day };
         item.steps.forEach((step) => {
-          obj[step.name] = step.averageDurationMinutes;
+          obj[step.name] = step.value;
         });
         return obj;
       });

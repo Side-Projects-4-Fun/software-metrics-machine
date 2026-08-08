@@ -45,9 +45,9 @@ describe('PRsService', () => {
     expect(metrics.mergedPRs).toBe(1);
     expect(metrics.closedPRs).toBe(0);
     expect(metrics.openPRs).toBe(1);
-    expect(metrics.averageOpenDays).toBe(2);
+    expect(metrics.openDays).toBe(2);
     expect(metrics.leadTime).toBe(2);
-    expect(metrics.averageComments).toBe(3.5);
+    expect(metrics.comments).toBe(3.5);
     expect(metrics.most_commented_prs).toEqual([
       {
         pull_request_id: 1,
@@ -206,8 +206,8 @@ describe('PRsService', () => {
     const metrics = await prsService.getMetricsByMonth();
 
     expect(metrics).toEqual([
-      expect.objectContaining({ period: '2025-01', count: 1, averageOpenDays: 2 }),
-      expect.objectContaining({ period: '2025-02', count: 1, averageOpenDays: 3 }),
+      expect.objectContaining({ period: '2025-01', count: 1, openDays: 2 }),
+      expect.objectContaining({ period: '2025-02', count: 1, openDays: 3 }),
     ]);
   });
 
@@ -236,8 +236,8 @@ describe('PRsService', () => {
     expect(metrics).toEqual([
       // 2025-01-03 (Fri) is in ISO week 2025-W01 (the week containing Jan 4th);
       // 2025-01-08 (Wed) is in ISO week 2025-W02.
-      expect.objectContaining({ period: '2025-W01', count: 1, averageOpenDays: 2 }),
-      expect.objectContaining({ period: '2025-W02', count: 1, averageOpenDays: 2 }),
+      expect.objectContaining({ period: '2025-W01', count: 1, openDays: 2 }),
+      expect.objectContaining({ period: '2025-W02', count: 1, openDays: 2 }),
     ]);
   });
 
@@ -266,8 +266,8 @@ describe('PRsService', () => {
     const labels = await prsService.getLabelSummaries();
 
     expect(labels).toEqual([
-      { label: 'enhancement', count: 1, averageOpenDays: 2, outliers: undefined },
-      { label: 'bugfix', count: 1, averageOpenDays: 4, outliers: undefined },
+      { label: 'enhancement', count: 1, openDays: 2, outliers: undefined },
+      { label: 'bugfix', count: 1, openDays: 4, outliers: undefined },
     ]);
   });
 
@@ -291,7 +291,7 @@ describe('PRsService', () => {
     expect(metrics.totalPRs).toBe(1);
     expect(metrics.mergedPRs).toBe(1);
     expect(metrics.openPRs).toBe(0);
-    expect(metrics.averageComments).toBe(5);
+    expect(metrics.comments).toBe(5);
   });
 
   it('should filter PRs by state merged', async () => {
@@ -313,7 +313,7 @@ describe('PRsService', () => {
     expect(metrics.mergedPRs).toBe(1);
     expect(metrics.closedPRs).toBe(0);
     expect(metrics.openPRs).toBe(0);
-    expect(metrics.averageOpenDays).toBe(2);
+    expect(metrics.openDays).toBe(2);
   });
 
   describe('getMetrics', () => {
@@ -385,7 +385,7 @@ describe('PRsService', () => {
       expect(metrics.closedPRs).toBe(1);
       expect(metrics.mergedPRs).toBe(1);
       expect(metrics.totalPRs).toBe(4);
-      expect(metrics.averageComments).toBe(0);
+      expect(metrics.comments).toBe(0);
     });
 
     it('should exclude PRs with zero or negative totalComments from most_commented_prs', async () => {
@@ -425,8 +425,8 @@ describe('PRsService', () => {
       const metrics = await prsService.getMetrics();
 
       expect(metrics.totalPRs).toBe(0);
-      expect(metrics.averageOpenDays).toBe(0);
-      expect(metrics.averageComments).toBe(0);
+      expect(metrics.openDays).toBe(0);
+      expect(metrics.comments).toBe(0);
       expect(metrics.most_commented_prs).toEqual([]);
     });
   });
@@ -507,7 +507,7 @@ describe('PRsService', () => {
 
       const labels = await prsService.getLabelSummaries();
 
-      expect(labels).toEqual([{ label: 'bug', count: 1, averageOpenDays: expect.any(Number) }]);
+      expect(labels).toEqual([{ label: 'bug', count: 1, openDays: expect.any(Number) }]);
     });
 
     it('should use closedAt to compute open days for a closed-not-merged labeled PR', async () => {
@@ -527,7 +527,7 @@ describe('PRsService', () => {
 
       const labels = await prsService.getLabelSummaries();
 
-      expect(labels).toEqual([{ label: 'bug', count: 1, averageOpenDays: 2 }]);
+      expect(labels).toEqual([{ label: 'bug', count: 1, openDays: 2 }]);
     });
 
     it('should accumulate two PRs sharing the same label under one entry', async () => {
@@ -550,7 +550,7 @@ describe('PRsService', () => {
 
       const labels = await prsService.getLabelSummaries();
 
-      expect(labels).toEqual([{ label: 'bug', count: 2, averageOpenDays: expect.any(Number) }]);
+      expect(labels).toEqual([{ label: 'bug', count: 2, openDays: expect.any(Number) }]);
     });
   });
 
@@ -877,7 +877,7 @@ describe('PRsService', () => {
 
       expect(result).toHaveLength(1);
       expect(result[0].author).toBe('alice');
-      expect(result[0].avg_days).toBe(2);
+      expect(result[0].value).toBe(2);
     });
   });
 
@@ -911,8 +911,8 @@ describe('PRsService', () => {
 
       expect(result).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ author: 'alice', avg_days: 2, method: 'average' }),
-          expect.objectContaining({ author: 'bob', avg_days: 1, method: 'average' }),
+          expect.objectContaining({ author: 'alice', value: 2, method: 'average' }),
+          expect.objectContaining({ author: 'bob', value: 1, method: 'average' }),
         ])
       );
     });
@@ -959,7 +959,7 @@ describe('PRsService', () => {
       const result = await prsService.getAverageOpenBy();
 
       expect(result).toEqual([
-        { period: expect.any(String), avg_days: 0, method: 'average', outliers: undefined },
+        { period: expect.any(String), value: 0, method: 'average', outliers: undefined },
       ]);
     });
 
@@ -980,7 +980,7 @@ describe('PRsService', () => {
       const result = await prsService.getAverageOpenBy();
 
       expect(result).toEqual([
-        { period: expect.any(String), avg_days: 2, method: 'average', outliers: undefined },
+        { period: expect.any(String), value: 2, method: 'average', outliers: undefined },
       ]);
     });
 
@@ -1238,7 +1238,7 @@ describe('PRsService', () => {
       expect(defaultTop).toHaveLength(10);
       expect(explicitTop).toHaveLength(3);
       expect(defaultTop[0]).toMatchObject({
-        avg_hours: 1,
+        value: 1,
         prs_with_comments: 1,
         method: 'average',
       });
@@ -1267,7 +1267,7 @@ describe('PRsService', () => {
       expect(result).toEqual([
         {
           author: 'alice',
-          avg_hours: 1,
+          value: 1,
           prs_with_comments: 1,
           method: 'average',
           outliers: undefined,

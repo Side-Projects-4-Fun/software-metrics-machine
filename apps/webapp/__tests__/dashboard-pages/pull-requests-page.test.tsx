@@ -39,9 +39,9 @@ function Providers({ children }: { children: React.ReactNode }): React.ReactElem
 
 function setupMockApiResponse() {
   mockPRAPI.byAuthor.mockResolvedValue({ result: [{ author: 'alice', count: 12 }, { author: 'bob', count: 8 }] });
-  mockPRAPI.averageReviewTime.mockResolvedValue({ result: [{ author: 'alice', avg_hours: 4.5 }, { author: 'bob', avg_hours: 2.1 }] });
+  mockPRAPI.averageReviewTime.mockResolvedValue({ result: [{ author: 'alice', value: 4.5, value_formatted: '4.5 days', method: 'average' }, { author: 'bob', value: 2.1, value_formatted: '2.1 days', method: 'average' }] });
   mockPRAPI.openThroughTime.mockResolvedValue({ result: [{ date: '2026-01-01', kind: 'Opened', count: 3 }, { date: '2026-01-01', kind: 'Closed', count: 2 }] });
-  mockPRAPI.averageOpenBy.mockResolvedValue({ result: [{ period: '2026-01', avg_days: 2.3 }] });
+  mockPRAPI.averageOpenBy.mockResolvedValue({ result: [{ period: '2026-01', value: 2.3, value_formatted: '2.3 days', method: 'average' }] });
   mockPRAPI.averageComments.mockResolvedValue({ result: { avg_comments: 3.5 } });
   mockPRAPI.summary.mockResolvedValue({ result: {
     total: 20, merged: 15, closed: 3, open: 2,
@@ -50,11 +50,11 @@ function setupMockApiResponse() {
     most_commented_prs: [{ number: 1, title: 'Fix bug', comments: 5 }],
   } });
   mockPRAPI.commentsByAuthor.mockResolvedValue({ result: [{ author: 'alice', count: 8 }, { author: 'bob', count: 5 }] });
-  mockPRAPI.firstCommentTime.mockResolvedValue({ result: [{ author: 'alice', avg_hours: 1.2, prs_with_comments: 10 }] });
+  mockPRAPI.firstCommentTime.mockResolvedValue({ result: [{ author: 'alice', value: 1.2, value_formatted: '1.2 h', method: 'average', prs_with_comments: 10 }] });
   mockPRAPI.evaluate.mockResolvedValue({
     generatedAt: '2026-01-01T00:00:00Z',
     signals: [{ id: 'review-time', title: 'Review Time', description: 'Good', severity: 'good', category: 'review', metrics: [] }],
-    summary: { totalPRs: 20, mergedPRs: 15, openPRs: 2, avgCommentsPerPR: 3.5, avgReviewHours: 3.3, avgOpenDays: 2.3, uniqueAuthors: 2 },
+    summary: { totalPRs: 20, mergedPRs: 15, openPRs: 2, avgCommentsPerPR: 3.5, reviewHours: 3.3, reviewHours_formatted: '3.3 h', openDays: 2.3, openDays_formatted: '2.3 days', method: 'average', uniqueAuthors: 2 },
   });
 }
 

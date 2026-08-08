@@ -26,8 +26,9 @@ export const pipelineAPI = {
       workflow_name?: string;
       job_name: string;
       total_runs: number;
-      avg_duration_minutes: number;
-      avg_duration_minutes_formatted: string;
+      value: number;
+      value_formatted: string;
+      method: string;
       success_count: number;
       failure_count: number;
       success_rate: number;
@@ -56,8 +57,9 @@ export const pipelineAPI = {
       aggregation?: 'avg' | 'min' | 'max';
       duration?: number;
       duration_formatted?: string;
-      avg_duration?: number;
-      avg_duration_formatted?: string;
+      value?: number;
+      value_formatted?: string;
+      method?: string;
       min_duration?: number;
       min_duration_formatted?: string;
       max_duration?: number;
@@ -88,26 +90,26 @@ export const pipelineAPI = {
     ),
   
   jobsAverageTime: (params?: ApiParams) =>
-    fetchAPI<Array<{ job_name: string; avg_time: number; avg_time_formatted: string; count: number; outliers?: MetricOutlier[] }>>(
+    fetchAPI<Array<{ job_name: string; value: number; value_formatted: string; method: string; count: number; outliers?: MetricOutlier[] }>>(
       '/pipelines/jobs-average-time',
       params
     ),
 
   jobsAverageTimeByDay: (params?: ApiParams) =>
-    fetchAPI<Array<{ day: string; avg_time: number; avg_time_formatted: string; count: number; outliers?: MetricOutlier[] }>>(
+    fetchAPI<Array<{ day: string; value: number; value_formatted: string; method: string; count: number; outliers?: MetricOutlier[] }>>(
       '/pipelines/jobs-average-time-by-day',
       params
     ),
 
   jobStepsAverageTime: (params?: ApiParams) =>
     fetchAPI<{
-      result: Array<{ name: string; averageDurationMinutes: number; averageDurationMinutes_formatted: string; count: number; outliers?: MetricOutlier[] }>;
+      result: Array<{ name: string; value: number; value_formatted: string; method: string; count: number; outliers?: MetricOutlier[] }>;
       total_average_minutes: number;
       total_average_minutes_formatted: string;
     }>('/pipelines/jobs-steps-average-time', params),
 
   jobStepsAverageTimeByDay: (params?: ApiParams) =>
-    fetchAPI<Array<{ day: string; steps: Array<{ name: string; averageDurationMinutes: number; averageDurationMinutes_formatted: string; outliers?: MetricOutlier[] }> }>>(
+    fetchAPI<Array<{ day: string; steps: Array<{ name: string; value: number; value_formatted: string; method: string; outliers?: MetricOutlier[] }> }>>(
       '/pipelines/jobs-steps-average-time-by-day',
       params
     ),
@@ -122,8 +124,9 @@ export const pipelineAPI = {
       jobs_by_status: Array<{ Status: string; Count: number }>;
       runs_duration: Array<{
         workflow: string;
-        avg_duration: number;
-        avg_duration_formatted: string;
+        value: number;
+        value_formatted: string;
+        method: string;
         min_duration: number;
         min_duration_formatted: string;
         max_duration: number;
@@ -135,15 +138,17 @@ export const pipelineAPI = {
       jobs_average_time: Array<{
         job_name: string;
         workflow_name?: string;
-        avg_time: number;
-        avg_time_formatted: string;
+        value: number;
+        value_formatted: string;
+        method: string;
         count: number;
         outliers?: MetricOutlier[];
       }>;
       jobs_average_time_by_day: Array<{
         day: string;
-        avg_time: number;
-        avg_time_formatted: string;
+        value: number;
+        value_formatted: string;
+        method: string;
         count: number;
         outliers?: MetricOutlier[];
       }>;
@@ -156,8 +161,9 @@ export const pipelineAPI = {
         workflow_name?: string;
         job_name: string;
         total_runs: number;
-        avg_duration_minutes: number;
-        avg_duration_minutes_formatted: string;
+        value: number;
+        value_formatted: string;
+        method: string;
         success_count: number;
         failure_count: number;
         success_rate: number;
@@ -168,8 +174,9 @@ export const pipelineAPI = {
       jobs_reruns_by_day: Array<{ day: string; rerun_count: number }>;
       job_steps_average_time: Array<{
         name: string;
-        averageDurationMinutes: number;
-        averageDurationMinutes_formatted: string;
+        value: number;
+        value_formatted: string;
+        method: string;
         count: number;
         outliers?: MetricOutlier[];
       }>;
@@ -179,8 +186,9 @@ export const pipelineAPI = {
         day: string;
         steps: Array<{
           name: string;
-          averageDurationMinutes: number;
-          averageDurationMinutes_formatted: string;
+          value: number;
+          value_formatted: string;
+          method: string;
           outliers?: MetricOutlier[];
         }>;
       }>;
@@ -199,8 +207,9 @@ export const pipelineAPI = {
       }>;
       summary: {
         totalRuns: number;
-        averageDurationMinutes: number;
-        averageDurationMinutes_formatted: string;
+        durationMinutes: number;
+        durationMinutes_formatted: string;
+        method: string;
         successRate: number;
         failureRate: number;
         totalReruns: number;

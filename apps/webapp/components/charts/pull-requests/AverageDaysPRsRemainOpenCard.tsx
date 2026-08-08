@@ -9,7 +9,7 @@ import { formatMetricLabel } from '@/utils/formatMetricMethod';
 
 export default function AverageDaysPRsRemainOpenCard({ data, method }: { data: AvgOpenByData[]; method?: string }) {
   const openLabel = formatMetricLabel(method, 'Days Open');
-  const formattedMap = new Map<number, string>(data.map((item) => [item.avg_days, item.avg_days_formatted]));
+  const formattedMap = new Map<number, string>(data.map((item) => [item.value, item.value_formatted]));
   return (
     <Card>
       <CardHeader>
@@ -26,7 +26,7 @@ export default function AverageDaysPRsRemainOpenCard({ data, method }: { data: A
             <YAxis tickFormatter={(value) => formattedMap.get(Number(value)) ?? String(Number(value) || 0)} />
             <Tooltip formatter={(value: unknown) => formattedMap.get(Number(value)) ?? String(Number(value) || 0)} />
             <Legend />
-            <Line type="monotone" dataKey="avg_days" stroke="#82ca9d" name={openLabel} />
+            <Line type="monotone" dataKey="value" stroke="#82ca9d" name={openLabel} />
           </LineChart>
         </ResponsiveContainer>
       </CardContent>

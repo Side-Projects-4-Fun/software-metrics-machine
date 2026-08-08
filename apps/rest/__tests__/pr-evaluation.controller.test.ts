@@ -31,13 +31,11 @@ function createMockPRsService() {
     }),
     getReviewTime: vi.fn().mockResolvedValue({
       result: [
-        { author: 'alice', avg_days: 0.5 },
-        { author: 'bob', avg_days: 1.2 },
+        { author: 'alice', value: 0.5, method: 'average' },
+        { author: 'bob', value: 1.2, method: 'average' },
       ],
     }),
-    getOpenTimeBy: vi
-      .fn()
-      .mockResolvedValue([{ period: '2025-01', avg_days: 2, method: 'average' }]),
+    getOpenTimeBy: vi.fn().mockResolvedValue([{ period: '2025-01', value: 2, method: 'average' }]),
     getByAuthor: vi.fn().mockResolvedValue({
       result: [
         { author: 'alice', count: 12 },
@@ -51,7 +49,7 @@ function createMockPRsService() {
       ],
     }),
     getFirstCommentTime: vi.fn().mockResolvedValue({
-      result: [{ author: 'alice', avg_hours: 3, prs_with_comments: 10 }],
+      result: [{ author: 'alice', value: 3, method: 'average', prs_with_comments: 10 }],
     }),
     getThroughTime: vi.fn().mockResolvedValue([
       { period: '2025-01', count: 12, kind: 'Opened' },

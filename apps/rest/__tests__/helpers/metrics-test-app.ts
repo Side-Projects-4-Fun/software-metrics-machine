@@ -4,6 +4,7 @@ import type { INestApplication } from '@nestjs/common';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { MetricsController } from '../../src/metrics.controller';
 import { HttpExceptionFilter, AllExceptionsFilter } from '../../src/filters/http-exception.filter';
+import type { ICodeMetricsRepository } from '@smmachine/core';
 import {
   IssuesRepository,
   PairingIndexService,
@@ -44,12 +45,12 @@ export async function createMetricsTestApp(): Promise<{
   const services: MockedMetricsServices = {
     prsService: {
       getMetrics: vi.fn().mockResolvedValue({
-        averageOpenDays: 3.5,
+        openDays: 3.5,
         totalPRs: 42,
         mergedPRs: 30,
         closedPRs: 8,
         openPRs: 4,
-        averageComments: 3.7,
+        comments: 3.7,
         most_commented_prs: [],
         leadTime: 2.5,
         method: 'average',
@@ -66,8 +67,10 @@ export async function createMetricsTestApp(): Promise<{
       getJobMetrics: vi.fn().mockResolvedValue([{ jobName: 'build', avgDuration: 120 }]),
     },
     codeMetricsRepository: {
-      getCodeChurn: vi.fn().mockResolvedValue({ data: { additions: 1520, deletions: 890 } }),
-      getFileCoupling: vi.fn().mockResolvedValue([]),
+      getCodeChurn: vi.fn<ICodeMetricsRepository['getCodeChurn']>().mockResolvedValue({
+        data: [{ date: '2024-01-01', added: 1520, deleted: 890, commits: 3 }],
+      }),
+      getFileCoupling: vi.fn<ICodeMetricsRepository['getFileCoupling']>().mockResolvedValue([]),
     },
     issuesRepository: {
       getIssues: vi.fn().mockResolvedValue(

@@ -77,12 +77,12 @@ export interface PRAverageOutlierItem {
 export type PRAverageOutlier = MetricOutlier<PRAverageOutlierItem>;
 
 export interface PRMetrics {
-  averageOpenDays: number;
+  openDays: number;
   totalPRs: number;
   mergedPRs: number;
   closedPRs: number;
   openPRs: number;
-  averageComments: number;
+  comments: number;
   most_commented_prs: MostCommentedPRData[];
   leadTime: number;
   method: MetricMethod;
@@ -164,7 +164,8 @@ export interface CommentAuthor {
 
 export interface FirstCommentMetric {
   author: string;
-  avg_hours: number;
+  value: number;
+  method: MetricMethod;
   prs_with_comments: number;
   outliers?: PRAverageOutlier[];
 }
@@ -179,8 +180,8 @@ export interface MostCommentedPRData {
 export interface PRsByTimeframe {
   period: string;
   count: number;
-  averageOpenDays: number;
-  averageComments: number;
+  openDays: number;
+  comments: number;
   method: MetricMethod;
   outliers?: {
     openDays: PRAverageOutlier[];
@@ -191,6 +192,6 @@ export interface PRsByTimeframe {
 export interface LabelSummary {
   label: string;
   count: number;
-  averageOpenDays: number;
+  openDays: number;
   outliers?: PRAverageOutlier[];
 }

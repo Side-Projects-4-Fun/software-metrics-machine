@@ -69,17 +69,22 @@ export interface IPipelinesService {
   ): Promise<
     Array<{
       name: string;
-      averageDurationMinutes: number;
+      value: number;
+      method: MetricMethod;
       count: number;
       outliers?: PipelineAverageOutlier[];
     }>
   >;
-  getJobStepsAverageTimeByDay(filters?: PipelineFilters): Promise<
+  getJobStepsAverageTimeByDay(
+    filters?: PipelineFilters,
+    method?: MetricMethod
+  ): Promise<
     Array<{
       day: string;
       steps: Array<{
         name: string;
-        averageDurationMinutes: number;
+        value: number;
+        method: MetricMethod;
         outliers?: PipelineAverageOutlier[];
       }>;
     }>

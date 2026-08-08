@@ -116,7 +116,8 @@ export class PipelineImplementation {
       skipped_runs: skipped,
       timed_out_runs: timedOut,
       success_rate: Math.round(successRate * 100) / 100,
-      average_duration_minutes: Math.round(avgDuration * 100) / 100,
+      value: Math.round(avgDuration * 100) / 100,
+      method,
     };
   }
 
@@ -171,7 +172,8 @@ export class PipelineImplementation {
 
         return {
           workflow,
-          avg_duration: avgDuration,
+          value: avgDuration,
+          method,
           min_duration: minDuration,
           max_duration: maxDuration,
           total_runs: n,
@@ -246,7 +248,8 @@ export class PipelineImplementation {
         return {
           job_name: jobNameValue,
           workflow_name: data.workflowName,
-          avg_time: computeMetricSamples(cleaned.samples, method),
+          value: computeMetricSamples(cleaned.samples, method),
+          method,
           count: cleaned.samples.length,
           outliers:
             cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
@@ -300,7 +303,8 @@ export class PipelineImplementation {
         const cleaned = cleanMetricSamples(samples, cleaning);
         return {
           day,
-          avg_time: computeMetricSamples(cleaned.samples, method),
+          value: computeMetricSamples(cleaned.samples, method),
+          method,
           count: cleaned.samples.length,
           outliers:
             cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
@@ -462,7 +466,8 @@ export class PipelineImplementation {
         workflow_name: metrics.workflowName,
         job_name: metrics.jobName,
         total_runs: metrics.totalRuns,
-        avg_duration_minutes: avgDuration,
+        value: avgDuration,
+        method,
         success_count: metrics.successCount,
         failure_count: metrics.failureCount,
         success_rate: successRate,
@@ -536,7 +541,8 @@ export class PipelineImplementation {
       const avg = computeMetricSamples(cleaned.samples, method);
       result.push({
         name,
-        averageDurationMinutes: Math.round(avg * 100) / 100,
+        value: Math.round(avg * 100) / 100,
+        method,
         count: cleaned.samples.length,
         outliers:
           cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
@@ -605,7 +611,8 @@ export class PipelineImplementation {
         const avg = computeMetricSamples(cleaned.samples, method);
         steps.push({
           name,
-          averageDurationMinutes: Math.round(avg * 100) / 100,
+          value: Math.round(avg * 100) / 100,
+          method,
           outliers:
             cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
               ? (cleaned.outliers as PipelineAverageOutlier[])

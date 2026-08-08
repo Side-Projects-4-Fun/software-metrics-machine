@@ -36,16 +36,16 @@ function makeData(overrides: Partial<PRDashboardData> = {}): PRDashboardData {
   return {
     summary: makeSummary(),
     reviewTime: [
-      { author: 'alice', avg_days: 0.5 },
-      { author: 'bob', avg_days: 1.2 },
-      { author: 'charlie', avg_days: 3.5 },
-      { author: 'dave', avg_days: 0.8 },
+      { author: 'alice', value: 0.5 },
+      { author: 'bob', value: 1.2 },
+      { author: 'charlie', value: 3.5 },
+      { author: 'dave', value: 0.8 },
     ],
     openTime: [
-      { period: '2025-01', avg_days: 2.1, method: 'average' },
-      { period: '2025-02', avg_days: 2.3, method: 'average' },
-      { period: '2025-03', avg_days: 2.8, method: 'average' },
-      { period: '2025-04', avg_days: 4.5, method: 'average' },
+      { period: '2025-01', value: 2.1, method: 'average' },
+      { period: '2025-02', value: 2.3, method: 'average' },
+      { period: '2025-03', value: 2.8, method: 'average' },
+      { period: '2025-04', value: 4.5, method: 'average' },
     ],
     byAuthor: [
       { author: 'alice', count: 12 },
@@ -58,8 +58,8 @@ function makeData(overrides: Partial<PRDashboardData> = {}): PRDashboardData {
       { author: 'reviewer-c', count: 15 },
     ],
     firstCommentTime: [
-      { author: 'alice', avg_hours: 3, prs_with_comments: 10 },
-      { author: 'charlie', avg_hours: 28, prs_with_comments: 7 },
+      { author: 'alice', value: 3, method: 'average', prs_with_comments: 10 },
+      { author: 'charlie', value: 28, method: 'average', prs_with_comments: 7 },
     ],
     throughput: [
       { period: '2025-01', opened: 12, closed: 10 },
@@ -111,8 +111,8 @@ describe('PREvaluationService', () => {
     it('reports good when all authors have fast reviews', () => {
       const data = makeData({
         reviewTime: [
-          { author: 'alice', avg_hours: 4 },
-          { author: 'bob', avg_hours: 8 },
+          { author: 'alice', value: 0.2 },
+          { author: 'bob', value: 0.4 },
         ],
       });
       const result = service.evaluate(data);
@@ -125,8 +125,8 @@ describe('PREvaluationService', () => {
     it('includes second author when multiple slow reviews exist', () => {
       const data = makeData({
         reviewTime: [
-          { author: 'alice', avg_days: 3.5 },
-          { author: 'bob', avg_days: 2.5 },
+          { author: 'alice', value: 3.5 },
+          { author: 'bob', value: 2.5 },
         ],
       });
       const result = service.evaluate(data);
@@ -173,10 +173,10 @@ describe('PREvaluationService', () => {
     it('flags rising open time as warning', () => {
       const data = makeData({
         openTime: [
-          { period: '2025-01', avg_days: 2, method: 'average' },
-          { period: '2025-02', avg_days: 2.2, method: 'average' },
-          { period: '2025-03', avg_days: 5, method: 'average' },
-          { period: '2025-04', avg_days: 6, method: 'average' },
+          { period: '2025-01', value: 2, method: 'average' },
+          { period: '2025-02', value: 2.2, method: 'average' },
+          { period: '2025-03', value: 5, method: 'average' },
+          { period: '2025-04', value: 6, method: 'average' },
         ],
       });
       const result = service.evaluate(data);
@@ -189,8 +189,8 @@ describe('PREvaluationService', () => {
     it('reports good when open time is low and stable', () => {
       const data = makeData({
         openTime: [
-          { period: '2025-03', avg_days: 1.5, method: 'average' },
-          { period: '2025-04', avg_days: 1.3, method: 'average' },
+          { period: '2025-03', value: 1.5, method: 'average' },
+          { period: '2025-04', value: 1.3, method: 'average' },
         ],
       });
       const result = service.evaluate(data);
@@ -233,8 +233,8 @@ describe('PREvaluationService', () => {
     it('flags slow first response as critical', () => {
       const data = makeData({
         firstCommentTime: [
-          { author: 'alice', avg_hours: 2, prs_with_comments: 10 },
-          { author: 'bob', avg_hours: 48, prs_with_comments: 5 },
+          { author: 'alice', value: 2, method: 'average', prs_with_comments: 10 },
+          { author: 'bob', value: 48, method: 'average', prs_with_comments: 5 },
         ],
       });
       const result = service.evaluate(data);
@@ -247,8 +247,8 @@ describe('PREvaluationService', () => {
     it('reports good when response is fast', () => {
       const data = makeData({
         firstCommentTime: [
-          { author: 'alice', avg_hours: 2, prs_with_comments: 10 },
-          { author: 'bob', avg_hours: 3, prs_with_comments: 8 },
+          { author: 'alice', value: 2, method: 'average', prs_with_comments: 10 },
+          { author: 'bob', value: 3, method: 'average', prs_with_comments: 8 },
         ],
       });
       const result = service.evaluate(data);

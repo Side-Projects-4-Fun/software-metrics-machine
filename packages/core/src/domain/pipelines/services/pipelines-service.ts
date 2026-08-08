@@ -109,7 +109,8 @@ export class PipelinesService implements IPipelinesService {
       successfulRuns: successful.length,
       failedRuns: failed.length,
       successRate: Math.round(successRate * 100) / 100,
-      averageDurationMinutes: Math.round(averageDuration * 100) / 100,
+      value: Math.round(averageDuration * 100) / 100,
+      method,
       outliers: this.shouldExposeOutliers(filters?.cleaning)
         ? cleanedDurations.outliers
         : undefined,
@@ -288,7 +289,8 @@ export class PipelinesService implements IPipelinesService {
             jobName,
             workflowName,
             totalRuns: 0,
-            averageDurationMinutes: 0,
+            value: 0,
+            method,
             successCount: 0,
             failureCount: 0,
             successRate: 0,
@@ -344,7 +346,7 @@ export class PipelinesService implements IPipelinesService {
       }
       const cleanedDurations = this.cleanPipelineSamples(durationSamples, filters?.cleaning);
 
-      metrics.averageDurationMinutes =
+      metrics.value =
         cleanedDurations.samples.length > 0
           ? Math.round(computeMetricSamples(cleanedDurations.samples, method) * 100) / 100
           : 0;
@@ -398,7 +400,8 @@ export class PipelinesService implements IPipelinesService {
   ): Promise<
     Array<{
       name: string;
-      averageDurationMinutes: number;
+      value: number;
+      method: MetricMethod;
       count: number;
       outliers?: PipelineAverageOutlier[];
     }>
@@ -429,7 +432,8 @@ export class PipelinesService implements IPipelinesService {
 
     const result: Array<{
       name: string;
-      averageDurationMinutes: number;
+      value: number;
+      method: MetricMethod;
       count: number;
       outliers?: PipelineAverageOutlier[];
     }> = [];
@@ -439,7 +443,8 @@ export class PipelinesService implements IPipelinesService {
       const avg = computeMetricSamples(cleaned.samples, method);
       result.push({
         name,
-        averageDurationMinutes: Math.round(avg * 100) / 100,
+        value: Math.round(avg * 100) / 100,
+        method,
         count: cleaned.samples.length,
         outliers: this.shouldExposeOutliers(filters?.cleaning) ? cleaned.outliers : undefined,
       });
@@ -459,7 +464,8 @@ export class PipelinesService implements IPipelinesService {
       day: string;
       steps: Array<{
         name: string;
-        averageDurationMinutes: number;
+        value: number;
+        method: MetricMethod;
         outliers?: PipelineAverageOutlier[];
       }>;
     }>
@@ -501,7 +507,8 @@ export class PipelinesService implements IPipelinesService {
       day: string;
       steps: Array<{
         name: string;
-        averageDurationMinutes: number;
+        value: number;
+        method: MetricMethod;
         outliers?: PipelineAverageOutlier[];
       }>;
     }> = [];
@@ -513,7 +520,8 @@ export class PipelinesService implements IPipelinesService {
         const avg = computeMetricSamples(cleaned.samples, method);
         steps.push({
           name,
-          averageDurationMinutes: Math.round(avg * 100) / 100,
+          value: Math.round(avg * 100) / 100,
+          method,
           outliers: this.shouldExposeOutliers(filters?.cleaning) ? cleaned.outliers : undefined,
         });
       }

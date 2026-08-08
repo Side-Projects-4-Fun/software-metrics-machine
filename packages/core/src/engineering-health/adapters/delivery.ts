@@ -127,11 +127,12 @@ export class LeadTimeMetric extends TargetScopedDeliveryMetric {
     );
 
     return {
-      value: dashboard.summary.average_duration_minutes,
+      value: dashboard.summary.value,
       unit: 'minutes',
       direction: 'lower_is_better',
       details: {
         totalRuns: dashboard.summary.total_runs,
+        method: dashboard.summary.method,
       },
     };
   }
@@ -153,12 +154,13 @@ export class PipelineDurationMetric extends TargetScopedDeliveryMetric {
     const metrics = await this.dependencies.pipelinesService.getMetrics(toPipelineFilters(input));
 
     return {
-      value: metrics.averageDurationMinutes,
+      value: metrics.value,
       unit: 'minutes',
       direction: 'lower_is_better',
       sampleSize: metrics.totalRuns,
       details: {
         outliers: metrics.outliers?.length || 0,
+        method: metrics.method,
       },
     };
   }

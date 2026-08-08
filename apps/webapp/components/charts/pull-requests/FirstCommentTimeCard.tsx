@@ -17,7 +17,7 @@ export default function FirstCommentTimeCard({ data, method }: { data: FirstComm
     window.open(url, '_blank');
   };
 
-  const formattedMap = new Map<number, string>(data.map((item) => [item.avg_hours, item.avg_hours_formatted]));
+  const formattedMap = new Map<number, string>(data.map((item) => [item.value, item.value_formatted]));
 
   return (
     <Card>
@@ -37,7 +37,7 @@ export default function FirstCommentTimeCard({ data, method }: { data: FirstComm
             <Tooltip formatter={(value: unknown) => formattedMap.get(Number(value)) ?? String(Number(value) || 0)} />
             <Legend />
             <Bar
-              dataKey="avg_hours"
+              dataKey="value"
               fill="#82ca9d"
               name={hoursLabel}
               onClick={(e) => handleBarClick(e.payload)}

@@ -112,7 +112,7 @@ function test_prs_by_month_renders_cached_pull_request_metrics() {
   assert_smm_success
   assert_smm_output_contains '"period": "2026-01"'
   assert_smm_output_contains '"count": 2'
-  assert_smm_output_contains '"averageComments": 0.5'
+  assert_smm_output_contains '"comments": 0.5'
 }
 
 function test_prs_by_week_renders_cached_pull_request_metrics() {
@@ -125,7 +125,7 @@ function test_prs_by_week_renders_cached_pull_request_metrics() {
 
   assert_smm_success
   assert_smm_output_contains '"count": 1'
-  assert_smm_output_contains '"averageComments": 1'
+  assert_smm_output_contains '"comments": 1'
 }
 
 function test_prs_through_time_renders_opened_and_closed_counts() {

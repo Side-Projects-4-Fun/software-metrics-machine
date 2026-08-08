@@ -252,6 +252,7 @@ All config comes from environment variables consumed by `Configuration` class (`
 - **Webapp tests: prioritize user flow tests** in `apps/webapp/__tests__/dashboard-pages/` over granular component tests — they give confidence to refactor without breaking tests.
 
 ### ❌ NEVER DO
+- **Use comments instead of tests.** Reinforce behavior through tests; if a test cannot express the invariant, re-evaluate the situation and find a better solution that avoids the comment. Comments that merely describe what code does or reference a test that already enforces it are duplicated and rot — prefer runtime assertions that fail CI over documentation that is never read.
 - Add `"type": "module"` to `packages/core` or `packages/utils`
 - Import from `src/` paths directly — always use the package name (`@smmachine/core`)
 - Change module system of existing packages without discussion

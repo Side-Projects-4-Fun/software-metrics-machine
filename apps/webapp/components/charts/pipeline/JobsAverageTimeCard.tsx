@@ -26,10 +26,10 @@ export default function JobsAverageTimeCard({ data, dataByDay }: JobsAverageTime
   const avgTimeTickMap = react.useMemo(() => {
     const map = new Map<number, string>();
     for (const item of data) {
-      map.set(item.avg_time, item.avg_time_formatted);
+      map.set(item.value, item.value_formatted);
     }
     for (const item of dataByDay) {
-      map.set(item.avg_time, item.avg_time_formatted);
+      map.set(item.value, item.value_formatted);
     }
     return map;
   }, [data, dataByDay]);
@@ -106,7 +106,7 @@ export default function JobsAverageTimeCard({ data, dataByDay }: JobsAverageTime
               <YAxis yAxisId="right" orientation="right" />
               <Tooltip formatter={formatTooltipTime} />
               <Legend />
-              <Bar dataKey="avg_time" yAxisId="left" fill="#82ca9d" name={avgTimeLabel} onClick={(e) => handleBarClick(e.payload)} style={{ cursor: 'pointer' }} />
+              <Bar dataKey="value" yAxisId="left" fill="#82ca9d" name={avgTimeLabel} onClick={(e) => handleBarClick(e.payload)} style={{ cursor: 'pointer' }} />
               <Bar dataKey="count" yAxisId="right" fill="#60a5fa" name="Runs Count" />
             </BarChart>
           </ResponsiveContainer>
@@ -121,7 +121,7 @@ export default function JobsAverageTimeCard({ data, dataByDay }: JobsAverageTime
               <YAxis yAxisId="right" orientation="right" />
               <Tooltip formatter={formatTooltipTime} />
               <Legend />
-              <Line yAxisId="left" type="monotone" dataKey="avg_time" stroke="#82ca9d" name={avgTimeLabel} dot={{ r: 4 }} />
+              <Line yAxisId="left" type="monotone" dataKey="value" stroke="#82ca9d" name={avgTimeLabel} dot={{ r: 4 }} />
               <Line yAxisId="right" type="monotone" dataKey="count" stroke="#60a5fa" name="Runs Count" dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>

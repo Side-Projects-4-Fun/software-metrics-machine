@@ -19,8 +19,9 @@ interface PipelineEvaluationData {
   signals: BottleneckSignal[];
   summary: {
     totalRuns: number;
-    averageDurationMinutes: number;
-    averageDurationMinutes_formatted: string;
+    durationMinutes: number;
+    durationMinutes_formatted: string;
+    method: string;
     successRate: number;
     failureRate: number;
     totalReruns: number;
@@ -60,7 +61,7 @@ export default function PipelineEvaluationCard({
   method?: string;
 }) {
   const { signals, summary } = data;
-  const durationLabel = formatMetricLabel(method, 'Duration');
+  const durationLabel = formatMetricLabel(method ?? summary.method, 'Duration');
 
   const sortedSignals = [...signals].sort((a, b) => {
     const order: Record<Severity, number> = { critical: 0, warning: 1, good: 2 };
@@ -84,7 +85,7 @@ export default function PipelineEvaluationCard({
             <div className="bg-blue-50 rounded-lg p-3 text-center">
               <p className="text-xs text-gray-500">{durationLabel}</p>
               <p className="text-xl font-bold text-blue-700">
-                {summary.averageDurationMinutes_formatted}
+                {summary.durationMinutes_formatted}
               </p>
             </div>
             <div
