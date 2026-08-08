@@ -38,18 +38,22 @@ export interface EngineeringHealthEvaluation {
     };
     value: {
       value: number | null;
+      value_formatted: string;
       unit: string;
       direction: 'higher_is_better' | 'lower_is_better' | 'neutral';
       sampleSize?: number;
-      series?: Array<{ period: string; value: number }>;
+      series?: Array<{ period: string; value: number; value_formatted: string }>;
       details?: Record<string, unknown>;
     };
     comparison: {
       trend: 'improving' | 'stable' | 'degrading' | 'unknown';
       delta: number | null;
+      delta_formatted: string;
       deltaPercentage: number | null;
       current: number | null;
+      current_formatted: string;
       previous: number | null;
+      previous_formatted: string;
       summary: string;
     };
     summary: {

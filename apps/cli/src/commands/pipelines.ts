@@ -7,6 +7,7 @@ import {
   type PipelineFilters,
   PipelineFactory,
 } from '@smmachine/core';
+import { formatDuration } from '@smmachine/utils';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 import { DeploymentFrequencyService } from '@smmachine/core/domain/pipelines/services/deployment-frequency-service';
 import { resolveSavedFilterOptions } from './helpers/filter-helper';
@@ -306,7 +307,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
           screen.printLine(`Failed Runs: ${summary.failed_runs}`);
           screen.printLine(`Success Rate: ${(summary.success_rate * 100).toFixed(1)}%`);
           screen.printLine(
-            `Average Duration: ${summary.average_duration_minutes.toFixed(2)} minutes`
+            `Average Duration: ${formatDuration(summary.average_duration_minutes, 'minutes')}`
           );
         }
       } catch (error) {
@@ -400,7 +401,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
             screen.printLine(`Workflow: ${options.workflow}`);
           }
           screen.printLine(
-            `${metricMethod.charAt(0).toUpperCase() + metricMethod.slice(1)} Duration: ${summary.average_duration_minutes.toFixed(2)} minutes`
+            `${metricMethod.charAt(0).toUpperCase() + metricMethod.slice(1)} Duration: ${formatDuration(summary.average_duration_minutes, 'minutes')}`
           );
           screen.printLine(`Total Runs: ${summary.total_runs}`);
         }
@@ -488,7 +489,9 @@ export function createPipelinesCommands(program: SmmCommand): void {
             screen.printLine(`Reruns: ${item.rerun_count}`);
             screen.printLine(`Success rate: ${item.success_rate}%`);
             screen.printLine(`Failure rate: ${item.failure_rate}%`);
-            screen.printLine(`Average Duration Minutes: ${item.avg_duration_minutes}`);
+            screen.printLine(
+              `Average Duration Minutes: ${formatDuration(item.avg_duration_minutes, 'minutes')}`
+            );
             printOutliers(screen, item.outliers);
             screen.printLine(`Failure count: ${item.failure_count}`);
             screen.printLine('\n\n');
@@ -546,7 +549,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
             screen.printLine(`Failure count: ${item.failure_count}`);
             screen.printLine(`Success rate: ${item.success_rate}`);
             screen.printLine(
-              `${metricMethod.charAt(0).toUpperCase() + metricMethod.slice(1)} Execution Time: ${item.avg_duration_minutes.toFixed(2)} minutes`
+              `${metricMethod.charAt(0).toUpperCase() + metricMethod.slice(1)} Execution Time: ${formatDuration(item.avg_duration_minutes, 'minutes')}`
             );
             printOutliers(screen, item.outliers);
           });
@@ -600,7 +603,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
           job_steps_average_time.forEach((item) => {
             screen.printLine(`Step: ${item.name}`);
             screen.printLine(
-              `Execution Time: ${item.averageDurationMinutes.toFixed(2)} minutes (${item.count} executions, method: ${metricMethod})`
+              `Execution Time: ${formatDuration(item.averageDurationMinutes, 'minutes')} (${item.count} executions, method: ${metricMethod})`
             );
             printOutliers(screen, item.outliers);
             screen.printLine('');
@@ -657,7 +660,9 @@ export function createPipelinesCommands(program: SmmCommand): void {
             screen.printLine(
               `❌ Failed: ${item.failure_count}, failure rate: ${item.failure_rate}%`
             );
-            screen.printLine(`Average duration in minutes: ${item.avg_duration_minutes}`);
+            screen.printLine(
+              `Average duration: ${formatDuration(item.avg_duration_minutes, 'minutes')}`
+            );
             printOutliers(screen, item.outliers);
           });
         }
@@ -762,7 +767,9 @@ export function createPipelinesCommands(program: SmmCommand): void {
           screen.printLine(JSON.stringify({ leadTime: leadTimeHours }, null, 2));
         } else {
           screen.printLine('\n=== Lead Time for Changes (DORA) ===\n');
-          screen.printLine(`Lead Time: ${leadTimeHours.toFixed(2)} hours`);
+          screen.printLine(
+            `Lead Time: ${formatDuration(summary.average_duration_minutes, 'minutes')}`
+          );
 
           // DORA rating
           let rating = 'Low';

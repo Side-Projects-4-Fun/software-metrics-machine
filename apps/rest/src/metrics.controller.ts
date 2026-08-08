@@ -1,5 +1,5 @@
 import { Controller, Get, Query, HttpException, HttpStatus, Inject } from '@nestjs/common';
-import { Logger as SmmLogger } from '@smmachine/utils';
+import { Logger as SmmLogger, formatDuration } from '@smmachine/utils';
 import { ApiTags, ApiOperation, ApiQuery, ApiResponse, ApiOkResponse } from '@nestjs/swagger';
 import {
   ICodeMetricsRepository,
@@ -92,10 +92,30 @@ export class MetricsController {
   async getPRMetrics(@Query() query: PRMetricsQueryDto): Promise<MetricsPRResponse> {
     try {
       this.logger.debug(`Fetching PR metrics: ${JSON.stringify(query)}`);
-      return (await this.prsService.getMetrics({
+      const metrics = await this.prsService.getMetrics({
         startDate: query.startDate,
         endDate: query.endDate,
-      })) as MetricsPRResponse;
+      });
+
+      return {
+        averageOpenDays: metrics.averageOpenDays,
+        averageOpenDays_formatted: formatDuration(metrics.averageOpenDays, 'days'),
+        totalPRs: metrics.totalPRs,
+        mergedPRs: metrics.mergedPRs,
+        closedPRs: metrics.closedPRs,
+        openPRs: metrics.openPRs,
+        averageComments: metrics.averageComments,
+        most_commented_prs: metrics.most_commented_prs,
+        leadTime: metrics.leadTime,
+        leadTime_formatted: formatDuration(metrics.leadTime, 'hours'),
+        commentSummary: metrics.commentSummary,
+        labelSummary: metrics.labelSummary?.map((label) => ({
+          label: label.label,
+          count: label.count,
+          averageOpenDays: label.averageOpenDays,
+          averageOpenDays_formatted: formatDuration(label.averageOpenDays, 'days'),
+        })),
+      };
     } catch (error) {
       this.logger.error(
         `Failed to fetch PR metrics: ${error}`,
@@ -218,9 +238,29 @@ export class MetricsController {
         this.sonarqubeService.getQualityMetrics(),
       ]);
 
+      const formattedPRs: MetricsPRResponse = {
+        averageOpenDays: pullRequests.averageOpenDays,
+        averageOpenDays_formatted: formatDuration(pullRequests.averageOpenDays, 'days'),
+        totalPRs: pullRequests.totalPRs,
+        mergedPRs: pullRequests.mergedPRs,
+        closedPRs: pullRequests.closedPRs,
+        openPRs: pullRequests.openPRs,
+        averageComments: pullRequests.averageComments,
+        most_commented_prs: pullRequests.most_commented_prs,
+        leadTime: pullRequests.leadTime,
+        leadTime_formatted: formatDuration(pullRequests.leadTime, 'hours'),
+        commentSummary: pullRequests.commentSummary,
+        labelSummary: pullRequests.labelSummary?.map((label) => ({
+          label: label.label,
+          count: label.count,
+          averageOpenDays: label.averageOpenDays,
+          averageOpenDays_formatted: formatDuration(label.averageOpenDays, 'days'),
+        })),
+      };
+
       return {
         timestamp: new Date().toISOString(),
-        pullRequests,
+        pullRequests: formattedPRs,
         deployment,
         code,
         issues,

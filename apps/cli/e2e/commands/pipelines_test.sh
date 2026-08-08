@@ -165,7 +165,7 @@ function test_pipelines_runs_duration_with_median_method() {
     --outlier-mode flag
 
   assert_smm_output_contains "MEDIAN Pipeline Run Durations"
-  assert_smm_output_contains "Median Duration: 15.00 minutes"
+  assert_smm_output_contains "Median Duration: 15 min"
   assert_smm_output_contains "Total Runs: 2"
   assert_smm_success
 }
@@ -181,7 +181,7 @@ function test_pipelines_runs_duration_with_min_method() {
     --outlier-mode flag
 
   assert_smm_output_contains "MIN Pipeline Run Durations"
-  assert_smm_output_contains "Min Duration: 10.00 minutes"
+  assert_smm_output_contains "Min Duration: 10 min"
   assert_smm_output_contains "Total Runs: 2"
   assert_smm_success
 }
@@ -254,7 +254,7 @@ function test_pipelines_jobs_time_execution_with_p95_method() {
     --outlier-mode flag
 
   assert_smm_output_contains "P95 Job Execution Times"
-  assert_smm_output_contains "P95 Execution Time: 19.25 minutes"
+  assert_smm_output_contains "P95 Execution Time: 19 min"
   assert_smm_success
 }
 
@@ -323,7 +323,7 @@ function test_pipelines_lead_time_renders_cached_average() {
     --outlier-mode flag
 
   assert_smm_success
-  assert_smm_output_contains '"leadTime": 15'
+  assert_smm_output_contains '"leadTime": 0.25'
 }
 
 function test_pipelines_summary_applies_saved_filter() {

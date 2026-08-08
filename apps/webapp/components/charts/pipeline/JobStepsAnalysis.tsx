@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClientPaginatedSortableTable } from '@/components/ui/client-paginated-sortable-table';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { JobStepsAverageTimeData, JobStepsAverageTimeByDayData } from './types';
-import { formatDurationMinutes } from './duration-format';
 import { TargetInfo } from '@/components/charts/TargetInfo';
 import { formatMetricLabel, formatMetricMethod } from '@/utils/formatMetricMethod';
 
@@ -18,11 +17,13 @@ const COLORS = [
 export default function JobStepsAnalysis({
   data,
   dataByDay,
+  totalTimeFormatted,
   jobName,
   method,
 }: {
   data: JobStepsAverageTimeData[];
   dataByDay: JobStepsAverageTimeByDayData[];
+  totalTimeFormatted?: string;
   jobName: string;
   method?: string;
 }) {
@@ -30,6 +31,16 @@ export default function JobStepsAnalysis({
   const totalTime = useMemo(() => {
     return data.reduce((sum, step) => sum + step.averageDurationMinutes, 0);
   }, [data]);
+  const stepFormattedMap = useMemo(
+    () => new Map(data.map((step) => [step.name, step.averageDurationMinutes_formatted])),
+    [data]
+  );
+  const durationTickMap = useMemo(
+    () => new Map(data.map((step) => [step.averageDurationMinutes, step.averageDurationMinutes_formatted])),
+    [data]
+  );
+  const formatStepValue = (value: number, stepName: string): string =>
+    stepFormattedMap.get(stepName) ?? String(Number(value) || 0);
   const visibleSteps = data.filter((step) => !hiddenStepNames.has(step.name));
   const timeLabel = formatMetricLabel(method, 'Time');
   const methodLabel = formatMetricMethod(method);
@@ -59,7 +70,7 @@ export default function JobStepsAnalysis({
         </div>
         <p className="text-sm text-gray-500">
           {methodLabel} execution time of each step across {data[0]?.count || 0} runs.
-          Total {methodLabel.toLowerCase()} time: {formatDurationMinutes(totalTime)}.
+          Total {methodLabel.toLowerCase()} time: {totalTimeFormatted || '—'}.
         </p>
       </CardHeader>
       <CardContent>
@@ -115,10 +126,15 @@ export default function JobStepsAnalysis({
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="day" />
                   <YAxis
-                    tickFormatter={(value) => formatDurationMinutes(Number(value) || 0)}
+                    tickFormatter={(value) =>
+                      durationTickMap.get(Number(value)) ?? String(Number(value) || 0)
+                    }
                   />
                   <Tooltip
-                    formatter={(value: unknown, name: unknown) => [formatDurationMinutes(Number(value) || 0), String(name)]}
+                    formatter={(value: unknown, name: unknown) => [
+                      formatStepValue(Number(value) || 0, String(name)),
+                      String(name),
+                    ]}
                     wrapperStyle={{ zIndex: 1000 }}
                   />
                   <Legend />
@@ -152,7 +168,7 @@ export default function JobStepsAnalysis({
               <XAxis type="number" hide />
               <YAxis dataKey="name" type="category" hide />
               <Tooltip 
-                formatter={(value: any, name: any) => [formatDurationMinutes(Number(value) || 0), name]}
+                formatter={(value: unknown, name: unknown) => [formatStepValue(Number(value) || 0, String(name)), name]}
               />
               {data.map((step, index) => (
                 <Bar 
@@ -189,7 +205,7 @@ export default function JobStepsAnalysis({
                 label: timeLabel,
                 align: 'right' as const,
                 renderCell: (step: JobStepsAverageTimeData) => (
-                  <span className="tabular-nums">{formatDurationMinutes(step.averageDurationMinutes)}</span>
+                  <span className="tabular-nums">{step.averageDurationMinutes_formatted}</span>
                 ),
               },
               {

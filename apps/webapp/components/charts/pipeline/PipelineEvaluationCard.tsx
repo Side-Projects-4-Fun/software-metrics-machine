@@ -20,6 +20,7 @@ interface PipelineEvaluationData {
   summary: {
     totalRuns: number;
     averageDurationMinutes: number;
+    averageDurationMinutes_formatted: string;
     successRate: number;
     failureRate: number;
     totalReruns: number;
@@ -49,14 +50,6 @@ function severityDot(severity: Severity): string {
     case 'good':
       return 'bg-emerald-500';
   }
-}
-
-function formatMinutes(min: number): string {
-  if (min < 1) {return `${Math.round(min * 60)}s`;}
-  if (min < 60) {return `${min.toFixed(1)} min`;}
-  const h = Math.floor(min / 60);
-  const m = Math.round(min % 60);
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
 export default function PipelineEvaluationCard({
@@ -91,7 +84,7 @@ export default function PipelineEvaluationCard({
             <div className="bg-blue-50 rounded-lg p-3 text-center">
               <p className="text-xs text-gray-500">{durationLabel}</p>
               <p className="text-xl font-bold text-blue-700">
-                {formatMinutes(summary.averageDurationMinutes)}
+                {summary.averageDurationMinutes_formatted}
               </p>
             </div>
             <div

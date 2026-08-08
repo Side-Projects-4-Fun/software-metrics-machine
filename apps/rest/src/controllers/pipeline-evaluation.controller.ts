@@ -1,12 +1,14 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import type { PipelineEvaluation, PipelineFilters } from '@smmachine/core';
+import type { PipelineFilters } from '@smmachine/core';
 import {
   PipelineImplementation,
   PipelineEvaluationService,
   parseMetricCleaningOptions,
 } from '@smmachine/core';
 import { normalizeMetricMethod } from '../utils/metric-method';
+import { formatDuration } from '@smmachine/utils';
+import type { PipelineEvaluationResponse } from '../dtos/response.dto';
 
 @ApiTags('Pipeline Evaluation')
 @Controller()
@@ -29,7 +31,7 @@ export class PipelineEvaluationController {
     @Query('weekends') weekends?: string,
     @Query('outlier_mode') outlierMode?: string,
     @Query('method') methodRaw?: string
-  ): Promise<PipelineEvaluation> {
+  ): Promise<PipelineEvaluationResponse> {
     const filters: PipelineFilters = {
       startDate,
       endDate,
@@ -45,6 +47,17 @@ export class PipelineEvaluationController {
     };
 
     const dashboard = await this.pipelineImpl.dashboard(filters);
-    return this.evaluationService.evaluate(dashboard);
+    const evaluation = await this.evaluationService.evaluate(dashboard);
+
+    return {
+      ...evaluation,
+      summary: {
+        ...evaluation.summary,
+        averageDurationMinutes_formatted: formatDuration(
+          evaluation.summary.averageDurationMinutes,
+          'minutes'
+        ),
+      },
+    };
   }
 }

@@ -10,6 +10,8 @@ export interface PipelineSummary {
   total_runs: number;
   in_progress: number;
   queued: number;
+  average_duration_minutes?: number;
+  average_duration_minutes_formatted?: string;
   first_run?: { createdAt?: string; created_at?: string } | string | null;
   last_run?: { createdAt?: string; created_at?: string } | string | null;
 }
@@ -52,6 +54,7 @@ export interface JobsSummaryItem {
   job_name: string;
   total_runs: number;
   avg_duration_minutes: number;
+  avg_duration_minutes_formatted?: string;
   success_count: number;
   failure_count: number;
   success_rate: number;
@@ -61,4 +64,5 @@ export interface JobsSummaryItem {
 export interface AverageReviewTimeItem {
   author: string;
   avg_hours: number;
+  avg_hours_formatted?: string;
 }

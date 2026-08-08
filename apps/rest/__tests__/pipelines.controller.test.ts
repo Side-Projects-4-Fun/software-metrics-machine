@@ -129,8 +129,11 @@ describe('PipelinesController', () => {
       {
         workflow: 'ci.yml',
         avg_duration: 4,
+        avg_duration_formatted: '4 min',
         min_duration: 4,
+        min_duration_formatted: '4 min',
         max_duration: 4,
+        max_duration_formatted: '4 min',
         total_runs: 1,
       },
     ]);
@@ -202,7 +205,16 @@ describe('PipelinesController', () => {
       const result = await controller.runsDuration(undefined, {});
 
       expect(result).toEqual([
-        { workflow: 'unknown', avg_duration: 2, min_duration: 2, max_duration: 2, total_runs: 1 },
+        {
+          workflow: 'unknown',
+          avg_duration: 2,
+          avg_duration_formatted: '2 min',
+          min_duration: 2,
+          min_duration_formatted: '2 min',
+          max_duration: 2,
+          max_duration_formatted: '2 min',
+          total_runs: 1,
+        },
       ]);
     });
 
@@ -243,6 +255,7 @@ describe('PipelinesController', () => {
             workflow: 'ci.yml',
             aggregation,
             duration: expectedDuration,
+            duration_formatted: `${expectedDuration} min`,
             total_runs: 2,
           },
         ]);
@@ -278,7 +291,9 @@ describe('PipelinesController', () => {
 
       const result = await controller.jobsDurationByWorkflow({});
 
-      expect(result).toEqual([{ workflow: 'ci.yml', jobs: { build: 6 } }]);
+      expect(result).toEqual([
+        { workflow: 'ci.yml', jobs: { build: 6 }, jobs_formatted: { build: '6 min' } },
+      ]);
     });
 
     it('falls back to unknown workflow and an empty job list when path/jobs are missing', async () => {
@@ -316,8 +331,8 @@ describe('PipelinesController', () => {
       const result = await controller.jobsDurationByWorkflow({});
 
       expect(result).toEqual([
-        { workflow: 'alpha.yml', jobs: { build: 2 } },
-        { workflow: 'zeta.yml', jobs: { build: 2 } },
+        { workflow: 'alpha.yml', jobs: { build: 2 }, jobs_formatted: { build: '2 min' } },
+        { workflow: 'zeta.yml', jobs: { build: 2 }, jobs_formatted: { build: '2 min' } },
       ]);
     });
   });
@@ -352,7 +367,15 @@ describe('PipelinesController', () => {
       const result = await controller.jobsAverageTime(undefined, undefined, {});
 
       expect(result).toEqual({
-        result: [{ job_name: 'build', workflow_name: 'CI', avg_time: 6, count: 2 }],
+        result: [
+          {
+            job_name: 'build',
+            workflow_name: 'CI',
+            avg_time: 6,
+            avg_time_formatted: '6 min',
+            count: 2,
+          },
+        ],
       });
     });
 
@@ -370,7 +393,15 @@ describe('PipelinesController', () => {
       const result = await controller.jobsAverageTime(undefined, '1', {});
 
       expect(result).toEqual({
-        result: [{ job_name: 'b', workflow_name: undefined, avg_time: 2, count: 2 }],
+        result: [
+          {
+            job_name: 'b',
+            workflow_name: undefined,
+            avg_time: 2,
+            avg_time_formatted: '2 min',
+            count: 2,
+          },
+        ],
       });
     });
 
@@ -386,7 +417,15 @@ describe('PipelinesController', () => {
       const result = await controller.jobsAverageTime(undefined, 'not-a-number', {});
 
       expect(result).toEqual({
-        result: [{ job_name: 'a', workflow_name: undefined, avg_time: 1, count: 1 }],
+        result: [
+          {
+            job_name: 'a',
+            workflow_name: undefined,
+            avg_time: 1,
+            avg_time_formatted: '1 min',
+            count: 1,
+          },
+        ],
       });
     });
 
@@ -510,7 +549,15 @@ describe('PipelinesController', () => {
       const result = await controller.jobsAverageTimeByDay(undefined, {});
 
       expect(result).toEqual({
-        result: [{ day: '2026-01-01', avg_time: 3, count: 2 }],
+        result: [
+          {
+            day: '2026-01-01',
+            avg_time: 3,
+            avg_time_formatted: '3 min',
+            count: 2,
+            outliers: undefined,
+          },
+        ],
       });
     });
 
@@ -548,8 +595,20 @@ describe('PipelinesController', () => {
 
       expect(result).toEqual({
         result: [
-          { day: '2026-01-01', avg_time: 1, count: 1 },
-          { day: '2026-01-02', avg_time: 2, count: 1 },
+          {
+            day: '2026-01-01',
+            avg_time: 1,
+            avg_time_formatted: '1 min',
+            count: 1,
+            outliers: undefined,
+          },
+          {
+            day: '2026-01-02',
+            avg_time: 2,
+            avg_time_formatted: '2 min',
+            count: 1,
+            outliers: undefined,
+          },
         ],
       });
     });
@@ -580,7 +639,15 @@ describe('PipelinesController', () => {
       const result = await controller.jobsAverageTimeByDay(undefined, {});
 
       expect(result).toEqual({
-        result: [{ day: '2026-01-02', avg_time: 2, count: 1 }],
+        result: [
+          {
+            day: '2026-01-02',
+            avg_time: 2,
+            avg_time_formatted: '2 min',
+            count: 1,
+            outliers: undefined,
+          },
+        ],
       });
     });
 
@@ -616,7 +683,17 @@ describe('PipelinesController', () => {
       const result = await controller.jobsStepsAverageTime({});
 
       expect(result).toEqual({
-        result: [{ name: 'install', averageDurationMinutes: 2, count: 1 }],
+        result: [
+          {
+            name: 'install',
+            averageDurationMinutes: 2,
+            averageDurationMinutes_formatted: '2 min',
+            count: 1,
+            outliers: undefined,
+          },
+        ],
+        total_average_minutes: 2,
+        total_average_minutes_formatted: '2 min',
       });
     });
   });
@@ -643,7 +720,18 @@ describe('PipelinesController', () => {
       const result = await controller.jobsStepsAverageTimeByDay({});
 
       expect(result).toEqual({
-        result: [{ day: '2026-01-01', steps: [{ name: 'install', averageDurationMinutes: 2 }] }],
+        result: [
+          {
+            day: '2026-01-01',
+            steps: [
+              {
+                name: 'install',
+                averageDurationMinutes: 2,
+                averageDurationMinutes_formatted: '2 min',
+              },
+            ],
+          },
+        ],
       });
     });
   });
@@ -779,6 +867,7 @@ describe('PipelinesController', () => {
             job_name: 'build',
             total_runs: 1,
             avg_duration_minutes: 10,
+            avg_duration_minutes_formatted: '10 min',
             success_count: 1,
             failure_count: 0,
             success_rate: 100,

@@ -55,9 +55,12 @@ export interface DeploymentFrequencyRow {
   links: string;
 }
 
-// ──────────────────────────────────────────
-// Configuration
-// ──────────────────────────────────────────
+export interface VersionResponse {
+  result: {
+    version: string;
+  };
+}
+
 export interface ConfigurationResponse {
   result: {
     git_provider?: string;
@@ -115,12 +118,20 @@ export interface PRByAuthorResponse {
 }
 
 export interface PRAverageReviewTimeResponse {
-  result: Array<{ author: string; avg_days: number; outliers?: PRAverageOutlier[] }>;
+  result: Array<{
+    author: string;
+    avg_days: number;
+    avg_days_formatted: string;
+    avg_hours: number;
+    avg_hours_formatted: string;
+    outliers?: PRAverageOutlier[];
+  }>;
 }
 
 export type PRAverageOpenByResponse = Array<{
   period: string;
   avg_days: number;
+  avg_days_formatted: string;
   outliers?: PRAverageOutlier[];
 }>;
 
@@ -137,6 +148,7 @@ export interface PRFirstCommentTimeResponse {
   result: Array<{
     author: string;
     avg_hours: number;
+    avg_hours_formatted: string;
     prs_with_comments: number;
     outliers?: PRAverageOutlier[];
   }>;
@@ -188,6 +200,7 @@ export interface PipelineJobsSummaryResponse {
     job_name: string;
     total_runs: number;
     avg_duration_minutes: number;
+    avg_duration_minutes_formatted: string;
     success_count: number;
     failure_count: number;
     success_rate: number;
@@ -202,14 +215,18 @@ export interface PipelineRunsDurationResponse extends Array<
       workflow: string;
       aggregation: string;
       duration: number;
+      duration_formatted: string;
       total_runs: number;
       outliers?: PipelineAverageOutlier[];
     }
   | {
       workflow: string;
       avg_duration: number;
+      avg_duration_formatted: string;
       min_duration: number;
+      min_duration_formatted: string;
       max_duration: number;
+      max_duration_formatted: string;
       total_runs: number;
       outliers?: PipelineAverageOutlier[];
     }
@@ -218,6 +235,7 @@ export interface PipelineRunsDurationResponse extends Array<
 export type PipelineJobsDurationByWorkflowResponse = Array<{
   workflow: string;
   jobs: Record<string, number>;
+  jobs_formatted: Record<string, string>;
 }>;
 
 export type PipelineRunsByResponse = Array<{
@@ -234,9 +252,12 @@ export interface PipelineStepsAverageTimeResponse {
   result: Array<{
     name: string;
     averageDurationMinutes: number;
+    averageDurationMinutes_formatted: string;
     count: number;
     outliers?: PipelineAverageOutlier[];
   }>;
+  total_average_minutes: number;
+  total_average_minutes_formatted: string;
 }
 
 export interface PipelineStepsAverageTimeByDayResponse {
@@ -245,6 +266,7 @@ export interface PipelineStepsAverageTimeByDayResponse {
     steps: Array<{
       name: string;
       averageDurationMinutes: number;
+      averageDurationMinutes_formatted: string;
       outliers?: PipelineAverageOutlier[];
     }>;
   }>;
@@ -255,6 +277,7 @@ export interface PipelineJobsAverageTimeResponse {
     job_name: string;
     workflow_name?: string;
     avg_time: number;
+    avg_time_formatted: string;
     count: number;
     outliers?: PipelineAverageOutlier[];
   }>;
@@ -264,6 +287,7 @@ export interface PipelineJobsAverageTimeByDayResponse {
   result: Array<{
     day: string;
     avg_time: number;
+    avg_time_formatted: string;
     count: number;
     outliers?: PipelineAverageOutlier[];
   }>;
@@ -287,6 +311,7 @@ export interface PipelineDashboardResponse {
     timed_out_runs: number;
     success_rate: number;
     average_duration_minutes: number;
+    average_duration_minutes_formatted: string;
   };
   jobs_by_status: PipelineJobsByStatusResponse;
   runs_duration: PipelineRunsDurationResponse;
@@ -297,7 +322,57 @@ export interface PipelineDashboardResponse {
   jobs_summary: PipelineJobsSummaryResponse['result'];
   jobs_reruns_by_day: PipelineJobsRerunsResponse['result'];
   job_steps_average_time: PipelineStepsAverageTimeResponse['result'];
+  job_steps_average_time_total_minutes: number;
+  job_steps_average_time_total_minutes_formatted: string;
   job_steps_average_time_by_day: PipelineStepsAverageTimeByDayResponse['result'];
+}
+
+export interface PipelineEvaluationResponse {
+  generatedAt: string;
+  signals: Array<{
+    id: string;
+    title: string;
+    description: string;
+    severity: string;
+    category: string;
+    metrics: Array<{ label: string; value: string }>;
+  }>;
+  summary: {
+    totalRuns: number;
+    averageDurationMinutes: number;
+    averageDurationMinutes_formatted: string;
+    successRate: number;
+    failureRate: number;
+    totalReruns: number;
+    bottleneckJob?: string;
+    bottleneckJobSharePercent?: number;
+    slowestWorkflow?: string;
+  };
+}
+
+export interface PREvaluationResponse {
+  generatedAt: string;
+  signals: Array<{
+    id: string;
+    title: string;
+    description: string;
+    severity: string;
+    category: string;
+    metrics: Array<{ label: string; value: string }>;
+  }>;
+  summary: {
+    totalPRs: number;
+    mergedPRs: number;
+    openPRs: number;
+    avgCommentsPerPR: number;
+    avgReviewHours: number;
+    avgReviewHours_formatted: string;
+    avgOpenDays: number;
+    avgOpenDays_formatted: string;
+    uniqueAuthors: number;
+    topReviewer?: string;
+    bottleneckAuthor?: string;
+  };
 }
 
 // ──────────────────────────────────────────
@@ -424,6 +499,7 @@ export interface MetricsIssueResponse {
 
 export interface MetricsPRResponse {
   averageOpenDays: number;
+  averageOpenDays_formatted: string;
   totalPRs: number;
   mergedPRs: number;
   closedPRs: number;
@@ -436,8 +512,14 @@ export interface MetricsPRResponse {
     comments_count: number;
   }>;
   leadTime: number;
+  leadTime_formatted: string;
   commentSummary: Array<{ author: string; count: number }>;
-  labelSummary: Array<{ label: string; count: number; averageOpenDays: number }>;
+  labelSummary: Array<{
+    label: string;
+    count: number;
+    averageOpenDays: number;
+    averageOpenDays_formatted: string;
+  }>;
 }
 
 export interface MetricsDeploymentResponse {

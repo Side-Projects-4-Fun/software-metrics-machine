@@ -4,6 +4,7 @@ import type {
   PipelineBottleneckSignal,
   PipelineBottleneckSeverity,
 } from '../pipeline-evaluation-types';
+import { formatDuration } from '@smmachine/utils';
 
 export class PipelineEvaluationService {
   evaluate(dashboard: PipelineDashboard): PipelineEvaluation {
@@ -50,7 +51,7 @@ export class PipelineEvaluationService {
       category: 'duration',
       metrics: [
         { label: 'Slowest job', value: topJob.job_name },
-        { label: 'Avg time', value: `${topJob.avg_time.toFixed(1)} min` },
+        { label: 'Avg time', value: formatDuration(topJob.avg_time, 'minutes') },
         { label: 'Share of total', value: `${share.toFixed(1)}%` },
         { label: 'Runs', value: String(topJob.count) },
       ],
@@ -162,13 +163,13 @@ export class PipelineEvaluationService {
           : 'Workflow durations are balanced',
       description:
         ratio >= 1.5
-          ? `"${slowest.workflow}" averages ${slowest.avg_duration.toFixed(1)} min — ${ratio.toFixed(1)}x slower than the average workflow (${avgAll.toFixed(1)} min). This is the throughput bottleneck.`
-          : `The slowest workflow ("${slowest.workflow}") at ${slowest.avg_duration.toFixed(1)} min is only ${ratio.toFixed(1)}x the average (${avgAll.toFixed(1)} min) — durations are well balanced.`,
+          ? `"${slowest.workflow}" averages ${formatDuration(slowest.avg_duration, 'minutes')} — ${ratio.toFixed(1)}x slower than the average workflow (${formatDuration(avgAll, 'minutes')}). This is the throughput bottleneck.`
+          : `The slowest workflow ("${slowest.workflow}") at ${formatDuration(slowest.avg_duration, 'minutes')} is only ${ratio.toFixed(1)}x the average (${formatDuration(avgAll, 'minutes')}) — durations are well balanced.`,
       severity,
       category: 'duration',
       metrics: [
         { label: 'Slowest workflow', value: slowest.workflow },
-        { label: 'Avg duration', value: `${slowest.avg_duration.toFixed(1)} min` },
+        { label: 'Avg duration', value: formatDuration(slowest.avg_duration, 'minutes') },
         { label: 'vs. average', value: `${ratio.toFixed(1)}x` },
         { label: 'Total runs', value: String(slowest.total_runs) },
       ],

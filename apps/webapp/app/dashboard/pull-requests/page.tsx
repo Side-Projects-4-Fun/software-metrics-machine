@@ -53,7 +53,9 @@ interface EvaluationData {
     openPRs: number;
     avgCommentsPerPR: number;
     avgReviewHours: number;
+    avgReviewHours_formatted: string;
     avgOpenDays: number;
+    avgOpenDays_formatted: string;
     uniqueAuthors: number;
     topReviewer?: string;
     bottleneckAuthor?: string;

@@ -44,11 +44,17 @@ export async function createMetricsTestApp(): Promise<{
   const services: MockedMetricsServices = {
     prsService: {
       getMetrics: vi.fn().mockResolvedValue({
+        averageOpenDays: 3.5,
         totalPRs: 42,
-        leadTime: { average: 2.5, unit: 'days' },
-        commentSummary: { total: 156 },
-        labelSummary: { bug: 5, feature: 12 },
-        filters: {},
+        mergedPRs: 30,
+        closedPRs: 8,
+        openPRs: 4,
+        averageComments: 3.7,
+        most_commented_prs: [],
+        leadTime: 2.5,
+        method: 'average',
+        commentSummary: [],
+        labelSummary: [],
       }),
     },
     pipelinesService: {

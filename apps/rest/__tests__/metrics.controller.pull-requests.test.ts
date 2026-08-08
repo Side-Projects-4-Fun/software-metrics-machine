@@ -25,8 +25,9 @@ describe('MetricsController - Pull Request Metrics', () => {
       .expect((res) => {
         expect(res.body).toHaveProperty('totalPRs');
         expect(res.body).toHaveProperty('leadTime');
+        expect(res.body).toHaveProperty('leadTime_formatted');
         expect(res.body.totalPRs).toBe(42);
-        expect(res.body.leadTime.average).toBe(2.5);
+        expect(res.body.leadTime).toBe(2.5);
       });
   });
 
@@ -67,7 +68,7 @@ describe('MetricsController - Pull Request Metrics', () => {
       .get('/api/metrics/pr?startDate=2024-01-01')
       .expect(200)
       .expect((res) => {
-        expect(res.body).toHaveProperty('filters');
+        expect(res.body).toHaveProperty('totalPRs');
       });
   });
 

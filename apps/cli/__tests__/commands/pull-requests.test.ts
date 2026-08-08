@@ -519,7 +519,7 @@ describe('cli: Pull Request Commands', () => {
       expect(output).toContain('Most commented PR:');
       expect(output).toContain('Top commenter:');
       expect(output).toContain('Top themes:');
-      expect(output).toContain('Time to first comment (hours):');
+      expect(output).toContain('Time to first comment:');
     });
 
     it('should format PR metrics in text format', () => {
@@ -533,7 +533,7 @@ describe('cli: Pull Request Commands', () => {
       const output = formatPullRequestMetrics(data, { format: 'text' });
       expect(output).toContain('Pull Request Metrics');
       expect(output).toContain('42');
-      expect(output).toContain('2.5 days');
+      expect(output).toContain('2d 12h');
     });
 
     it('should format PR metrics in JSON format', () => {

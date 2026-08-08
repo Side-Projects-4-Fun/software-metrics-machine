@@ -10,6 +10,7 @@ import {
   type MetricSample,
 } from '@smmachine/core';
 import { normalizeMetricMethod } from '../utils/metric-method';
+import { formatDuration } from '@smmachine/utils';
 import type {
   PipelineSummaryResponse,
   PipelineByStatusResponse,
@@ -159,6 +160,7 @@ export class PipelinesController {
         job_name: item.jobName,
         total_runs: item.totalRuns,
         avg_duration_minutes: item.averageDurationMinutes,
+        avg_duration_minutes_formatted: formatDuration(item.averageDurationMinutes, 'minutes'),
         success_count: item.successCount,
         failure_count: item.failureCount,
         success_rate: item.successRate,
@@ -225,15 +227,17 @@ export class PipelinesController {
           normalizedAggregation === 'min' ||
           normalizedAggregation === 'max'
         ) {
+          const durationValue =
+            normalizedAggregation === 'avg'
+              ? avgDuration
+              : normalizedAggregation === 'min'
+                ? minDuration
+                : maxDuration;
           return {
             workflow,
             aggregation: normalizedAggregation,
-            duration:
-              normalizedAggregation === 'avg'
-                ? avgDuration
-                : normalizedAggregation === 'min'
-                  ? minDuration
-                  : maxDuration,
+            duration: durationValue,
+            duration_formatted: formatDuration(durationValue, 'minutes'),
             total_runs: n,
             outliers,
           };
@@ -242,8 +246,11 @@ export class PipelinesController {
         return {
           workflow,
           avg_duration: avgDuration,
+          avg_duration_formatted: formatDuration(avgDuration, 'minutes'),
           min_duration: minDuration,
+          min_duration_formatted: formatDuration(minDuration, 'minutes'),
           max_duration: maxDuration,
+          max_duration_formatted: formatDuration(maxDuration, 'minutes'),
           total_runs: n,
           outliers,
         };
@@ -283,7 +290,11 @@ export class PipelinesController {
         for (const [name, durations] of jobMap.entries()) {
           jobs[name] = durations.reduce((a, b) => a + b, 0) / durations.length;
         }
-        return { workflow, jobs };
+        const jobs_formatted: Record<string, string> = {};
+        for (const [name, avgDuration] of Object.entries(jobs)) {
+          jobs_formatted[name] = formatDuration(avgDuration, 'minutes');
+        }
+        return { workflow, jobs, jobs_formatted };
       })
       .sort((a, b) => a.workflow.localeCompare(b.workflow));
   }
@@ -328,7 +339,17 @@ export class PipelinesController {
       this.toServiceFilters(query || {}),
       normalizeMetricMethod(query?.method)
     );
-    return { result };
+    return {
+      result: result.map((step) => ({
+        ...step,
+        averageDurationMinutes_formatted: formatDuration(step.averageDurationMinutes, 'minutes'),
+      })),
+      total_average_minutes: result.reduce((sum, step) => sum + step.averageDurationMinutes, 0),
+      total_average_minutes_formatted: formatDuration(
+        result.reduce((sum, step) => sum + step.averageDurationMinutes, 0),
+        'minutes'
+      ),
+    };
   }
 
   @Get('/pipelines/jobs-steps-average-time-by-day')
@@ -339,7 +360,15 @@ export class PipelinesController {
       this.toServiceFilters(query || {}),
       normalizeMetricMethod(query?.method)
     );
-    return { result };
+    return {
+      result: result.map((entry) => ({
+        day: entry.day,
+        steps: entry.steps.map((step) => ({
+          ...step,
+          averageDurationMinutes_formatted: formatDuration(step.averageDurationMinutes, 'minutes'),
+        })),
+      })),
+    };
   }
 
   @Get('/pipelines/jobs-average-time')
@@ -399,10 +428,12 @@ export class PipelinesController {
     const result = Array.from(grouped.entries())
       .map(([jobNameValue, data]) => {
         const cleaned = cleanMetricSamples(data.samples, cleaning);
+        const avgTime = computeMetricSamples(cleaned.samples, normalizeMetricMethod(query?.method));
         return {
           job_name: jobNameValue,
           workflow_name: data.workflowName,
-          avg_time: computeMetricSamples(cleaned.samples, normalizeMetricMethod(query?.method)),
+          avg_time: avgTime,
+          avg_time_formatted: formatDuration(avgTime, 'minutes'),
           count: cleaned.samples.length,
           outliers:
             cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
@@ -469,9 +500,11 @@ export class PipelinesController {
     const result = Array.from(grouped.entries())
       .map(([day, samples]) => {
         const cleaned = cleanMetricSamples(samples, cleaning);
+        const avgTime = computeMetricSamples(cleaned.samples, normalizeMetricMethod(query?.method));
         return {
           day,
-          avg_time: computeMetricSamples(cleaned.samples, normalizeMetricMethod(query?.method)),
+          avg_time: avgTime,
+          avg_time_formatted: formatDuration(avgTime, 'minutes'),
           count: cleaned.samples.length,
           outliers:
             cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'

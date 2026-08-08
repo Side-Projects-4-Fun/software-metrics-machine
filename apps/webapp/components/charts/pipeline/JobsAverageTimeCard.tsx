@@ -7,7 +7,6 @@ import { useLinkBuilder } from '@/components/providers/LinkBuilderContext';
 import react from 'react';
 import { ApiParams } from '@/server/api';
 import { useFilters } from '@/components/filters/FiltersContext';
-import { formatDurationMinutes } from './duration-format';
 import { TargetInfo } from '@/components/charts/TargetInfo';
 import { formatMetricLabel, formatMetricMethod } from '@/utils/formatMetricMethod';
 
@@ -23,6 +22,25 @@ export default function JobsAverageTimeCard({ data, dataByDay }: JobsAverageTime
   const [activeTab, setActiveTab] = react.useState<'by-job' | 'by-day'>('by-job');
   const avgTimeLabel = formatMetricLabel(filters.method, 'Time');
   const methodLabel = formatMetricMethod(filters.method);
+
+  const avgTimeTickMap = react.useMemo(() => {
+    const map = new Map<number, string>();
+    for (const item of data) {
+      map.set(item.avg_time, item.avg_time_formatted);
+    }
+    for (const item of dataByDay) {
+      map.set(item.avg_time, item.avg_time_formatted);
+    }
+    return map;
+  }, [data, dataByDay]);
+
+  const formatTooltipTime = (value: unknown, name: unknown): [string, string] => {
+    const label = String(name);
+    if (label === avgTimeLabel) {
+      return [avgTimeTickMap.get(Number(value)) ?? String(Number(value) || 0), label];
+    }
+    return [String(value ?? ''), label];
+  };
 
   const handleBarClick = (entry: JobsAverageTimeData) => {
     const url = urlBuilder.getJobRunsUrl(entry.job_name, entry.workflow_name, {
@@ -84,16 +102,9 @@ export default function JobsAverageTimeCard({ data, dataByDay }: JobsAverageTime
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="job_name" angle={-45} textAnchor="end" height={100} />
-              <YAxis yAxisId="left" tickFormatter={(value) => formatDurationMinutes(Number(value) || 0)} />
+              <YAxis yAxisId="left" tickFormatter={(value) => avgTimeTickMap.get(Number(value)) ?? String(Number(value) || 0)} />
               <YAxis yAxisId="right" orientation="right" />
-              <Tooltip
-                formatter={(value: unknown, name: unknown) => {
-                  const label = String(name);
-                  return label === avgTimeLabel
-                    ? [formatDurationMinutes(Number(value) || 0), label]
-                    : [String(value ?? ''), label];
-                }}
-              />
+              <Tooltip formatter={formatTooltipTime} />
               <Legend />
               <Bar dataKey="avg_time" yAxisId="left" fill="#82ca9d" name={avgTimeLabel} onClick={(e) => handleBarClick(e.payload)} style={{ cursor: 'pointer' }} />
               <Bar dataKey="count" yAxisId="right" fill="#60a5fa" name="Runs Count" />
@@ -106,16 +117,9 @@ export default function JobsAverageTimeCard({ data, dataByDay }: JobsAverageTime
             <LineChart data={dataByDay}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" angle={-45} textAnchor="end" height={100} />
-              <YAxis yAxisId="left" tickFormatter={(value) => formatDurationMinutes(Number(value) || 0)} />
+              <YAxis yAxisId="left" tickFormatter={(value) => avgTimeTickMap.get(Number(value)) ?? String(Number(value) || 0)} />
               <YAxis yAxisId="right" orientation="right" />
-              <Tooltip
-                formatter={(value: unknown, name: unknown) => {
-                  const label = String(name);
-                  return label === avgTimeLabel
-                    ? [formatDurationMinutes(Number(value) || 0), label]
-                    : [String(value ?? ''), label];
-                }}
-              />
+              <Tooltip formatter={formatTooltipTime} />
               <Legend />
               <Line yAxisId="left" type="monotone" dataKey="avg_time" stroke="#82ca9d" name={avgTimeLabel} dot={{ r: 4 }} />
               <Line yAxisId="right" type="monotone" dataKey="count" stroke="#60a5fa" name="Runs Count" dot={{ r: 3 }} />

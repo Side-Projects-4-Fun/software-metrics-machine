@@ -7,6 +7,7 @@ import type {
   MetricCategory,
   MetricId,
 } from '@smmachine/core';
+import { formatMetricValue } from '@smmachine/utils';
 
 interface EngineeringHealthQuery {
   metric?: string;
@@ -74,6 +75,30 @@ export class EngineeringHealthController {
           : undefined,
     };
 
-    return this.orchestrator.evaluate(input);
+    const result = await this.orchestrator.evaluate(input);
+
+    return {
+      ...result,
+      evaluations: result.evaluations.map((evaluation) => {
+        const unit = evaluation.value.unit;
+        return {
+          ...evaluation,
+          value: {
+            ...evaluation.value,
+            value_formatted: formatMetricValue(evaluation.value.value, unit),
+            series: evaluation.value.series?.map((point) => ({
+              ...point,
+              value_formatted: formatMetricValue(point.value, unit),
+            })),
+          },
+          comparison: {
+            ...evaluation.comparison,
+            delta_formatted: formatMetricValue(evaluation.comparison.delta, unit),
+            current_formatted: formatMetricValue(evaluation.comparison.current, unit),
+            previous_formatted: formatMetricValue(evaluation.comparison.previous, unit),
+          },
+        };
+      }),
+    };
   }
 }

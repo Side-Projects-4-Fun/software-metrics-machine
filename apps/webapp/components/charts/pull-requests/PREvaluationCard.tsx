@@ -23,7 +23,9 @@ interface PREvaluationData {
     openPRs: number;
     avgCommentsPerPR: number;
     avgReviewHours: number;
+    avgReviewHours_formatted: string;
     avgOpenDays: number;
+    avgOpenDays_formatted: string;
     uniqueAuthors: number;
     topReviewer?: string;
     bottleneckAuthor?: string;
@@ -50,14 +52,6 @@ function severityDot(severity: Severity): string {
     case 'good':
       return 'bg-emerald-500';
   }
-}
-
-function formatHours(hours: number): string {
-  if (hours < 1) {return `${Math.round(hours * 60)} min`;}
-  if (hours < 24) {return `${hours.toFixed(1)}h`;}
-  const d = Math.floor(hours / 24);
-  const h = Math.round(hours % 24);
-  return h > 0 ? `${d}d ${h}h` : `${d}d`;
 }
 
 function ratingColor(value: number, goodThreshold: number, warnThreshold: number): string {
@@ -110,7 +104,7 @@ export default function PREvaluationCard({
             <div className={`rounded-lg p-3 text-center ${ratingColor(1 / Math.max(summary.avgOpenDays, 0.001), 0.8, 0.3)}`}>
               <p className="text-xs text-gray-500">{openTimeLabel}</p>
               <p className="text-xl font-bold">
-                {summary.avgOpenDays.toFixed(1)}d
+                {summary.avgOpenDays_formatted}
               </p>
             </div>
             <div className="bg-blue-50 rounded-lg p-3 text-center">
@@ -128,7 +122,7 @@ export default function PREvaluationCard({
             <div className={`rounded-lg p-3 text-center ${ratingColor(1 / Math.max(summary.avgReviewHours, 0.001), 0.15, 0.05)}`}>
               <p className="text-xs text-gray-500">{reviewTimeLabel}</p>
               <p className="text-xl font-bold">
-                {formatHours(summary.avgReviewHours)}
+                {summary.avgReviewHours_formatted}
               </p>
             </div>
             <div className="bg-blue-50 rounded-lg p-3 text-center">

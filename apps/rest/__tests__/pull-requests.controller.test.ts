@@ -104,7 +104,9 @@ describe('PullRequestsController', () => {
 
     const response = await controller.averageOpenBy(undefined, undefined, 'day');
 
-    expect(response).toEqual([{ period: '2026-01-05', avg_days: 1.5, method: 'average' }]);
+    expect(response).toEqual([
+      { period: '2026-01-05', avg_days: 1.5, avg_days_formatted: '1d 12h', method: 'average' },
+    ]);
     expect(mockPrsService.getOpenTimeBy).toHaveBeenCalledWith(
       expect.objectContaining({ startDate: undefined, endDate: undefined }),
       'day',
@@ -155,7 +157,16 @@ describe('PullRequestsController', () => {
 
       const response = await controller.averageReviewTime(undefined, undefined, undefined, '4');
 
-      expect(response.result).toEqual([{ author: 'bob', avg_days: 1.2, method: 'average' }]);
+      expect(response.result).toEqual([
+        {
+          author: 'bob',
+          avg_days: 1.2,
+          avg_days_formatted: '1d 4h',
+          avg_hours: 28.799999999999997,
+          avg_hours_formatted: '1d 4h',
+          method: 'average',
+        },
+      ]);
       expect(mockPrsService.getReviewTime).toHaveBeenCalledWith(expect.anything(), 4, 'average');
     });
 
@@ -236,7 +247,9 @@ describe('PullRequestsController', () => {
 
       const response = await controller.firstCommentTime(undefined, undefined, undefined, '6');
 
-      expect(response.result).toEqual([{ author: 'dave', avg_hours: 2.5, prs_with_comments: 4 }]);
+      expect(response.result).toEqual([
+        { author: 'dave', avg_hours: 2.5, avg_hours_formatted: '2h 30m', prs_with_comments: 4 },
+      ]);
       expect(mockPrsService.getFirstCommentTime).toHaveBeenCalledWith(
         expect.anything(),
         6,

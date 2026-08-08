@@ -128,15 +128,6 @@ function toQueryParams(filters: ReturnType<typeof parseDashboardFilters>) {
   return params;
 }
 
-function formatValue(value: number | null, unit: string): string {
-  if (value === null || Number.isNaN(value)) {
-    return 'N/A';
-  }
-
-  const rounded = Number.isInteger(value) ? value.toString() : value.toFixed(2);
-  return unit === 'percentage' || unit === '%' ? `${rounded}%` : `${rounded}${unit ? ` ${unit}` : ''}`;
-}
-
 function trendClassName(trend: EngineeringHealthEvaluation['evaluations'][number]['comparison']['trend']): string {
   if (trend === 'improving') {return 'text-emerald-600';}
   if (trend === 'degrading') {return 'text-red-600';}
@@ -172,7 +163,7 @@ function formatMetricLabel(value: string): string {
 
 function buildComparisonBars(
   evaluation: EngineeringHealthEvaluation['evaluations'][number],
-): Array<{ label: string; value: number | null; width: number; tone: 'current' | 'previous' }> {
+): Array<{ label: string; value: number | null; valueFormatted: string; width: number; tone: 'current' | 'previous' }> {
   const current = evaluation.comparison.current;
   const previous = evaluation.comparison.previous;
   const numericValues = [current, previous].filter((value): value is number => value !== null);
@@ -190,12 +181,14 @@ function buildComparisonBars(
     {
       label: 'Current',
       value: current,
+      valueFormatted: evaluation.comparison.current_formatted,
       width: toWidth(current),
       tone: 'current',
     },
     {
       label: 'Previous',
       value: previous,
+      valueFormatted: evaluation.comparison.previous_formatted,
       width: toWidth(previous),
       tone: 'previous',
     },
@@ -587,13 +580,13 @@ function renderMetricAppendixRow(
         <div>
           <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Current</p>
           <p className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
-            {formatValue(evaluation.value.value, evaluation.value.unit)}
+            {evaluation.value.value_formatted}
           </p>
         </div>
         <div>
           <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Delta</p>
           <p className={`mt-1 text-lg font-semibold tracking-tight ${trendClassName(evaluation.comparison.trend)}`}>
-            {formatValue(evaluation.comparison.delta, evaluation.value.unit)}
+            {evaluation.comparison.delta_formatted}
           </p>
         </div>
         <div>
@@ -633,7 +626,7 @@ function renderMetricAppendixRow(
               <div key={bar.label} className="space-y-1">
                 <div className="flex items-center justify-between text-xs text-slate-500">
                   <span>{bar.label}</span>
-                  <span>{formatValue(bar.value, evaluation.value.unit)}</span>
+                  <span>{bar.valueFormatted}</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-slate-200">
                   <div
@@ -783,7 +776,7 @@ export default async function EngineeringHealthPage({
               {renderInlineCitations(executiveSummary.degrading.id, referenceIndex)}{' '}
               ({executiveSummary.degrading.category}) with delta{' '}
               <span className={`font-semibold ${trendClassName(executiveSummary.degrading.comparison.trend)}`}>
-                {formatValue(executiveSummary.degrading.comparison.delta, executiveSummary.degrading.value.unit)}
+                {executiveSummary.degrading.comparison.delta_formatted}
               </span>.
             </p>
           ) : null}
@@ -793,7 +786,7 @@ export default async function EngineeringHealthPage({
               {renderInlineCitations(executiveSummary.improving.id, referenceIndex)}
               ({executiveSummary.improving.category}) with delta{' '}
               <span className={`font-semibold ${trendClassName(executiveSummary.improving.comparison.trend)}`}>
-                {formatValue(executiveSummary.improving.comparison.delta, executiveSummary.improving.value.unit)}
+                {executiveSummary.improving.comparison.delta_formatted}
               </span>.
             </p>
           ) : null}
@@ -864,13 +857,13 @@ export default async function EngineeringHealthPage({
                             <div>
                               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Current</p>
                               <p className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
-                                {formatValue(evaluation.value.value, evaluation.value.unit)}
+                                {evaluation.value.value_formatted}
                               </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                               <div>
                                 <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Delta</p>
-                                <p className="mt-1 text-sm text-slate-700">{formatValue(evaluation.comparison.delta, evaluation.value.unit)}</p>
+                                <p className="mt-1 text-sm text-slate-700">{evaluation.comparison.delta_formatted}</p>
                               </div>
                               <div>
                                 <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Trend</p>

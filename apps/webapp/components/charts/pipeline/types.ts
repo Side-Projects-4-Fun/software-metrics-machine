@@ -28,9 +28,13 @@ export interface RunsDurationResponseItem {
   workflow?: string;
   aggregation?: 'avg' | 'min' | 'max';
   duration?: number;
+  duration_formatted?: string;
   avg_duration?: number;
+  avg_duration_formatted?: string;
   min_duration?: number;
+  min_duration_formatted?: string;
   max_duration?: number;
+  max_duration_formatted?: string;
   total_runs?: number;
   name?: string;
   value?: number;
@@ -40,8 +44,11 @@ export interface RunsDurationResponseItem {
 export interface RunsDurationData {
   workflow: string;
   avg_duration: number;
+  avg_duration_formatted: string;
   min_duration: number;
+  min_duration_formatted: string;
   max_duration: number;
+  max_duration_formatted: string;
   total_runs: number;
   name?: string;
   value?: number;
@@ -51,12 +58,14 @@ export interface RunsDurationData {
 export interface JobsDurationByWorkflowItem {
   workflow: string;
   jobs: Record<string, number>;
+  jobs_formatted: Record<string, string>;
 }
 
 export interface JobsAverageTimeResponseItem {
   job_name?: string;
   workflow_name?: string;
   avg_time?: number;
+  avg_time_formatted?: string;
   count?: number;
   outliers?: MetricOutlier[];
 }
@@ -65,6 +74,7 @@ export interface JobsAverageTimeData {
   job_name: string;
   workflow_name?: string;
   avg_time: number;
+  avg_time_formatted: string;
   count: number;
   outliers?: MetricOutlier[];
 }
@@ -72,6 +82,7 @@ export interface JobsAverageTimeData {
 export interface JobsAverageTimeByDayResponseItem {
   day?: string;
   avg_time?: number;
+  avg_time_formatted?: string;
   count?: number;
   outliers?: MetricOutlier[];
 }
@@ -79,6 +90,7 @@ export interface JobsAverageTimeByDayResponseItem {
 export interface JobsAverageTimeByDayData {
   day: string;
   avg_time: number;
+  avg_time_formatted: string;
   count: number;
   outliers?: MetricOutlier[];
 }
@@ -88,6 +100,7 @@ export interface JobSummaryResponseItem {
   job_name?: string;
   total_runs?: number;
   avg_duration_minutes?: number;
+  avg_duration_minutes_formatted?: string;
   success_count?: number;
   failure_count?: number;
   success_rate?: number;
@@ -101,6 +114,7 @@ export interface JobSummaryData {
   job_name: string;
   total_runs: number;
   avg_duration_minutes: number;
+  avg_duration_minutes_formatted: string;
   success_count: number;
   failure_count: number;
   success_rate: number;
@@ -122,6 +136,7 @@ export interface JobRerunsByDayData {
 export interface JobStepsAverageTimeResponseItem {
   name?: string;
   averageDurationMinutes?: number;
+  averageDurationMinutes_formatted?: string;
   count?: number;
   outliers?: MetricOutlier[];
 }
@@ -129,13 +144,19 @@ export interface JobStepsAverageTimeResponseItem {
 export interface JobStepsAverageTimeData {
   name: string;
   averageDurationMinutes: number;
+  averageDurationMinutes_formatted: string;
   count: number;
   outliers?: MetricOutlier[];
 }
 
 export interface JobStepsAverageTimeByDayResponseItem {
   day: string;
-  steps: Array<{ name: string; averageDurationMinutes: number; outliers?: MetricOutlier[] }>;
+  steps: Array<{
+    name: string;
+    averageDurationMinutes: number;
+    averageDurationMinutes_formatted: string;
+    outliers?: MetricOutlier[];
+  }>;
 }
 
 export interface JobStepsAverageTimeByDayData {

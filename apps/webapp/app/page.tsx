@@ -3,7 +3,7 @@ import Link from 'next/link';
 import SavedFiltersOverview from '@/components/home/SavedFiltersOverview';
 import AppProviders from '@/components/providers/AppProviders';
 import { loadAppProviderData } from '@/server/app-provider-data';
-import { getApplicationVersion } from '@smmachine/utils';
+import { versionAPI } from '@/server/api';
 
 const resources = [
   {
@@ -49,7 +49,8 @@ export const dynamic = 'force-dynamic';
 export default async function Home() {
   const { smmRestBaseUrl: apiBaseUrl } = getServerEnv();
   const providerData = await loadAppProviderData();
-  const applicationVersion = getApplicationVersion();
+  const versionResponse = await versionAPI.getVersion();
+  const applicationVersion = versionResponse.result.version;
 
   return (
     <AppProviders {...providerData}>

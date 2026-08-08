@@ -16,6 +16,7 @@ import {
   PRsService,
   PullRequestFactory,
 } from '@smmachine/core';
+import { formatDuration } from '@smmachine/utils';
 import { resolveSavedFilterOptions } from './helpers/filter-helper';
 
 function createPRsOrchestratorRead(command: SmmCommand): IReadPullRequestsRepository {
@@ -116,10 +117,6 @@ function normalizeMetricMethod(value?: string): MetricMethod {
 
 function formatOptionalDate(value?: string): string {
   return value || 'None';
-}
-
-function formatHours(value: number): string {
-  return Number.isInteger(value) ? String(value) : String(Math.round(value * 100) / 100);
 }
 
 type CliOutlier = {
@@ -233,11 +230,11 @@ export function formatPRSummary(summary: PRSummary): string {
 
   lines.push(
     '',
-    'Time to first comment (hours):',
-    `  Average: ${formatHours(summary.time_to_first_comment_hours.average)}`,
-    `  Median: ${formatHours(summary.time_to_first_comment_hours.median)}`,
-    `  Min: ${formatHours(summary.time_to_first_comment_hours.min)}`,
-    `  Max: ${formatHours(summary.time_to_first_comment_hours.max)}`,
+    'Time to first comment:',
+    `  Average: ${formatDuration(summary.time_to_first_comment_hours.average, 'hours')}`,
+    `  Median: ${formatDuration(summary.time_to_first_comment_hours.median, 'hours')}`,
+    `  Min: ${formatDuration(summary.time_to_first_comment_hours.min, 'hours')}`,
+    `  Max: ${formatDuration(summary.time_to_first_comment_hours.max, 'hours')}`,
     `  PRs with comment: ${summary.time_to_first_comment_hours.prs_with_comment}`,
     `  PRs without comment: ${summary.time_to_first_comment_hours.prs_without_comment}`
   );
@@ -561,7 +558,7 @@ export function createPRsCommands(program: SmmCommand): void {
           screen.printLine(`\n=== ${metricMethod.toUpperCase()} Review Time by Author ===\n`);
           for (const review of reviews) {
             screen.printLine(
-              `${review.author}: ${review.avg_days.toFixed(2)} days (method: ${review.method})`
+              `${review.author}: ${formatDuration(review.avg_days, 'days')} (method: ${review.method})`
             );
             printOutliers(screen, review.outliers);
           }
@@ -620,7 +617,7 @@ export function createPRsCommands(program: SmmCommand): void {
           screen.printLine(`\n=== ${metricMethod.toUpperCase()} PR Open Time ===\n`);
           for (const period of periods) {
             screen.printLine(
-              `${period.period}: ${period.avg_days.toFixed(2)} days (method: ${period.method})`
+              `${period.period}: ${formatDuration(period.avg_days, 'days')} (method: ${period.method})`
             );
             printOutliers(screen, period.outliers);
           }

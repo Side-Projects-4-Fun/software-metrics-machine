@@ -281,16 +281,6 @@ export class DashboardFiltersBuilder {
     return this;
   }
 
-  withWeekends(weekends: DashboardFilters['weekends']): this {
-    this.data.weekends = weekends;
-    return this;
-  }
-
-  withOutlierMode(outlierMode: DashboardFilters['outlierMode']): this {
-    this.data.outlierMode = outlierMode;
-    return this;
-  }
-
   withMetric(metric: string): this {
     this.data.metric = metric;
     return this;

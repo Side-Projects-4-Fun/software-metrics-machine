@@ -29,7 +29,7 @@ export const pullRequestAPI = {
     ),
   
   averageReviewTime: (params?: ApiParams) =>
-    fetchAPI<Array<{ author: string; avg_days?: number; avg_hours?: number; outliers?: MetricOutlier[] }>>(
+    fetchAPI<Array<{ author: string; avg_days?: number; avg_days_formatted?: string; avg_hours?: number; avg_hours_formatted?: string; outliers?: MetricOutlier[] }>>(
       '/pull-requests/average-review-time',
       params
     ),
@@ -41,7 +41,7 @@ export const pullRequestAPI = {
     ),
   
   averageOpenBy: (params?: ApiParams) =>
-    fetchAPI<Array<{ period: string; avg_days: number; outliers?: MetricOutlier[] }>>(
+    fetchAPI<Array<{ period: string; avg_days: number; avg_days_formatted: string; outliers?: MetricOutlier[] }>>(
       '/pull-requests/average-open-by',
       params
     ),
@@ -53,7 +53,7 @@ export const pullRequestAPI = {
     fetchAPI<Array<{ author: string; count: number }>>('/pull-requests/comments-by-author', params),
 
   firstCommentTime: (params?: ApiParams) =>
-    fetchAPI<Array<{ author: string; avg_hours: number; prs_with_comments: number; outliers?: MetricOutlier[] }>>(
+    fetchAPI<Array<{ author: string; avg_hours: number; avg_hours_formatted: string; prs_with_comments: number; outliers?: MetricOutlier[] }>>(
       '/pull-requests/first-comment-time',
       params
     ),
@@ -83,7 +83,9 @@ export const pullRequestAPI = {
         openPRs: number;
         avgCommentsPerPR: number;
         avgReviewHours: number;
+        avgReviewHours_formatted: string;
         avgOpenDays: number;
+        avgOpenDays_formatted: string;
         uniqueAuthors: number;
         topReviewer?: string;
         bottleneckAuthor?: string;

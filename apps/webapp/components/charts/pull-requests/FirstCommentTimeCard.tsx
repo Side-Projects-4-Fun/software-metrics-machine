@@ -17,6 +17,8 @@ export default function FirstCommentTimeCard({ data, method }: { data: FirstComm
     window.open(url, '_blank');
   };
 
+  const formattedMap = new Map<number, string>(data.map((item) => [item.avg_hours, item.avg_hours_formatted]));
+
   return (
     <Card>
       <CardHeader>
@@ -31,8 +33,8 @@ export default function FirstCommentTimeCard({ data, method }: { data: FirstComm
           <BarChart data={ensureArray<FirstCommentTimeData>(data)}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="author" angle={-45} textAnchor="end" height={100} />
-            <YAxis />
-            <Tooltip />
+            <YAxis tickFormatter={(value) => formattedMap.get(Number(value)) ?? String(Number(value) || 0)} />
+            <Tooltip formatter={(value: unknown) => formattedMap.get(Number(value)) ?? String(Number(value) || 0)} />
             <Legend />
             <Bar
               dataKey="avg_hours"

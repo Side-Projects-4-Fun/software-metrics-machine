@@ -3,7 +3,10 @@ import { EngineeringHealthController } from '../src/controllers/engineering-heal
 
 describe('EngineeringHealthController', () => {
   it('maps query parameters to orchestrator evaluate input', async () => {
-    const evaluate = vi.fn().mockResolvedValue({ generatedAt: '2026-07-18T00:00:00.000Z' });
+    const evaluate = vi.fn().mockResolvedValue({
+      generatedAt: '2026-07-18T00:00:00.000Z',
+      evaluations: [],
+    });
     const controller = new EngineeringHealthController({ evaluate } as never);
 
     await controller.evaluate({
@@ -45,7 +48,10 @@ describe('EngineeringHealthController', () => {
   });
 
   it('omits previous block when comparison dates are absent', async () => {
-    const evaluate = vi.fn().mockResolvedValue({ generatedAt: '2026-07-18T00:00:00.000Z' });
+    const evaluate = vi.fn().mockResolvedValue({
+      generatedAt: '2026-07-18T00:00:00.000Z',
+      evaluations: [],
+    });
     const controller = new EngineeringHealthController({ evaluate } as never);
 
     await controller.evaluate({

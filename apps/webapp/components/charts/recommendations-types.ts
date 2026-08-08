@@ -35,6 +35,7 @@ export interface RecommendationsProps {
     job_name: string;
     success_rate: number;
     avg_duration_minutes: number;
+    avg_duration_minutes_formatted?: string;
     rerun_count: number;
     total_runs: number;
   }>;
@@ -42,5 +43,10 @@ export interface RecommendationsProps {
   averageReviewTime?: Array<{
     author: string;
     avg_hours: number;
+    avg_hours_formatted?: string;
   }>;
+  pipelineSummary?: {
+    average_duration_minutes?: number;
+    average_duration_minutes_formatted?: string;
+  };
 }

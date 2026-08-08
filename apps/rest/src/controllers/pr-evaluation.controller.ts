@@ -1,8 +1,10 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { parseMetricCleaningOptions, PRsService, PREvaluationService } from '@smmachine/core';
-import type { MetricCleaningOptions, PRDashboardData, PREvaluation } from '@smmachine/core';
+import type { MetricCleaningOptions, PRDashboardData } from '@smmachine/core';
 import { normalizeMetricMethod } from '../utils/metric-method';
+import { formatDuration } from '@smmachine/utils';
+import type { PREvaluationResponse } from '../dtos/response.dto';
 
 function toFilters(
   startDate?: string,
@@ -56,7 +58,7 @@ export class PREvaluationController {
     @Query('outlier_mode') outlierMode?: string,
     @Query('method') methodRaw?: string,
     @Query('aggregate_by') aggregateBy?: string
-  ): Promise<PREvaluation> {
+  ): Promise<PREvaluationResponse> {
     const filters = toFilters(
       startDate,
       endDate,
@@ -149,6 +151,15 @@ export class PREvaluationController {
       throughput,
     };
 
-    return this.evaluationService.evaluate(dashboardData);
+    const evaluation = this.evaluationService.evaluate(dashboardData);
+
+    return {
+      ...evaluation,
+      summary: {
+        ...evaluation.summary,
+        avgReviewHours_formatted: formatDuration(evaluation.summary.avgReviewHours, 'hours'),
+        avgOpenDays_formatted: formatDuration(evaluation.summary.avgOpenDays, 'days'),
+      },
+    };
   }
 }

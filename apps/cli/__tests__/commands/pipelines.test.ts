@@ -169,7 +169,7 @@ describe('cli: Pipelines Commands', () => {
 
       expect(output).toContain('=== AVERAGE Pipeline Run Durations ===');
       expect(output).toContain('Workflow: ci.yml');
-      expect(output).toContain('Average Duration: 42.00 minutes');
+      expect(output).toContain('Average Duration: 42 min');
       expect(output).toContain('Total Runs: 10');
     });
 
@@ -182,7 +182,7 @@ describe('cli: Pipelines Commands', () => {
       const output = getOutput();
 
       expect(output).toContain('=== MEDIAN Pipeline Run Durations ===');
-      expect(output).toContain('Median Duration: 42.00 minutes');
+      expect(output).toContain('Median Duration: 42 min');
       expect(output).toContain('Total Runs: 10');
     });
 
@@ -262,7 +262,7 @@ describe('cli: Pipelines Commands', () => {
       expect(output).toContain('Successful Runs: 7');
       expect(output).toContain('Failed Runs: 2');
       expect(output).toContain('Success Rate: 7000.0%');
-      expect(output).toContain('Average Duration: 42.00 minutes');
+      expect(output).toContain('Average Duration: 42 min');
     });
 
     it('forwards filter options to dashboard', async () => {
@@ -336,7 +336,7 @@ describe('cli: Pipelines Commands', () => {
       expect(output).toContain('Reruns: 1');
       expect(output).toContain('Success rate: 75%');
       expect(output).toContain('Failure rate: 25%');
-      expect(output).toContain('Average Duration Minutes: 12.5');
+      expect(output).toContain('Average Duration Minutes: 13 min');
       expect(output).toContain('Failure count: 2');
     });
   });
@@ -380,7 +380,7 @@ describe('cli: Pipelines Commands', () => {
       expect(output).toContain('Total runs: 4');
       expect(output).toContain('Failure count: 1');
       expect(output).toContain('Success rate: 75');
-      expect(output).toContain('Average Execution Time: 30.00 minutes');
+      expect(output).toContain('Average Execution Time: 30 min');
     });
 
     it('uses median method when --method=median is provided', async () => {
@@ -419,7 +419,7 @@ describe('cli: Pipelines Commands', () => {
       const output = getOutput();
 
       expect(output).toContain('=== MEDIAN Job Execution Times ===');
-      expect(output).toContain('Median Execution Time: 20.00 minutes');
+      expect(output).toContain('Median Execution Time: 20 min');
     });
 
     it('passes method to dashboard when --method is provided', async () => {
@@ -470,7 +470,7 @@ describe('cli: Pipelines Commands', () => {
       expect(output).toContain('Name: deploy');
       expect(output).toContain('✅ Successful: 3, success rate: 75%');
       expect(output).toContain('❌ Failed: 1, failure rate: 25%');
-      expect(output).toContain('Average duration in minutes: 18');
+      expect(output).toContain('Average duration: 18 min');
     });
   });
 
@@ -490,13 +490,13 @@ describe('cli: Pipelines Commands', () => {
   });
 
   describe('pipelines lead-time', () => {
-    it('converts minutes to hours and rates 42 minutes as Elite', async () => {
+    it('formats 42 minutes as "42 min" and rates as Elite', async () => {
       await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
 
       const output = getOutput();
 
       expect(output).toContain('=== Lead Time for Changes (DORA) ===');
-      expect(output).toContain('Lead Time: 0.70 hours');
+      expect(output).toContain('Lead Time: 42 min');
       expect(output).toContain('📈 DORA Rating: Elite');
     });
 
@@ -525,7 +525,7 @@ describe('cli: Pipelines Commands', () => {
 
       const output = getOutput();
 
-      expect(output).toContain('Lead Time: 23.98 hours');
+      expect(output).toContain('Lead Time: 23h 59m');
       expect(output).toContain('📈 DORA Rating: Elite');
     });
 
@@ -554,7 +554,7 @@ describe('cli: Pipelines Commands', () => {
 
       const output = getOutput();
 
-      expect(output).toContain('Lead Time: 24.00 hours');
+      expect(output).toContain('Lead Time: 1d');
       expect(output).toContain('📈 DORA Rating: High');
     });
 
@@ -583,7 +583,7 @@ describe('cli: Pipelines Commands', () => {
 
       const output = getOutput();
 
-      expect(output).toContain('Lead Time: 168.00 hours');
+      expect(output).toContain('Lead Time: 7d');
       expect(output).toContain('📈 DORA Rating: Medium');
     });
 
@@ -612,7 +612,7 @@ describe('cli: Pipelines Commands', () => {
 
       const output = getOutput();
 
-      expect(output).toContain('Lead Time: 720.00 hours');
+      expect(output).toContain('Lead Time: 30d');
       expect(output).toContain('📈 DORA Rating: Low');
     });
   });

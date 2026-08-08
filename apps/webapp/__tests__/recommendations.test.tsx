@@ -205,7 +205,7 @@ describe('Recommendations', () => {
 
       expect(screen.getByText('Optimize Job Duration')).toBeInTheDocument();
       expect(screen.getByText(/Average job duration is 8.0 min/)).toBeInTheDocument();
-      expect(screen.getByText(/Slowest jobs: \.github\/workflows\/ci\.yml \/ slow-job \(8\.0 min\)/)).toBeInTheDocument();
+      expect(screen.getByText(/Slowest jobs: \.github\/workflows\/ci\.yml \/ slow-job \(8.0 min\)/)).toBeInTheDocument();
     });
 
     it('does not show duration warning when under 5 minutes', () => {
@@ -241,7 +241,7 @@ describe('Recommendations', () => {
       );
 
       expect(screen.getByText('Speed Up Code Reviews')).toBeInTheDocument();
-      expect(screen.getByText(/Average review time is 33.0 hours/)).toBeInTheDocument();
+      expect(screen.getByText(/Average review time is 33.0h/)).toBeInTheDocument();
     });
 
     it('shows success when review time is within target', () => {
@@ -256,7 +256,7 @@ describe('Recommendations', () => {
       );
 
       expect(screen.getByText('Review Time on Track')).toBeInTheDocument();
-      expect(screen.getByText(/Average review time is 15.0 hours/)).toBeInTheDocument();
+      expect(screen.getByText(/Average review time is 15.0h/)).toBeInTheDocument();
     });
   });
 

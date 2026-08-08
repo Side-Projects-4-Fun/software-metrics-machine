@@ -87,6 +87,7 @@ export function Recommendations({
   jobsSummary,
   selectedWorkflow,
   averageReviewTime,
+  pipelineSummary,
 }: RecommendationsProps) {
   const recommendations = useMemo(() => {
     const recs: Recommendation[] = [];
@@ -196,6 +197,7 @@ export function Recommendations({
       const target = METRIC_TARGETS['job-avg-time'];
       const avgDuration =
         jobsSummary.reduce((sum, j) => sum + j.avg_duration_minutes, 0) / jobsSummary.length;
+      const avgDurationFormatted = pipelineSummary?.average_duration_minutes_formatted || `${avgDuration.toFixed(1)} min`;
 
       if (avgDuration > 5) {
         const slowJobs = jobsSummary
@@ -203,19 +205,19 @@ export function Recommendations({
           .sort((a, b) => b.avg_duration_minutes - a.avg_duration_minutes);
         const slowJobsMessage = formatTopItems(
           slowJobs.length > 0 ? slowJobs : [...jobsSummary].sort((a, b) => b.avg_duration_minutes - a.avg_duration_minutes),
-          (job) => `${formatPipelineJob(job, selectedWorkflow)} (${job.avg_duration_minutes.toFixed(1)} min)`
+          (job) => `${formatPipelineJob(job, selectedWorkflow)} (${job.avg_duration_minutes_formatted || `${job.avg_duration_minutes.toFixed(1)} min`})`
         );
         recs.push({
           id: 'job-duration-high',
           metric: 'job-avg-time',
           title: 'Optimize Job Duration',
-          message: `Average job duration is ${avgDuration.toFixed(1)} min, exceeding the 5 min target. Slowest jobs: ${slowJobsMessage}. Consider parallelizing steps, caching dependencies, or splitting large jobs.`,
+          message: `Average job duration is ${avgDurationFormatted}, exceeding the 5 min target. Slowest jobs: ${slowJobsMessage}. Consider parallelizing steps, caching dependencies, or splitting large jobs.`,
           severity: 'warning',
-          currentValue: `${avgDuration.toFixed(1)} min`,
+          currentValue: avgDurationFormatted,
           targetValue: target?.target,
           contextItems: (slowJobs.length > 0 ? slowJobs : [...jobsSummary].sort((a, b) => b.avg_duration_minutes - a.avg_duration_minutes))
             .slice(0, 3)
-            .map((job) => `${formatPipelineJob(job, selectedWorkflow)} - ${job.avg_duration_minutes.toFixed(1)} min avg`),
+            .map((job) => `${formatPipelineJob(job, selectedWorkflow)} - ${job.avg_duration_minutes_formatted || `${job.avg_duration_minutes.toFixed(1)} min`} avg`),
           href: '/dashboard/pipelines',
           hrefLabel: 'View Pipelines',
         });
@@ -227,15 +229,16 @@ export function Recommendations({
       const target = METRIC_TARGETS['average-review-time'];
       const avgReviewHours =
         averageReviewTime.reduce((sum, a) => sum + a.avg_hours, 0) / averageReviewTime.length;
+      const avgReviewHoursFormatted = averageReviewTime[0]?.avg_hours_formatted || `${avgReviewHours.toFixed(1)}h`;
 
       if (avgReviewHours > 24) {
         recs.push({
           id: 'review-time-high',
           metric: 'average-review-time',
           title: 'Speed Up Code Reviews',
-          message: `Average review time is ${avgReviewHours.toFixed(1)} hours, exceeding the 24-hour target. Slow reviews create delivery bottlenecks and reduce author productivity.`,
+          message: `Average review time is ${avgReviewHoursFormatted}, exceeding the 24-hour target. Slow reviews create delivery bottlenecks and reduce author productivity.`,
           severity: 'warning',
-          currentValue: `${avgReviewHours.toFixed(1)} hours`,
+          currentValue: avgReviewHoursFormatted,
           targetValue: target?.target,
           href: '/dashboard/pull-requests',
           hrefLabel: 'View Pull Requests',
@@ -245,9 +248,9 @@ export function Recommendations({
           id: 'review-time-good',
           metric: 'average-review-time',
           title: 'Review Time on Track',
-          message: `Average review time is ${avgReviewHours.toFixed(1)} hours, within the 24-hour target.`,
+          message: `Average review time is ${avgReviewHoursFormatted}, within the 24-hour target.`,
           severity: 'success',
-          currentValue: `${avgReviewHours.toFixed(1)} hours`,
+          currentValue: avgReviewHoursFormatted,
           targetValue: target?.target,
         });
       }
@@ -311,7 +314,7 @@ export function Recommendations({
     }
 
     return recs;
-  }, [pairingIndex, prSummary, deploymentFrequency, jobsSummary, selectedWorkflow, averageReviewTime]);
+  }, [pairingIndex, prSummary, deploymentFrequency, jobsSummary, selectedWorkflow, averageReviewTime, pipelineSummary]);
 
   if (recommendations.length === 0) {
     return null;

@@ -2,6 +2,8 @@
  * Output Formatters for CLI
  */
 
+import { formatDuration } from '@smmachine/utils';
+
 export interface FormatterOptions {
   format: 'json' | 'text' | 'csv';
   verbose?: boolean;
@@ -81,7 +83,14 @@ export function formatPullRequestMetrics(
   output += `Total PRs: ${data.totalPRs || 'N/A'}\n`;
 
   if (data.leadTime) {
-    output += `Lead Time: ${data.leadTime.average || 'N/A'} ${data.leadTime.unit || 'days'}\n`;
+    const unit = data.leadTime.unit || 'days';
+    const formattedDuration =
+      unit === 'days'
+        ? formatDuration(data.leadTime.average || 0, 'days')
+        : unit === 'hours'
+          ? formatDuration(data.leadTime.average || 0, 'hours')
+          : formatDuration(data.leadTime.average || 0, 'minutes');
+    output += `Lead Time: ${formattedDuration}\n`;
   }
 
   if (data.commentSummary) {

@@ -23,6 +23,23 @@ interface TooltipPayloadEntry {
   dataKey?: string;
 }
 
+interface DurationRangeRow {
+  workflow: string;
+  min: number;
+  max: number;
+  range: number;
+  avg: number;
+  avg_duration_formatted: string;
+  min_duration_formatted: string;
+  max_duration_formatted: string;
+}
+
+interface JobBreakdownRow {
+  workflow: string;
+  _jobs_formatted?: Record<string, string>;
+  [key: string]: number | string | Record<string, string> | undefined;
+}
+
 // Stable palette for up to 20 jobs
 const JOB_COLORS = [
   '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6',
@@ -33,14 +50,17 @@ const JOB_COLORS = [
 
 function DurationTooltip({ active, payload, label }: { active?: boolean; payload?: TooltipPayloadEntry[]; label?: string }) {
   if (active && payload && payload.length) {
+    const row = (payload[0] as { payload?: DurationRangeRow } | undefined)?.payload;
     return (
       <div className="bg-white p-3 border border-gray-300 rounded shadow">
         <p className="font-semibold">{label}</p>
-        {payload.map((entry, index: number) => (
-          <p key={index} style={{ color: entry.color }} className="text-sm">
-            {entry.name}: {typeof entry.value === 'number' ? formatDurationMinutes(entry.value) : entry.value}
-          </p>
-        ))}
+        {row && (
+          <>
+            <p className="text-sm">Min: {row.min_duration_formatted}</p>
+            <p className="text-sm">Max: {row.max_duration_formatted}</p>
+            <p className="text-sm">Avg: {row.avg_duration_formatted}</p>
+          </>
+        )}
       </div>
     );
   }
@@ -49,12 +69,13 @@ function DurationTooltip({ active, payload, label }: { active?: boolean; payload
 
 function JobBreakdownTooltip({ active, payload, label }: { active?: boolean; payload?: TooltipPayloadEntry[]; label?: string }) {
   if (active && payload && payload.length) {
+    const row = (payload[0] as { payload?: JobBreakdownRow & { _jobs_formatted?: Record<string, string> } } | undefined)?.payload;
     return (
       <div className="bg-white p-3 border border-gray-300 rounded shadow">
         <p className="font-semibold">{label}</p>
         {payload.map((entry, index: number) => (
           <p key={index} style={{ color: entry.color }} className="text-sm">
-            {entry.name}: {typeof entry.value === 'number' ? formatDurationMinutes(entry.value) : entry.value}
+            {entry.name}: {row?._jobs_formatted?.[String(entry.dataKey || '')] ?? String(entry.value ?? '')}
           </p>
         ))}
       </div>
@@ -89,14 +110,27 @@ export default function PipelineRunsDurationCard({
     [dataByAggregation],
   );
 
+  const durationTickMap = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const item of sourceData) {
+      map.set(item.avg_duration, item.avg_duration_formatted);
+      map.set(item.min_duration, item.min_duration_formatted);
+      map.set(item.max_duration, item.max_duration_formatted);
+    }
+    return map;
+  }, [sourceData]);
+
   // Min-Max range chart data (existing)
-  const durationRangeData = useMemo(
+  const durationRangeData: DurationRangeRow[] = useMemo(
     () => sourceData.map((item) => ({
       workflow: item.workflow,
       min: item.min_duration,
       max: item.max_duration,
       range: Math.max(0, item.max_duration - item.min_duration),
       avg: item.avg_duration,
+      avg_duration_formatted: item.avg_duration_formatted,
+      min_duration_formatted: item.min_duration_formatted,
+      max_duration_formatted: item.max_duration_formatted,
     })),
     [sourceData],
   );
@@ -104,16 +138,17 @@ export default function PipelineRunsDurationCard({
   // Job breakdown: one row per workflow, each job is a key with its avg duration
   const { jobBreakdownData, allJobNames } = useMemo(() => {
     const rows = ensureArray<JobsDurationByWorkflowItem>(jobsDurationByWorkflow);
-    const jobBreakdownData = rows.map((row) => ({
+    const jobBreakdownData: JobBreakdownRow[] = rows.map((row) => ({
       workflow: row.workflow,
-      ...row.jobs, // only include jobs that belong to this workflow
+      ...row.jobs,
+      _jobs_formatted: row.jobs_formatted,
     }));
     
     // Collect unique job names that exist across all workflows
     const jobSet = new Set<string>();
     for (const row of jobBreakdownData) {
       for (const key of Object.keys(row)) {
-        if (key !== 'workflow') {
+        if (key !== 'workflow' && key !== '_jobs_formatted') {
           jobSet.add(key);
         }
       }
@@ -178,7 +213,11 @@ export default function PipelineRunsDurationCard({
               <ComposedChart data={durationRangeData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="workflow" angle={-45} textAnchor="end" height={100} />
-                <YAxis tickFormatter={(value) => formatDurationMinutes(Number(value) || 0)} />
+                <YAxis
+                  tickFormatter={(value) =>
+                    durationTickMap.get(Number(value)) ?? String(Number(value) || 0)
+                  }
+                />
                 <Tooltip content={<DurationTooltip />} />
                 <Legend />
                 <Bar dataKey="min" stackId="r" fill="rgba(0,0,0,0)" stroke="rgba(0,0,0,0)" legendType="none" />
@@ -218,7 +257,7 @@ export default function PipelineRunsDurationCard({
                         rel="noopener noreferrer"
                         className="tabular-nums text-blue-700 underline-offset-2 hover:underline"
                       >
-                        {formatDurationMinutes(item.avg)}
+                        {item.avg_duration_formatted}
                       </a>
                     ),
                   },
@@ -227,7 +266,7 @@ export default function PipelineRunsDurationCard({
                     label: 'Minimum',
                     align: 'right' as const,
                     renderCell: (item: (typeof durationRangeData)[number]) => (
-                      <span className="tabular-nums">{formatDurationMinutes(item.min)}</span>
+                      <span className="tabular-nums">{item.min_duration_formatted}</span>
                     ),
                   },
                   {
@@ -235,7 +274,7 @@ export default function PipelineRunsDurationCard({
                     label: 'Maximum',
                     align: 'right' as const,
                     renderCell: (item: (typeof durationRangeData)[number]) => (
-                      <span className="tabular-nums">{formatDurationMinutes(item.max)}</span>
+                      <span className="tabular-nums">{item.max_duration_formatted}</span>
                     ),
                   },
                 ]}

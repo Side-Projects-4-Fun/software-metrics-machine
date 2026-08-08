@@ -19,6 +19,7 @@ import type {
   PRFilterOptionsResponse,
 } from '../dtos/response.dto';
 import { normalizeMetricMethod } from '../utils/metric-method';
+import { formatDuration } from '@smmachine/utils';
 
 @ApiTags('Pull Request Metrics')
 @Controller()
@@ -149,7 +150,14 @@ export class PullRequestsController {
       method
     );
 
-    return { result };
+    return {
+      result: result.map((item) => ({
+        ...item,
+        avg_days_formatted: formatDuration(item.avg_days, 'days'),
+        avg_hours: item.avg_days * 24,
+        avg_hours_formatted: formatDuration(item.avg_days, 'days'),
+      })),
+    };
   }
 
   @Get('/pull-requests/average-open-by')
@@ -167,7 +175,7 @@ export class PullRequestsController {
     @Query('method') methodRaw?: string
   ): Promise<PRAverageOpenByResponse> {
     const method = normalizeMetricMethod(methodRaw);
-    return this.prsService.getOpenTimeBy(
+    const rows = await this.prsService.getOpenTimeBy(
       this.toFilters(
         startDate,
         endDate,
@@ -182,6 +190,11 @@ export class PullRequestsController {
       aggregateBy,
       method
     );
+
+    return rows.map((row) => ({
+      ...row,
+      avg_days_formatted: formatDuration(row.avg_days, 'days'),
+    }));
   }
 
   @Get('/pull-requests/average-comments')
@@ -279,7 +292,12 @@ export class PullRequestsController {
       method
     );
 
-    return { result };
+    return {
+      result: result.map((item) => ({
+        ...item,
+        avg_hours_formatted: formatDuration(item.avg_hours, 'hours'),
+      })),
+    };
   }
 
   @Get('/pull-requests/filter-options')

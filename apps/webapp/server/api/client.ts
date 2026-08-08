@@ -77,6 +77,7 @@ const ALLOWED_API_ENDPOINTS = new Set<string>([
   '/sonarqube/measurements',
   '/sonarqube/measurements/history',
   '/sonarqube/quality',
+  '/version',
 ]);
 
 function sanitizeApiEndpoint(endpoint: string): string {

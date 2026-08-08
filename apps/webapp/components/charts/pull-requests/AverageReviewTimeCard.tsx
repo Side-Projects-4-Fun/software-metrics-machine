@@ -17,6 +17,8 @@ export default function AverageReviewTimeCard({ data, method }: { data: AvgRevie
     window.open(url, '_blank');
   };
 
+  const formattedMap = new Map<number, string>(data.map((item) => [item.avg_days ?? 0, item.avg_days_formatted ?? '']));
+
   return (
     <Card>
       <CardHeader>
@@ -31,8 +33,8 @@ export default function AverageReviewTimeCard({ data, method }: { data: AvgRevie
           <BarChart data={ensureArray(data)}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="author" angle={-45} textAnchor="end" height={100} />
-            <YAxis />
-            <Tooltip />
+            <YAxis tickFormatter={(value) => formattedMap.get(Number(value)) ?? String(Number(value) || 0)} />
+            <Tooltip formatter={(value: unknown) => formattedMap.get(Number(value)) ?? String(Number(value) || 0)} />
             <Legend />
             <Bar dataKey="avg_days" fill="#82ca9d" name={daysLabel} onClick={(e) => handleBarClick(e.payload)} style={{ cursor: 'pointer' }} />
           </BarChart>

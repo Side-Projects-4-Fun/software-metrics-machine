@@ -137,6 +137,7 @@ export default async function InsightsSection({
           job_name: job.job_name || 'Unknown',
           total_runs: job.total_runs || 0,
           avg_duration_minutes: job.avg_duration_minutes || 0,
+          avg_duration_minutes_formatted: job.avg_duration_minutes_formatted,
           success_count: job.success_count || 0,
           failure_count: job.failure_count || 0,
           success_rate: job.success_rate || 0,
@@ -145,6 +146,7 @@ export default async function InsightsSection({
         }))
       : [];
 
+
     const reviewTimeResult = unwrapResult(
       reviewTime as AverageReviewTimeItem[] | ResultWrapper<AverageReviewTimeItem[]>
     );
@@ -152,8 +154,10 @@ export default async function InsightsSection({
       ? reviewTimeResult.map((item: AverageReviewTimeItem): AverageReviewTimeItem => ({
           author: item.author || 'Unknown',
           avg_hours: item.avg_hours || 0,
+          avg_hours_formatted: item.avg_hours_formatted,
         }))
       : [];
+
   } catch (error) {
     console.error('Error fetching insights:', error);
     pairingIndex = null;
@@ -187,6 +191,7 @@ export default async function InsightsSection({
         jobsSummary={jobsSummary}
         selectedWorkflow={filters.workflowSelector}
         averageReviewTime={averageReviewTime}
+        pipelineSummary={pipelineSummary ?? undefined}
       />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>
