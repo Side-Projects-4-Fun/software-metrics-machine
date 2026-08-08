@@ -59,7 +59,7 @@ describe('Dashboard Page', () => {
   });
 
   it('should display engineering health metrics', () => {
-    cy.visit('/dashboard/engineering-health');
+    cy.visit('/engineering-health');
     
     // Verify mocked health data
     cy.contains('Code Quality').should('exist');

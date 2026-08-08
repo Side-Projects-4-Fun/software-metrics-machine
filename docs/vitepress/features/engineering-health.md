@@ -19,7 +19,7 @@ smm dashboard serve
 Then open:
 
 ```text
-http://localhost:3000/dashboard/engineering-health
+http://localhost:3000/engineering-health
 ```
 
 The dashboard page renders a comprehensive engineering health report in the browser, organized as a scrollable document

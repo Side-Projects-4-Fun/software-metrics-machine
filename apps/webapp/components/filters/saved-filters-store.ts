@@ -28,5 +28,8 @@ export function dashboardSectionFromPathname(pathname: string): DashboardSection
 }
 
 export function dashboardPathForSection(section: DashboardSection): string {
+  if (section === 'engineering-health') {
+    return '/engineering-health';
+  }
   return `/dashboard/${section}`;
 }

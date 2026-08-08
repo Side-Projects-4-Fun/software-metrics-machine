@@ -7,7 +7,6 @@ import { Tab, Tabs } from '@mui/material';
 
 const dashboardTabs = [
   { value: 'insights', label: 'Insights', href: '/dashboard/insights/' },
-  { value: 'engineering-health', label: 'Engineering Health', href: '/dashboard/engineering-health/' },
   { value: 'pipelines', label: 'Pipelines', href: '/dashboard/pipelines/' },
   { value: 'pull-requests', label: 'Pull Requests', href: '/dashboard/pull-requests/' },
   { value: 'source-code', label: 'Source Code', href: '/dashboard/source-code/' },
