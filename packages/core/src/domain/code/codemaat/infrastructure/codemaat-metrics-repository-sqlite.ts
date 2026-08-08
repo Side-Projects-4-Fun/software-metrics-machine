@@ -18,7 +18,6 @@ import { openSqliteConnection } from '../../../../infrastructure/sqlite-connecti
 import { normalizePatternList } from '../../../../domain/code/pattern-filters';
 import { CodeMaatMetricsCsvRepository } from './codemaat-metrics-repository-csv';
 import type {
-  CodeChurnValueResult,
   CodeMaatChurnOptions,
   CodeMaatEntityFilterOptions,
   EntityChurnRecord,
@@ -37,13 +36,7 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
         : '';
   }
 
-  override async getCodeChurn(
-    options: CodeMaatChurnOptions & { typeChurn: string }
-  ): Promise<CodeChurnValueResult>;
-  override async getCodeChurn(options?: CodeMaatChurnOptions): Promise<CodeChurnResult>;
-  override async getCodeChurn(
-    options?: CodeMaatChurnOptions
-  ): Promise<CodeChurnResult | CodeChurnValueResult> {
+  override async getCodeChurn(options?: CodeMaatChurnOptions): Promise<CodeChurnResult> {
     const db = this.openSqlite();
     try {
       if (!this.tableExists(db, 'codemaat_code_churn')) {
@@ -86,24 +79,10 @@ export class CodeMaatMetricsSqliteRepository extends CodeMaatMetricsCsvRepositor
         deleted: this.toNumber(row.deleted),
         commits: this.toNumber(row.commits),
       }));
-      const result = {
+      return {
         data,
         startDate: options?.startDate,
         endDate: options?.endDate,
-      };
-
-      if (!options || !Object.prototype.hasOwnProperty.call(options, 'typeChurn')) {
-        return result;
-      }
-
-      const churnType = (options.typeChurn || 'total').toLowerCase();
-      return {
-        ...result,
-        data: data.map((row) => ({
-          date: row.date,
-          type: churnType,
-          value: this.getChurnValue(row, churnType),
-        })),
       };
     } finally {
       db.close();

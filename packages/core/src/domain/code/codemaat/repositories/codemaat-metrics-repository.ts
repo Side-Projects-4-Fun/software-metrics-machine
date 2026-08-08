@@ -1,4 +1,5 @@
 import type {
+  CodeChurn,
   CodeChurnResult,
   FileCoupling,
   CodeMaatCodeChurnEntry,
@@ -29,9 +30,6 @@ export type EntityOwnershipRecord = {
 };
 
 export interface ICodeMetricsRepository {
-  getCodeChurn(
-    options: CodeMaatChurnOptions & { typeChurn: string }
-  ): Promise<CodeChurnValueResult>;
   getCodeChurn(options?: CodeMaatChurnOptions): Promise<CodeChurnResult>;
   getCodeChurnHistory(options?: CodeMaatChurnOptions): Promise<CodeMaatCodeChurnEntry[]>;
   getFileCoupling(options?: CodeMaatEntityFilterOptions): Promise<FileCoupling[]>;
@@ -69,7 +67,6 @@ export type CodeMaatEntityFilterOptions = {
 export type CodeMaatChurnOptions = {
   startDate?: string;
   endDate?: string;
-  typeChurn?: string;
 };
 
 export type CodeChurnValue = {
@@ -83,3 +80,42 @@ export type CodeChurnValueResult = {
   startDate?: string;
   endDate?: string;
 };
+
+/**
+ * Pure projection of a raw CodeChurnResult into a single-value series.
+ *
+ * The repository always returns raw rows ({ date, added, deleted, commits }).
+ * This function selects one metric per row (added, deleted, commits, or the
+ * added+deleted total) so the dashboard can plot a single `value` series.
+ * Kept as a pure function so the projection logic lives in exactly one place
+ * instead of being duplicated inside every repository implementation.
+ */
+export function projectCodeChurnValue(
+  result: CodeChurnResult,
+  typeChurn?: string
+): CodeChurnValueResult {
+  const churnType = (typeChurn || 'total').toLowerCase();
+
+  return {
+    data: result.data.map((row) => ({
+      date: row.date,
+      type: churnType,
+      value: getChurnValue(row, churnType),
+    })),
+    startDate: result.startDate,
+    endDate: result.endDate,
+  };
+}
+
+export function getChurnValue(row: CodeChurn, churnType: string): number {
+  if (churnType === 'added') {
+    return row.added;
+  }
+  if (churnType === 'deleted') {
+    return row.deleted;
+  }
+  if (churnType === 'commits') {
+    return row.commits;
+  }
+  return row.added + row.deleted;
+}

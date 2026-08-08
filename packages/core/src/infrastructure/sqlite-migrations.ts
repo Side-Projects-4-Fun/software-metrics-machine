@@ -235,11 +235,6 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
           PRIMARY KEY (date, position)
         );
 
-        CREATE INDEX IF NOT EXISTS idx_codemaat_code_churn_date
-          ON codemaat_code_churn(date);
-        CREATE INDEX IF NOT EXISTS idx_codemaat_code_churn_fetched_at
-          ON codemaat_code_churn(fetched_at);
-
         CREATE TABLE IF NOT EXISTS codemaat_age (
           entity TEXT NOT NULL,
           age_months INTEGER NOT NULL,
@@ -248,11 +243,6 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
           fetched_at TEXT,
           PRIMARY KEY (entity, position)
         );
-
-        CREATE INDEX IF NOT EXISTS idx_codemaat_age_entity
-          ON codemaat_age(entity);
-        CREATE INDEX IF NOT EXISTS idx_codemaat_age_fetched_at
-          ON codemaat_age(fetched_at);
 
         CREATE TABLE IF NOT EXISTS codemaat_author_churn (
           author TEXT NOT NULL,
@@ -265,11 +255,6 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
           PRIMARY KEY (author, position)
         );
 
-        CREATE INDEX IF NOT EXISTS idx_codemaat_author_churn_author
-          ON codemaat_author_churn(author);
-        CREATE INDEX IF NOT EXISTS idx_codemaat_author_churn_fetched_at
-          ON codemaat_author_churn(fetched_at);
-
         CREATE TABLE IF NOT EXISTS codemaat_file_coupling (
           entity TEXT NOT NULL,
           coupled TEXT NOT NULL,
@@ -280,15 +265,6 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
           fetched_at TEXT,
           PRIMARY KEY (entity, coupled, position)
         );
-
-        CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_entity
-          ON codemaat_file_coupling(entity);
-        CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_coupled
-          ON codemaat_file_coupling(coupled);
-        CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_degree
-          ON codemaat_file_coupling(degree);
-        CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_fetched_at
-          ON codemaat_file_coupling(fetched_at);
 
         CREATE TABLE IF NOT EXISTS codemaat_layered_coupling (
           entity TEXT NOT NULL,
@@ -301,15 +277,6 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
           PRIMARY KEY (entity, coupled, position)
         );
 
-        CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_entity
-          ON codemaat_layered_coupling(entity);
-        CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_coupled
-          ON codemaat_layered_coupling(coupled);
-        CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_degree
-          ON codemaat_layered_coupling(degree);
-        CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_fetched_at
-          ON codemaat_layered_coupling(fetched_at);
-
         CREATE TABLE IF NOT EXISTS codemaat_entity_churn (
           entity TEXT NOT NULL,
           added INTEGER NOT NULL,
@@ -321,11 +288,6 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
           PRIMARY KEY (entity, position)
         );
 
-        CREATE INDEX IF NOT EXISTS idx_codemaat_entity_churn_entity
-          ON codemaat_entity_churn(entity);
-        CREATE INDEX IF NOT EXISTS idx_codemaat_entity_churn_fetched_at
-          ON codemaat_entity_churn(fetched_at);
-
         CREATE TABLE IF NOT EXISTS codemaat_entity_effort (
           entity TEXT NOT NULL,
           total_revs INTEGER NOT NULL,
@@ -334,11 +296,6 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
           fetched_at TEXT,
           PRIMARY KEY (entity, position)
         );
-
-        CREATE INDEX IF NOT EXISTS idx_codemaat_entity_effort_entity
-          ON codemaat_entity_effort(entity);
-        CREATE INDEX IF NOT EXISTS idx_codemaat_entity_effort_fetched_at
-          ON codemaat_entity_effort(fetched_at);
 
         CREATE TABLE IF NOT EXISTS codemaat_entity_ownership (
           entity TEXT NOT NULL,
@@ -350,6 +307,63 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
           fetched_at TEXT,
           PRIMARY KEY (entity, author, position)
         );
+      `);
+
+      // Add fetched_at column to any pre-existing legacy tables that lack it,
+      // before creating indexes on that column.
+      CODEMAAT_TABLES.forEach((tableName) => {
+        if (!tableExists(db, tableName)) {
+          return;
+        }
+
+        if (!columnExists(db, tableName, 'fetched_at')) {
+          db.exec(`ALTER TABLE ${tableName} ADD COLUMN fetched_at TEXT`);
+        }
+      });
+
+      db.exec(`
+        CREATE INDEX IF NOT EXISTS idx_codemaat_code_churn_date
+          ON codemaat_code_churn(date);
+        CREATE INDEX IF NOT EXISTS idx_codemaat_code_churn_fetched_at
+          ON codemaat_code_churn(fetched_at);
+
+        CREATE INDEX IF NOT EXISTS idx_codemaat_age_entity
+          ON codemaat_age(entity);
+        CREATE INDEX IF NOT EXISTS idx_codemaat_age_fetched_at
+          ON codemaat_age(fetched_at);
+
+        CREATE INDEX IF NOT EXISTS idx_codemaat_author_churn_author
+          ON codemaat_author_churn(author);
+        CREATE INDEX IF NOT EXISTS idx_codemaat_author_churn_fetched_at
+          ON codemaat_author_churn(fetched_at);
+
+        CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_entity
+          ON codemaat_file_coupling(entity);
+        CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_coupled
+          ON codemaat_file_coupling(coupled);
+        CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_degree
+          ON codemaat_file_coupling(degree);
+        CREATE INDEX IF NOT EXISTS idx_codemaat_file_coupling_fetched_at
+          ON codemaat_file_coupling(fetched_at);
+
+        CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_entity
+          ON codemaat_layered_coupling(entity);
+        CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_coupled
+          ON codemaat_layered_coupling(coupled);
+        CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_degree
+          ON codemaat_layered_coupling(degree);
+        CREATE INDEX IF NOT EXISTS idx_codemaat_layered_coupling_fetched_at
+          ON codemaat_layered_coupling(fetched_at);
+
+        CREATE INDEX IF NOT EXISTS idx_codemaat_entity_churn_entity
+          ON codemaat_entity_churn(entity);
+        CREATE INDEX IF NOT EXISTS idx_codemaat_entity_churn_fetched_at
+          ON codemaat_entity_churn(fetched_at);
+
+        CREATE INDEX IF NOT EXISTS idx_codemaat_entity_effort_entity
+          ON codemaat_entity_effort(entity);
+        CREATE INDEX IF NOT EXISTS idx_codemaat_entity_effort_fetched_at
+          ON codemaat_entity_effort(fetched_at);
 
         CREATE INDEX IF NOT EXISTS idx_codemaat_entity_ownership_entity
           ON codemaat_entity_ownership(entity);
@@ -366,10 +380,6 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
       CODEMAAT_TABLES.forEach((tableName) => {
         if (!tableExists(db, tableName)) {
           return;
-        }
-
-        if (!columnExists(db, tableName, 'fetched_at')) {
-          db.exec(`ALTER TABLE ${tableName} ADD COLUMN fetched_at TEXT`);
         }
 
         db.prepare(`UPDATE ${tableName} SET fetched_at = stored_at WHERE fetched_at IS NULL`).run();

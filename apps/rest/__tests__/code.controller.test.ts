@@ -93,9 +93,9 @@ describe('CodeController', () => {
   });
 
   describe('codeChurn', () => {
-    it('returns CodeChurnValue entries directly when type_churn is provided', async () => {
+    it('fetches raw churn and projects to the requested value series', async () => {
       const { controller, codemaat } = createController();
-      const coreData = [{ date: '2026-01-01', type: 'added', value: 7 }];
+      const coreData = [{ date: '2026-01-01', added: 7, deleted: 3, commits: 2 }];
       codemaat.getCodeChurn.mockResolvedValue({ data: coreData });
 
       const result = await controller.codeChurn('2026-01-01', '2026-06-01', 'added');
@@ -103,12 +103,11 @@ describe('CodeController', () => {
       expect(codemaat.getCodeChurn).toHaveBeenCalledWith({
         startDate: '2026-01-01',
         endDate: '2026-06-01',
-        typeChurn: 'added',
       });
       expect(result).toEqual([{ date: '2026-01-01', type: 'added', value: 7 }]);
     });
 
-    it('computes total value from added and deleted when type_churn is absent', async () => {
+    it('defaults to total (added + deleted) when type_churn is absent', async () => {
       const { controller, codemaat } = createController();
       const coreData = [{ date: '2026-01-01', added: 7, deleted: 3, commits: 2 }];
       codemaat.getCodeChurn.mockResolvedValue({ data: coreData });
@@ -124,14 +123,14 @@ describe('CodeController', () => {
 
     it('does not emit null/NaN values for real dashboard requests (regression)', async () => {
       const { controller, codemaat } = createController();
-      const coreData = [{ date: '2026-01-04', type: 'added', value: 120 }];
+      const coreData = [{ date: '2026-01-04', added: 100, deleted: 20, commits: 5 }];
       codemaat.getCodeChurn.mockResolvedValue({ data: coreData });
 
       const result = await controller.codeChurn('2026-01-01', '2026-01-31', 'added');
 
-      expect(result[0]?.value).toBe(120);
+      expect(result[0]?.value).toBe(100);
       expect(Number.isNaN(result[0]?.value)).toBe(false);
-      expect(JSON.stringify(result[0])).toContain('"value":120');
+      expect(JSON.stringify(result[0])).toContain('"value":100');
     });
   });
 

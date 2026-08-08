@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { CodemaatAnalyzer } from '../../..';
+import { projectCodeChurnValue } from '../../../domain/code/codemaat/repositories/codemaat-metrics-repository';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 describe('CodeMaat Analyzer Tests', () => {
@@ -379,7 +380,7 @@ src/api.ts,src/utils.ts,78`;
     });
   });
 
-  describe('Code Churn typeChurn Overload', () => {
+  describe('Code Churn value projection', () => {
     beforeAll(() => {
       const csvContent = `date,added,deleted,commits
 2024-01-01,50,10,5
@@ -388,52 +389,7 @@ src/api.ts,src/utils.ts,78`;
       fs.writeFileSync(path.join(tempDir, 'abs-churn.csv'), csvContent);
     });
 
-    it('should map to added value when typeChurn is "added"', async () => {
-      const result = await analyzer.getCodeChurn({ typeChurn: 'added' });
-
-      expect(result.data).toEqual([
-        { date: '2024-01-01', type: 'added', value: 50 },
-        { date: '2024-01-02', type: 'added', value: 120 },
-      ]);
-    });
-
-    it('should map to deleted value when typeChurn is "deleted"', async () => {
-      const result = await analyzer.getCodeChurn({ typeChurn: 'deleted' });
-
-      expect(result.data).toEqual([
-        { date: '2024-01-01', type: 'deleted', value: 10 },
-        { date: '2024-01-02', type: 'deleted', value: 30 },
-      ]);
-    });
-
-    it('should map to commits value when typeChurn is "commits"', async () => {
-      const result = await analyzer.getCodeChurn({ typeChurn: 'commits' });
-
-      expect(result.data).toEqual([
-        { date: '2024-01-01', type: 'commits', value: 5 },
-        { date: '2024-01-02', type: 'commits', value: 8 },
-      ]);
-    });
-
-    it('should default to added+deleted total for an unrecognized typeChurn value', async () => {
-      const result = await analyzer.getCodeChurn({ typeChurn: 'bogus' });
-
-      expect(result.data).toEqual([
-        { date: '2024-01-01', type: 'bogus', value: 60 },
-        { date: '2024-01-02', type: 'bogus', value: 150 },
-      ]);
-    });
-
-    it('should default to added+deleted total when typeChurn key is present but undefined', async () => {
-      const result = await analyzer.getCodeChurn({ typeChurn: undefined });
-
-      expect(result.data).toEqual([
-        { date: '2024-01-01', type: 'total', value: 60 },
-        { date: '2024-01-02', type: 'total', value: 150 },
-      ]);
-    });
-
-    it('should return the plain (non-mapped) shape when no options are passed', async () => {
+    it('should always return the raw shape from the repository', async () => {
       const result = await analyzer.getCodeChurn();
 
       expect(result.data).toEqual([
@@ -442,12 +398,62 @@ src/api.ts,src/utils.ts,78`;
       ]);
     });
 
-    it('should return the plain (non-mapped) shape when options omit the typeChurn key', async () => {
+    it('should return the raw shape when date filters are passed', async () => {
       const result = await analyzer.getCodeChurn({ startDate: '2024-01-01' });
 
       expect(result.data).toEqual([
         { date: '2024-01-01', added: 50, deleted: 10, commits: 5 },
         { date: '2024-01-02', added: 120, deleted: 30, commits: 8 },
+      ]);
+    });
+
+    it('should project to added value when typeChurn is "added"', async () => {
+      const churn = await analyzer.getCodeChurn();
+      const result = projectCodeChurnValue(churn, 'added');
+
+      expect(result.data).toEqual([
+        { date: '2024-01-01', type: 'added', value: 50 },
+        { date: '2024-01-02', type: 'added', value: 120 },
+      ]);
+    });
+
+    it('should project to deleted value when typeChurn is "deleted"', async () => {
+      const churn = await analyzer.getCodeChurn();
+      const result = projectCodeChurnValue(churn, 'deleted');
+
+      expect(result.data).toEqual([
+        { date: '2024-01-01', type: 'deleted', value: 10 },
+        { date: '2024-01-02', type: 'deleted', value: 30 },
+      ]);
+    });
+
+    it('should project to commits value when typeChurn is "commits"', async () => {
+      const churn = await analyzer.getCodeChurn();
+      const result = projectCodeChurnValue(churn, 'commits');
+
+      expect(result.data).toEqual([
+        { date: '2024-01-01', type: 'commits', value: 5 },
+        { date: '2024-01-02', type: 'commits', value: 8 },
+      ]);
+    });
+
+    it('should default to added+deleted total for an unrecognized typeChurn value', async () => {
+      const churn = await analyzer.getCodeChurn();
+      const result = projectCodeChurnValue(churn, 'bogus');
+
+      expect(result.data).toEqual([
+        { date: '2024-01-01', type: 'bogus', value: 60 },
+        { date: '2024-01-02', type: 'bogus', value: 150 },
+      ]);
+    });
+
+    it('should default to added+deleted total when typeChurn is undefined', async () => {
+      const churn = await analyzer.getCodeChurn();
+      const result = projectCodeChurnValue(churn);
+
+      expect(result.data).toEqual([
+        { date: '2024-01-01', type: 'total', value: 60 },
+        { date: '2024-01-02', type: 'total', value: 150 },
       ]);
     });
   });

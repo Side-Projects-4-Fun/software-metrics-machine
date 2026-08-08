@@ -1,6 +1,6 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
-import { BigOService, ICodeMetricsRepository } from '@smmachine/core';
+import { BigOService, ICodeMetricsRepository, projectCodeChurnValue } from '@smmachine/core';
 import { PairingService } from '@smmachine/core/domain/code/pairing/pairing-service';
 import type {
   BigOFileAnalysis,
@@ -90,21 +90,8 @@ export class CodeController {
     @Query('end_date') endDate?: string,
     @Query('type_churn') typeChurn?: string
   ): Promise<CodeChurnResponse> {
-    if (typeChurn) {
-      const churn = await this.codemaat.getCodeChurn({ startDate, endDate, typeChurn });
-      return churn.data.map((entry) => ({
-        date: entry.date,
-        type: typeChurn,
-        value: entry.value,
-      }));
-    }
-
     const churn = await this.codemaat.getCodeChurn({ startDate, endDate });
-    return churn.data.map((entry) => ({
-      date: entry.date,
-      type: 'total',
-      value: entry.added + entry.deleted,
-    }));
+    return projectCodeChurnValue(churn, typeChurn).data;
   }
 
   @Get('/code/code-churn/history')

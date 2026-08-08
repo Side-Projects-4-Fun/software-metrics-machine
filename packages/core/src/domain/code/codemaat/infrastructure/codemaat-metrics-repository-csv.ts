@@ -17,7 +17,6 @@ import type { Configuration } from '../../../../infrastructure/configuration';
 import path from 'path';
 import { matchesPathPattern, normalizePatternList } from '../../../../domain/code/pattern-filters';
 import type {
-  CodeChurnValueResult,
   CodeMaatChurnOptions,
   CodeMaatEntityFilterOptions,
   EntityChurnRecord,
@@ -44,13 +43,7 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
     this.logger = logger;
   }
 
-  async getCodeChurn(
-    options: CodeMaatChurnOptions & { typeChurn: string }
-  ): Promise<CodeChurnValueResult>;
-  async getCodeChurn(options?: CodeMaatChurnOptions): Promise<CodeChurnResult>;
-  async getCodeChurn(
-    options?: CodeMaatChurnOptions
-  ): Promise<CodeChurnResult | CodeChurnValueResult> {
+  async getCodeChurn(options?: CodeMaatChurnOptions): Promise<CodeChurnResult> {
     try {
       const csvPath = path.join(
         this.resolveDataDirectory({ startDate: options?.startDate, endDate: options?.endDate }),
@@ -141,24 +134,10 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
 
       this.logger.info(`Parsed ${data.length} code churn records`);
 
-      const result = {
+      return {
         data,
         startDate: options?.startDate,
         endDate: options?.endDate,
-      };
-
-      if (!options || !Object.prototype.hasOwnProperty.call(options, 'typeChurn')) {
-        return result;
-      }
-
-      const churnType = (options.typeChurn || 'total').toLowerCase();
-      return {
-        ...result,
-        data: data.map((row) => ({
-          date: row.date,
-          type: churnType,
-          value: this.getChurnValue(row, churnType),
-        })),
       };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -576,19 +555,6 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
     }
 
     return 0;
-  }
-
-  protected getChurnValue(row: CodeChurn, churnType: string): number {
-    if (churnType === 'added') {
-      return row.added;
-    }
-    if (churnType === 'deleted') {
-      return row.deleted;
-    }
-    if (churnType === 'commits') {
-      return row.commits;
-    }
-    return row.added + row.deleted;
   }
 
   protected toDateOnly(value: string): string {
