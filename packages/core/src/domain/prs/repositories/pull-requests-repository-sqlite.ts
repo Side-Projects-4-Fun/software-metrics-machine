@@ -77,7 +77,10 @@ export class PullRequestsSqliteRepository
   }
 
   private async loadPullRequestPayloads(filters?: PRFilters): Promise<PullRequestJsonResponse[]> {
-    const rows = await this.loadPayloadRows('pull_requests', this.buildPullRequestsQuery(filters));
+    const rows = await this.loadPayloadRows(
+      'change_requests',
+      this.buildPullRequestsQuery(filters)
+    );
     return rows.map((row) => JSON.parse(row.payload) as PullRequestJsonResponse);
   }
 
@@ -93,7 +96,7 @@ export class PullRequestsSqliteRepository
 
     for (const numberChunk of this.chunkValues(uniqueNumbers, 500)) {
       const rows = await this.loadPayloadRows(
-        'pull_request_comments',
+        'change_request_comments',
         this.buildPullRequestCommentsQuery(numberChunk, filters)
       );
 
@@ -143,7 +146,7 @@ export class PullRequestsSqliteRepository
 
     return {
       sql: `SELECT payload
-            FROM pull_requests
+            FROM change_requests
             WHERE ${whereClauses.join(' AND ')}
             ORDER BY position ASC, number ASC, id ASC`,
       params,
@@ -169,7 +172,7 @@ export class PullRequestsSqliteRepository
 
     return {
       sql: `SELECT payload
-            FROM pull_request_comments
+            FROM change_request_comments
             WHERE ${whereClauses.join(' AND ')}
             ORDER BY position ASC, id ASC`,
       params,
@@ -255,7 +258,7 @@ export class PullRequestsSqliteRepository
   }
 
   private getPullRequestNumberFromComment(comment: PullRequestCommentJsonResponse): number {
-    const match = comment.pull_request_url.match(/\/pulls\/(\d+)(?:$|[/?#])/);
+    const match = comment.pull_request_url.match(/\/(?:pulls|merge_requests)\/(\d+)(?:$|[/?#])/);
     return match ? Number(match[1]) : Number.NaN;
   }
 

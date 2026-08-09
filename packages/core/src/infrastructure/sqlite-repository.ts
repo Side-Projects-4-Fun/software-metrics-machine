@@ -70,16 +70,16 @@ export class SqliteRepository<T> implements IRepository<T> {
       this.ensureSchema(db);
       db.exec('BEGIN IMMEDIATE TRANSACTION');
       try {
-        if (this.isWorkflowRunsNamespace()) {
-          this.saveWorkflowRuns(db, items);
-        } else if (this.isWorkflowJobsNamespace()) {
-          this.saveWorkflowJobs(db, items);
+        if (this.isPipelineRunsNamespace()) {
+          this.savePipelineRuns(db, items);
+        } else if (this.isPipelineJobsNamespace()) {
+          this.savePipelineJobs(db, items);
         } else if (this.isCommitsNamespace()) {
           this.saveCommits(db, items);
-        } else if (this.isPullRequestsNamespace()) {
-          this.savePullRequests(db, items);
-        } else if (this.isPullRequestCommentsNamespace()) {
-          this.savePullRequestComments(db, items);
+        } else if (this.isChangeRequestsNamespace()) {
+          this.saveChangeRequests(db, items);
+        } else if (this.isChangeRequestCommentsNamespace()) {
+          this.saveChangeRequestComments(db, items);
         } else {
           this.saveGenericRecords(db, items);
         }
@@ -136,17 +136,17 @@ export class SqliteRepository<T> implements IRepository<T> {
     const db = this.openDatabase();
     try {
       this.ensureSchema(db);
-      if (this.isWorkflowRunsNamespace()) {
-        db.prepare('DELETE FROM workflow_runs WHERE namespace = ?').run(this.namespace);
-      } else if (this.isWorkflowJobsNamespace()) {
-        db.prepare('DELETE FROM workflow_jobs WHERE namespace = ?').run(this.namespace);
+      if (this.isPipelineRunsNamespace()) {
+        db.prepare('DELETE FROM pipeline_runs WHERE namespace = ?').run(this.namespace);
+      } else if (this.isPipelineJobsNamespace()) {
+        db.prepare('DELETE FROM pipeline_jobs WHERE namespace = ?').run(this.namespace);
       } else if (this.isCommitsNamespace()) {
         db.prepare('DELETE FROM commits WHERE namespace = ?').run(this.namespace);
         db.prepare('DELETE FROM repository_records WHERE namespace = ?').run(this.namespace);
-      } else if (this.isPullRequestsNamespace()) {
-        db.prepare('DELETE FROM pull_requests WHERE namespace = ?').run(this.namespace);
-      } else if (this.isPullRequestCommentsNamespace()) {
-        db.prepare('DELETE FROM pull_request_comments WHERE namespace = ?').run(this.namespace);
+      } else if (this.isChangeRequestsNamespace()) {
+        db.prepare('DELETE FROM change_requests WHERE namespace = ?').run(this.namespace);
+      } else if (this.isChangeRequestCommentsNamespace()) {
+        db.prepare('DELETE FROM change_request_comments WHERE namespace = ?').run(this.namespace);
       } else if (this.isAnySonarqubeNamespace()) {
         db.prepare(`DELETE FROM ${this.getSonarqubeTableName()} WHERE namespace = ?`).run(
           this.namespace
@@ -209,10 +209,10 @@ export class SqliteRepository<T> implements IRepository<T> {
     });
   }
 
-  private saveWorkflowRuns(db: DatabaseSync, items: T[]): void {
-    db.prepare('DELETE FROM workflow_runs WHERE namespace = ?').run(this.namespace);
+  private savePipelineRuns(db: DatabaseSync, items: T[]): void {
+    db.prepare('DELETE FROM pipeline_runs WHERE namespace = ?').run(this.namespace);
     const insert = db.prepare(
-      `INSERT INTO workflow_runs
+      `INSERT INTO pipeline_runs
         (
           namespace, id, run_number, name, path, event, status, conclusion,
           head_branch, created_at, updated_at, run_started_at, run_attempt,
@@ -245,10 +245,10 @@ export class SqliteRepository<T> implements IRepository<T> {
     });
   }
 
-  private saveWorkflowJobs(db: DatabaseSync, items: T[]): void {
-    db.prepare('DELETE FROM workflow_jobs WHERE namespace = ?').run(this.namespace);
+  private savePipelineJobs(db: DatabaseSync, items: T[]): void {
+    db.prepare('DELETE FROM pipeline_jobs WHERE namespace = ?').run(this.namespace);
     const insert = db.prepare(
-      `INSERT INTO workflow_jobs
+      `INSERT INTO pipeline_jobs
         (
           namespace, id, run_id, name, status, conclusion, started_at,
           completed_at, payload, position, stored_at
@@ -307,10 +307,10 @@ export class SqliteRepository<T> implements IRepository<T> {
     });
   }
 
-  private savePullRequests(db: DatabaseSync, items: T[]): void {
-    db.prepare('DELETE FROM pull_requests WHERE namespace = ?').run(this.namespace);
+  private saveChangeRequests(db: DatabaseSync, items: T[]): void {
+    db.prepare('DELETE FROM change_requests WHERE namespace = ?').run(this.namespace);
     const insert = db.prepare(
-      `INSERT INTO pull_requests
+      `INSERT INTO change_requests
         (
           namespace, id, number, state, title, author_login, author_id,
           created_at, updated_at, closed_at, merged_at, html_url,
@@ -343,10 +343,10 @@ export class SqliteRepository<T> implements IRepository<T> {
     });
   }
 
-  private savePullRequestComments(db: DatabaseSync, items: T[]): void {
-    db.prepare('DELETE FROM pull_request_comments WHERE namespace = ?').run(this.namespace);
+  private saveChangeRequestComments(db: DatabaseSync, items: T[]): void {
+    db.prepare('DELETE FROM change_request_comments WHERE namespace = ?').run(this.namespace);
     const insert = db.prepare(
-      `INSERT INTO pull_request_comments
+      `INSERT INTO change_request_comments
         (
           namespace, id, pull_request_number, pull_request_url, author_login,
           author_id, path, created_at, updated_at, html_url,
@@ -362,7 +362,7 @@ export class SqliteRepository<T> implements IRepository<T> {
       insert.run(
         this.namespace,
         this.getRequiredRecordId(comment, index),
-        this.extractPullRequestNumber(comment.pull_request_url),
+        this.extractChangeRequestNumber(comment.pull_request_url),
         this.toNullableString(comment.pull_request_url),
         this.toNullableString(user.login),
         this.toNullableString(user.id),
@@ -422,22 +422,22 @@ export class SqliteRepository<T> implements IRepository<T> {
   }
 
   private loadRows(db: DatabaseSync): PayloadRow[] {
-    if (this.isWorkflowRunsNamespace()) {
+    if (this.isPipelineRunsNamespace()) {
       return db
         .prepare(
           `SELECT payload
-           FROM workflow_runs
+           FROM pipeline_runs
            WHERE namespace = ?
            ORDER BY position ASC, id ASC`
         )
         .all(this.namespace) as PayloadRow[];
     }
 
-    if (this.isWorkflowJobsNamespace()) {
+    if (this.isPipelineJobsNamespace()) {
       return db
         .prepare(
           `SELECT payload
-           FROM workflow_jobs
+           FROM pipeline_jobs
            WHERE namespace = ?
            ORDER BY position ASC, id ASC`
         )
@@ -459,22 +459,22 @@ export class SqliteRepository<T> implements IRepository<T> {
       }
     }
 
-    if (this.isPullRequestsNamespace()) {
+    if (this.isChangeRequestsNamespace()) {
       return db
         .prepare(
           `SELECT payload
-           FROM pull_requests
+           FROM change_requests
            WHERE namespace = ?
            ORDER BY position ASC, id ASC`
         )
         .all(this.namespace) as PayloadRow[];
     }
 
-    if (this.isPullRequestCommentsNamespace()) {
+    if (this.isChangeRequestCommentsNamespace()) {
       return db
         .prepare(
           `SELECT payload
-           FROM pull_request_comments
+           FROM change_request_comments
            WHERE namespace = ?
            ORDER BY position ASC, id ASC`
         )
@@ -504,20 +504,20 @@ export class SqliteRepository<T> implements IRepository<T> {
   }
 
   private getTableName(): string {
-    if (this.isWorkflowRunsNamespace()) {
-      return 'workflow_runs';
+    if (this.isPipelineRunsNamespace()) {
+      return 'pipeline_runs';
     }
-    if (this.isWorkflowJobsNamespace()) {
-      return 'workflow_jobs';
+    if (this.isPipelineJobsNamespace()) {
+      return 'pipeline_jobs';
     }
     if (this.isCommitsNamespace()) {
       return 'commits';
     }
-    if (this.isPullRequestsNamespace()) {
-      return 'pull_requests';
+    if (this.isChangeRequestsNamespace()) {
+      return 'change_requests';
     }
-    if (this.isPullRequestCommentsNamespace()) {
-      return 'pull_request_comments';
+    if (this.isChangeRequestCommentsNamespace()) {
+      return 'change_request_comments';
     }
     if (this.isAnySonarqubeNamespace()) {
       return this.getSonarqubeTableName();
@@ -525,11 +525,11 @@ export class SqliteRepository<T> implements IRepository<T> {
     return 'repository_records';
   }
 
-  private isWorkflowRunsNamespace(): boolean {
+  private isPipelineRunsNamespace(): boolean {
     return path.basename(this.namespace) === 'pipeline-runs';
   }
 
-  private isWorkflowJobsNamespace(): boolean {
+  private isPipelineJobsNamespace(): boolean {
     return path.basename(this.namespace) === 'pipeline-jobs';
   }
 
@@ -537,11 +537,11 @@ export class SqliteRepository<T> implements IRepository<T> {
     return path.basename(this.namespace) === 'commits.json';
   }
 
-  private isPullRequestsNamespace(): boolean {
+  private isChangeRequestsNamespace(): boolean {
     return path.basename(this.namespace) === 'prs.json';
   }
 
-  private isPullRequestCommentsNamespace(): boolean {
+  private isChangeRequestCommentsNamespace(): boolean {
     return path.basename(this.namespace) === 'pr-comments.json';
   }
 
@@ -587,13 +587,13 @@ export class SqliteRepository<T> implements IRepository<T> {
     return item && typeof item === 'object' ? (item as RecordLike) : {};
   }
 
-  private extractPullRequestNumber(value: unknown): number | null {
+  private extractChangeRequestNumber(value: unknown): number | null {
     const text = this.toNullableString(value);
     if (!text) {
       return null;
     }
 
-    const match = text.match(/\/pulls\/(\d+)(?:$|[/?#])/);
+    const match = text.match(/\/(?:pulls|merge_requests)\/(\d+)(?:$|[/?#])/);
     return match ? this.toNullableNumber(match[1]) : null;
   }
 

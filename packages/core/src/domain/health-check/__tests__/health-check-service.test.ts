@@ -5,7 +5,7 @@ describe('HealthCheckService.getDatasetLevel', () => {
   it('returns error when the dataset does not exist', () => {
     const dataset: DatasetCheck = {
       id: 'github.prs',
-      source: 'SQLite table: pull_requests',
+      source: 'SQLite table: change_requests',
       exists: false,
       itemCount: 0,
       invalidDateCount: 0,
@@ -21,7 +21,7 @@ describe('HealthCheckService.getDatasetLevel', () => {
   it('returns error when the dataset exists but has zero items', () => {
     const dataset: DatasetCheck = {
       id: 'github.prs',
-      source: 'SQLite table: pull_requests',
+      source: 'SQLite table: change_requests',
       exists: true,
       itemCount: 0,
       invalidDateCount: 0,
@@ -37,7 +37,7 @@ describe('HealthCheckService.getDatasetLevel', () => {
   it('returns warning when staleDays is greater than 7', () => {
     const dataset: DatasetCheck = {
       id: 'github.prs',
-      source: 'SQLite table: pull_requests',
+      source: 'SQLite table: change_requests',
       exists: true,
       itemCount: 10,
       staleDays: 14,
@@ -54,7 +54,7 @@ describe('HealthCheckService.getDatasetLevel', () => {
   it('returns healthy when staleDays is exactly 7', () => {
     const dataset: DatasetCheck = {
       id: 'github.prs',
-      source: 'SQLite table: pull_requests',
+      source: 'SQLite table: change_requests',
       exists: true,
       itemCount: 10,
       staleDays: 7,
@@ -71,7 +71,7 @@ describe('HealthCheckService.getDatasetLevel', () => {
   it('returns warning when there are invalid date records', () => {
     const dataset: DatasetCheck = {
       id: 'github.prs',
-      source: 'SQLite table: pull_requests',
+      source: 'SQLite table: change_requests',
       exists: true,
       itemCount: 10,
       invalidDateCount: 3,
@@ -87,7 +87,7 @@ describe('HealthCheckService.getDatasetLevel', () => {
   it('returns warning when there are potential coverage gaps', () => {
     const dataset: DatasetCheck = {
       id: 'github.prs',
-      source: 'SQLite table: pull_requests',
+      source: 'SQLite table: change_requests',
       exists: true,
       itemCount: 10,
       invalidDateCount: 0,
@@ -103,7 +103,7 @@ describe('HealthCheckService.getDatasetLevel', () => {
   it('returns warning when a required field has missing values', () => {
     const dataset: DatasetCheck = {
       id: 'github.prs',
-      source: 'SQLite table: pull_requests',
+      source: 'SQLite table: change_requests',
       exists: true,
       itemCount: 10,
       invalidDateCount: 0,
@@ -119,7 +119,7 @@ describe('HealthCheckService.getDatasetLevel', () => {
   it('returns warning when notes are present', () => {
     const dataset: DatasetCheck = {
       id: 'github.prs',
-      source: 'SQLite table: pull_requests',
+      source: 'SQLite table: change_requests',
       exists: true,
       itemCount: 10,
       invalidDateCount: 0,
@@ -135,7 +135,7 @@ describe('HealthCheckService.getDatasetLevel', () => {
   it('returns healthy for a clean dataset with no issues', () => {
     const dataset: DatasetCheck = {
       id: 'github.prs',
-      source: 'SQLite table: pull_requests',
+      source: 'SQLite table: change_requests',
       exists: true,
       itemCount: 42,
       staleDays: 1,

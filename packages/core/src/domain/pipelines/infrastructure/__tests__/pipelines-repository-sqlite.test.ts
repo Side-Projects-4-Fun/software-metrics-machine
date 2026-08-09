@@ -144,7 +144,7 @@ describe('PipelinesSqliteRepository loadPipelines', () => {
     const db = new DatabaseSync(RepositoryFactory.getSqliteDatabasePath(config));
     try {
       const insert = db.prepare(
-        `INSERT INTO workflow_runs
+        `INSERT INTO pipeline_runs
           (
             namespace, id, run_number, name, path, event, status, conclusion,
             head_branch, created_at, updated_at, run_started_at, run_attempt,
@@ -329,7 +329,7 @@ describe('PipelinesSqliteRepository loadPipelines', () => {
     const db = new DatabaseSync(RepositoryFactory.getSqliteDatabasePath(config));
     try {
       db.prepare(
-        `INSERT INTO workflow_jobs
+        `INSERT INTO pipeline_jobs
           (
             namespace, id, run_id, name, status, conclusion, started_at,
             completed_at, payload, position, stored_at

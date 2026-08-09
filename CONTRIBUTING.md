@@ -575,20 +575,20 @@ SELECT * FROM smm_schema_migrations ORDER BY applied_at;
 -- Generic / singleton records
 SELECT namespace, COUNT(*) AS count FROM repository_records GROUP BY namespace ORDER BY namespace;
 
--- Pull requests
-SELECT namespace, COUNT(*) AS count FROM pull_requests GROUP BY namespace ORDER BY namespace;
+-- Change requests (pull requests / merge requests)
+SELECT namespace, COUNT(*) AS count FROM change_requests GROUP BY namespace ORDER BY namespace;
 
--- Pull request comments
-SELECT namespace, COUNT(*) AS count FROM pull_request_comments GROUP BY namespace ORDER BY namespace;
+-- Change request comments
+SELECT namespace, COUNT(*) AS count FROM change_request_comments GROUP BY namespace ORDER BY namespace;
 
 -- Commits
 SELECT namespace, COUNT(*) AS count FROM commits GROUP BY namespace ORDER BY namespace;
 
--- Workflow runs
-SELECT namespace, COUNT(*) AS count FROM workflow_runs GROUP BY namespace ORDER BY namespace;
+-- Pipeline runs
+SELECT namespace, COUNT(*) AS count FROM pipeline_runs GROUP BY namespace ORDER BY namespace;
 
--- Workflow jobs
-SELECT namespace, COUNT(*) AS count FROM workflow_jobs GROUP BY namespace ORDER BY namespace;
+-- Pipeline jobs
+SELECT namespace, COUNT(*) AS count FROM pipeline_jobs GROUP BY namespace ORDER BY namespace;
 ```
 
 **Check the most recent records stored for a namespace**
@@ -596,7 +596,7 @@ SELECT namespace, COUNT(*) AS count FROM workflow_jobs GROUP BY namespace ORDER 
 ```sql
 -- Replace '<your-namespace>' with the namespace value shown above
 SELECT id, state, created_at, merged_at, stored_at
-FROM pull_requests
+FROM change_requests
 WHERE namespace = '<your-namespace>'
 ORDER BY stored_at DESC
 LIMIT 20;
@@ -611,15 +611,15 @@ LIMIT 20;
 **Find duplicate or stale records**
 
 ```sql
--- Duplicate pull requests by number within a namespace
+-- Duplicate change requests by number within a namespace
 SELECT namespace, number, COUNT(*) AS cnt
-FROM pull_requests
+FROM change_requests
 GROUP BY namespace, number
 HAVING cnt > 1;
 
--- Workflow runs with no conclusion (still in progress / stuck)
+-- Pipeline runs with no conclusion (still in progress / stuck)
 SELECT namespace, id, status, conclusion, run_started_at, stored_at
-FROM workflow_runs
+FROM pipeline_runs
 WHERE conclusion IS NULL OR conclusion = ''
 ORDER BY run_started_at DESC;
 ```
@@ -628,12 +628,12 @@ ORDER BY run_started_at DESC;
 
 ```sql
 -- Run the appropriate DELETE for the data type you want to reset:
-DELETE FROM repository_records       WHERE namespace = '<your-namespace>';
-DELETE FROM pull_requests            WHERE namespace = '<your-namespace>';
-DELETE FROM pull_request_comments    WHERE namespace = '<your-namespace>';
-DELETE FROM commits                  WHERE namespace = '<your-namespace>';
-DELETE FROM workflow_runs            WHERE namespace = '<your-namespace>';
-DELETE FROM workflow_jobs            WHERE namespace = '<your-namespace>';
+DELETE FROM repository_records          WHERE namespace = '<your-namespace>';
+DELETE FROM change_requests             WHERE namespace = '<your-namespace>';
+DELETE FROM change_request_comments     WHERE namespace = '<your-namespace>';
+DELETE FROM commits                     WHERE namespace = '<your-namespace>';
+DELETE FROM pipeline_runs               WHERE namespace = '<your-namespace>';
+DELETE FROM pipeline_jobs               WHERE namespace = '<your-namespace>';
 ```
 
 After deleting, re-run the relevant CLI fetch command to repopulate:

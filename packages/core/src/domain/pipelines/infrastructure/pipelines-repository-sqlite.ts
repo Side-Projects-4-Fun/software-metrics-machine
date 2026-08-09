@@ -43,8 +43,8 @@ export class PipelinesSqliteRepository
   implements PipelinesRepository
 {
   private readonly sqliteDbPath: string;
-  private readonly workflowRunsNamespace: string;
-  private readonly workflowJobsNamespace: string;
+  private readonly pipelineRunsNamespace: string;
+  private readonly pipelineJobsNamespace: string;
   private mapToDomain = new PipelineMapToDomainRepository();
 
   constructor(
@@ -54,13 +54,13 @@ export class PipelinesSqliteRepository
   ) {
     super();
     this.sqliteDbPath = RepositoryFactory.getSqliteDatabasePath(configuration);
-    this.workflowRunsNamespace = RepositoryFactory.getPipelineRunsSqliteNamespace(configuration);
-    this.workflowJobsNamespace = RepositoryFactory.getPipelineJobsSqliteNamespace(configuration);
+    this.pipelineRunsNamespace = RepositoryFactory.getPipelineRunsSqliteNamespace(configuration);
+    this.pipelineJobsNamespace = RepositoryFactory.getPipelineJobsSqliteNamespace(configuration);
   }
   async loadPipelines(
     options: LoadPipelinesOptions = { includeJobs: true }
   ): Promise<PipelineRun[]> {
-    const rows = await this.loadPayloadRows('workflow_runs', this.workflowRunsNamespace, options);
+    const rows = await this.loadPayloadRows('pipeline_runs', this.pipelineRunsNamespace, options);
     const pipelineRunsFromDomain = rows
       .map((row) => this.deserialize<WorkflowJsonResponse>(row.payload))
       .map(this.mapToDomain.mapPipelinesToDomain);
@@ -146,13 +146,13 @@ export class PipelinesSqliteRepository
     jobOptions: JobLoadOptions = {},
     runOptions?: LoadPipelinesOptions
   ): Promise<PipelineJob[]> {
-    const rows = await this.loadWorkflowJobRows(jobOptions, runOptions);
+    const rows = await this.loadPipelineJobRows(jobOptions, runOptions);
     return rows
       .map((row) => this.deserialize<WorkflowJobJsonResponse>(row.payload))
       .map(this.mapToDomain.mapPipelineJobsToDomain);
   }
 
-  private async loadWorkflowJobRows(
+  private async loadPipelineJobRows(
     jobOptions: JobLoadOptions,
     runOptions?: LoadPipelinesOptions
   ): Promise<PayloadRow[]> {
@@ -160,37 +160,37 @@ export class PipelinesSqliteRepository
     const db = openSqliteConnection(this.sqliteDbPath);
     try {
       applySqliteMigrations(db);
-      if (!this.tableExists(db, 'workflow_jobs') || !this.tableExists(db, 'workflow_runs')) {
+      if (!this.tableExists(db, 'pipeline_jobs') || !this.tableExists(db, 'pipeline_runs')) {
         return [];
       }
 
       const whereClauses = ['j.namespace = ?', 'r.id IS NOT NULL'];
-      const params: SqlValue[] = [this.workflowJobsNamespace];
+      const params: SqlValue[] = [this.pipelineJobsNamespace];
 
       if (runOptions) {
-        this.addWorkflowRunFilters(whereClauses, params, runOptions, 'r');
+        this.addPipelineRunFilters(whereClauses, params, runOptions, 'r');
       }
 
-      this.addWorkflowJobFilters(whereClauses, params, jobOptions, 'j');
+      this.addPipelineJobFilters(whereClauses, params, jobOptions, 'j');
 
       return db
         .prepare(
           `SELECT j.payload
-           FROM workflow_jobs j
-           LEFT JOIN workflow_runs r
+           FROM pipeline_jobs j
+           LEFT JOIN pipeline_runs r
              ON j.run_id = r.id
             AND r.namespace = ?
            WHERE ${whereClauses.join(' AND ')}
            ORDER BY j.position ASC, j.id ASC`
         )
-        .all(this.workflowRunsNamespace, ...params) as PayloadRow[];
+        .all(this.pipelineRunsNamespace, ...params) as PayloadRow[];
     } finally {
       db.close();
     }
   }
 
   private async loadPayloadRows(
-    tableName: 'workflow_runs' | 'workflow_jobs',
+    tableName: 'pipeline_runs' | 'pipeline_jobs',
     namespace: string,
     options?: LoadPipelinesOptions,
     jobOptions?: JobLoadOptions
@@ -211,7 +211,7 @@ export class PipelinesSqliteRepository
   }
 
   private buildPayloadQuery(
-    tableName: 'workflow_runs' | 'workflow_jobs',
+    tableName: 'pipeline_runs' | 'pipeline_jobs',
     namespace: string,
     options?: LoadPipelinesOptions,
     jobOptions?: JobLoadOptions
@@ -219,10 +219,10 @@ export class PipelinesSqliteRepository
     const whereClauses = ['namespace = ?'];
     const params: SqlValue[] = [namespace];
 
-    if (tableName === 'workflow_runs' && options) {
-      this.addWorkflowRunFilters(whereClauses, params, options);
-    } else if (tableName === 'workflow_jobs' && jobOptions) {
-      this.addWorkflowJobFilters(whereClauses, params, jobOptions);
+    if (tableName === 'pipeline_runs' && options) {
+      this.addPipelineRunFilters(whereClauses, params, options);
+    } else if (tableName === 'pipeline_jobs' && jobOptions) {
+      this.addPipelineJobFilters(whereClauses, params, jobOptions);
     }
 
     return {
@@ -234,7 +234,7 @@ export class PipelinesSqliteRepository
     };
   }
 
-  private addWorkflowJobFilters(
+  private addPipelineJobFilters(
     whereClauses: string[],
     params: SqlValue[],
     jobOptions: JobLoadOptions,
@@ -264,7 +264,7 @@ export class PipelinesSqliteRepository
     }
   }
 
-  private addWorkflowRunFilters(
+  private addPipelineRunFilters(
     whereClauses: string[],
     params: SqlValue[],
     options: LoadPipelinesOptions,
@@ -331,10 +331,10 @@ export class PipelinesSqliteRepository
   }
 
   private getPayloadRowsOrderBy(
-    tableName: 'workflow_runs' | 'workflow_jobs',
+    tableName: 'pipeline_runs' | 'pipeline_jobs',
     options?: LoadPipelinesOptions
   ): string {
-    if (tableName === 'workflow_runs' && options?.sort_by?.created_at) {
+    if (tableName === 'pipeline_runs' && options?.sort_by?.created_at) {
       const direction = options.sort_by.created_at.toUpperCase();
       return `${this.getRunMetricDateSqlExpression()} ${direction}, position ASC, id ASC`;
     }

@@ -179,7 +179,7 @@ function ensureSchema() {
       PRIMARY KEY (namespace, record_key)
     );
 
-    CREATE TABLE IF NOT EXISTS workflow_runs (
+    CREATE TABLE IF NOT EXISTS pipeline_runs (
       namespace TEXT NOT NULL,
       id TEXT NOT NULL,
       run_number INTEGER,
@@ -199,7 +199,7 @@ function ensureSchema() {
       PRIMARY KEY (namespace, id)
     );
 
-    CREATE TABLE IF NOT EXISTS workflow_jobs (
+    CREATE TABLE IF NOT EXISTS pipeline_jobs (
       namespace TEXT NOT NULL,
       id TEXT NOT NULL,
       run_id TEXT NOT NULL,
@@ -230,7 +230,7 @@ function ensureSchema() {
       PRIMARY KEY (namespace, hash)
     );
 
-    CREATE TABLE IF NOT EXISTS pull_requests (
+    CREATE TABLE IF NOT EXISTS change_requests (
       namespace TEXT NOT NULL,
       id TEXT NOT NULL,
       number INTEGER,
@@ -249,7 +249,7 @@ function ensureSchema() {
       PRIMARY KEY (namespace, id)
     );
 
-    CREATE TABLE IF NOT EXISTS pull_request_comments (
+    CREATE TABLE IF NOT EXISTS change_request_comments (
       namespace TEXT NOT NULL,
       id TEXT NOT NULL,
       pull_request_number INTEGER,
@@ -333,7 +333,7 @@ function ensureSchema() {
 }
 
 function clearNamespaces(namespaces) {
-  const tables = ['repository_records', 'workflow_runs', 'workflow_jobs', 'commits', 'pull_requests', 'pull_request_comments'];
+  const tables = ['repository_records', 'pipeline_runs', 'pipeline_jobs', 'commits', 'change_requests', 'change_request_comments'];
   for (const table of tables) {
     for (const namespace of namespaces) {
       db.prepare(`DELETE FROM ${table} WHERE namespace = ?`).run(namespace);
@@ -377,7 +377,7 @@ function seedPrs() {
   ];
 
   const insertPr = db.prepare(`
-    INSERT INTO pull_requests
+    INSERT INTO change_requests
     (namespace, id, number, state, title, author_login, author_id, created_at, updated_at, closed_at, merged_at, html_url, payload, position, stored_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
@@ -414,7 +414,7 @@ function seedPrs() {
   };
 
   db.prepare(`
-    INSERT INTO pull_request_comments
+    INSERT INTO change_request_comments
     (namespace, id, pull_request_number, pull_request_url, author_login, author_id, path, created_at, updated_at, html_url, payload, position, stored_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
@@ -474,7 +474,7 @@ function seedPipelines() {
   ];
 
   const insertRun = db.prepare(`
-    INSERT INTO workflow_runs
+    INSERT INTO pipeline_runs
     (namespace, id, run_number, name, path, event, status, conclusion, head_branch, created_at, updated_at, run_started_at, run_attempt, payload, position, stored_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
@@ -539,7 +539,7 @@ function seedPipelines() {
   ];
 
   const insertJob = db.prepare(`
-    INSERT INTO workflow_jobs
+    INSERT INTO pipeline_jobs
     (namespace, id, run_id, name, status, conclusion, started_at, completed_at, payload, position, stored_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
@@ -812,7 +812,7 @@ const db = new DatabaseSync(dbPath);
 
 // Ensure schema (same as seed_sqlite_fixture)
 db.exec(`
-  CREATE TABLE IF NOT EXISTS pull_requests (
+  CREATE TABLE IF NOT EXISTS change_requests (
     namespace TEXT NOT NULL,
     id TEXT NOT NULL,
     number INTEGER,
@@ -831,7 +831,7 @@ db.exec(`
     PRIMARY KEY (namespace, id)
   );
 
-  CREATE TABLE IF NOT EXISTS pull_request_comments (
+  CREATE TABLE IF NOT EXISTS change_request_comments (
     namespace TEXT NOT NULL,
     id TEXT NOT NULL,
     pull_request_number INTEGER,
@@ -848,7 +848,7 @@ db.exec(`
     PRIMARY KEY (namespace, id)
   );
 
-  CREATE TABLE IF NOT EXISTS workflow_runs (
+  CREATE TABLE IF NOT EXISTS pipeline_runs (
     namespace TEXT NOT NULL,
     id TEXT NOT NULL,
     run_number INTEGER,
@@ -868,7 +868,7 @@ db.exec(`
     PRIMARY KEY (namespace, id)
   );
 
-  CREATE TABLE IF NOT EXISTS workflow_jobs (
+  CREATE TABLE IF NOT EXISTS pipeline_jobs (
     namespace TEXT NOT NULL,
     id TEXT NOT NULL,
     run_id TEXT NOT NULL,
@@ -918,7 +918,7 @@ const prs = [
 ];
 
 const insertPr = db.prepare(`
-  INSERT INTO pull_requests
+  INSERT INTO change_requests
   (namespace, id, number, state, title, author_login, author_id, created_at, updated_at, closed_at, merged_at, html_url, payload, position, stored_at)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
@@ -954,7 +954,7 @@ const comment = {
 };
 
 db.prepare(`
-  INSERT INTO pull_request_comments
+  INSERT INTO change_request_comments
   (namespace, id, pull_request_number, pull_request_url, author_login, author_id, path, created_at, updated_at, html_url, payload, position, stored_at)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `).run(
@@ -993,7 +993,7 @@ fs.mkdirSync(projectDir, { recursive: true });
 const db = new DatabaseSync(dbPath);
 
 db.exec(`
-  CREATE TABLE IF NOT EXISTS workflow_runs (
+  CREATE TABLE IF NOT EXISTS pipeline_runs (
     namespace TEXT NOT NULL,
     id TEXT NOT NULL,
     run_number INTEGER,
@@ -1013,7 +1013,7 @@ db.exec(`
     PRIMARY KEY (namespace, id)
   );
 
-  CREATE TABLE IF NOT EXISTS workflow_jobs (
+  CREATE TABLE IF NOT EXISTS pipeline_jobs (
     namespace TEXT NOT NULL,
     id TEXT NOT NULL,
     run_id TEXT NOT NULL,
@@ -1069,7 +1069,7 @@ const runs = [
 ];
 
 const insertRun = db.prepare(`
-  INSERT INTO workflow_runs
+  INSERT INTO pipeline_runs
   (namespace, id, run_number, name, path, event, status, conclusion, head_branch, created_at, updated_at, run_started_at, run_attempt, payload, position, stored_at)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
@@ -1128,7 +1128,7 @@ const jobs = [
 ];
 
 const insertJob = db.prepare(`
-  INSERT INTO workflow_jobs
+  INSERT INTO pipeline_jobs
   (namespace, id, run_id, name, status, conclusion, started_at, completed_at, payload, position, stored_at)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);

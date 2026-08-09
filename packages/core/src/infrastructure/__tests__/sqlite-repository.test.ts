@@ -125,11 +125,11 @@ describe('sqlite repository implementations', () => {
     try {
       const expectedTables = [
         'repository_records',
-        'workflow_runs',
-        'workflow_jobs',
+        'pipeline_runs',
+        'pipeline_jobs',
         'commits',
-        'pull_requests',
-        'pull_request_comments',
+        'change_requests',
+        'change_request_comments',
         'sonarqube_measures',
         'sonarqube_component_tree',
         'sonarqube_historical_measures',
@@ -186,6 +186,9 @@ describe('sqlite repository implementations', () => {
       expect(
         appliedRows.some((row) => row.migration_id === '003_backfill_codemaat_fetched_at')
       ).toBe(true);
+      expect(
+        appliedRows.some((row) => row.migration_id === '004_rename_provider_specific_tables')
+      ).toBe(true);
     } finally {
       db.close();
     }
@@ -207,7 +210,7 @@ describe('sqlite repository implementations', () => {
       return join(tempDir, 'smm.sqlite');
     }
 
-    it('stores workflow runs in the normalized workflow_runs table', async () => {
+    it('stores pipeline runs in the normalized pipeline_runs table', async () => {
       const dbPath = createDatabasePath();
       const repository = new SqliteRepository<WorkflowJsonResponse>(
         dbPath,
@@ -238,7 +241,7 @@ describe('sqlite repository implementations', () => {
       const row = db
         .prepare(
           `SELECT id, path, status, conclusion, head_branch, created_at
-           FROM workflow_runs
+           FROM pipeline_runs
            WHERE namespace = ?`
         )
         .get('github/pipeline-runs') as Record<string, unknown>;
@@ -254,7 +257,7 @@ describe('sqlite repository implementations', () => {
       });
     });
 
-    it('stores workflow jobs in the normalized workflow_jobs table', async () => {
+    it('stores pipeline jobs in the normalized pipeline_jobs table', async () => {
       const dbPath = createDatabasePath();
       const repository = new SqliteRepository<WorkflowJobJsonResponse>(
         dbPath,
@@ -281,7 +284,7 @@ describe('sqlite repository implementations', () => {
       const row = db
         .prepare(
           `SELECT id, run_id, name, status, conclusion, completed_at
-           FROM workflow_jobs
+           FROM pipeline_jobs
            WHERE namespace = ?`
         )
         .get('github/pipeline-jobs') as Record<string, unknown>;
@@ -363,9 +366,9 @@ describe('sqlite repository implementations', () => {
     });
   });
 
-  describe('SQLite pull request tables', () => {
+  describe('SQLite change request tables', () => {
     let tempDir: string | undefined;
-    const logger = new Logger('SqlitePullRequestTest', 'CRITICAL');
+    const logger = new Logger('SqliteChangeRequestTest', 'CRITICAL');
 
     afterEach(() => {
       if (tempDir) {
@@ -379,7 +382,7 @@ describe('sqlite repository implementations', () => {
       return join(tempDir, 'smm.sqlite');
     }
 
-    it('stores pull requests in the normalized pull_requests table', async () => {
+    it('stores change requests in the normalized change_requests table', async () => {
       const dbPath = createDatabasePath();
       const repository = new SqliteRepository<PullRequestJsonResponse>(
         dbPath,
@@ -410,7 +413,7 @@ describe('sqlite repository implementations', () => {
       const row = db
         .prepare(
           `SELECT id, number, state, title, author_login, author_id, created_at, merged_at
-           FROM pull_requests
+           FROM change_requests
            WHERE namespace = ?`
         )
         .get('github/prs.json') as Record<string, unknown>;
@@ -428,7 +431,7 @@ describe('sqlite repository implementations', () => {
       });
     });
 
-    it('stores pull request comments in the normalized pull_request_comments table', async () => {
+    it('stores change request comments in the normalized change_request_comments table', async () => {
       const dbPath = createDatabasePath();
       const repository = new SqliteRepository<PullRequestCommentJsonResponse>(
         dbPath,
@@ -456,7 +459,7 @@ describe('sqlite repository implementations', () => {
       const row = db
         .prepare(
           `SELECT id, pull_request_number, pull_request_url, author_login, author_id, path, created_at
-           FROM pull_request_comments
+           FROM change_request_comments
            WHERE namespace = ?`
         )
         .get('github/pr-comments.json') as Record<string, unknown>;

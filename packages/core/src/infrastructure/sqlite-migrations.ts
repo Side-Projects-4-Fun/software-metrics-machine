@@ -34,7 +34,7 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
         CREATE INDEX IF NOT EXISTS idx_repository_records_namespace_position
           ON repository_records(namespace, position);
 
-        CREATE TABLE IF NOT EXISTS workflow_runs (
+        CREATE TABLE IF NOT EXISTS pipeline_runs (
           namespace TEXT NOT NULL,
           id TEXT NOT NULL,
           run_number INTEGER,
@@ -54,22 +54,22 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
           PRIMARY KEY (namespace, id)
         );
 
-        CREATE INDEX IF NOT EXISTS idx_workflow_runs_namespace_position
-          ON workflow_runs(namespace, position);
-        CREATE INDEX IF NOT EXISTS idx_workflow_runs_created_at
-          ON workflow_runs(namespace, created_at);
-        CREATE INDEX IF NOT EXISTS idx_workflow_runs_metric_date
-          ON workflow_runs(namespace, COALESCE(NULLIF(updated_at, ''), created_at));
-        CREATE INDEX IF NOT EXISTS idx_workflow_runs_path
-          ON workflow_runs(namespace, path);
-        CREATE INDEX IF NOT EXISTS idx_workflow_runs_status
-          ON workflow_runs(namespace, status);
-        CREATE INDEX IF NOT EXISTS idx_workflow_runs_conclusion
-          ON workflow_runs(namespace, conclusion);
-        CREATE INDEX IF NOT EXISTS idx_workflow_runs_head_branch
-          ON workflow_runs(namespace, head_branch);
+        CREATE INDEX IF NOT EXISTS idx_pipeline_runs_namespace_position
+          ON pipeline_runs(namespace, position);
+        CREATE INDEX IF NOT EXISTS idx_pipeline_runs_created_at
+          ON pipeline_runs(namespace, created_at);
+        CREATE INDEX IF NOT EXISTS idx_pipeline_runs_metric_date
+          ON pipeline_runs(namespace, COALESCE(NULLIF(updated_at, ''), created_at));
+        CREATE INDEX IF NOT EXISTS idx_pipeline_runs_path
+          ON pipeline_runs(namespace, path);
+        CREATE INDEX IF NOT EXISTS idx_pipeline_runs_status
+          ON pipeline_runs(namespace, status);
+        CREATE INDEX IF NOT EXISTS idx_pipeline_runs_conclusion
+          ON pipeline_runs(namespace, conclusion);
+        CREATE INDEX IF NOT EXISTS idx_pipeline_runs_head_branch
+          ON pipeline_runs(namespace, head_branch);
 
-        CREATE TABLE IF NOT EXISTS workflow_jobs (
+        CREATE TABLE IF NOT EXISTS pipeline_jobs (
           namespace TEXT NOT NULL,
           id TEXT NOT NULL,
           run_id TEXT NOT NULL,
@@ -84,16 +84,16 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
           PRIMARY KEY (namespace, id)
         );
 
-        CREATE INDEX IF NOT EXISTS idx_workflow_jobs_namespace_position
-          ON workflow_jobs(namespace, position);
-        CREATE INDEX IF NOT EXISTS idx_workflow_jobs_run_id
-          ON workflow_jobs(namespace, run_id);
-        CREATE INDEX IF NOT EXISTS idx_workflow_jobs_name
-          ON workflow_jobs(namespace, name);
-        CREATE INDEX IF NOT EXISTS idx_workflow_jobs_conclusion
-          ON workflow_jobs(namespace, conclusion);
-        CREATE INDEX IF NOT EXISTS idx_workflow_jobs_completed_at
-          ON workflow_jobs(namespace, completed_at);
+        CREATE INDEX IF NOT EXISTS idx_pipeline_jobs_namespace_position
+          ON pipeline_jobs(namespace, position);
+        CREATE INDEX IF NOT EXISTS idx_pipeline_jobs_run_id
+          ON pipeline_jobs(namespace, run_id);
+        CREATE INDEX IF NOT EXISTS idx_pipeline_jobs_name
+          ON pipeline_jobs(namespace, name);
+        CREATE INDEX IF NOT EXISTS idx_pipeline_jobs_conclusion
+          ON pipeline_jobs(namespace, conclusion);
+        CREATE INDEX IF NOT EXISTS idx_pipeline_jobs_completed_at
+          ON pipeline_jobs(namespace, completed_at);
 
         CREATE TABLE IF NOT EXISTS commits (
           namespace TEXT NOT NULL,
@@ -120,7 +120,7 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
         CREATE INDEX IF NOT EXISTS idx_commits_timestamp
           ON commits(namespace, timestamp);
 
-        CREATE TABLE IF NOT EXISTS pull_requests (
+        CREATE TABLE IF NOT EXISTS change_requests (
           namespace TEXT NOT NULL,
           id TEXT NOT NULL,
           number INTEGER,
@@ -139,22 +139,22 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
           PRIMARY KEY (namespace, id)
         );
 
-        CREATE INDEX IF NOT EXISTS idx_pull_requests_namespace_position
-          ON pull_requests(namespace, position);
-        CREATE INDEX IF NOT EXISTS idx_pull_requests_number
-          ON pull_requests(namespace, number);
-        CREATE INDEX IF NOT EXISTS idx_pull_requests_state
-          ON pull_requests(namespace, state);
-        CREATE INDEX IF NOT EXISTS idx_pull_requests_author_login
-          ON pull_requests(namespace, author_login);
-        CREATE INDEX IF NOT EXISTS idx_pull_requests_created_at
-          ON pull_requests(namespace, created_at);
-        CREATE INDEX IF NOT EXISTS idx_pull_requests_updated_at
-          ON pull_requests(namespace, updated_at);
-        CREATE INDEX IF NOT EXISTS idx_pull_requests_merged_at
-          ON pull_requests(namespace, merged_at);
+        CREATE INDEX IF NOT EXISTS idx_change_requests_namespace_position
+          ON change_requests(namespace, position);
+        CREATE INDEX IF NOT EXISTS idx_change_requests_number
+          ON change_requests(namespace, number);
+        CREATE INDEX IF NOT EXISTS idx_change_requests_state
+          ON change_requests(namespace, state);
+        CREATE INDEX IF NOT EXISTS idx_change_requests_author_login
+          ON change_requests(namespace, author_login);
+        CREATE INDEX IF NOT EXISTS idx_change_requests_created_at
+          ON change_requests(namespace, created_at);
+        CREATE INDEX IF NOT EXISTS idx_change_requests_updated_at
+          ON change_requests(namespace, updated_at);
+        CREATE INDEX IF NOT EXISTS idx_change_requests_merged_at
+          ON change_requests(namespace, merged_at);
 
-        CREATE TABLE IF NOT EXISTS pull_request_comments (
+        CREATE TABLE IF NOT EXISTS change_request_comments (
           namespace TEXT NOT NULL,
           id TEXT NOT NULL,
           pull_request_number INTEGER,
@@ -171,16 +171,16 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
           PRIMARY KEY (namespace, id)
         );
 
-        CREATE INDEX IF NOT EXISTS idx_pull_request_comments_namespace_position
-          ON pull_request_comments(namespace, position);
-        CREATE INDEX IF NOT EXISTS idx_pull_request_comments_pr_number
-          ON pull_request_comments(namespace, pull_request_number);
-        CREATE INDEX IF NOT EXISTS idx_pull_request_comments_author_login
-          ON pull_request_comments(namespace, author_login);
-        CREATE INDEX IF NOT EXISTS idx_pull_request_comments_created_at
-          ON pull_request_comments(namespace, created_at);
-        CREATE INDEX IF NOT EXISTS idx_pull_request_comments_updated_at
-          ON pull_request_comments(namespace, updated_at);
+        CREATE INDEX IF NOT EXISTS idx_change_request_comments_namespace_position
+          ON change_request_comments(namespace, position);
+        CREATE INDEX IF NOT EXISTS idx_change_request_comments_pr_number
+          ON change_request_comments(namespace, pull_request_number);
+        CREATE INDEX IF NOT EXISTS idx_change_request_comments_author_login
+          ON change_request_comments(namespace, author_login);
+        CREATE INDEX IF NOT EXISTS idx_change_request_comments_created_at
+          ON change_request_comments(namespace, created_at);
+        CREATE INDEX IF NOT EXISTS idx_change_request_comments_updated_at
+          ON change_request_comments(namespace, updated_at);
 
         CREATE TABLE IF NOT EXISTS sonarqube_measures (
           namespace TEXT NOT NULL,
@@ -386,6 +386,48 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
       });
     },
   },
+  {
+    id: '004_rename_provider_specific_tables',
+    up: (db: DatabaseSync): void => {
+      // Rename GitHub-centric pipeline tables to provider-neutral names.
+      // SQLite does not support renaming indexes, so old indexes are dropped
+      // and the new indexes (created by migration 001 with IF NOT EXISTS) take over.
+      renameTableIfExists(db, 'workflow_runs', 'pipeline_runs', [
+        'idx_workflow_runs_namespace_position',
+        'idx_workflow_runs_created_at',
+        'idx_workflow_runs_metric_date',
+        'idx_workflow_runs_path',
+        'idx_workflow_runs_status',
+        'idx_workflow_runs_conclusion',
+        'idx_workflow_runs_head_branch',
+      ]);
+      renameTableIfExists(db, 'workflow_jobs', 'pipeline_jobs', [
+        'idx_workflow_jobs_namespace_position',
+        'idx_workflow_jobs_run_id',
+        'idx_workflow_jobs_name',
+        'idx_workflow_jobs_conclusion',
+        'idx_workflow_jobs_completed_at',
+      ]);
+
+      // Rename GitHub-centric pull request tables to provider-neutral names.
+      renameTableIfExists(db, 'pull_requests', 'change_requests', [
+        'idx_pull_requests_namespace_position',
+        'idx_pull_requests_number',
+        'idx_pull_requests_state',
+        'idx_pull_requests_author_login',
+        'idx_pull_requests_created_at',
+        'idx_pull_requests_updated_at',
+        'idx_pull_requests_merged_at',
+      ]);
+      renameTableIfExists(db, 'pull_request_comments', 'change_request_comments', [
+        'idx_pull_request_comments_namespace_position',
+        'idx_pull_request_comments_pr_number',
+        'idx_pull_request_comments_author_login',
+        'idx_pull_request_comments_created_at',
+        'idx_pull_request_comments_updated_at',
+      ]);
+    },
+  },
 ];
 
 export function applySqliteMigrations(db: DatabaseSync): void {
@@ -473,4 +515,110 @@ function tableExists(db: DatabaseSync, tableName: string): boolean {
 function columnExists(db: DatabaseSync, tableName: string, columnName: string): boolean {
   const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name: string }>;
   return columns.some((column) => column.name === columnName);
+}
+
+function renameTableIfExists(
+  db: DatabaseSync,
+  oldName: string,
+  newName: string,
+  oldIndexes: string[]
+): void {
+  // If the old table doesn't exist (fresh database where migration 001 already
+  // created the new-named table), there is nothing to migrate.
+  if (!tableExists(db, oldName)) {
+    return;
+  }
+
+  // Drop old indexes — SQLite ALTER TABLE RENAME preserves indexes but keeps their
+  // original names, which would be misleading. We recreate the indexes with new names below.
+  for (const indexName of oldIndexes) {
+    db.exec(`DROP INDEX IF EXISTS ${indexName}`);
+  }
+
+  // If the new table somehow already exists (e.g. partially migrated), drop the old
+  // table and keep the new one. The new indexes are created by migration 001.
+  if (tableExists(db, newName)) {
+    db.exec(`DROP TABLE ${oldName}`);
+    return;
+  }
+
+  db.exec(`ALTER TABLE ${oldName} RENAME TO ${newName}`);
+
+  // Recreate indexes with the new names. On fresh databases migration 001 already
+  // created these (IF NOT EXISTS), so this is a no-op. On migrated databases the
+  // old indexes were dropped above and migration 001 won't re-run, so we recreate them here.
+  createIndexesForRenamedTable(db, newName);
+}
+
+function createIndexesForRenamedTable(db: DatabaseSync, tableName: string): void {
+  if (tableName === 'pipeline_runs') {
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_pipeline_runs_namespace_position
+        ON pipeline_runs(namespace, position);
+      CREATE INDEX IF NOT EXISTS idx_pipeline_runs_created_at
+        ON pipeline_runs(namespace, created_at);
+      CREATE INDEX IF NOT EXISTS idx_pipeline_runs_metric_date
+        ON pipeline_runs(namespace, COALESCE(NULLIF(updated_at, ''), created_at));
+      CREATE INDEX IF NOT EXISTS idx_pipeline_runs_path
+        ON pipeline_runs(namespace, path);
+      CREATE INDEX IF NOT EXISTS idx_pipeline_runs_status
+        ON pipeline_runs(namespace, status);
+      CREATE INDEX IF NOT EXISTS idx_pipeline_runs_conclusion
+        ON pipeline_runs(namespace, conclusion);
+      CREATE INDEX IF NOT EXISTS idx_pipeline_runs_head_branch
+        ON pipeline_runs(namespace, head_branch);
+    `);
+    return;
+  }
+
+  if (tableName === 'pipeline_jobs') {
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_pipeline_jobs_namespace_position
+        ON pipeline_jobs(namespace, position);
+      CREATE INDEX IF NOT EXISTS idx_pipeline_jobs_run_id
+        ON pipeline_jobs(namespace, run_id);
+      CREATE INDEX IF NOT EXISTS idx_pipeline_jobs_name
+        ON pipeline_jobs(namespace, name);
+      CREATE INDEX IF NOT EXISTS idx_pipeline_jobs_conclusion
+        ON pipeline_jobs(namespace, conclusion);
+      CREATE INDEX IF NOT EXISTS idx_pipeline_jobs_completed_at
+        ON pipeline_jobs(namespace, completed_at);
+    `);
+    return;
+  }
+
+  if (tableName === 'change_requests') {
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_change_requests_namespace_position
+        ON change_requests(namespace, position);
+      CREATE INDEX IF NOT EXISTS idx_change_requests_number
+        ON change_requests(namespace, number);
+      CREATE INDEX IF NOT EXISTS idx_change_requests_state
+        ON change_requests(namespace, state);
+      CREATE INDEX IF NOT EXISTS idx_change_requests_author_login
+        ON change_requests(namespace, author_login);
+      CREATE INDEX IF NOT EXISTS idx_change_requests_created_at
+        ON change_requests(namespace, created_at);
+      CREATE INDEX IF NOT EXISTS idx_change_requests_updated_at
+        ON change_requests(namespace, updated_at);
+      CREATE INDEX IF NOT EXISTS idx_change_requests_merged_at
+        ON change_requests(namespace, merged_at);
+    `);
+    return;
+  }
+
+  if (tableName === 'change_request_comments') {
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_change_request_comments_namespace_position
+        ON change_request_comments(namespace, position);
+      CREATE INDEX IF NOT EXISTS idx_change_request_comments_pr_number
+        ON change_request_comments(namespace, pull_request_number);
+      CREATE INDEX IF NOT EXISTS idx_change_request_comments_author_login
+        ON change_request_comments(namespace, author_login);
+      CREATE INDEX IF NOT EXISTS idx_change_request_comments_created_at
+        ON change_request_comments(namespace, created_at);
+      CREATE INDEX IF NOT EXISTS idx_change_request_comments_updated_at
+        ON change_request_comments(namespace, updated_at);
+    `);
+  }
 }

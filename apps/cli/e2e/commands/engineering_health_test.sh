@@ -16,7 +16,7 @@ const db = new DatabaseSync(dbPath);
 
 try {
   const row = db
-    .prepare('SELECT payload FROM workflow_jobs WHERE namespace = ? AND id = ?')
+    .prepare('SELECT payload FROM pipeline_jobs WHERE namespace = ? AND id = ?')
     .get('github/pipeline-jobs', '5001');
 
   if (!row || !row.payload) {
@@ -37,7 +37,7 @@ try {
   const encoded = JSON.stringify(payload);
 
   db.prepare(
-    'UPDATE workflow_jobs SET completed_at = ?, payload = ? WHERE namespace = ? AND id = ?'
+    'UPDATE pipeline_jobs SET completed_at = ?, payload = ? WHERE namespace = ? AND id = ?'
   ).run(
     '2026-02-03T10:10:00Z',
     encoded,
