@@ -81,6 +81,7 @@ describe('ReportRenderer', () => {
           'change-requests-f2': { generatedAt: '', signals: [], summary: {} },
         }}
         errors={{}}
+        {...defaultProps}
       />,
     );
 
@@ -103,6 +104,7 @@ describe('ReportRenderer', () => {
         savedFiltersMap={new Map()}
         evaluations={{}}
         errors={{}}
+        {...defaultProps}
       />,
     );
 
@@ -160,6 +162,7 @@ describe('ReportRenderer', () => {
             'change-requests-f2': { generatedAt: '', signals: [], summary: {} },
           }}
           errors={{}}
+          {...defaultProps}
         />,
       );
     }
@@ -239,6 +242,7 @@ describe('ReportRenderer', () => {
           savedFiltersMap={savedFiltersMap}
           evaluations={{ 'pipelines-f1': { generatedAt: '', signals: [], summary: {} } }}
           errors={{}}
+          {...defaultProps}
         />,
       );
 
@@ -263,6 +267,7 @@ describe('ReportRenderer', () => {
           savedFiltersMap={new Map()}
           evaluations={{}}
           errors={{}}
+          {...defaultProps}
         />,
       );
 

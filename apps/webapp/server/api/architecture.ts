@@ -100,5 +100,5 @@ export const architectureAPI = {
     ignore_files?: string;
     include_only?: string;
   }) =>
-    fetchAPI<ArchitectureEvaluation>('/architecture/evaluate', params),
+    fetchAPI<ArchitectureEvaluation | null>('/architecture/evaluate', params),
 };

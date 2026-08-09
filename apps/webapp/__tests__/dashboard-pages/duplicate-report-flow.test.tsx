@@ -113,8 +113,8 @@ describe('Duplicate Existing Report Flow', () => {
 
     const actionContainer = duplicateButton.parentElement!;
     const buttons = Array.from(actionContainer.querySelectorAll('button'));
-    const duplicateIndex = buttons.indexOf(duplicateButton);
-    const editIndex = buttons.indexOf(editButton);
+    const duplicateIndex = buttons.indexOf(duplicateButton as HTMLButtonElement);
+    const editIndex = buttons.indexOf(editButton as HTMLButtonElement);
     expect(duplicateIndex).toBeGreaterThanOrEqual(0);
     expect(editIndex).toBeGreaterThan(duplicateIndex);
   });

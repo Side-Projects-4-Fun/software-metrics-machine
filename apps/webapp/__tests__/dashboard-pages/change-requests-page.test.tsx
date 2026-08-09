@@ -6,6 +6,8 @@ import { LinkBuilderProvider } from '@/components/providers/LinkBuilderContext';
 import { ConfigurationProvider } from '@/components/providers/ConfigurationContext';
 import { changeRequestAPI } from '@/server/api';
 import { DashboardConfigurationBuilder } from '../builders/builders';
+import { ChangeRequestSummaryBuilder } from '../builders/api-response/change-request-summary.builder';
+import { ChangeRequestEvaluationBuilder } from '../builders/api-response/change-request-evaluation.builder';
 
 jest.mock('@/server/api', () => ({
   changeRequestAPI: {
@@ -38,24 +40,28 @@ function Providers({ children }: { children: React.ReactNode }): React.ReactElem
 }
 
 function setupMockApiResponse() {
-  mockChangeRequestAPI.byAuthor.mockResolvedValue({ result: [{ author: 'alice', count: 12 }, { author: 'bob', count: 8 }] });
-  mockChangeRequestAPI.reviewTime.mockResolvedValue({ result: [{ author: 'alice', value: 4.5, value_formatted: '4.5 days', method: 'average' }, { author: 'bob', value: 2.1, value_formatted: '2.1 days', method: 'average' }] });
-  mockChangeRequestAPI.openThroughTime.mockResolvedValue({ result: [{ date: '2026-01-01', kind: 'Opened', count: 3 }, { date: '2026-01-01', kind: 'Closed', count: 2 }] });
-  mockChangeRequestAPI.openTime.mockResolvedValue({ result: [{ period: '2026-01', value: 2.3, value_formatted: '2.3 days', method: 'average' }] });
-  mockChangeRequestAPI.comments.mockResolvedValue({ result: { comments_count: 3.5 } });
-  mockChangeRequestAPI.summary.mockResolvedValue({ result: {
-    total: 20, merged: 15, closed: 3, open: 2,
-    labels: [{ label: 'bug', change_requests: 5 }],
-    top_themes: [{ text: 'fix', value: 10 }],
-    most_commented_change_requests: [{ number: 1, title: 'Fix bug', comments: 5 }],
-  } });
-  mockChangeRequestAPI.commentsByAuthor.mockResolvedValue({ result: [{ author: 'alice', count: 8 }, { author: 'bob', count: 5 }] });
-  mockChangeRequestAPI.firstCommentTime.mockResolvedValue({ result: [{ author: 'alice', value: 1.2, value_formatted: '1.2 h', method: 'average', change_requests_with_comments: 10 }] });
-  mockChangeRequestAPI.evaluate.mockResolvedValue({
-    generatedAt: '2026-01-01T00:00:00Z',
-    signals: [{ id: 'review-time', title: 'Review Time', description: 'Good', severity: 'good', category: 'review', metrics: [] }],
-    summary: { totalChangeRequests: 20, mergedChangeRequests: 15, openChangeRequests: 2, commentsPerChangeRequest: 3.5, reviewHours: 3.3, reviewHours_formatted: '3.3 h', openDays: 2.3, openDays_formatted: '2.3 days', method: 'average', uniqueAuthors: 2 },
-  });
+  mockChangeRequestAPI.byAuthor.mockResolvedValue([{ author: 'alice', count: 12 }, { author: 'bob', count: 8 }]);
+  mockChangeRequestAPI.reviewTime.mockResolvedValue([{ author: 'alice', value: 4.5, value_formatted: '4.5 days', method: 'average' }, { author: 'bob', value: 2.1, value_formatted: '2.1 days', method: 'average' }]);
+  mockChangeRequestAPI.openThroughTime.mockResolvedValue([{ date: '2026-01-01', kind: 'Opened', count: 3 }, { date: '2026-01-01', kind: 'Closed', count: 2 }]);
+  mockChangeRequestAPI.openTime.mockResolvedValue([{ period: '2026-01', value: 2.3, value_formatted: '2.3 days', method: 'average' }]);
+  mockChangeRequestAPI.comments.mockResolvedValue({ comments_count: 3.5 });
+  mockChangeRequestAPI.summary.mockResolvedValue(new ChangeRequestSummaryBuilder().build());
+  mockChangeRequestAPI.commentsByAuthor.mockResolvedValue([{ author: 'alice', count: 8 }, { author: 'bob', count: 5 }]);
+  mockChangeRequestAPI.firstCommentTime.mockResolvedValue([{ author: 'alice', value: 1.2, value_formatted: '1.2 h', method: 'average', change_requests_with_comments: 10 }]);
+  mockChangeRequestAPI.evaluate.mockResolvedValue(
+    new ChangeRequestEvaluationBuilder()
+      .withSignals([
+        {
+          id: 'review-time',
+          title: 'Review Time',
+          description: 'Good',
+          severity: 'good',
+          category: 'review',
+          metrics: [],
+        },
+      ])
+      .build()
+  );
 }
 
 describe('Change Requests Dashboard - User Journey', () => {

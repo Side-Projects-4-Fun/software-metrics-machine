@@ -1,6 +1,12 @@
 import { render, screen, within } from '@testing-library/react';
 import EngineeringHealthPage from '@/app/engineering-health/page';
 import { engineeringHealthAPI } from '@/server/api/engineeringHealth';
+import {
+  EngineeringHealthMetricBuilder,
+} from './builders/api-response/engineering-health-metric.builder';
+import {
+  EngineeringHealthEvaluationBuilder,
+} from './builders/api-response/engineering-health-evaluation.builder';
 
 jest.mock('@/server/api/engineeringHealth', () => ({
   engineeringHealthAPI: {
@@ -10,50 +16,30 @@ jest.mock('@/server/api/engineeringHealth', () => ({
 
 const mockEngineeringHealthAPI = engineeringHealthAPI as jest.Mocked<typeof engineeringHealthAPI>;
 
+function pipelineDurationMetric(): ReturnType<EngineeringHealthMetricBuilder['build']> {
+  return new EngineeringHealthMetricBuilder()
+    .withId('pipeline-duration')
+    .withCategory('delivery')
+    .withValue(15, '15.00 minutes')
+    .withTrend('degrading', 15, 0)
+    .withRecommendation('critical')
+    .build();
+}
+
 describe('EngineeringHealthPage', () => {
   it('renders comparison chart and trend chart when series is available', async () => {
-    mockEngineeringHealthAPI.evaluate.mockResolvedValue({
-      generatedAt: '2026-07-18T20:00:00.000Z',
-      evaluations: [
-        {
-          id: 'pipeline-duration',
-          category: 'delivery',
-          value: {
-            value: 15,
-            unit: 'minutes',
-            direction: 'lower_is_better',
-            sampleSize: 2,
-            series: [
-              { period: '2026-W05', value: 20 },
-              { period: '2026-W06', value: 15 },
-            ],
-          },
-          comparison: {
-            trend: 'degrading',
-            delta: 15,
-            deltaPercentage: null,
-            current: 15,
-            previous: 0,
-            summary: 'Metric degraded by 15.00 minutes.',
-          },
-          summary: {
-            title: 'pipeline-duration',
-            valueLabel: '15.00 minutes',
-            notes: ['Metric degraded by 15.00 minutes.'],
-          },
-          target: {
-            operator: 'lt',
-            value: 10,
-            description: 'Average pipeline duration below ten minutes.',
-          },
-          recommendation: {
-            level: 'critical',
-            summary: 'Metric is outside target and needs attention.',
-            actions: ['Investigate root causes and define a short-term corrective action plan.'],
-          },
-        },
-      ],
-    });
+    const metric = pipelineDurationMetric();
+    metric.value.series = [
+      { period: '2026-W05', value: 20, value_formatted: '20' },
+      { period: '2026-W06', value: 15, value_formatted: '15' },
+    ];
+
+    mockEngineeringHealthAPI.evaluate.mockResolvedValue(
+      new EngineeringHealthEvaluationBuilder()
+        .withGeneratedAt('2026-07-18T20:00:00.000Z')
+        .withMetric(metric)
+        .build()
+    );
 
     const ui = await EngineeringHealthPage({
       searchParams: Promise.resolve({
@@ -95,45 +81,17 @@ describe('EngineeringHealthPage', () => {
   });
 
   it('does not render trend chart when series is missing or too short', async () => {
-    mockEngineeringHealthAPI.evaluate.mockResolvedValue({
-      generatedAt: '2026-07-18T20:00:00.000Z',
-      evaluations: [
-        {
-          id: 'pipeline-duration',
-          category: 'delivery',
-          value: {
-            value: 15,
-            unit: 'minutes',
-            direction: 'lower_is_better',
-            sampleSize: 1,
-            series: [{ period: '2026-W06', value: 15 }],
-          },
-          comparison: {
-            trend: 'unknown',
-            delta: null,
-            deltaPercentage: null,
-            current: 15,
-            previous: null,
-            summary: 'Insufficient data to compare periods.',
-          },
-          summary: {
-            title: 'pipeline-duration',
-            valueLabel: '15.00 minutes',
-            notes: ['Insufficient data to compare periods.'],
-          },
-          target: {
-            operator: 'lt',
-            value: 10,
-            description: 'Average pipeline duration below ten minutes.',
-          },
-          recommendation: {
-            level: 'critical',
-            summary: 'Metric is outside target and needs attention.',
-            actions: ['Investigate root causes and define a short-term corrective action plan.'],
-          },
-        },
-      ],
-    });
+    const metric = pipelineDurationMetric();
+    metric.value.series = [{ period: '2026-W06', value: 15, value_formatted: '15' }];
+    metric.comparison.trend = 'unknown';
+    metric.comparison.delta = null;
+    metric.comparison.delta_formatted = 'N/A';
+    metric.comparison.previous = null;
+    metric.comparison.previous_formatted = 'N/A';
+
+    mockEngineeringHealthAPI.evaluate.mockResolvedValue(
+      new EngineeringHealthEvaluationBuilder().withMetric(metric).build()
+    );
 
     const ui = await EngineeringHealthPage({ searchParams: Promise.resolve({}) });
     render(ui);
@@ -144,44 +102,16 @@ describe('EngineeringHealthPage', () => {
   });
 
   it('renders comparison guide trigger when compare dates are missing', async () => {
-    mockEngineeringHealthAPI.evaluate.mockResolvedValue({
-      generatedAt: '2026-07-18T20:00:00.000Z',
-      evaluations: [
-        {
-          id: 'pipeline-duration',
-          category: 'delivery',
-          value: {
-            value: 15,
-            unit: 'minutes',
-            direction: 'lower_is_better',
-            sampleSize: 1,
-          },
-          comparison: {
-            trend: 'unknown',
-            delta: null,
-            deltaPercentage: null,
-            current: 15,
-            previous: null,
-            summary: 'Insufficient data to compare periods.',
-          },
-          summary: {
-            title: 'pipeline-duration',
-            valueLabel: '15.00 minutes',
-            notes: ['Insufficient data to compare periods.'],
-          },
-          target: {
-            operator: 'lt',
-            value: 10,
-            description: 'Average pipeline duration below ten minutes.',
-          },
-          recommendation: {
-            level: 'critical',
-            summary: 'Metric is outside target and needs attention.',
-            actions: ['Investigate root causes and define a short-term corrective action plan.'],
-          },
-        },
-      ],
-    });
+    const metric = pipelineDurationMetric();
+    metric.comparison.trend = 'unknown';
+    metric.comparison.delta = null;
+    metric.comparison.delta_formatted = 'N/A';
+    metric.comparison.previous = null;
+    metric.comparison.previous_formatted = 'N/A';
+
+    mockEngineeringHealthAPI.evaluate.mockResolvedValue(
+      new EngineeringHealthEvaluationBuilder().withMetric(metric).build()
+    );
 
     const ui = await EngineeringHealthPage({
       searchParams: Promise.resolve({
@@ -195,44 +125,17 @@ describe('EngineeringHealthPage', () => {
   });
 
   it('formats leadership generated date using the provided timezone filter', async () => {
-    mockEngineeringHealthAPI.evaluate.mockResolvedValue({
-      generatedAt: '2026-07-18T23:30:00.000Z',
-      evaluations: [
-        {
-          id: 'pipeline-duration',
-          category: 'delivery',
-          value: {
-            value: 15,
-            unit: 'minutes',
-            direction: 'lower_is_better',
-            sampleSize: 1,
-          },
-          comparison: {
-            trend: 'unknown',
-            delta: null,
-            deltaPercentage: null,
-            current: 15,
-            previous: null,
-            summary: 'Insufficient data to compare periods.',
-          },
-          summary: {
-            title: 'pipeline-duration',
-            valueLabel: '15.00 minutes',
-            notes: ['Insufficient data to compare periods.'],
-          },
-          target: {
-            operator: 'lt',
-            value: 10,
-            description: 'Average pipeline duration below ten minutes.',
-          },
-          recommendation: {
-            level: 'critical',
-            summary: 'Metric is outside target and needs attention.',
-            actions: ['Investigate root causes and define a short-term corrective action plan.'],
-          },
-        },
-      ],
-    });
+    const metric = pipelineDurationMetric();
+    metric.comparison.trend = 'unknown';
+    metric.comparison.delta = null;
+    metric.comparison.delta_formatted = 'N/A';
+    metric.comparison.previous = null;
+    metric.comparison.previous_formatted = 'N/A';
+
+    const evaluation = new EngineeringHealthEvaluationBuilder().withMetric(metric).build();
+    evaluation.generatedAt = '2026-07-18T23:30:00.000Z';
+
+    mockEngineeringHealthAPI.evaluate.mockResolvedValue(evaluation);
 
     const ui = await EngineeringHealthPage({
       searchParams: Promise.resolve({
@@ -245,158 +148,55 @@ describe('EngineeringHealthPage', () => {
   });
 
   it('groups scorecards by category before sorting each category by risk and movement', async () => {
-    mockEngineeringHealthAPI.evaluate.mockResolvedValue({
-      generatedAt: '2026-07-18T20:00:00.000Z',
-      evaluations: [
-        {
-          id: 'quality-watch-small-delta',
-          category: 'quality',
-          value: {
-            value: 12,
-            unit: 'points',
-            direction: 'lower_is_better',
-            sampleSize: 1,
-          },
-          comparison: {
-            trend: 'stable',
-            delta: 2,
-            deltaPercentage: null,
-            current: 12,
-            previous: 10,
-            summary: 'Quality watch metric moved by 2 points.',
-          },
-          summary: {
-            title: 'quality-watch-small-delta',
-            valueLabel: '12 points',
-            notes: ['Quality watch metric moved by 2 points.'],
-          },
-          target: {
-            operator: 'lt',
-            value: 10,
-            description: 'Keep quality score below ten points.',
-          },
-          recommendation: {
-            level: 'watch',
-            summary: 'Quality metric needs monitoring.',
-            actions: [],
-          },
-        },
-        {
-          id: 'delivery-watch-small-delta',
-          category: 'delivery',
-          scope: {
-            type: 'deployment-target',
-            key: 'frontend',
-            label: 'Frontend App',
-          },
-          value: {
-            value: 11,
-            unit: 'minutes',
-            direction: 'lower_is_better',
-            sampleSize: 1,
-          },
-          comparison: {
-            trend: 'stable',
-            delta: 1,
-            deltaPercentage: null,
-            current: 11,
-            previous: 10,
-            summary: 'Delivery watch metric moved by 1 minute.',
-          },
-          summary: {
-            title: 'delivery-watch-small-delta',
-            valueLabel: '11 minutes',
-            notes: ['Delivery watch metric moved by 1 minute.'],
-          },
-          target: {
-            operator: 'lt',
-            value: 10,
-            description: 'Keep delivery score below ten minutes.',
-          },
-          recommendation: {
-            level: 'watch',
-            summary: 'Delivery metric needs monitoring.',
-            actions: [],
-          },
-        },
-        {
-          id: 'delivery-critical-large-delta',
-          category: 'delivery',
-          scope: {
-            type: 'deployment-target',
-            key: 'frontend',
-            label: 'Frontend App',
-          },
-          value: {
-            value: 25,
-            unit: 'minutes',
-            direction: 'lower_is_better',
-            sampleSize: 1,
-          },
-          comparison: {
-            trend: 'degrading',
-            delta: 15,
-            deltaPercentage: null,
-            current: 25,
-            previous: 10,
-            summary: 'Delivery critical metric moved by 15 minutes.',
-          },
-          summary: {
-            title: 'delivery-critical-large-delta',
-            valueLabel: '25 minutes',
-            notes: ['Delivery critical metric moved by 15 minutes.'],
-          },
-          target: {
-            operator: 'lt',
-            value: 10,
-            description: 'Keep delivery score below ten minutes.',
-          },
-          recommendation: {
-            level: 'critical',
-            summary: 'Delivery metric needs attention.',
-            actions: [],
-          },
-        },
-        {
-          id: 'delivery-api-target',
-          category: 'delivery',
-          scope: {
-            type: 'deployment-target',
-            key: 'api',
-            label: 'API Service',
-          },
-          value: {
-            value: 8,
-            unit: 'minutes',
-            direction: 'lower_is_better',
-            sampleSize: 1,
-          },
-          comparison: {
-            trend: 'improving',
-            delta: -2,
-            deltaPercentage: null,
-            current: 8,
-            previous: 10,
-            summary: 'API delivery metric improved by 2 minutes.',
-          },
-          summary: {
-            title: 'delivery-api-target',
-            valueLabel: '8 minutes',
-            notes: ['API delivery metric improved by 2 minutes.'],
-          },
-          target: {
-            operator: 'lt',
-            value: 10,
-            description: 'Keep delivery score below ten minutes.',
-          },
-          recommendation: {
-            level: 'good',
-            summary: 'Delivery metric is on track.',
-            actions: [],
-          },
-        },
-      ],
-    });
+    const qualityWatch = new EngineeringHealthMetricBuilder()
+      .withId('complexity')
+      .withCategory('quality')
+      .withValue(12, '12 points')
+      .withTrend('stable', 12, 10)
+      .withRecommendation('watch')
+      .build();
+
+    const deliveryWatch = new EngineeringHealthMetricBuilder()
+      .withId('pipeline-duration')
+      .withCategory('delivery')
+      .withDeploymentTarget('.github/workflows/frontend.yml', 'deploy')
+      .withValue(11, '11 minutes')
+      .withTrend('stable', 11, 10)
+      .withRecommendation('watch')
+      .build();
+    deliveryWatch.scope!.key = 'frontend';
+    deliveryWatch.scope!.label = 'Frontend App';
+
+    const deliveryCritical = new EngineeringHealthMetricBuilder()
+      .withId('lead-time')
+      .withCategory('delivery')
+      .withDeploymentTarget('.github/workflows/frontend.yml', 'deploy')
+      .withValue(25, '25 minutes')
+      .withTrend('degrading', 25, 10)
+      .withRecommendation('critical')
+      .build();
+    deliveryCritical.scope!.key = 'frontend';
+    deliveryCritical.scope!.label = 'Frontend App';
+
+    const deliveryApi = new EngineeringHealthMetricBuilder()
+      .withId('failure-rate')
+      .withCategory('delivery')
+      .withDeploymentTarget('.github/workflows/api.yml', 'deploy')
+      .withValue(8, '8 minutes')
+      .withTrend('improving', 8, 10)
+      .withRecommendation('good')
+      .build();
+    deliveryApi.scope!.key = 'api';
+    deliveryApi.scope!.label = 'API Service';
+
+    mockEngineeringHealthAPI.evaluate.mockResolvedValue(
+      new EngineeringHealthEvaluationBuilder()
+        .withMetric(qualityWatch)
+        .withMetric(deliveryWatch)
+        .withMetric(deliveryCritical)
+        .withMetric(deliveryApi)
+        .build()
+    );
 
     const ui = await EngineeringHealthPage({ searchParams: Promise.resolve({}) });
     render(ui);
@@ -417,12 +217,12 @@ describe('EngineeringHealthPage', () => {
       name: 'Delivery Api Target scorecard',
     })).not.toBeInTheDocument();
 
-    const deliveryCritical = within(frontendTargetScorecards).getByRole('article', {
-      name: 'Delivery Critical Large Delta scorecard',
+    const deliveryCriticalCard = within(frontendTargetScorecards).getByRole('article', {
+      name: 'Lead Time scorecard',
     });
-    const deliveryWatch = within(frontendTargetScorecards).getByRole('article', {
-      name: 'Delivery Watch Small Delta scorecard',
+    const deliveryWatchCard = within(frontendTargetScorecards).getByRole('article', {
+      name: 'Pipeline Duration scorecard',
     });
-    expect(deliveryCritical.nextElementSibling).toBe(deliveryWatch);
+    expect(deliveryCriticalCard.nextElementSibling).toBe(deliveryWatchCard);
   });
 });

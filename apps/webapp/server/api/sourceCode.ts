@@ -60,7 +60,7 @@ export const sourceCodeAPI = {
         timestamp: string;
         subject: string;
       }>;
-    }>(
+    } | null>(
       '/code/pairing-index',
       params
     ),
@@ -108,5 +108,5 @@ export const sourceCodeAPI = {
     fetchAPI<BigOFileSummary[]>('/code/big-o', params),
 
   evaluate: (params?: ApiParams) =>
-    fetchAPI<CodeEvaluation>('/code/evaluate', params),
+    fetchAPI<CodeEvaluation | null>('/code/evaluate', params),
 };

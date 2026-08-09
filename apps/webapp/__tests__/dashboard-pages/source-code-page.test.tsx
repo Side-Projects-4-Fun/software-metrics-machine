@@ -6,6 +6,8 @@ import { LinkBuilderProvider } from '@/components/providers/LinkBuilderContext';
 import { ConfigurationProvider } from '@/components/providers/ConfigurationContext';
 import { sourceCodeAPI, sonarqubeAPI } from '@/server/api';
 import { DashboardConfigurationBuilder } from '../builders/builders';
+import { CodeEvaluationBuilder } from '../builders/api-response/code-evaluation.builder';
+import { PairingIndexBuilder } from '../builders/api-response/pairing-index.builder';
 
 jest.mock('@/server/api', () => ({
   sourceCodeAPI: {
@@ -42,24 +44,31 @@ function Providers({ children }: { children: React.ReactNode }): React.ReactElem
 }
 
 function setupMockApiResponse() {
-  mockSourceCode.evaluate.mockResolvedValue({
-    generatedAt: '2026-01-01T00:00:00Z',
-    signals: [{ id: 'churn', title: 'Churn', description: 'Moderate', severity: 'warning', category: 'churn', metrics: [{ label: 'Lines', value: '500' }] }],
-    summary: { totalChurn: 500, linesAdded: 300, linesDeleted: 200, hotspots: 2, avgPairingIndex: 45, totalCouplingPairs: 10, highComplexityFiles: 3 },
-  });
-  mockSourceCode.entityChurn.mockResolvedValue({ result: [{ entity: 'src/app.ts', added: 100, deleted: 50, commits: 10 }] });
-  mockSourceCode.coupling.mockResolvedValue({ result: [{ entity: 'src/app.ts', coupled: 'src/utils.ts', degree: 5, averageRevs: 3 }] });
-  mockSourceCode.layeredCoupling.mockResolvedValue({ result: [{ entity: 'src/app.ts', coupled: 'src/utils.ts', degree: 5, averageRevs: 3 }] });
-  mockSourceCode.entityEffort.mockResolvedValue({ result: [{ entity: 'src/app.ts', 'total-revs': 50 }] });
-  mockSourceCode.codeChurn.mockResolvedValue({ result: [{ date: '2026-01-01', type: 'added', value: 100 }] });
-  mockSourceCode.entityOwnership.mockResolvedValue({ result: [{ entity: 'src/app.ts', author: 'alice', added: 80, deleted: 20 }] });
-  mockSourceCode.pairingIndex.mockResolvedValue({ result: {
-    pairing_index_percentage: 45, total_analyzed_commits: 100, paired_commits: 45,
-    top_pairs: [{ author: 'alice', co_author: 'bob', paired_commits: 10 }],
-    latest_paired_commits: [{ hash: 'abc', author: 'alice', co_authors: ['bob'], timestamp: '2026-01-01', subject: 'feat: stuff' }],
-  } });
-  mockSourceCode.bigOFiles.mockResolvedValue({ result: [] });
-  mockSonarqube.componentTree.mockResolvedValue({ result: [] });
+  mockSourceCode.evaluate.mockResolvedValue(
+    new CodeEvaluationBuilder()
+      .withSignals([
+        {
+          id: 'churn',
+          title: 'Churn',
+          description: 'Moderate',
+          severity: 'warning',
+          category: 'churn',
+          metrics: [{ label: 'Lines', value: '500' }],
+        },
+      ])
+      .build()
+  );
+  mockSourceCode.entityChurn.mockResolvedValue([{ entity: 'src/app.ts', added: 100, deleted: 50, commits: 10 }]);
+  mockSourceCode.coupling.mockResolvedValue([{ entity: 'src/app.ts', coupled: 'src/utils.ts', degree: 5, averageRevs: 3 }]);
+  mockSourceCode.layeredCoupling.mockResolvedValue([{ entity: 'src/app.ts', coupled: 'src/utils.ts', degree: 5, averageRevs: 3 }]);
+  mockSourceCode.entityEffort.mockResolvedValue([{ entity: 'src/app.ts', 'total-revs': 50 }]);
+  mockSourceCode.codeChurn.mockResolvedValue([{ date: '2026-01-01', type: 'added', value: 100 }]);
+  mockSourceCode.entityOwnership.mockResolvedValue([{ entity: 'src/app.ts', author: 'alice', added: 80, deleted: 20 }]);
+  mockSourceCode.pairingIndex.mockResolvedValue(
+    new PairingIndexBuilder().build()
+  );
+  mockSourceCode.bigOFiles.mockResolvedValue([]);
+  mockSonarqube.componentTree.mockResolvedValue([]);
 }
 
 describe('Source Code Dashboard - User Journey', () => {
@@ -93,15 +102,15 @@ describe('Source Code Dashboard - User Journey', () => {
 
   it('handles empty/null data gracefully', async () => {
     mockSourceCode.evaluate.mockResolvedValue(null);
-    mockSourceCode.entityChurn.mockResolvedValue({ result: [] });
-    mockSourceCode.coupling.mockResolvedValue({ result: [] });
-    mockSourceCode.layeredCoupling.mockResolvedValue({ result: [] });
-    mockSourceCode.entityEffort.mockResolvedValue({ result: [] });
-    mockSourceCode.codeChurn.mockResolvedValue({ result: [] });
-    mockSourceCode.entityOwnership.mockResolvedValue({ result: [] });
+    mockSourceCode.entityChurn.mockResolvedValue([]);
+    mockSourceCode.coupling.mockResolvedValue([]);
+    mockSourceCode.layeredCoupling.mockResolvedValue([]);
+    mockSourceCode.entityEffort.mockResolvedValue([]);
+    mockSourceCode.codeChurn.mockResolvedValue([]);
+    mockSourceCode.entityOwnership.mockResolvedValue([]);
     mockSourceCode.pairingIndex.mockResolvedValue(null);
-    mockSourceCode.bigOFiles.mockResolvedValue({ result: [] });
-    mockSonarqube.componentTree.mockResolvedValue({ result: [] });
+    mockSourceCode.bigOFiles.mockResolvedValue([]);
+    mockSonarqube.componentTree.mockResolvedValue([]);
 
     const ui = await SourceCodePage({ searchParams: Promise.resolve({}) });
     render(<Providers>{ui}</Providers>);
