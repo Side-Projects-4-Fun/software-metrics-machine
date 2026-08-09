@@ -38,13 +38,13 @@ function makeDashboardResponse() {
     jobs_by_status: [{ Status: 'success', Count: 80 }, { Status: 'failure', Count: 20 }],
     runs_duration: [{ workflow: 'ci.yml', value: 120, value_formatted: '2 h', method: 'average', min_duration: 30, min_duration_formatted: '30 min', max_duration: 300, max_duration_formatted: '5 h', total_runs: 50 }],
     runs_by: [{ period: '2026-01-01', workflow: 'ci.yml', runs: 5 }],
-    jobs_average_time: [{ job_name: 'test', value: 45, value_formatted: '45 min', method: 'average', count: 50 }],
-    jobs_average_time_by_day: [{ day: '2026-01-01', value: 50, value_formatted: '50 min', method: 'average', count: 3 }],
+    jobs_time: [{ job_name: 'test', value: 45, value_formatted: '45 min', method: 'average', count: 50 }],
+    jobs_time_by_day: [{ day: '2026-01-01', value: 50, value_formatted: '50 min', method: 'average', count: 3 }],
     jobs_duration_by_workflow: [{ workflow: 'ci.yml', jobs: { test: 45, build: 60 } }],
     jobs_summary: [{ job_name: 'test', total_runs: 50, value: 2, value_formatted: '2 min', method: 'average', success_count: 45, failure_count: 5, success_rate: 90, failure_rate: 10, rerun_count: 2 }],
     jobs_reruns_by_day: [{ day: '2026-01-01', rerun_count: 2 }],
-    job_steps_average_time: [{ name: 'checkout', value: 0.5, value_formatted: '30 sec', method: 'average', count: 100 }],
-    job_steps_average_time_by_day: [{ day: '2026-01-01', steps: [{ name: 'checkout', value: 0.5, value_formatted: '30 sec', method: 'average' }] }],
+    job_steps_time: [{ name: 'checkout', value: 0.5, value_formatted: '30 sec', method: 'average', count: 100 }],
+    job_steps_time_by_day: [{ day: '2026-01-01', steps: [{ name: 'checkout', value: 0.5, value_formatted: '30 sec', method: 'average' }] }],
   };
 }
 
@@ -71,7 +71,7 @@ describe('Pipelines Dashboard - User Journey', () => {
     render(<Providers>{ui}</Providers>);
 
     expect(screen.getByText('Pipeline Runs Duration')).toBeInTheDocument();
-    expect(screen.getByText('Jobs Average Time')).toBeInTheDocument();
+    expect(screen.getByText('Jobs Time')).toBeInTheDocument();
     expect(screen.getByText('Jobs by Status')).toBeInTheDocument();
   });
 

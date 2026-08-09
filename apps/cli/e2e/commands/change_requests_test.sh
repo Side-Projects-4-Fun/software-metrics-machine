@@ -99,7 +99,7 @@ function test_change_requests_summary_renders_statistics_from_cached_change_requ
   assert_smm_output_contains '"total_change_requests": 2'
   assert_smm_output_contains '"merged_change_requests": 1'
   assert_smm_output_contains '"unique_authors": 2'
-  assert_smm_output_contains '"avg_comments_per_change_request": 0.5'
+  assert_smm_output_contains '"comments_per_change_request": 0.5'
   assert_smm_output_contains '"login": "reviewer"'
 }
 
@@ -213,7 +213,7 @@ function test_change_requests_comments_renders_cached_change_request_average() {
     --output json
 
   assert_smm_success
-  assert_smm_output_contains '"avg_comments": 0.5'
+  assert_smm_output_contains '"comments": 0.5'
   assert_smm_output_contains '"method": "average"'
 }
 

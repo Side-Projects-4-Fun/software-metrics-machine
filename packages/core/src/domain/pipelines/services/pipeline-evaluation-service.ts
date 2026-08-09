@@ -26,7 +26,7 @@ export class PipelineEvaluationService {
   private evaluateDurationBottleneck(
     dashboard: PipelineDashboard
   ): PipelineBottleneckSignal | null {
-    const jobs = dashboard.jobs_average_time || [];
+    const jobs = dashboard.jobs_time || [];
     if (jobs.length === 0) {
       return this.insufficientData('duration_top_job', 'duration');
     }
@@ -212,7 +212,7 @@ export class PipelineEvaluationService {
 
   private buildSummary(dashboard: PipelineDashboard): PipelineEvaluation['summary'] {
     const s = dashboard.summary;
-    const jobs = dashboard.jobs_average_time || [];
+    const jobs = dashboard.jobs_time || [];
     const sortedJobs = [...jobs].sort((a, b) => b.value - a.value);
     const bottleneckJob = sortedJobs[0];
     const totalAvgTime = jobs.reduce((sum, j) => sum + j.value, 0);

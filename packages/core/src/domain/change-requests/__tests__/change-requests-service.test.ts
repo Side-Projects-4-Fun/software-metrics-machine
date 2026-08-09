@@ -173,7 +173,7 @@ describe('ChangeRequestsService', () => {
     expect(summary.merged_change_requests).toBe(1);
     expect(summary.closed_change_requests).toBe(2);
     expect(summary.change_requests_without_conclusion).toBe(1);
-    expect(summary.avg_comments_per_change_request).toBe(1.5);
+    expect(summary.comments_per_change_request).toBe(1.5);
     expect(summary.labels).toEqual([{ label: 'bug', change_requests: 2 }]);
     expect(summary.first_change_request?.number).toBe(1);
     expect(summary.last_change_request?.number).toBe(2);
@@ -445,7 +445,7 @@ describe('ChangeRequestsService', () => {
       expect(metrics.most_commented_change_requests[0].change_request_id).toBe(3);
     });
 
-    it('should default averageOpenDays and averageComments to 0 for an empty change request list', async () => {
+    it('should default openDaysMetric and commentsMetric to 0 for an empty change request list', async () => {
       changeRequestsService = new ChangeRequestsService(
         new ReadChangeRequestsRepositoryBuilder().withChangeRequests([]).build(),
         new TimeZoneProvider('UTC'),
@@ -891,7 +891,7 @@ describe('ChangeRequestsService', () => {
     });
   });
 
-  describe('toTimestamp (via getAverageReviewTime)', () => {
+  describe('toTimestamp (via getReviewTime)', () => {
     it('excludes change requests with unparseable createdAt dates from review time', async () => {
       const validChangeRequest = new ChangeRequestBuilder()
         .withId(1)
@@ -917,7 +917,7 @@ describe('ChangeRequestsService', () => {
         logger
       );
 
-      const result = await changeRequestsService.getAverageReviewTime();
+      const result = await changeRequestsService.getReviewTime();
 
       expect(result).toHaveLength(1);
       expect(result[0].author).toBe('alice');
@@ -925,7 +925,7 @@ describe('ChangeRequestsService', () => {
     });
   });
 
-  describe('getAverageReviewTime', () => {
+  describe('getReviewTime', () => {
     it('should use closedAt when mergedAt is absent, and mergedAt when both are present', async () => {
       const closedOnly = new ChangeRequestBuilder()
         .withId(1)
@@ -951,7 +951,7 @@ describe('ChangeRequestsService', () => {
         logger
       );
 
-      const result = await changeRequestsService.getAverageReviewTime();
+      const result = await changeRequestsService.getReviewTime();
 
       expect(result).toEqual(
         expect.arrayContaining([
@@ -978,15 +978,15 @@ describe('ChangeRequestsService', () => {
         logger
       );
 
-      const defaultTop = await changeRequestsService.getAverageReviewTime();
-      const explicitTop = await changeRequestsService.getAverageReviewTime(undefined, 3);
+      const defaultTop = await changeRequestsService.getReviewTime();
+      const explicitTop = await changeRequestsService.getReviewTime(undefined, 3);
 
       expect(defaultTop).toHaveLength(10);
       expect(explicitTop).toHaveLength(3);
     });
   });
 
-  describe('getAverageOpenBy', () => {
+  describe('getOpenTimeBy', () => {
     it('should fall back to createdAt for the end timestamp when a change request has neither mergedAt nor closedAt', async () => {
       const stillOpenChangeRequest = new ChangeRequestBuilder()
         .withId(1)
@@ -1002,7 +1002,7 @@ describe('ChangeRequestsService', () => {
         logger
       );
 
-      const result = await changeRequestsService.getAverageOpenBy();
+      const result = await changeRequestsService.getOpenTimeBy();
 
       expect(result).toEqual([
         { period: expect.any(String), value: 0, method: 'average', outliers: undefined },
@@ -1023,7 +1023,7 @@ describe('ChangeRequestsService', () => {
         logger
       );
 
-      const result = await changeRequestsService.getAverageOpenBy();
+      const result = await changeRequestsService.getOpenTimeBy();
 
       expect(result).toEqual([
         { period: expect.any(String), value: 2, method: 'average', outliers: undefined },
@@ -1044,7 +1044,7 @@ describe('ChangeRequestsService', () => {
         logger
       );
 
-      const result = await changeRequestsService.getAverageOpenBy(undefined, 'day');
+      const result = await changeRequestsService.getOpenTimeBy(undefined, 'day');
 
       expect(result[0].period).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
@@ -1071,7 +1071,7 @@ describe('ChangeRequestsService', () => {
         logger
       );
 
-      const result = await changeRequestsService.getAverageOpenBy(undefined, 'month');
+      const result = await changeRequestsService.getOpenTimeBy(undefined, 'month');
 
       expect(result.map((r) => r.period)).toEqual(['2025-01', '2025-02']);
     });

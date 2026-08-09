@@ -100,14 +100,14 @@ describe('ChangeRequestsController', () => {
     ]);
   });
 
-  it('aggregates average open days by day', async () => {
+  it('aggregates open days by day', async () => {
     const { controller, mockChangeRequestsService } = createController({
       getOpenTimeBy: vi
         .fn()
         .mockResolvedValue([{ period: '2026-01-05', value: 1.5, method: 'average' }]),
     });
 
-    const response = await controller.averageOpenBy(undefined, undefined, 'day');
+    const response = await controller.openTime(undefined, undefined, 'day');
 
     expect(response).toEqual([
       { period: '2026-01-05', value: 1.5, value_formatted: '1d 12h', method: 'average' },
@@ -152,7 +152,7 @@ describe('ChangeRequestsController', () => {
     });
   });
 
-  describe('averageReviewTime', () => {
+  describe('reviewTime', () => {
     it('uses the explicit top value when provided', async () => {
       const { controller, mockChangeRequestsService } = createController({
         getReviewTime: vi
@@ -160,7 +160,7 @@ describe('ChangeRequestsController', () => {
           .mockResolvedValue([{ author: 'bob', value: 1.2, method: 'average' }]),
       });
 
-      const response = await controller.averageReviewTime(undefined, undefined, undefined, '4');
+      const response = await controller.reviewTime(undefined, undefined, undefined, '4');
 
       expect(response.result).toEqual([
         {
@@ -182,7 +182,7 @@ describe('ChangeRequestsController', () => {
         getReviewTime: vi.fn().mockResolvedValue([]),
       });
 
-      await controller.averageReviewTime(undefined, undefined, undefined, undefined);
+      await controller.reviewTime(undefined, undefined, undefined, undefined);
 
       expect(mockChangeRequestsService.getReviewTime).toHaveBeenCalledWith(
         expect.anything(),
@@ -196,7 +196,7 @@ describe('ChangeRequestsController', () => {
         getReviewTime: vi.fn().mockResolvedValue([]),
       });
 
-      await controller.averageReviewTime(undefined, undefined, undefined, 'nope');
+      await controller.reviewTime(undefined, undefined, undefined, 'nope');
 
       expect(mockChangeRequestsService.getReviewTime).toHaveBeenCalledWith(
         expect.anything(),
@@ -206,15 +206,15 @@ describe('ChangeRequestsController', () => {
     });
   });
 
-  describe('averageComments', () => {
-    it('returns avg_comments from service metrics', async () => {
+  describe('comments', () => {
+    it('returns comments_count from service metrics', async () => {
       const { controller, mockChangeRequestsService } = createController({
         getMetrics: vi.fn().mockResolvedValue({ comments: 3.5 }),
       });
 
-      const response = await controller.averageComments();
+      const response = await controller.comments();
 
-      expect(response).toEqual({ avg_comments: 3.5 });
+      expect(response).toEqual({ comments_count: 3.5 });
       expect(mockChangeRequestsService.getMetrics).toHaveBeenCalledWith(
         expect.anything(),
         'average'

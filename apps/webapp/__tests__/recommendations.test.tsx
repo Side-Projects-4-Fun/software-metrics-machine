@@ -31,7 +31,7 @@ const defaultProps: RecommendationsProps = {
   prSummary: null,
   deploymentFrequency: [],
   jobsSummary: [],
-  averageReviewTime: [],
+  reviewTime: [],
 };
 
 function renderWithProviders(ui: React.ReactElement) {
@@ -240,7 +240,7 @@ describe('Recommendations', () => {
       renderWithProviders(
         <Recommendations
           {...defaultProps}
-          averageReviewTime={[
+          reviewTime={[
             { author: 'alice', value: 1.25, method: 'average' },
             { author: 'bob', value: 1.5, method: 'average' },
           ]}
@@ -248,14 +248,14 @@ describe('Recommendations', () => {
       );
 
       expect(screen.getByText('Speed Up Code Reviews')).toBeInTheDocument();
-      expect(screen.getByText(/Average review time is 1.4d/)).toBeInTheDocument();
+      expect(screen.getByText(/Review time is 1.4d/)).toBeInTheDocument();
     });
 
     it('shows success when review time is within target', () => {
       renderWithProviders(
         <Recommendations
           {...defaultProps}
-          averageReviewTime={[
+          reviewTime={[
             { author: 'alice', value: 0.5, method: 'average' },
             { author: 'bob', value: 0.75, method: 'average' },
           ]}
@@ -263,7 +263,7 @@ describe('Recommendations', () => {
       );
 
       expect(screen.getByText('Review Time on Track')).toBeInTheDocument();
-      expect(screen.getByText(/Average review time is 0.6d/)).toBeInTheDocument();
+      expect(screen.getByText(/Review time is 0.6d/)).toBeInTheDocument();
     });
   });
 
@@ -341,7 +341,7 @@ describe('Recommendations', () => {
               total_runs: 50,
             },
           ]}
-          averageReviewTime={[{ author: 'alice', value: 0.5, method: 'average' }]}
+          reviewTime={[{ author: 'alice', value: 0.5, method: 'average' }]}
           prSummary={{ total: 10, merged: 9, closed: 1, open: 0 }}
           deploymentFrequency={[{ pipeline: 'deploy', job: 'prod', day_count: 5 }]}
         />

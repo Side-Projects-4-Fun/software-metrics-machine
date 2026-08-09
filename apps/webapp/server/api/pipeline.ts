@@ -89,28 +89,28 @@ export const pipelineAPI = {
       params
     ),
   
-  jobsAverageTime: (params?: ApiParams) =>
+  jobsTimeExecution: (params?: ApiParams) =>
     fetchAPI<Array<{ job_name: string; value: number; value_formatted: string; method: string; count: number; outliers?: MetricOutlier[] }>>(
-      '/pipelines/jobs-average-time',
+      '/pipelines/jobs-time-execution',
       params
     ),
 
-  jobsAverageTimeByDay: (params?: ApiParams) =>
+  jobsTimeExecutionByDay: (params?: ApiParams) =>
     fetchAPI<Array<{ day: string; value: number; value_formatted: string; method: string; count: number; outliers?: MetricOutlier[] }>>(
-      '/pipelines/jobs-average-time-by-day',
+      '/pipelines/jobs-time-execution-by-day',
       params
     ),
 
-  jobStepsAverageTime: (params?: ApiParams) =>
+  jobStepsTime: (params?: ApiParams) =>
     fetchAPI<{
       result: Array<{ name: string; value: number; value_formatted: string; method: string; count: number; outliers?: MetricOutlier[] }>;
-      total_average_minutes: number;
-      total_average_minutes_formatted: string;
-    }>('/pipelines/jobs-steps-average-time', params),
+      total_minutes: number;
+      total_minutes_formatted: string;
+    }>('/pipelines/jobs-steps-time', params),
 
-  jobStepsAverageTimeByDay: (params?: ApiParams) =>
+  jobStepsTimeByDay: (params?: ApiParams) =>
     fetchAPI<Array<{ day: string; steps: Array<{ name: string; value: number; value_formatted: string; method: string; outliers?: MetricOutlier[] }> }>>(
-      '/pipelines/jobs-steps-average-time-by-day',
+      '/pipelines/jobs-steps-time-by-day',
       params
     ),
 
@@ -135,7 +135,7 @@ export const pipelineAPI = {
         outliers?: MetricOutlier[];
       }>;
       runs_by: Array<{ period: string; workflow: string; runs: number }>;
-      jobs_average_time: Array<{
+      jobs_time: Array<{
         job_name: string;
         workflow_name?: string;
         value: number;
@@ -144,7 +144,7 @@ export const pipelineAPI = {
         count: number;
         outliers?: MetricOutlier[];
       }>;
-      jobs_average_time_by_day: Array<{
+      jobs_time_by_day: Array<{
         day: string;
         value: number;
         value_formatted: string;
@@ -172,7 +172,7 @@ export const pipelineAPI = {
         outliers?: MetricOutlier[];
       }>;
       jobs_reruns_by_day: Array<{ day: string; rerun_count: number }>;
-      job_steps_average_time: Array<{
+      job_steps_time: Array<{
         name: string;
         value: number;
         value_formatted: string;
@@ -180,9 +180,9 @@ export const pipelineAPI = {
         count: number;
         outliers?: MetricOutlier[];
       }>;
-      job_steps_average_time_total_minutes: number;
-      job_steps_average_time_total_minutes_formatted: string;
-      job_steps_average_time_by_day: Array<{
+      job_steps_time_total_minutes: number;
+      job_steps_time_total_minutes_formatted: string;
+      job_steps_time_by_day: Array<{
         day: string;
         steps: Array<{
           name: string;

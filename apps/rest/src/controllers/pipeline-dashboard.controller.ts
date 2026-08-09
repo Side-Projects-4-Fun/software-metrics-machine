@@ -63,7 +63,7 @@ export class PipelineDashboardController {
         total_runs: run.total_runs,
         outliers: run.outliers,
       })),
-      jobs_average_time: dashboard.jobs_average_time.map((job) => ({
+      jobs_time: dashboard.jobs_time.map((job) => ({
         ...job,
         value_formatted: formatDuration(job.value, 'minutes'),
       })),
@@ -71,23 +71,23 @@ export class PipelineDashboardController {
         ...job,
         value_formatted: formatDuration(job.value, 'minutes'),
       })),
-      job_steps_average_time: dashboard.job_steps_average_time.map((step) => ({
+      job_steps_time: dashboard.job_steps_time.map((step) => ({
         ...step,
         value_formatted: formatDuration(step.value, 'minutes'),
       })),
-      job_steps_average_time_total_minutes: dashboard.job_steps_average_time.reduce(
+      job_steps_time_total_minutes: dashboard.job_steps_time.reduce(
         (sum, step) => sum + step.value,
         0
       ),
-      job_steps_average_time_total_minutes_formatted: formatDuration(
-        dashboard.job_steps_average_time.reduce((sum, step) => sum + step.value, 0),
+      job_steps_time_total_minutes_formatted: formatDuration(
+        dashboard.job_steps_time.reduce((sum, step) => sum + step.value, 0),
         'minutes'
       ),
-      jobs_average_time_by_day: dashboard.jobs_average_time_by_day.map((row) => ({
+      jobs_time_by_day: dashboard.jobs_time_by_day.map((row) => ({
         ...row,
         value_formatted: formatDuration(row.value, 'minutes'),
       })),
-      job_steps_average_time_by_day: dashboard.job_steps_average_time_by_day.map((row) => ({
+      job_steps_time_by_day: dashboard.job_steps_time_by_day.map((row) => ({
         ...row,
         steps: row.steps.map((step) => ({
           ...step,

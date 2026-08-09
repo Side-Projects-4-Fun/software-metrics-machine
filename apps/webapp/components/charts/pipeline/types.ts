@@ -61,7 +61,7 @@ export interface JobsDurationByWorkflowItem {
   jobs_formatted: Record<string, string>;
 }
 
-export interface JobsAverageTimeResponseItem {
+export interface JobsTimeResponseItem {
   job_name?: string;
   workflow_name?: string;
   value?: number;
@@ -71,7 +71,7 @@ export interface JobsAverageTimeResponseItem {
   outliers?: MetricOutlier[];
 }
 
-export interface JobsAverageTimeData {
+export interface JobsTimeData {
   job_name: string;
   workflow_name?: string;
   value: number;
@@ -81,7 +81,7 @@ export interface JobsAverageTimeData {
   outliers?: MetricOutlier[];
 }
 
-export interface JobsAverageTimeByDayResponseItem {
+export interface JobsTimeByDayResponseItem {
   day?: string;
   value?: number;
   value_formatted?: string;
@@ -90,7 +90,7 @@ export interface JobsAverageTimeByDayResponseItem {
   outliers?: MetricOutlier[];
 }
 
-export interface JobsAverageTimeByDayData {
+export interface JobsTimeByDayData {
   day: string;
   value: number;
   value_formatted: string;
@@ -139,7 +139,7 @@ export interface JobRerunsByDayData {
   rerun_count: number;
 }
 
-export interface JobStepsAverageTimeResponseItem {
+export interface JobStepsTimeResponseItem {
   name?: string;
   value?: number;
   value_formatted?: string;
@@ -148,7 +148,7 @@ export interface JobStepsAverageTimeResponseItem {
   outliers?: MetricOutlier[];
 }
 
-export interface JobStepsAverageTimeData {
+export interface JobStepsTimeData {
   name: string;
   value: number;
   value_formatted: string;
@@ -157,7 +157,7 @@ export interface JobStepsAverageTimeData {
   outliers?: MetricOutlier[];
 }
 
-export interface JobStepsAverageTimeByDayResponseItem {
+export interface JobStepsTimeByDayResponseItem {
   day: string;
   steps: Array<{
     name: string;
@@ -168,7 +168,7 @@ export interface JobStepsAverageTimeByDayResponseItem {
   }>;
 }
 
-export interface JobStepsAverageTimeByDayData {
+export interface JobStepsTimeByDayData {
   day: string;
   [stepName: string]: number | string;
 }

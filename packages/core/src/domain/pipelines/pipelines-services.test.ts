@@ -1196,7 +1196,7 @@ describe('PipelinesService', () => {
     });
   });
 
-  describe('getJobStepsAverageTime', () => {
+  describe('getJobStepsTime', () => {
     function runWithSteps(
       id: string,
       steps: Array<{ name?: string; startedAt?: string; completedAt?: string }>
@@ -1249,7 +1249,7 @@ describe('PipelinesService', () => {
         new TimeZoneProvider('UTC')
       );
 
-      const result = await pipelinesService.getJobStepsAverageTime();
+      const result = await pipelinesService.getJobStepsTime();
 
       expect(result).toEqual([]);
     });
@@ -1276,7 +1276,7 @@ describe('PipelinesService', () => {
         new TimeZoneProvider('UTC')
       );
 
-      const result = await pipelinesService.getJobStepsAverageTime();
+      const result = await pipelinesService.getJobStepsTime();
 
       expect(result).toEqual([]);
     });
@@ -1313,7 +1313,7 @@ describe('PipelinesService', () => {
         new TimeZoneProvider('UTC')
       );
 
-      const result = await pipelinesService.getJobStepsAverageTime();
+      const result = await pipelinesService.getJobStepsTime();
 
       expect(result).toEqual([]);
     });
@@ -1335,7 +1335,7 @@ describe('PipelinesService', () => {
         new TimeZoneProvider('UTC')
       );
 
-      const result = await pipelinesService.getJobStepsAverageTime();
+      const result = await pipelinesService.getJobStepsTime();
 
       expect(result).toEqual([{ name: 'checkout', value: 5, count: 1 }]);
     });
@@ -1364,14 +1364,14 @@ describe('PipelinesService', () => {
         new TimeZoneProvider('UTC')
       );
 
-      const result = await pipelinesService.getJobStepsAverageTime();
+      const result = await pipelinesService.getJobStepsTime();
 
       // (4 + 6) / 2 = 5 minutes average, across 2 contributing durations
       expect(result).toEqual([{ name: 'checkout', value: 5, count: 2 }]);
     });
   });
 
-  describe('getJobStepsAverageTimeByDay', () => {
+  describe('getJobStepsTimeByDay', () => {
     function runWithStepsOnDay(
       id: string,
       createdAt: string,
@@ -1434,7 +1434,7 @@ describe('PipelinesService', () => {
         new TimeZoneProvider('UTC')
       );
 
-      const result = await pipelinesService.getJobStepsAverageTimeByDay();
+      const result = await pipelinesService.getJobStepsTimeByDay();
 
       expect(result).toEqual([]);
     });
@@ -1471,7 +1471,7 @@ describe('PipelinesService', () => {
         new TimeZoneProvider('UTC')
       );
 
-      const result = await pipelinesService.getJobStepsAverageTimeByDay();
+      const result = await pipelinesService.getJobStepsTimeByDay();
 
       expect(result).toEqual([]);
     });
@@ -1493,7 +1493,7 @@ describe('PipelinesService', () => {
         new TimeZoneProvider('UTC')
       );
 
-      const result = await pipelinesService.getJobStepsAverageTimeByDay();
+      const result = await pipelinesService.getJobStepsTimeByDay();
 
       expect(result).toEqual([]);
     });
@@ -1524,7 +1524,7 @@ describe('PipelinesService', () => {
         new TimeZoneProvider('UTC')
       );
 
-      const result = await pipelinesService.getJobStepsAverageTimeByDay();
+      const result = await pipelinesService.getJobStepsTimeByDay();
 
       expect(result).toEqual([
         { day: '2025-01-01', steps: [{ name: 'checkout', value: 4 }] },
@@ -1554,7 +1554,7 @@ describe('PipelinesService', () => {
         new TimeZoneProvider('UTC')
       );
 
-      const result = await pipelinesService.getJobStepsAverageTimeByDay();
+      const result = await pipelinesService.getJobStepsTimeByDay();
 
       // (4 + 6) / 2 = 5 minutes average for 'checkout' on 2025-01-01
       expect(result).toEqual([{ day: '2025-01-01', steps: [{ name: 'checkout', value: 5 }] }]);
@@ -1575,7 +1575,7 @@ describe('PipelinesService', () => {
         new TimeZoneProvider('UTC')
       );
 
-      const result = await pipelinesService.getJobStepsAverageTimeByDay();
+      const result = await pipelinesService.getJobStepsTimeByDay();
 
       // All steps were skipped, so the day never enters the result map.
       expect(result).toEqual([]);

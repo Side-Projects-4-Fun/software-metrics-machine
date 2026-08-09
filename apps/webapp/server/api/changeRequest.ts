@@ -28,26 +28,26 @@ export const changeRequestAPI = {
       params
     ),
   
-  averageReviewTime: (params?: ApiParams) =>
+  reviewTime: (params?: ApiParams) =>
     fetchAPI<Array<{ author: string; value?: number; value_formatted?: string; method?: string; outliers?: MetricOutlier[] }>>(
-      '/change-requests/average-review-time',
+      '/change-requests/review-time',
       params
     ),
-  
+
   openThroughTime: (params?: ApiParams) =>
     fetchAPI<Array<{ date: string; kind?: 'Opened' | 'Closed'; count?: number; open_change_requests?: number }>>(
       '/change-requests/through-time',
       params
     ),
-  
-  averageOpenBy: (params?: ApiParams) =>
+
+  openTime: (params?: ApiParams) =>
     fetchAPI<Array<{ period: string; value: number; value_formatted: string; method: string; outliers?: MetricOutlier[] }>>(
-      '/change-requests/average-open-by',
+      '/change-requests/open-time',
       params
     ),
-  
-  averageComments: (params?: ApiParams) =>
-    fetchAPI<{ avg_comments: number; outliers?: MetricOutlier[] }>('/change-requests/average-comments', params),
+
+  comments: (params?: ApiParams) =>
+    fetchAPI<{ comments_count: number; outliers?: MetricOutlier[] }>('/change-requests/comments', params),
 
   commentsByAuthor: (params?: ApiParams) =>
     fetchAPI<Array<{ author: string; count: number }>>('/change-requests/comments-by-author', params),
@@ -81,7 +81,7 @@ export const changeRequestAPI = {
         totalChangeRequests: number;
         mergedChangeRequests: number;
         openChangeRequests: number;
-        avgCommentsPerChangeRequest: number;
+        commentsPerChangeRequest: number;
         reviewHours: number;
         reviewHours_formatted: string;
         openDays: number;

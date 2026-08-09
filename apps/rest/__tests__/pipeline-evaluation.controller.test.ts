@@ -34,8 +34,8 @@ function makeDashboard(): PipelineDashboard {
       },
     ],
     runs_by: [],
-    jobs_average_time: [{ job_name: 'build', value: 8, method: 'average', count: 10 }],
-    jobs_average_time_by_day: [],
+    jobs_time: [{ job_name: 'build', value: 8, method: 'average', count: 10 }],
+    jobs_time_by_day: [],
     jobs_duration_by_workflow: [{ workflow: 'ci.yml', jobs: { build: 8 } }],
     jobs_summary: [
       {
@@ -52,8 +52,8 @@ function makeDashboard(): PipelineDashboard {
       },
     ],
     jobs_reruns_by_day: [],
-    job_steps_average_time: [],
-    job_steps_average_time_by_day: [],
+    job_steps_time: [],
+    job_steps_time_by_day: [],
   };
 }
 

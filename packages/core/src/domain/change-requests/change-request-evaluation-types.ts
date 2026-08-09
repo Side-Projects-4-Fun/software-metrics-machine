@@ -2,7 +2,7 @@ import type {
   CommentAuthor,
   FirstCommentMetric,
   ChangeRequestSummary,
-  ChangeRequestAverageOutlier,
+  ChangeRequestMetricOutlier,
 } from './change-request-types';
 import type { MetricMethod } from '../metric-samples';
 
@@ -25,7 +25,7 @@ export interface ChangeRequestOpenTimeItem {
   period: string;
   value: number;
   method: MetricMethod;
-  outliers?: ChangeRequestAverageOutlier[];
+  outliers?: ChangeRequestMetricOutlier[];
 }
 
 export interface ChangeRequestDashboardData {
@@ -45,7 +45,7 @@ export interface ChangeRequestEvaluation {
     totalChangeRequests: number;
     mergedChangeRequests: number;
     openChangeRequests: number;
-    avgCommentsPerChangeRequest: number;
+    commentsPerChangeRequest: number;
     reviewHours: number;
     openDays: number;
     method: MetricMethod;

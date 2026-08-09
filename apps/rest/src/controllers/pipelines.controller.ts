@@ -20,10 +20,10 @@ import type {
   PipelineJobsDurationByWorkflowResponse,
   PipelineRunsByResponse,
   PipelineJobsRerunsResponse,
-  PipelineStepsAverageTimeResponse,
-  PipelineStepsAverageTimeByDayResponse,
-  PipelineJobsAverageTimeResponse,
-  PipelineJobsAverageTimeByDayResponse,
+  PipelineStepsTimeResponse,
+  PipelineStepsTimeByDayResponse,
+  PipelineJobsTimeExecutionResponse,
+  PipelineJobsTimeExecutionByDayResponse,
   PipelineWorkflowsResponse,
   PipelineStatusesResponse,
   PipelineConclusionsResponse,
@@ -334,11 +334,9 @@ export class PipelinesController {
       .sort((a, b) => a.period.localeCompare(b.period));
   }
 
-  @Get('/pipelines/jobs-steps-average-time')
-  async jobsStepsAverageTime(
-    @Query() query?: PipelineFiltersQuery
-  ): Promise<PipelineStepsAverageTimeResponse> {
-    const result = await this.pipelinesService.getJobStepsAverageTime(
+  @Get('/pipelines/jobs-steps-time')
+  async jobsStepsTime(@Query() query?: PipelineFiltersQuery): Promise<PipelineStepsTimeResponse> {
+    const result = await this.pipelinesService.getJobStepsTime(
       this.toServiceFilters(query || {}),
       normalizeMetricMethod(query?.method)
     );
@@ -351,19 +349,19 @@ export class PipelinesController {
         count: step.count,
         outliers: step.outliers,
       })),
-      total_average_minutes: result.reduce((sum, step) => sum + step.value, 0),
-      total_average_minutes_formatted: formatDuration(
+      total_minutes: result.reduce((sum, step) => sum + step.value, 0),
+      total_minutes_formatted: formatDuration(
         result.reduce((sum, step) => sum + step.value, 0),
         'minutes'
       ),
     };
   }
 
-  @Get('/pipelines/jobs-steps-average-time-by-day')
-  async jobsStepsAverageTimeByDay(
+  @Get('/pipelines/jobs-steps-time-by-day')
+  async jobsStepsTimeByDay(
     @Query() query?: PipelineFiltersQuery
-  ): Promise<PipelineStepsAverageTimeByDayResponse> {
-    const result = await this.pipelinesService.getJobStepsAverageTimeByDay(
+  ): Promise<PipelineStepsTimeByDayResponse> {
+    const result = await this.pipelinesService.getJobStepsTimeByDay(
       this.toServiceFilters(query || {}),
       normalizeMetricMethod(query?.method)
     );
@@ -381,12 +379,12 @@ export class PipelinesController {
     };
   }
 
-  @Get('/pipelines/jobs-average-time')
-  async jobsAverageTime(
+  @Get('/pipelines/jobs-time-execution')
+  async jobsTimeExecution(
     @Query('exclude_jobs') excludeJobs?: string,
     @Query('top') top?: string,
     @Query() query?: PipelineFiltersQuery
-  ): Promise<PipelineJobsAverageTimeResponse> {
+  ): Promise<PipelineJobsTimeExecutionResponse> {
     const runs = await this.loadRunsWithFilters({
       ...(query || {}),
       exclude_job_name: excludeJobs,
@@ -459,11 +457,11 @@ export class PipelinesController {
     return { result };
   }
 
-  @Get('/pipelines/jobs-average-time-by-day')
-  async jobsAverageTimeByDay(
+  @Get('/pipelines/jobs-time-execution-by-day')
+  async jobsTimeExecutionByDay(
     @Query('exclude_jobs') excludeJobs?: string,
     @Query() query?: PipelineFiltersQuery
-  ): Promise<PipelineJobsAverageTimeByDayResponse> {
+  ): Promise<PipelineJobsTimeExecutionByDayResponse> {
     const runs = await this.loadRunsWithFilters({
       ...(query || {}),
       exclude_job_name: excludeJobs,

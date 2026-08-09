@@ -38,7 +38,7 @@ const CATEGORIES: MetricCategory[] = [
     metrics: [
       { key: 'deployment-frequency', definition: METRIC_TARGETS['deployment-frequency'] },
       { key: 'pipeline-duration', definition: METRIC_TARGETS['pipeline-duration'] },
-      { key: 'job-avg-time', definition: METRIC_TARGETS['job-avg-time'] },
+      { key: 'job-time', definition: METRIC_TARGETS['job-time'] },
       { key: 'job-reruns', definition: METRIC_TARGETS['job-reruns'] },
       { key: 'jobs-success-rate', definition: METRIC_TARGETS['jobs-success-rate'] },
     ],
@@ -46,7 +46,7 @@ const CATEGORIES: MetricCategory[] = [
   {
     label: 'Change Requests',
     metrics: [
-      { key: 'average-review-time', definition: METRIC_TARGETS['average-review-time'] },
+      { key: 'review-time', definition: METRIC_TARGETS['review-time'] },
       { key: 'time-to-first-comment', definition: METRIC_TARGETS['time-to-first-comment'] },
       { key: 'change-requests-by-author', definition: METRIC_TARGETS['change-requests-by-author'] },
       { key: 'change-requests-remain-open', definition: METRIC_TARGETS['change-requests-remain-open'] },
@@ -282,19 +282,19 @@ function OutlierImplementationDetails() {
           <Typography variant="body2">Run duration per workflow (runsDuration outliers)</Typography>
         </Box>
         <Box component="li" sx={{ mb: 0.75 }}>
-          <Typography variant="body2">Job average time per job (jobsAverageTime outliers)</Typography>
+          <Typography variant="body2">Job time per job (jobsTime outliers)</Typography>
         </Box>
         <Box component="li" sx={{ mb: 0.75 }}>
-          <Typography variant="body2">Job average time by day (jobsAverageTimeByDay outliers)</Typography>
+          <Typography variant="body2">Job time by day (jobsTimeByDay outliers)</Typography>
         </Box>
         <Box component="li" sx={{ mb: 0.75 }}>
           <Typography variant="body2">Job summary duration aggregates (jobsSummary outliers)</Typography>
         </Box>
         <Box component="li" sx={{ mb: 0.75 }}>
-          <Typography variant="body2">Step average time (jobStepsAverageTime outliers)</Typography>
+          <Typography variant="body2">Step time (jobStepsTime outliers)</Typography>
         </Box>
         <Box component="li" sx={{ mb: 0 }}>
-          <Typography variant="body2">Step average time by day and step (jobStepsAverageTimeByDay step outliers)</Typography>
+          <Typography variant="body2">Step time by day and step (jobStepsTimeByDay step outliers)</Typography>
         </Box>
       </Box>
 
@@ -303,13 +303,13 @@ function OutlierImplementationDetails() {
       </Typography>
       <Box component="ul" sx={{ m: 0, mb: 2, pl: 2.5 }}>
         <Box component="li" sx={{ mb: 0.75 }}>
-          <Typography variant="body2">Average review time per author (averageReviewTime outliers)</Typography>
+          <Typography variant="body2">Review time per author (reviewTime outliers)</Typography>
         </Box>
         <Box component="li" sx={{ mb: 0.75 }}>
-          <Typography variant="body2">Average open days per period (averageOpenBy outliers)</Typography>
+          <Typography variant="body2">Open days per period (openTime outliers)</Typography>
         </Box>
         <Box component="li" sx={{ mb: 0.75 }}>
-          <Typography variant="body2">Average comments per change request (averageComments outliers)</Typography>
+          <Typography variant="body2">Comments per change request (commentsData outliers)</Typography>
         </Box>
         <Box component="li" sx={{ mb: 0 }}>
           <Typography variant="body2">Time to first comment per author (firstCommentTime outliers)</Typography>

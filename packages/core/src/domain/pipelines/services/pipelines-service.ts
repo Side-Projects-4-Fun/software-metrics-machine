@@ -1,8 +1,8 @@
 import type { Logger } from '@smmachine/utils';
 import type {
   JobMetrics,
-  PipelineAverageOutlier,
-  PipelineAverageOutlierItem,
+  PipelineMetricOutlier,
+  PipelineMetricOutlierItem,
   PipelineFilters,
   PipelineJob,
   PipelineMetrics,
@@ -331,7 +331,7 @@ export class PipelinesService implements IPipelinesService {
 
     for (const metrics of jobMetricsMap.values()) {
       // Extract durations for this job
-      const durationSamples: Array<MetricSample<PipelineAverageOutlierItem>> = [];
+      const durationSamples: Array<MetricSample<PipelineMetricOutlierItem>> = [];
       for (const run of runs) {
         if (run.path !== metrics.workflowName) {
           continue;
@@ -394,7 +394,7 @@ export class PipelinesService implements IPipelinesService {
   /**
    * Get average duration of steps for a job.
    */
-  async getJobStepsAverageTime(
+  async getJobStepsTime(
     filters?: PipelineFilters,
     method: MetricMethod = 'average'
   ): Promise<
@@ -403,13 +403,13 @@ export class PipelinesService implements IPipelinesService {
       value: number;
       method: MetricMethod;
       count: number;
-      outliers?: PipelineAverageOutlier[];
+      outliers?: PipelineMetricOutlier[];
     }>
   > {
     const runs = await this.filterRuns(filters);
 
     // Group durations by step name
-    const stepDurations = new Map<string, Array<MetricSample<PipelineAverageOutlierItem>>>();
+    const stepDurations = new Map<string, Array<MetricSample<PipelineMetricOutlierItem>>>();
 
     for (const run of runs) {
       for (const job of run.jobs || []) {
@@ -435,7 +435,7 @@ export class PipelinesService implements IPipelinesService {
       value: number;
       method: MetricMethod;
       count: number;
-      outliers?: PipelineAverageOutlier[];
+      outliers?: PipelineMetricOutlier[];
     }> = [];
 
     for (const [name, samples] of stepDurations.entries()) {
@@ -456,7 +456,7 @@ export class PipelinesService implements IPipelinesService {
   /**
    * Get average duration of steps for a job, grouped by day.
    */
-  async getJobStepsAverageTimeByDay(
+  async getJobStepsTimeByDay(
     filters?: PipelineFilters,
     method: MetricMethod = 'average'
   ): Promise<
@@ -466,7 +466,7 @@ export class PipelinesService implements IPipelinesService {
         name: string;
         value: number;
         method: MetricMethod;
-        outliers?: PipelineAverageOutlier[];
+        outliers?: PipelineMetricOutlier[];
       }>;
     }>
   > {
@@ -475,7 +475,7 @@ export class PipelinesService implements IPipelinesService {
     // day -> stepName -> durations
     const dayStepDurations = new Map<
       string,
-      Map<string, Array<MetricSample<PipelineAverageOutlierItem>>>
+      Map<string, Array<MetricSample<PipelineMetricOutlierItem>>>
     >();
 
     for (const run of runs) {
@@ -509,7 +509,7 @@ export class PipelinesService implements IPipelinesService {
         name: string;
         value: number;
         method: MetricMethod;
-        outliers?: PipelineAverageOutlier[];
+        outliers?: PipelineMetricOutlier[];
       }>;
     }> = [];
 
@@ -657,8 +657,8 @@ export class PipelinesService implements IPipelinesService {
 
   private extractDurationSamples(
     runs: PipelineRun[]
-  ): Array<MetricSample<PipelineAverageOutlierItem>> {
-    const samples: Array<MetricSample<PipelineAverageOutlierItem>> = [];
+  ): Array<MetricSample<PipelineMetricOutlierItem>> {
+    const samples: Array<MetricSample<PipelineMetricOutlierItem>> = [];
 
     for (const run of runs) {
       const duration = this.getRunDurationMinutes(run);
@@ -676,7 +676,7 @@ export class PipelinesService implements IPipelinesService {
     return (completed - started) / (1000 * 60); // Convert to minutes
   }
 
-  private toRunSample(run: PipelineRun, value: number): MetricSample<PipelineAverageOutlierItem> {
+  private toRunSample(run: PipelineRun, value: number): MetricSample<PipelineMetricOutlierItem> {
     return {
       value,
       timestamp: this.getRunMetricDate(run) || run.createdAt,
@@ -691,7 +691,7 @@ export class PipelinesService implements IPipelinesService {
     run: PipelineRun,
     job: PipelineJob,
     value: number
-  ): MetricSample<PipelineAverageOutlierItem> {
+  ): MetricSample<PipelineMetricOutlierItem> {
     return {
       value,
       timestamp: job.completedAt || job.startedAt || this.getRunMetricDate(run) || run.createdAt,
@@ -708,7 +708,7 @@ export class PipelinesService implements IPipelinesService {
     job: PipelineJob,
     stepName: string,
     value: number
-  ): MetricSample<PipelineAverageOutlierItem> {
+  ): MetricSample<PipelineMetricOutlierItem> {
     return {
       value,
       timestamp: job.completedAt || job.startedAt || this.getRunMetricDate(run) || run.createdAt,
@@ -722,9 +722,9 @@ export class PipelinesService implements IPipelinesService {
   }
 
   private cleanPipelineSamples(
-    samples: Array<MetricSample<PipelineAverageOutlierItem>>,
+    samples: Array<MetricSample<PipelineMetricOutlierItem>>,
     options?: MetricCleaningOptions
-  ): CleanedMetricSamples<PipelineAverageOutlierItem> {
+  ): CleanedMetricSamples<PipelineMetricOutlierItem> {
     return cleanMetricSamples(samples, options);
   }
 

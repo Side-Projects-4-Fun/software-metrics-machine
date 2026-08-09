@@ -42,9 +42,9 @@ values such as `2026-01-01T09:00:00+01:00` are treated as exact instants.
 - `GET /change-requests/summary`
 - `GET /change-requests/through-time`
 - `GET /change-requests/by-author`
-- `GET /change-requests/average-review-time`
-- `GET /change-requests/average-open-by`
-- `GET /change-requests/average-comments`
+- `GET /change-requests/review-time`
+- `GET /change-requests/open-time`
+- `GET /change-requests/comments`
 - `GET /change-requests/comments-by-author`
 - `GET /change-requests/first-comment-time`
 - `GET /change-requests/filter-options`
@@ -66,11 +66,11 @@ Common query params:
 - `GET /pipelines/jobs-duration-by-workflow`
 - `GET /dora/deployment-frequency`
 - `GET /pipelines/runs-by`
-- `GET /pipelines/jobs-average-time`
-- `GET /pipelines/jobs-average-time-by-day`
+- `GET /pipelines/jobs-time-execution`
+- `GET /pipelines/jobs-time-execution-by-day`
 - `GET /pipelines/jobs-reruns-by-day`
-- `GET /pipelines/jobs-steps-average-time`
-- `GET /pipelines/jobs-steps-average-time-by-day`
+- `GET /pipelines/jobs-steps-time`
+- `GET /pipelines/jobs-steps-time-by-day`
 - `GET /pipelines/filter-options`
 - `GET /pipelines/jobs`
 

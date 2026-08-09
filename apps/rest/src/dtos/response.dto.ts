@@ -18,8 +18,8 @@ import type {
   SonarqubeComponentMeasure,
   BigOFileAnalysis as CoreBigOFileAnalysis,
   BigOFileSummary as CoreBigOFileSummary,
-  ChangeRequestAverageOutlier,
-  PipelineAverageOutlier,
+  ChangeRequestMetricOutlier,
+  PipelineMetricOutlier,
 } from '@smmachine/core';
 
 // Types defined in core but not re-exported through the public API,
@@ -93,7 +93,7 @@ export interface ChangeRequestSummaryResponse {
     merged_change_requests: number;
     closed_change_requests: number;
     open_change_requests: number;
-    avg_comments_per_change_request: number;
+    comments_per_change_request: number;
     unique_authors: number;
     unique_labels: number;
     labels: Array<{ label: string; change_requests: number }>;
@@ -117,27 +117,27 @@ export interface ChangeRequestByAuthorResponse {
   result: Array<{ author: string; count: number }>;
 }
 
-export interface ChangeRequestAverageReviewTimeResponse {
+export interface ChangeRequestReviewTimeResponse {
   result: Array<{
     author: string;
     value: number;
     value_formatted: string;
     method: string;
-    outliers?: ChangeRequestAverageOutlier[];
+    outliers?: ChangeRequestMetricOutlier[];
   }>;
 }
 
-export type ChangeRequestAverageOpenByResponse = Array<{
+export type ChangeRequestOpenTimeResponse = Array<{
   period: string;
   value: number;
   value_formatted: string;
   method: string;
-  outliers?: ChangeRequestAverageOutlier[];
+  outliers?: ChangeRequestMetricOutlier[];
 }>;
 
-export interface ChangeRequestAverageCommentsResponse {
-  avg_comments: number;
-  outliers?: ChangeRequestAverageOutlier[];
+export interface ChangeRequestCommentsResponse {
+  comments_count: number;
+  outliers?: ChangeRequestMetricOutlier[];
 }
 
 export interface ChangeRequestCommentsByAuthorResponse {
@@ -151,7 +151,7 @@ export interface ChangeRequestFirstCommentTimeResponse {
     value_formatted: string;
     method: string;
     change_requests_with_comments: number;
-    outliers?: ChangeRequestAverageOutlier[];
+    outliers?: ChangeRequestMetricOutlier[];
   }>;
 }
 
@@ -208,7 +208,7 @@ export interface PipelineJobsSummaryResponse {
     success_rate: number;
     failure_rate: number;
     rerun_count: number;
-    outliers?: PipelineAverageOutlier[];
+    outliers?: PipelineMetricOutlier[];
   }>;
 }
 
@@ -220,7 +220,7 @@ export interface PipelineRunsDurationResponse extends Array<
       duration_formatted: string;
       method: string;
       total_runs: number;
-      outliers?: PipelineAverageOutlier[];
+      outliers?: PipelineMetricOutlier[];
     }
   | {
       workflow: string;
@@ -232,7 +232,7 @@ export interface PipelineRunsDurationResponse extends Array<
       max_duration: number;
       max_duration_formatted: string;
       total_runs: number;
-      outliers?: PipelineAverageOutlier[];
+      outliers?: PipelineMetricOutlier[];
     }
 > {}
 
@@ -252,20 +252,20 @@ export interface PipelineJobsRerunsResponse {
   result: Array<{ day: string; rerun_count: number }>;
 }
 
-export interface PipelineStepsAverageTimeResponse {
+export interface PipelineStepsTimeResponse {
   result: Array<{
     name: string;
     value: number;
     value_formatted: string;
     method: string;
     count: number;
-    outliers?: PipelineAverageOutlier[];
+    outliers?: PipelineMetricOutlier[];
   }>;
-  total_average_minutes: number;
-  total_average_minutes_formatted: string;
+  total_minutes: number;
+  total_minutes_formatted: string;
 }
 
-export interface PipelineStepsAverageTimeByDayResponse {
+export interface PipelineStepsTimeByDayResponse {
   result: Array<{
     day: string;
     steps: Array<{
@@ -273,12 +273,12 @@ export interface PipelineStepsAverageTimeByDayResponse {
       value: number;
       value_formatted: string;
       method: string;
-      outliers?: PipelineAverageOutlier[];
+      outliers?: PipelineMetricOutlier[];
     }>;
   }>;
 }
 
-export interface PipelineJobsAverageTimeResponse {
+export interface PipelineJobsTimeExecutionResponse {
   result: Array<{
     job_name: string;
     workflow_name?: string;
@@ -286,18 +286,18 @@ export interface PipelineJobsAverageTimeResponse {
     value_formatted: string;
     method: string;
     count: number;
-    outliers?: PipelineAverageOutlier[];
+    outliers?: PipelineMetricOutlier[];
   }>;
 }
 
-export interface PipelineJobsAverageTimeByDayResponse {
+export interface PipelineJobsTimeExecutionByDayResponse {
   result: Array<{
     day: string;
     value: number;
     value_formatted: string;
     method: string;
     count: number;
-    outliers?: PipelineAverageOutlier[];
+    outliers?: PipelineMetricOutlier[];
   }>;
 }
 
@@ -325,15 +325,15 @@ export interface PipelineDashboardResponse {
   jobs_by_status: PipelineJobsByStatusResponse;
   runs_duration: PipelineRunsDurationResponse;
   runs_by: PipelineRunsByResponse;
-  jobs_average_time: PipelineJobsAverageTimeResponse['result'];
-  jobs_average_time_by_day: PipelineJobsAverageTimeByDayResponse['result'];
+  jobs_time: PipelineJobsTimeExecutionResponse['result'];
+  jobs_time_by_day: PipelineJobsTimeExecutionByDayResponse['result'];
   jobs_duration_by_workflow: PipelineJobsDurationByWorkflowResponse;
   jobs_summary: PipelineJobsSummaryResponse['result'];
   jobs_reruns_by_day: PipelineJobsRerunsResponse['result'];
-  job_steps_average_time: PipelineStepsAverageTimeResponse['result'];
-  job_steps_average_time_total_minutes: number;
-  job_steps_average_time_total_minutes_formatted: string;
-  job_steps_average_time_by_day: PipelineStepsAverageTimeByDayResponse['result'];
+  job_steps_time: PipelineStepsTimeResponse['result'];
+  job_steps_time_total_minutes: number;
+  job_steps_time_total_minutes_formatted: string;
+  job_steps_time_by_day: PipelineStepsTimeByDayResponse['result'];
 }
 
 export interface PipelineEvaluationResponse {
@@ -374,7 +374,7 @@ export interface ChangeRequestEvaluationResponse {
     totalChangeRequests: number;
     mergedChangeRequests: number;
     openChangeRequests: number;
-    avgCommentsPerChangeRequest: number;
+    commentsPerChangeRequest: number;
     reviewHours: number;
     reviewHours_formatted: string;
     openDays: number;

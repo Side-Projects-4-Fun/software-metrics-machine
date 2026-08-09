@@ -11,7 +11,7 @@ export interface ByAuthorData {
   count: number;
 }
 
-export interface AvgReviewTimeData {
+export interface ReviewTimeData {
   author: string;
   value: number;
   value_formatted: string;
@@ -39,7 +39,7 @@ export interface OpenThroughTimeData {
   closed: number;
 }
 
-export interface AvgOpenByData {
+export interface OpenTimeData {
   period: string;
   value: number;
   value_formatted: string;
@@ -47,8 +47,8 @@ export interface AvgOpenByData {
   outliers?: MetricOutlier[];
 }
 
-export interface AvgCommentsData {
-  avg_comments: number;
+export interface CommentsData {
+  comments_count: number;
   outliers?: MetricOutlier[];
 }
 
@@ -57,7 +57,7 @@ export interface SummaryData {
   merged_change_requests?: number;
   closed_change_requests?: number;
   open_change_requests?: number;
-  avg_comments_per_change_request?: number;
+  comments_per_change_request?: number;
   unique_authors?: number;
   unique_labels?: number;
   first_change_request?: { created?: string; createdAt?: string; created_at?: string } | string | null;

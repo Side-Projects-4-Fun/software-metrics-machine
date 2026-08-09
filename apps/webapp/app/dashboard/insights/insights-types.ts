@@ -60,7 +60,7 @@ export interface JobsSummaryItem {
   failure_rate: number;
   rerun_count: number;
 }
-export interface AverageReviewTimeItem {
+export interface ReviewTimeItem {
   author: string;
   value: number;
   value_formatted?: string;

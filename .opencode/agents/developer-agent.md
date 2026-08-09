@@ -59,7 +59,7 @@ maintenance tasks.
 - Document new CLI commands
 - Add provider-specific documentation
 - Update the CONTRIBUTING.md when workflows change
-- `./docs/adrs` store Architecture Decision Records for major decisions keep this in sync and refer to it when making architectural changes
+- `./docs/adrs` store Architecture Decision Records for major decisions keep this in sync and refer to it when making architectural changes. When a rename or refactor supersedes a prior ADR decision, record it as an addendum on the same ADR file rather than silently deviating.
 - ``./docs/architecture`` store high-level architecture diagrams and explanations. The primary style is to use C4 diagrams.
 
 ### 6. Repository Maintenance
@@ -250,6 +250,9 @@ All config comes from environment variables consumed by `Configuration` class (`
 - **Webapp tests: use `renderWithProviders()`** (`apps/webapp/__tests__/utils/test-providers.tsx`) to mount all required providers. Never manually wrap components with individual providers.
 - **Webapp tests: use `userEvent`** over `fireEvent` for all user interactions. Set per-test timeouts (`}, 15000)`) for tests with multiple `userEvent.type()` calls to avoid jsdom flaky timeouts.
 - **Webapp tests: prioritize user flow tests** in `apps/webapp/__tests__/dashboard-pages/` over granular component tests — they give confidence to refactor without breaking tests.
+- **Renaming is a feature, not a blocker.** SMM is not deployed in production and has no external API consumers to coordinate with. When a name (REST endpoint path, CLI command, DTO type, JSON field) is misleading or inconsistent, rename it atomically across all layers (controllers, DTOs, webapp, tests, docs) in a single change. Do NOT ship deprecated aliases, compatibility shims, or dual-path forwarding. Record the rename as an addendum on the relevant ADR so the decision history stays intact. The only coordination needed is the build/test/lint gate.
+- **Regressions are fixed test-first.** When a runtime error or bug is reported, write a test that reproduces the exact failure BEFORE applying the fix. Verify the test fails with the broken code (Red), then apply the fix and verify the test passes (Green). This ensures the regression is permanently guarded. The test must use realistic data that matches the actual API contract — not mocked data that accidentally matches the wrong field names. For field-name mismatches between REST DTOs and webapp components, render the component with data shaped exactly like the API response and assert the rendered output; a field name mismatch will throw at runtime (e.g. `undefined.toFixed()`) and fail the test.
+- **Batch renames require a contract check.** When renaming fields or types across multiple layers with bulk find-and-replace, always verify that shorter replacements did not corrupt longer variable names (e.g. replacing `avgComments` before `avgCommentsPerChangeRequest` turns the latter into `commentsDataPerChangeRequest`). After any batch rename, run the full build + test + lint gate AND manually verify the runtime by starting the dev server and loading the affected page. Tests that mock data with the wrong field names will pass even when the component reads a different field — the mock and the component must both match the real API contract.
 
 ### ❌ NEVER DO
 - **Use comments instead of tests.** Reinforce behavior through tests; if a test cannot express the invariant, re-evaluate the situation and find a better solution that avoids the comment. Comments that merely describe what code does or reference a test that already enforces it are duplicated and rot — prefer runtime assertions that fail CI over documentation that is never read.

@@ -12,7 +12,7 @@
     "incremental": true,
     "experimentalDecorators": false,
     "emitDecoratorMetadata": false,
-    "types": [],
+    "types": ["jest", "@testing-library/jest-dom", "node"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
@@ -31,5 +31,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "cypress", "cypress.config.ts", "__tests__"]
 }

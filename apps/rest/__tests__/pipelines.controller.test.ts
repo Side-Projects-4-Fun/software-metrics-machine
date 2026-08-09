@@ -340,7 +340,7 @@ describe('PipelinesController', () => {
     });
   });
 
-  describe('jobsAverageTime', () => {
+  describe('jobsTimeExecution', () => {
     it('groups by job name, skipping blank names and unresolved durations', async () => {
       const { controller } = createController([
         {
@@ -367,7 +367,7 @@ describe('PipelinesController', () => {
         },
       ]);
 
-      const result = await controller.jobsAverageTime(undefined, undefined, {});
+      const result = await controller.jobsTimeExecution(undefined, undefined, {});
 
       expect(result).toEqual({
         result: [
@@ -394,7 +394,7 @@ describe('PipelinesController', () => {
         },
       ]);
 
-      const result = await controller.jobsAverageTime(undefined, '1', {});
+      const result = await controller.jobsTimeExecution(undefined, '1', {});
 
       expect(result).toEqual({
         result: [
@@ -419,7 +419,7 @@ describe('PipelinesController', () => {
         },
       ]);
 
-      const result = await controller.jobsAverageTime(undefined, 'not-a-number', {});
+      const result = await controller.jobsTimeExecution(undefined, 'not-a-number', {});
 
       expect(result).toEqual({
         result: [
@@ -438,7 +438,7 @@ describe('PipelinesController', () => {
     it('forwards exclude_jobs to the repository as exclude_job_name', async () => {
       const { controller, pipelinesRepo } = createController([]);
 
-      await controller.jobsAverageTime('flaky-job', undefined, {});
+      await controller.jobsTimeExecution('flaky-job', undefined, {});
 
       expect(pipelinesRepo.loadPipelines).toHaveBeenCalledWith(
         expect.objectContaining({ excludeJobName: 'flaky-job' })
@@ -532,7 +532,7 @@ describe('PipelinesController', () => {
     });
   });
 
-  describe('jobsAverageTimeByDay', () => {
+  describe('jobsTimeExecutionByDay', () => {
     it('groups job durations by day across all jobs', async () => {
       const { controller } = createController([
         {
@@ -552,7 +552,7 @@ describe('PipelinesController', () => {
         },
       ]);
 
-      const result = await controller.jobsAverageTimeByDay(undefined, {});
+      const result = await controller.jobsTimeExecutionByDay(undefined, {});
 
       expect(result).toEqual({
         result: [
@@ -598,7 +598,7 @@ describe('PipelinesController', () => {
         },
       ]);
 
-      const result = await controller.jobsAverageTimeByDay(undefined, {});
+      const result = await controller.jobsTimeExecutionByDay(undefined, {});
 
       expect(result).toEqual({
         result: [
@@ -645,7 +645,7 @@ describe('PipelinesController', () => {
         },
       ]);
 
-      const result = await controller.jobsAverageTimeByDay(undefined, {});
+      const result = await controller.jobsTimeExecutionByDay(undefined, {});
 
       expect(result).toEqual({
         result: [
@@ -664,7 +664,7 @@ describe('PipelinesController', () => {
     it('forwards exclude_jobs to the repository as exclude_job_name', async () => {
       const { controller, pipelinesRepo } = createController([]);
 
-      await controller.jobsAverageTimeByDay('flaky-job', {});
+      await controller.jobsTimeExecutionByDay('flaky-job', {});
 
       expect(pipelinesRepo.loadPipelines).toHaveBeenCalledWith(
         expect.objectContaining({ excludeJobName: 'flaky-job' })
@@ -672,7 +672,7 @@ describe('PipelinesController', () => {
     });
   });
 
-  describe('jobsStepsAverageTime', () => {
+  describe('jobsStepsTime', () => {
     it('wraps the service result in a result envelope', async () => {
       const { controller } = createController([
         {
@@ -690,7 +690,7 @@ describe('PipelinesController', () => {
         },
       ]);
 
-      const result = await controller.jobsStepsAverageTime({});
+      const result = await controller.jobsStepsTime({});
 
       expect(result).toEqual({
         result: [
@@ -703,13 +703,13 @@ describe('PipelinesController', () => {
             outliers: undefined,
           },
         ],
-        total_average_minutes: 2,
-        total_average_minutes_formatted: '2 min',
+        total_minutes: 2,
+        total_minutes_formatted: '2 min',
       });
     });
   });
 
-  describe('jobsStepsAverageTimeByDay', () => {
+  describe('jobsStepsTimeByDay', () => {
     it('wraps the service result in a result envelope', async () => {
       const { controller } = createController([
         {
@@ -728,7 +728,7 @@ describe('PipelinesController', () => {
         },
       ]);
 
-      const result = await controller.jobsStepsAverageTimeByDay({});
+      const result = await controller.jobsStepsTimeByDay({});
 
       expect(result).toEqual({
         result: [

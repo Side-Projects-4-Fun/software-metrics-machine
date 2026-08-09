@@ -71,7 +71,7 @@ export interface ChangeRequestFilters {
   cleaning?: MetricCleaningOptions;
 }
 
-export interface ChangeRequestAverageOutlierItem {
+export interface ChangeRequestMetricOutlierItem {
   id: number;
   number: number;
   title: string;
@@ -79,7 +79,7 @@ export interface ChangeRequestAverageOutlierItem {
   url: string;
 }
 
-export type ChangeRequestAverageOutlier = MetricOutlier<ChangeRequestAverageOutlierItem>;
+export type ChangeRequestMetricOutlier = MetricOutlier<ChangeRequestMetricOutlierItem>;
 
 export interface ChangeRequestMetrics {
   openDays: number;
@@ -94,8 +94,8 @@ export interface ChangeRequestMetrics {
   commentSummary: CommentAuthor[];
   labelSummary: LabelSummary[];
   outliers?: {
-    openDays: ChangeRequestAverageOutlier[];
-    comments: ChangeRequestAverageOutlier[];
+    openDays: ChangeRequestMetricOutlier[];
+    comments: ChangeRequestMetricOutlier[];
   };
 }
 
@@ -145,7 +145,7 @@ export interface ChangeRequestSummary {
   closed_change_requests: number;
   change_requests_without_conclusion: number;
   open_change_requests: number;
-  avg_comments_per_change_request: number;
+  comments_per_change_request: number;
   unique_authors: number;
   unique_labels: number;
   labels: ChangeRequestSummaryLabel[];
@@ -172,7 +172,7 @@ export interface FirstCommentMetric {
   value: number;
   method: MetricMethod;
   change_requests_with_comments: number;
-  outliers?: ChangeRequestAverageOutlier[];
+  outliers?: ChangeRequestMetricOutlier[];
 }
 
 export interface MostCommentedChangeRequestData {
@@ -189,8 +189,8 @@ export interface ChangeRequestsByTimeframe {
   comments: number;
   method: MetricMethod;
   outliers?: {
-    openDays: ChangeRequestAverageOutlier[];
-    comments: ChangeRequestAverageOutlier[];
+    openDays: ChangeRequestMetricOutlier[];
+    comments: ChangeRequestMetricOutlier[];
   };
 }
 
@@ -198,5 +198,5 @@ export interface LabelSummary {
   label: string;
   count: number;
   openDays: number;
-  outliers?: ChangeRequestAverageOutlier[];
+  outliers?: ChangeRequestMetricOutlier[];
 }

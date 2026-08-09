@@ -5,7 +5,7 @@ import { sourceCodeAPI, pipelineAPI, changeRequestAPI, ApiParams } from '@/serve
 import { DeploymentFrequency } from '@/components/charts/DeploymentFrequency';
 import { Recommendations } from '@/components/charts/Recommendations';
 import { ContextLink } from '@/components/filters/ContextLink';
-import { AverageReviewTimeItem, DeploymentFrequencyPoint, DeploymentFrequencyResponseItem, JobsSummaryItem, PairingIndex, PipelineSummary, ChangeRequestSummary, ResultWrapper } from './insights-types';
+import { ReviewTimeItem, DeploymentFrequencyPoint, DeploymentFrequencyResponseItem, JobsSummaryItem, PairingIndex, PipelineSummary, ChangeRequestSummary, ResultWrapper } from './insights-types';
 import { buildChangeRequestApiParams } from '@/server/utils/apiParams';
 
 function unwrapResult<T>(data: T | ResultWrapper<T>): T {
@@ -81,19 +81,19 @@ export default async function InsightsSection({
   let prSummary: ChangeRequestSummary | null = null;
   let deploymentFrequency: DeploymentFrequencyPoint[] = [];
   let jobsSummary: JobsSummaryItem[] = [];
-  let averageReviewTime: AverageReviewTimeItem[] = [];
+  let reviewTime: ReviewTimeItem[] = [];
 
   try {
     const sourceCodeParams = buildSourceCodeApiParams(filters);
     const changeRequestParams = buildChangeRequestApiParams(filters);
     const pipelineParams = buildPipelineApiParams(filters);
-    const [pairing, pipeline, pr, deployment, jobs, reviewTime] = await Promise.all([
+    const [pairing, pipeline, pr, deployment, jobs, reviewTimeRaw] = await Promise.all([
       sourceCodeAPI.pairingIndex(sourceCodeParams),
       pipelineAPI.summary(pipelineParams),
       changeRequestAPI.summary(changeRequestParams),
       pipelineAPI.deploymentFrequency(pipelineParams),
       pipelineAPI.jobsSummary(pipelineParams),
-      changeRequestAPI.averageReviewTime(changeRequestParams),
+      changeRequestAPI.reviewTime(changeRequestParams),
     ]);
     const prData = unwrapResult(pr as ChangeRequestSummary | ResultWrapper<ChangeRequestSummary>);
     const pairingData = unwrapResult(pairing as PairingIndex | ResultWrapper<PairingIndex>);
@@ -149,10 +149,10 @@ export default async function InsightsSection({
 
 
     const reviewTimeResult = unwrapResult(
-      reviewTime as AverageReviewTimeItem[] | ResultWrapper<AverageReviewTimeItem[]>
+      reviewTimeRaw as ReviewTimeItem[] | ResultWrapper<ReviewTimeItem[]>
     );
-    averageReviewTime = Array.isArray(reviewTimeResult)
-      ? reviewTimeResult.map((item: AverageReviewTimeItem): AverageReviewTimeItem => ({
+    reviewTime = Array.isArray(reviewTimeResult)
+      ? reviewTimeResult.map((item: ReviewTimeItem): ReviewTimeItem => ({
           author: item.author || 'Unknown',
           value: item.value || 0,
           value_formatted: item.value_formatted,
@@ -167,7 +167,7 @@ export default async function InsightsSection({
     prSummary = null;
     deploymentFrequency = [];
     jobsSummary = [];
-    averageReviewTime = [];
+    reviewTime = [];
   }
 
   const pipelineFirstDataPoint = extractDate(pipelineSummary?.first_run);
@@ -192,7 +192,7 @@ export default async function InsightsSection({
         deploymentFrequency={deploymentFrequency}
         jobsSummary={jobsSummary}
         selectedWorkflow={filters.workflowSelector}
-        averageReviewTime={averageReviewTime}
+        reviewTime={reviewTime}
       />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>

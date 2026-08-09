@@ -111,3 +111,69 @@ This ADR covers only the output-shape rename. It does NOT:
 - Change data storage/schema.
 - Change engineering health `MetricValue` output, which already uses the single `value` scalar.
 - Rename REST endpoints or CLI commands.
+
+---
+
+## Addendum: REST Endpoint Path Unification (2026-08-09)
+
+### Context
+
+The original ADR explicitly deferred REST endpoint path renames, keeping URLs like
+`/change-requests/average-review-time` stable. Since ADR 0005, every one of these endpoints
+accepts a `?method=` query parameter (`average`, `median`, `p75`, `p90`, `p95`, `min`, `max`).
+This made the hardcoded "average" in the URL misleading — a caller hitting
+`/change-requests/average-review-time?method=p90` receives a p90 from an endpoint named
+"average". The CLI had already adopted method-neutral subcommand names (`review-time`,
+`open-time`, `comments`, `jobs-time-execution`, `jobs-steps-time`); the REST paths were the
+last surface still baking "average" into the name.
+
+SMM is not deployed in production. There are no external consumers to coordinate with, so a
+clean atomic rename is preferable to carrying deprecated aliases or compatibility shims.
+
+### Decision
+
+Rename the REST endpoint paths to be method-neutral, aligning with the existing CLI subcommand
+names. Controller method names, DTO type names, webapp API client method names, tests, and docs
+are updated in the same change.
+
+| Old endpoint path | New endpoint path |
+|---|---|
+| `GET /change-requests/average-review-time` | `GET /change-requests/review-time` |
+| `GET /change-requests/average-open-by` | `GET /change-requests/open-time` |
+| `GET /change-requests/average-comments` | `GET /change-requests/comments` |
+| `GET /pipelines/jobs-average-time` | `GET /pipelines/jobs-time-execution` |
+| `GET /pipelines/jobs-average-time-by-day` | `GET /pipelines/jobs-time-execution-by-day` |
+| `GET /pipelines/jobs-steps-average-time` | `GET /pipelines/jobs-steps-time` |
+| `GET /pipelines/jobs-steps-average-time-by-day` | `GET /pipelines/jobs-steps-time-by-day` |
+
+The `PipelineStepsTimeResponse` field `total_average_minutes` / `total_average_minutes_formatted`
+is renamed to `total_minutes` / `total_minutes_formatted` (it is the sum of the returned values,
+not an average).
+
+### Extended rename (same change)
+
+The initial pass deliberately left several internal surfaces untouched. On review, these were
+all method-sensitive names carrying the same misleading "average" label. They have been renamed
+in the same change:
+
+| Surface | Old | New |
+|---|---|---|
+| Dashboard response keys | `jobs_average_time`, `job_steps_average_time`, etc. | `jobs_time`, `job_steps_time`, etc. |
+| Domain service methods | `getAverageReviewTime`, `getAverageOpenBy`, `getJobStepsAverageTime` | `getReviewTime`, `getOpenTimeBy`, `getJobStepsTime` |
+| Domain compute helpers | `computeJobsAverageTime`, `computeJobStepsAverageTime` | `computeJobsTime`, `computeJobStepsTime` |
+| Domain types | `PipelineDashboardJobsAverageTimeItem`, `PipelineAverageOutlier`, `ChangeRequestAverageOutlier` | `PipelineDashboardJobsTimeItem`, `PipelineMetricOutlier`, `ChangeRequestMetricOutlier` |
+| Webapp components | `AverageReviewTimeCard`, `JobsAverageTimeCard` | `ReviewTimeCard`, `JobsTimeCard` |
+| Webapp types | `JobsAverageTimeData`, `AvgReviewTimeData`, `AverageReviewTimeItem` | `JobsTimeData`, `ReviewTimeData`, `ReviewTimeItem` |
+| Metric target key | `average-review-time` | `review-time` |
+| CLI output fields | `averageDuration`, `avg_comments`, `avg_comments_per_change_request` | `duration`, `comments_count`, `comments_per_change_request` |
+| REST response fields | `avg_comments` | `comments_count` |
+| Webapp local variables | `avgReviewTime`, `avgOpenBy`, `avgComments`, `averageReviewTime` | `reviewTimeData`, `openTimeData`, `commentsData`, `reviewTime` |
+
+### Consequences
+
+- Breaking change for any consumer that hardcoded the old URLs or field names. No aliases or
+  redirects are shipped — consumers update to the new names.
+- Swagger documentation now shows method-neutral endpoint names consistent with the `?method=`
+  query parameter.
+- All internal naming (domain types, service methods, components, variables) is now consistent
+  with the method-neutral principle.

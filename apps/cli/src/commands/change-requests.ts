@@ -166,7 +166,7 @@ export function formatChangeRequestSummary(summary: ChangeRequestSummary): strin
     `Change requests without conclusion: ${summary.change_requests_without_conclusion}`,
     `Unique Authors: ${summary.unique_authors}`,
     `Unique Labels: ${summary.unique_labels}`,
-    `Average of comments per change request: ${summary.avg_comments_per_change_request}`,
+    `Comments per change request: ${summary.comments_per_change_request}`,
     '',
     'Labels:',
   ];
@@ -738,7 +738,7 @@ export function createChangeRequestsCommands(program: SmmCommand): void {
             screen.printLine(
               JSON.stringify(
                 {
-                  avg_comments: metrics.comments,
+                  comments: metrics.comments,
                   method: metrics.method,
                   outliers: metrics.outliers?.comments,
                 },

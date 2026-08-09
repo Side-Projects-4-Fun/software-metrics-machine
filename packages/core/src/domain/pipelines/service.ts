@@ -1,4 +1,4 @@
-import type { JobMetrics, PipelineAverageOutlier, PipelineMetrics } from './pipeline-types';
+import type { JobMetrics, PipelineMetricOutlier, PipelineMetrics } from './pipeline-types';
 import type { MetricMethod } from '../metric-samples';
 import { type PipelineFilters } from './pipeline-types';
 
@@ -63,7 +63,7 @@ export interface IPipelinesService {
   getJobRerunsByDay(
     filters?: PipelineFilters
   ): Promise<Array<{ day: string; rerun_count: number }>>;
-  getJobStepsAverageTime(
+  getJobStepsTime(
     filters?: PipelineFilters,
     method?: MetricMethod
   ): Promise<
@@ -72,10 +72,10 @@ export interface IPipelinesService {
       value: number;
       method: MetricMethod;
       count: number;
-      outliers?: PipelineAverageOutlier[];
+      outliers?: PipelineMetricOutlier[];
     }>
   >;
-  getJobStepsAverageTimeByDay(
+  getJobStepsTimeByDay(
     filters?: PipelineFilters,
     method?: MetricMethod
   ): Promise<
@@ -85,7 +85,7 @@ export interface IPipelinesService {
         name: string;
         value: number;
         method: MetricMethod;
-        outliers?: PipelineAverageOutlier[];
+        outliers?: PipelineMetricOutlier[];
       }>;
     }>
   >;

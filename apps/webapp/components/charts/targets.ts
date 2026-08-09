@@ -55,7 +55,7 @@ export const METRIC_TARGETS: Record<string, TargetDefinition> = {
       },
     ],
   },
-  'job-avg-time': {
+  'job-time': {
     target: '< 5 min',
     description:
       'Individual jobs should complete quickly to keep total pipeline under 10 minutes.',
@@ -100,7 +100,7 @@ export const METRIC_TARGETS: Record<string, TargetDefinition> = {
       },
     ],
   },
-  'average-review-time': {
+  'review-time': {
     target: '< 24 hours',
     description:
       'Elite teams review change requests within 24 hours. Longer times create delivery bottlenecks.',

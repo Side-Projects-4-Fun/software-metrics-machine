@@ -34,7 +34,7 @@ describe('cli: Change Request Commands', () => {
       open_change_requests: 0,
       unique_authors: 2,
       unique_labels: 1,
-      avg_comments_per_change_request: 1.5,
+      comments_per_change_request: 1.5,
       labels: [{ label: 'bug', change_requests: 1 }],
       first_change_request: {
         number: 1,
@@ -569,7 +569,7 @@ describe('cli: Change Request Commands', () => {
 
       expect(output).toContain('Change Requests Summary:');
       expect(output).toContain('Change requests without conclusion: 1');
-      expect(output).toContain('Average of comments per change request: 1.5');
+      expect(output).toContain('Comments per change request: 1.5');
       expect(output).toContain('  - bug: 1 change requests');
       expect(output).toContain('Most commented change request:');
       expect(output).toContain('Top commenter:');

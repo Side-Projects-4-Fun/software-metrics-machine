@@ -56,7 +56,7 @@ function makeDashboard(overrides: Partial<PipelineDashboard> = {}): PipelineDash
       },
     ],
     runs_by: [],
-    jobs_average_time: [
+    jobs_time: [
       {
         job_name: 'slow-build',
         workflow_name: 'build.yml',
@@ -75,7 +75,7 @@ function makeDashboard(overrides: Partial<PipelineDashboard> = {}): PipelineDash
       },
       { job_name: 'deploy', workflow_name: 'deploy.yml', value: 2, method: 'average', count: 25 },
     ],
-    jobs_average_time_by_day: [],
+    jobs_time_by_day: [],
     jobs_duration_by_workflow: [
       { workflow: 'build.yml', jobs: { 'slow-build': 40, lint: 3 } },
       { workflow: 'test.yml', jobs: { 'unit-test': 15, 'integration-test': 25 } },
@@ -119,8 +119,8 @@ function makeDashboard(overrides: Partial<PipelineDashboard> = {}): PipelineDash
       },
     ],
     jobs_reruns_by_day: [],
-    job_steps_average_time: [],
-    job_steps_average_time_by_day: [],
+    job_steps_time: [],
+    job_steps_time_by_day: [],
     ...overrides,
   };
 }
@@ -171,7 +171,7 @@ describe('PipelineEvaluationService', () => {
   describe('duration bottleneck', () => {
     it('flags job that dominates total time as critical', () => {
       const dashboard = makeDashboard({
-        jobs_average_time: [
+        jobs_time: [
           {
             job_name: 'heavy-job',
             workflow_name: 'ci.yml',
@@ -198,7 +198,7 @@ describe('PipelineEvaluationService', () => {
 
     it('reports good when jobs are balanced', () => {
       const dashboard = makeDashboard({
-        jobs_average_time: [
+        jobs_time: [
           { job_name: 'job-a', workflow_name: 'ci.yml', value: 10, method: 'average', count: 20 },
           { job_name: 'job-b', workflow_name: 'ci.yml', value: 10, method: 'average', count: 20 },
           { job_name: 'job-c', workflow_name: 'ci.yml', value: 10, method: 'average', count: 20 },
@@ -425,13 +425,13 @@ describe('PipelineEvaluationService', () => {
         jobs_by_status: [],
         runs_duration: [],
         runs_by: [],
-        jobs_average_time: [],
-        jobs_average_time_by_day: [],
+        jobs_time: [],
+        jobs_time_by_day: [],
         jobs_duration_by_workflow: [],
         jobs_summary: [],
         jobs_reruns_by_day: [],
-        job_steps_average_time: [],
-        job_steps_average_time_by_day: [],
+        job_steps_time: [],
+        job_steps_time_by_day: [],
       };
       const result = service.evaluate(dashboard);
 

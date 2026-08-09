@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClientPaginatedSortableTable } from '@/components/ui/client-paginated-sortable-table';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { JobStepsAverageTimeData, JobStepsAverageTimeByDayData } from './types';
+import { JobStepsTimeData, JobStepsTimeByDayData } from './types';
 import { TargetInfo } from '@/components/charts/TargetInfo';
 import { formatMetricLabel, formatMetricMethod } from '@/utils/formatMetricMethod';
 
@@ -21,8 +21,8 @@ export default function JobStepsAnalysis({
   jobName,
   method,
 }: {
-  data: JobStepsAverageTimeData[];
-  dataByDay: JobStepsAverageTimeByDayData[];
+  data: JobStepsTimeData[];
+  dataByDay: JobStepsTimeByDayData[];
   totalTimeFormatted?: string;
   jobName: string;
   method?: string;
@@ -190,7 +190,7 @@ export default function JobStepsAnalysis({
               {
                 key: 'name',
                 label: 'Step Name',
-                renderCell: (step: JobStepsAverageTimeData & { _colorIndex: number }) => (
+                renderCell: (step: JobStepsTimeData & { _colorIndex: number }) => (
                   <div className="flex items-center gap-2">
                     <div
                       className="w-3 h-3 rounded-full"
@@ -204,7 +204,7 @@ export default function JobStepsAnalysis({
                 key: 'value',
                 label: timeLabel,
                 align: 'right' as const,
-                renderCell: (step: JobStepsAverageTimeData) => (
+                renderCell: (step: JobStepsTimeData) => (
                   <span className="tabular-nums">{step.value_formatted}</span>
                 ),
               },
@@ -212,10 +212,10 @@ export default function JobStepsAnalysis({
                 key: '_percentage',
                 label: '% of Total',
                 align: 'right' as const,
-                renderCell: (step: JobStepsAverageTimeData & { _percentage: number }) => (
+                renderCell: (step: JobStepsTimeData & { _percentage: number }) => (
                   <span className="tabular-nums text-gray-600">{step._percentage.toFixed(1)}%</span>
                 ),
-                compare: (a: JobStepsAverageTimeData & { _percentage: number }, b: JobStepsAverageTimeData & { _percentage: number }) => a._percentage - b._percentage,
+                compare: (a: JobStepsTimeData & { _percentage: number }, b: JobStepsTimeData & { _percentage: number }) => a._percentage - b._percentage,
               },
             ]}
             rows={data.map((step, index) => ({

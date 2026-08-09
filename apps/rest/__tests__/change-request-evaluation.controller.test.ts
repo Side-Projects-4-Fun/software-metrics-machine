@@ -10,7 +10,7 @@ function createMockChangeRequestsService() {
       closed_change_requests: 5,
       change_requests_without_conclusion: 3,
       open_change_requests: 2,
-      avg_comments_per_change_request: 3.2,
+      comments_per_change_request: 3.2,
       unique_authors: 8,
       unique_labels: 5,
       labels: [],

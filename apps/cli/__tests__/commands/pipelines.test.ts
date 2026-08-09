@@ -60,7 +60,7 @@ describe('cli: Pipelines Commands', () => {
         { period: '2026-08-01', workflow: 'ci.yml', runs: 4 },
       ],
       jobs_summary: [],
-      job_steps_average_time: [],
+      job_steps_time: [],
     } as never);
 
     vi.spyOn(
@@ -326,7 +326,7 @@ describe('cli: Pipelines Commands', () => {
             failure_count: 2,
           },
         ],
-        job_steps_average_time: [],
+        job_steps_time: [],
       } as never);
 
       await program.parseAsync(['pipelines', 'jobs-summary'], { from: 'user' });
@@ -373,7 +373,7 @@ describe('cli: Pipelines Commands', () => {
             method: 'average',
           },
         ],
-        job_steps_average_time: [],
+        job_steps_time: [],
       } as never);
 
       await program.parseAsync(['pipelines', 'jobs-time-execution'], { from: 'user' });
@@ -416,7 +416,7 @@ describe('cli: Pipelines Commands', () => {
             method: 'median',
           },
         ],
-        job_steps_average_time: [],
+        job_steps_time: [],
       } as never);
 
       await program.parseAsync(['pipelines', 'jobs-time-execution', '--method', 'median'], {
@@ -468,7 +468,7 @@ describe('cli: Pipelines Commands', () => {
             method: 'average',
           },
         ],
-        job_steps_average_time: [],
+        job_steps_time: [],
       } as never);
 
       await program.parseAsync(['pipelines', 'jobs-by-status'], { from: 'user' });
@@ -528,7 +528,7 @@ describe('cli: Pipelines Commands', () => {
         },
         runs_by: [],
         jobs_summary: [],
-        job_steps_average_time: [],
+        job_steps_time: [],
       } as never);
 
       await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
@@ -558,7 +558,7 @@ describe('cli: Pipelines Commands', () => {
         },
         runs_by: [],
         jobs_summary: [],
-        job_steps_average_time: [],
+        job_steps_time: [],
       } as never);
 
       await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
@@ -588,7 +588,7 @@ describe('cli: Pipelines Commands', () => {
         },
         runs_by: [],
         jobs_summary: [],
-        job_steps_average_time: [],
+        job_steps_time: [],
       } as never);
 
       await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
@@ -618,7 +618,7 @@ describe('cli: Pipelines Commands', () => {
         },
         runs_by: [],
         jobs_summary: [],
-        job_steps_average_time: [],
+        job_steps_time: [],
       } as never);
 
       await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });

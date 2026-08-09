@@ -390,7 +390,7 @@ export function createPipelinesCommands(program: SmmCommand): void {
         const { summary } = await pipelineImplementation.dashboard(buildPipelineFilters(merged));
 
         if (options.output === 'json') {
-          screen.printLine(JSON.stringify({ averageDuration: summary.value }, null, 2));
+          screen.printLine(JSON.stringify({ duration: summary.value }, null, 2));
         } else {
           screen.printLine(`\n=== ${metricMethod.toUpperCase()} Pipeline Run Durations ===\n`);
           if (options.workflow) {
@@ -586,15 +586,15 @@ export function createPipelinesCommands(program: SmmCommand): void {
         screen.printLine(`⏱️  Analyzing job steps execution times (${metricMethod})...`);
         const { pipelineImplementation } = createPipelineDependencies(command);
 
-        const { job_steps_average_time } = await pipelineImplementation.dashboard(
+        const { job_steps_time } = await pipelineImplementation.dashboard(
           buildPipelineFilters(merged)
         );
 
         if (options.output === 'json') {
-          screen.printLine(JSON.stringify(job_steps_average_time, null, 2));
+          screen.printLine(JSON.stringify(job_steps_time, null, 2));
         } else {
           screen.printLine(`\n=== ${metricMethod.toUpperCase()} Job Steps Execution Times ===\n`);
-          job_steps_average_time.forEach((item) => {
+          job_steps_time.forEach((item) => {
             screen.printLine(`Step: ${item.name}`);
             screen.printLine(
               `Execution Time: ${formatDuration(item.value, 'minutes')} (${item.count} executions, method: ${metricMethod})`

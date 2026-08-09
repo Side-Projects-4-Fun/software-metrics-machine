@@ -10,7 +10,7 @@ function makeSummary(overrides: Partial<ChangeRequestSummary> = {}): ChangeReque
     closed_change_requests: 5,
     change_requests_without_conclusion: 3,
     open_change_requests: 2,
-    avg_comments_per_change_request: 3.2,
+    comments_per_change_request: 3.2,
     unique_authors: 8,
     unique_labels: 5,
     labels: [],
@@ -90,7 +90,7 @@ describe('ChangeRequestEvaluationService', () => {
       expect(result.summary.totalChangeRequests).toBe(50);
       expect(result.summary.mergedChangeRequests).toBe(40);
       expect(result.summary.openChangeRequests).toBe(2);
-      expect(result.summary.avgCommentsPerChangeRequest).toBe(3.2);
+      expect(result.summary.commentsPerChangeRequest).toBe(3.2);
       expect(result.summary.uniqueAuthors).toBe(8);
       expect(result.summary.topReviewer).toBe('reviewer-a');
       expect(result.summary.bottleneckAuthor).toBe('bob');
@@ -261,7 +261,7 @@ describe('ChangeRequestEvaluationService', () => {
   describe('comment health', () => {
     it('flags zero comments as critical', () => {
       const data = makeData({
-        summary: makeSummary({ avg_comments_per_change_request: 0, total_change_requests: 10 }),
+        summary: makeSummary({ comments_per_change_request: 0, total_change_requests: 10 }),
       });
       const result = service.evaluate(data);
 

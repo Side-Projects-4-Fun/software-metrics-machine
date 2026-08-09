@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { JobsAverageTimeData, JobsAverageTimeByDayData } from './types';
+import { JobsTimeData, JobsTimeByDayData } from './types';
 import { useLinkBuilder } from '@/components/providers/LinkBuilderContext';
 import react from 'react';
 import { ApiParams } from '@/server/api';
@@ -10,13 +10,13 @@ import { useFilters } from '@/components/filters/FiltersContext';
 import { TargetInfo } from '@/components/charts/TargetInfo';
 import { formatMetricLabel, formatMetricMethod } from '@/utils/formatMetricMethod';
 
-interface JobsAverageTimeCardProps {
-  data: JobsAverageTimeData[];
-  dataByDay: JobsAverageTimeByDayData[];
+interface JobsTimeCardProps {
+  data: JobsTimeData[];
+  dataByDay: JobsTimeByDayData[];
   apiParams: ApiParams;
 }
 
-export default function JobsAverageTimeCard({ data, dataByDay }: JobsAverageTimeCardProps) {
+export default function JobsTimeCard({ data, dataByDay }: JobsTimeCardProps) {
   const { urlBuilder } = useLinkBuilder();
   const { filters } = useFilters();
   const [activeTab, setActiveTab] = react.useState<'by-job' | 'by-day'>('by-job');
@@ -42,7 +42,7 @@ export default function JobsAverageTimeCard({ data, dataByDay }: JobsAverageTime
     return [String(value ?? ''), label];
   };
 
-  const handleBarClick = (entry: JobsAverageTimeData) => {
+  const handleBarClick = (entry: JobsTimeData) => {
     const url = urlBuilder.getJobRunsUrl(entry.job_name, entry.workflow_name, {
       startDate: filters.startDate,
       endDate: filters.endDate,
@@ -59,7 +59,7 @@ export default function JobsAverageTimeCard({ data, dataByDay }: JobsAverageTime
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <CardTitle>Jobs Average Time</CardTitle>
+          <CardTitle>Jobs Time</CardTitle>
           <TargetInfo metric="job-avg-time" />
         </div>
         <div className="flex gap-2 mt-3">

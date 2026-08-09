@@ -3,11 +3,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ensureArray } from '@/server/utils/chartData';
-import { AvgOpenByData } from './types';
+import { OpenTimeData } from './types';
 import { TargetInfo } from '@/components/charts/TargetInfo';
 import { formatMetricLabel } from '@/utils/formatMetricMethod';
 
-export default function AverageDaysChangeRequestsRemainOpenCard({ data, method }: { data: AvgOpenByData[]; method?: string }) {
+export default function OpenTimeCard({ data, method }: { data: OpenTimeData[]; method?: string }) {
   const openLabel = formatMetricLabel(method, 'Days Open');
   const formattedMap = new Map<number, string>(data.map((item) => [item.value, item.value_formatted]));
   return (

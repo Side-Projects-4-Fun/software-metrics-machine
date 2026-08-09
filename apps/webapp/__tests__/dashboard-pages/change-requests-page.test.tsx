@@ -10,10 +10,10 @@ import { DashboardConfigurationBuilder } from '../builders/builders';
 jest.mock('@/server/api', () => ({
   changeRequestAPI: {
     byAuthor: jest.fn(),
-    averageReviewTime: jest.fn(),
+    reviewTime: jest.fn(),
     openThroughTime: jest.fn(),
-    averageOpenBy: jest.fn(),
-    averageComments: jest.fn(),
+    openTime: jest.fn(),
+    comments: jest.fn(),
     summary: jest.fn(),
     commentsByAuthor: jest.fn(),
     firstCommentTime: jest.fn(),
@@ -39,10 +39,10 @@ function Providers({ children }: { children: React.ReactNode }): React.ReactElem
 
 function setupMockApiResponse() {
   mockChangeRequestAPI.byAuthor.mockResolvedValue({ result: [{ author: 'alice', count: 12 }, { author: 'bob', count: 8 }] });
-  mockChangeRequestAPI.averageReviewTime.mockResolvedValue({ result: [{ author: 'alice', value: 4.5, value_formatted: '4.5 days', method: 'average' }, { author: 'bob', value: 2.1, value_formatted: '2.1 days', method: 'average' }] });
+  mockChangeRequestAPI.reviewTime.mockResolvedValue({ result: [{ author: 'alice', value: 4.5, value_formatted: '4.5 days', method: 'average' }, { author: 'bob', value: 2.1, value_formatted: '2.1 days', method: 'average' }] });
   mockChangeRequestAPI.openThroughTime.mockResolvedValue({ result: [{ date: '2026-01-01', kind: 'Opened', count: 3 }, { date: '2026-01-01', kind: 'Closed', count: 2 }] });
-  mockChangeRequestAPI.averageOpenBy.mockResolvedValue({ result: [{ period: '2026-01', value: 2.3, value_formatted: '2.3 days', method: 'average' }] });
-  mockChangeRequestAPI.averageComments.mockResolvedValue({ result: { avg_comments: 3.5 } });
+  mockChangeRequestAPI.openTime.mockResolvedValue({ result: [{ period: '2026-01', value: 2.3, value_formatted: '2.3 days', method: 'average' }] });
+  mockChangeRequestAPI.comments.mockResolvedValue({ result: { comments_count: 3.5 } });
   mockChangeRequestAPI.summary.mockResolvedValue({ result: {
     total: 20, merged: 15, closed: 3, open: 2,
     labels: [{ label: 'bug', change_requests: 5 }],
@@ -54,7 +54,7 @@ function setupMockApiResponse() {
   mockChangeRequestAPI.evaluate.mockResolvedValue({
     generatedAt: '2026-01-01T00:00:00Z',
     signals: [{ id: 'review-time', title: 'Review Time', description: 'Good', severity: 'good', category: 'review', metrics: [] }],
-    summary: { totalChangeRequests: 20, mergedChangeRequests: 15, openChangeRequests: 2, avgCommentsPerChangeRequest: 3.5, reviewHours: 3.3, reviewHours_formatted: '3.3 h', openDays: 2.3, openDays_formatted: '2.3 days', method: 'average', uniqueAuthors: 2 },
+    summary: { totalChangeRequests: 20, mergedChangeRequests: 15, openChangeRequests: 2, commentsPerChangeRequest: 3.5, reviewHours: 3.3, reviewHours_formatted: '3.3 h', openDays: 2.3, openDays_formatted: '2.3 days', method: 'average', uniqueAuthors: 2 },
   });
 }
 
@@ -73,7 +73,7 @@ describe('Change Requests Dashboard - User Journey', () => {
 
     expect(screen.getByText('Change Request Statistics')).toBeInTheDocument();
 
-    expect(screen.getByText('Average Review Time')).toBeInTheDocument();
+    expect(screen.getAllByText('Review Time').length).toBeGreaterThan(0);
     expect(screen.getByText('Days Change Requests Remain Open')).toBeInTheDocument();
 
     expect(screen.getByText('Open Change Requests Through Time')).toBeInTheDocument();
@@ -88,10 +88,10 @@ describe('Change Requests Dashboard - User Journey', () => {
 
   it('handles API failure gracefully with error message', async () => {
     mockChangeRequestAPI.byAuthor.mockRejectedValue(new Error('fail'));
-    mockChangeRequestAPI.averageReviewTime.mockRejectedValue(new Error('fail'));
+    mockChangeRequestAPI.reviewTime.mockRejectedValue(new Error('fail'));
     mockChangeRequestAPI.openThroughTime.mockRejectedValue(new Error('fail'));
-    mockChangeRequestAPI.averageOpenBy.mockRejectedValue(new Error('fail'));
-    mockChangeRequestAPI.averageComments.mockRejectedValue(new Error('fail'));
+    mockChangeRequestAPI.openTime.mockRejectedValue(new Error('fail'));
+    mockChangeRequestAPI.comments.mockRejectedValue(new Error('fail'));
     mockChangeRequestAPI.summary.mockRejectedValue(new Error('fail'));
     mockChangeRequestAPI.commentsByAuthor.mockRejectedValue(new Error('fail'));
     mockChangeRequestAPI.firstCommentTime.mockRejectedValue(new Error('fail'));

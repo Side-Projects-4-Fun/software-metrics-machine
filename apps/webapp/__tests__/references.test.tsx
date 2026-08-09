@@ -29,12 +29,12 @@ describe('ReferencesPage', () => {
 
     expect(screen.getByText('Pipeline Data Used')).toBeInTheDocument();
     expect(screen.getByText(/Run duration per workflow/)).toBeInTheDocument();
-    expect(screen.getByText(/Job average time per job/)).toBeInTheDocument();
-    expect(screen.getByText(/Step average time by day and step/)).toBeInTheDocument();
+    expect(screen.getByText(/Job time per job/)).toBeInTheDocument();
+    expect(screen.getByText(/Step time by day and step/)).toBeInTheDocument();
 
     expect(screen.getByText('Change Request Data Used')).toBeInTheDocument();
-    expect(screen.getByText(/Average review time per author/)).toBeInTheDocument();
-    expect(screen.getByText(/Average open days per period/)).toBeInTheDocument();
+    expect(screen.getByText(/Review time per author/)).toBeInTheDocument();
+    expect(screen.getByText(/Open days per period/)).toBeInTheDocument();
     expect(screen.getByText(/Time to first comment per author/)).toBeInTheDocument();
   });
 
@@ -135,10 +135,10 @@ describe('ReferencesPage', () => {
       'Big O Classification',
       'Deployment Frequency',
       'Pipeline Duration',
-      'Job Avg Time',
+      'Job Time',
       'Job Reruns',
       'Jobs Success Rate',
-      'Average Review Time',
+      'Review Time',
       'Time To First Comment',
       'Change Requests By Author',
       'Change Requests Remain Open',

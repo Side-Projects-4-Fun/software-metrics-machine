@@ -455,7 +455,7 @@ const REFERENCE_KEYS_BY_METRIC: Record<string, string[]> = {
   'complexity': ['sonarqube-complexity'],
   'duplication': ['sonarqube-duplication'],
   'coverage': ['sonarqube-coverage'],
-  'review-time': ['average-review-time', 'time-to-first-comment'],
+  'review-time': ['review-time', 'time-to-first-comment'],
   'review-participation': ['comments-by-author'],
   'pair-programming': ['pairing-index'],
   'knowledge-distribution': ['ownership'],

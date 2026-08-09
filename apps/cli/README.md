@@ -145,7 +145,7 @@ Set `store_logs: true` in `smm_config.json` or `<REPO>_STORE_LOGS=true` to write
 
 ## Outliers and weekend filtering
 
-Some average-based PR and pipeline commands support data cleaning options before computing the final average.
+Some metric commands support data cleaning options before computing the final average.
 
 ```
 --weekends <mode>       include|exclude|weekends_only  (default: include)
@@ -160,9 +160,9 @@ Some average-based PR and pipeline commands support data cleaning options before
 
 `--outlier-mode` controls how unusually high or low samples are handled:
 
-- `include`: compute averages from all samples and do not report outliers.
-- `flag`: compute averages from all samples and report detected outliers.
-- `exclude`: remove detected outliers before computing averages and report what was removed.
+- `include`: compute metrics from all samples and do not report outliers.
+- `flag`: compute metrics from all samples and report detected outliers.
+- `exclude`: remove detected outliers before computing metrics and report what was removed.
 
 Outliers are detected with the interquartile range rule: values below `Q1 - 1.5 * IQR` or above `Q3 + 1.5 * IQR` are
 marked as outliers. Weekend filtering runs before outlier detection, so outlier bounds are calculated from the selected
@@ -170,14 +170,14 @@ weekday/weekend sample set.
 
 These options are available on:
 
-- `smm prs average-review-time`
-- `smm prs average-open`
-- `smm prs average-comments`
+- `smm change-requests review-time`
+- `smm change-requests open-time`
+- `smm change-requests comments`
 - `smm pipelines summary`
 - `smm pipelines runs-duration`
 - `smm pipelines jobs-summary`
 - `smm pipelines jobs-time-execution`
-- `smm pipelines jobs-steps-average-time`
+- `smm pipelines jobs-steps-time`
 - `smm pipelines jobs-by-status`
 - `smm pipelines lead-time`
 
@@ -193,7 +193,7 @@ into a single `test` entry. Only the trailing numeric index is stripped, so mean
 name are preserved — for instance `deploy (prod) (1)` is normalized to `deploy (prod)` and displayed as
 `deploy (prod)`, not as `deploy`.
 
-This applies to every job-based calculation: `jobs-summary`, `jobs-time-execution`, `jobs-steps-average-time`,
+This applies to every job-based calculation: `jobs-summary`, `jobs-time-execution`, `jobs-steps-time`,
 `jobs-by-status`, `jobs-duration`, and the deployment-frequency target matching. Run-level duration
 (`runs-duration`, `summary`) is computed from the earliest job start and the latest job completion across the whole
 run, so it is already parallel-aware and is unaffected by this normalization.
@@ -280,11 +280,11 @@ View PRs grouped by author.
 --output <format>             text|json  (default: text)
 ```
 
-#### `smm prs average-review-time`
-View average review time (days) by author. Same options as `by-author`, plus the outlier and weekend filtering options.
+#### `smm change-requests review-time`
+View review time (days) by author. Same options as `by-author`, plus the outlier and weekend filtering options.
 
-#### `smm prs average-open`
-View average PR open time (days) aggregated by period.
+#### `smm change-requests open-time`
+View change request open time (days) aggregated by period.
 
 ```
 --start-date <date>
@@ -300,8 +300,8 @@ View average PR open time (days) aggregated by period.
 --outlier-mode <mode>         include|flag|exclude  (default: include)
 ```
 
-#### `smm prs average-comments`
-View average number of comments per PR. Same options as `average-open`.
+#### `smm change-requests comments`
+View number of comments per change request. Same options as `average-open`.
 
 ---
 
@@ -399,8 +399,8 @@ View pipeline job execution times.
 --outlier-mode <mode> include|flag|exclude  (default: include)
 ```
 
-#### `smm pipelines jobs-steps-average-time`
-View pipeline job steps average execution times.
+#### `smm pipelines jobs-steps-time`
+View pipeline job steps execution times.
 
 ```
 --start-date <date>

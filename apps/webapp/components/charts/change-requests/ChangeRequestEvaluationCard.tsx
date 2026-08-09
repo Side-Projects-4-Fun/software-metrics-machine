@@ -21,7 +21,7 @@ interface ChangeRequestEvaluationData {
     totalChangeRequests: number;
     mergedChangeRequests: number;
     openChangeRequests: number;
-    avgCommentsPerChangeRequest: number;
+    commentsPerChangeRequest: number;
     reviewHours: number;
     reviewHours_formatted: string;
     openDays: number;
@@ -120,7 +120,7 @@ export default function ChangeRequestEvaluationCard({
             <div className="bg-blue-50 rounded-lg p-3 text-center">
               <p className="text-xs text-gray-500">{commentsChangeRequestLabel}</p>
               <p className="text-xl font-bold text-blue-700">
-                {summary.avgCommentsPerChangeRequest.toFixed(1)}
+                {summary.commentsPerChangeRequest.toFixed(1)}
               </p>
             </div>
             <div className={`rounded-lg p-3 text-center ${reviewTimeRating}`}>

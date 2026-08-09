@@ -15,7 +15,7 @@ jest.mock('@/server/api', () => ({
   },
   changeRequestAPI: {
     summary: jest.fn(),
-    averageReviewTime: jest.fn(),
+    reviewTime: jest.fn(),
   },
 }));
 
@@ -62,7 +62,7 @@ describe('Insights context', () => {
         last_change_request: null,
       },
     } as never);
-    mockPullRequestAPI.averageReviewTime.mockResolvedValue({ result: [] } as never);
+    mockPullRequestAPI.reviewTime.mockResolvedValue({ result: [] } as never);
   });
 
   it('provides filters context', () => {
@@ -102,7 +102,7 @@ describe('Insights context', () => {
         },
       ],
     } as never);
-    mockPullRequestAPI.averageReviewTime.mockResolvedValue({
+    mockPullRequestAPI.reviewTime.mockResolvedValue({
       result: [{ author: 'alice', value: 1.25, value_formatted: '1.25 days', method: 'average' }],
     } as never);
     mockPullRequestAPI.summary.mockResolvedValue({

@@ -150,7 +150,7 @@ function test_pipelines_runs_duration_renders_cached_duration_average() {
     --weekends exclude \
     --outlier-mode flag
 
-  assert_smm_output_contains '"averageDuration": 15'
+  assert_smm_output_contains '"duration": 15'
   assert_smm_success
 }
 

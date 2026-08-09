@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AvgCommentsData, SummaryData } from './types';
+import { CommentsData, SummaryData } from './types';
 import { useLinkBuilder } from '@/components/providers/LinkBuilderContext';
 import { TargetInfo } from '@/components/charts/TargetInfo';
 import { formatMetricLabel, formatMetricMethod } from '@/utils/formatMetricMethod';
@@ -18,11 +18,11 @@ function StatBoxLink({ label, value, filters, urlBuilder }: { label: string; val
 
 export default function ChangeRequestStatisticsCard({
   summary,
-  avgComments,
+  commentsData,
   method,
 }: {
   summary: SummaryData | null;
-  avgComments: AvgCommentsData | null;
+  commentsData: CommentsData | null;
   method?: string;
 }) {
   const { urlBuilder } = useLinkBuilder();
@@ -52,7 +52,7 @@ export default function ChangeRequestStatisticsCard({
             </a>
             <div className="p-4 bg-purple-50 rounded-lg">
               <p className="text-sm text-gray-600">{commentsLabel}</p>
-              <p className="text-3xl font-bold text-purple-600">{summary?.avg_comments_per_change_request?.toFixed(2) || 0}</p>
+              <p className="text-3xl font-bold text-purple-600">{summary?.comments_per_change_request?.toFixed(2) || 0}</p>
             </div>
             <div className="p-4 bg-orange-50 rounded-lg">
               <p className="text-sm text-gray-600">Unique Authors</p>
@@ -65,7 +65,7 @@ export default function ChangeRequestStatisticsCard({
           </div>
           <div className="p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-gray-600">{detailedCommentsLabel}</p>
-            <p className="text-3xl font-bold text-blue-600">{avgComments?.avg_comments?.toFixed(2) || 0}</p>
+            <p className="text-3xl font-bold text-blue-600">{commentsData?.comments_count?.toFixed(2) || 0}</p>
           </div>
 
           <div className="p-4 bg-slate-50 rounded-lg">

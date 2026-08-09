@@ -9,7 +9,7 @@ import type {
   ChangeRequestSummaryFirstCommentTime,
   ChangeRequestSummaryEntry,
   ChangeRequestSummaryResponse,
-  ChangeRequestAverageOutlierItem,
+  ChangeRequestMetricOutlierItem,
 } from '../change-request-types';
 import type { IReadChangeRequestsRepository } from '../repositories';
 import type { TimeZoneProvider } from '../../../infrastructure';
@@ -48,7 +48,7 @@ export interface IChangeRequestsService {
       value: number;
       method: MetricMethod;
       change_requests_with_comments: number;
-      outliers?: Array<MetricOutlier<ChangeRequestAverageOutlierItem>>;
+      outliers?: Array<MetricOutlier<ChangeRequestMetricOutlierItem>>;
     }>
   >;
   getThroughTime(
@@ -68,7 +68,7 @@ export interface IChangeRequestsService {
       author: string;
       value: number;
       method: MetricMethod;
-      outliers?: Array<MetricOutlier<ChangeRequestAverageOutlierItem>>;
+      outliers?: Array<MetricOutlier<ChangeRequestMetricOutlierItem>>;
     }>
   >;
   getOpenTimeBy(
@@ -80,7 +80,7 @@ export interface IChangeRequestsService {
       period: string;
       value: number;
       method: MetricMethod;
-      outliers?: Array<MetricOutlier<ChangeRequestAverageOutlierItem>>;
+      outliers?: Array<MetricOutlier<ChangeRequestMetricOutlierItem>>;
     }>
   >;
 }
@@ -123,7 +123,7 @@ export class ChangeRequestsService implements IChangeRequestsService {
       ),
       filters?.cleaning
     );
-    const averageOpenDays = computeMetricSamples(cleanedOpenDays.samples, method);
+    const openDaysMetric = computeMetricSamples(cleanedOpenDays.samples, method);
 
     const cleanedComments = this.cleanChangeRequestSamples(
       changeRequests.map((changeRequest) =>
@@ -131,7 +131,7 @@ export class ChangeRequestsService implements IChangeRequestsService {
       ),
       filters?.cleaning
     );
-    const averageComments = computeMetricSamples(cleanedComments.samples, method);
+    const commentsMetric = computeMetricSamples(cleanedComments.samples, method);
 
     const mostCommentedChangeRequests = changeRequests
       .filter((changeRequest) => changeRequest.totalComments > 0)
@@ -148,18 +148,18 @@ export class ChangeRequestsService implements IChangeRequestsService {
     const labelSummary = await this.getLabelSummaries(filters);
 
     this.logger.debug(
-      `Change request metrics: ${changeRequests.length} total, ${mergedChangeRequests.length} merged, avg ${averageOpenDays.toFixed(2)} days open`
+      `Change request metrics: ${changeRequests.length} total, ${mergedChangeRequests.length} merged, avg ${openDaysMetric.toFixed(2)} days open`
     );
 
     return {
-      openDays: Math.round(averageOpenDays * 100) / 100,
+      openDays: Math.round(openDaysMetric * 100) / 100,
       totalChangeRequests: changeRequests.length,
       mergedChangeRequests: mergedChangeRequests.length,
       closedChangeRequests: closedChangeRequests.length,
       openChangeRequests: openChangeRequests.length,
-      comments: Math.round(averageComments * 100) / 100,
+      comments: Math.round(commentsMetric * 100) / 100,
       most_commented_change_requests: mostCommentedChangeRequests,
-      leadTime: Math.round(averageOpenDays * 100) / 100,
+      leadTime: Math.round(openDaysMetric * 100) / 100,
       method,
       commentSummary,
       labelSummary,
@@ -281,12 +281,12 @@ export class ChangeRequestsService implements IChangeRequestsService {
         ),
         filters?.cleaning
       );
-      const averageOpenDays = computeMetricSamples(cleanedOpenDays.samples, 'average');
+      const openDaysMetric = computeMetricSamples(cleanedOpenDays.samples, 'average');
 
       result.push({
         label,
         count: labeledChangeRequests.length,
-        openDays: Math.round(averageOpenDays * 100) / 100,
+        openDays: Math.round(openDaysMetric * 100) / 100,
         outliers: this.shouldExposeOutliers(filters?.cleaning)
           ? cleanedOpenDays.outliers
           : undefined,
@@ -347,7 +347,7 @@ export class ChangeRequestsService implements IChangeRequestsService {
       closed_change_requests: closed,
       change_requests_without_conclusion: changeRequests.length - merged,
       open_change_requests: open,
-      avg_comments_per_change_request: avgComments,
+      comments_per_change_request: avgComments,
       unique_authors: authorsSet.size,
       unique_labels: labelSummary.length,
       labels: labelSummary,
@@ -442,14 +442,14 @@ export class ChangeRequestsService implements IChangeRequestsService {
       author: string;
       value: number;
       method: MetricMethod;
-      outliers?: Array<MetricOutlier<ChangeRequestAverageOutlierItem>>;
+      outliers?: Array<MetricOutlier<ChangeRequestMetricOutlierItem>>;
     }>
   > {
     const changeRequests = await this.filterChangeRequests(filters);
     const merged = changeRequests.filter(
       (changeRequest) => Boolean(changeRequest.mergedAt) || Boolean(changeRequest.closedAt)
     );
-    const grouped = new Map<string, Array<MetricSample<ChangeRequestAverageOutlierItem>>>();
+    const grouped = new Map<string, Array<MetricSample<ChangeRequestMetricOutlierItem>>>();
 
     for (const changeRequest of merged) {
       const start = this.toTimestamp(changeRequest.createdAt);
@@ -479,20 +479,6 @@ export class ChangeRequestsService implements IChangeRequestsService {
       .slice(0, maxRows);
   }
 
-  async getAverageReviewTime(
-    filters?: ChangeRequestFilters,
-    top?: number
-  ): Promise<
-    Array<{
-      author: string;
-      value: number;
-      method: MetricMethod;
-      outliers?: Array<MetricOutlier<ChangeRequestAverageOutlierItem>>;
-    }>
-  > {
-    return this.getReviewTime(filters, top, 'average');
-  }
-
   async getOpenTimeBy(
     filters?: ChangeRequestFilters,
     aggregateBy?: string,
@@ -502,12 +488,12 @@ export class ChangeRequestsService implements IChangeRequestsService {
       period: string;
       value: number;
       method: MetricMethod;
-      outliers?: Array<MetricOutlier<ChangeRequestAverageOutlierItem>>;
+      outliers?: Array<MetricOutlier<ChangeRequestMetricOutlierItem>>;
     }>
   > {
     const changeRequests = await this.filterChangeRequests(filters);
     const mode = this.normalizeAggregation(aggregateBy);
-    const grouped = new Map<string, Array<MetricSample<ChangeRequestAverageOutlierItem>>>();
+    const grouped = new Map<string, Array<MetricSample<ChangeRequestMetricOutlierItem>>>();
 
     for (const changeRequest of changeRequests) {
       const period = this.toPeriodKey(changeRequest.createdAt, mode);
@@ -535,20 +521,6 @@ export class ChangeRequestsService implements IChangeRequestsService {
         };
       })
       .sort((a, b) => a.period.localeCompare(b.period));
-  }
-
-  async getAverageOpenBy(
-    filters?: ChangeRequestFilters,
-    aggregateBy?: string
-  ): Promise<
-    Array<{
-      period: string;
-      value: number;
-      method: MetricMethod;
-      outliers?: Array<MetricOutlier<ChangeRequestAverageOutlierItem>>;
-    }>
-  > {
-    return this.getOpenTimeBy(filters, aggregateBy, 'average');
   }
 
   /**
@@ -800,11 +772,11 @@ export class ChangeRequestsService implements IChangeRequestsService {
       value: number;
       method: MetricMethod;
       change_requests_with_comments: number;
-      outliers?: Array<MetricOutlier<ChangeRequestAverageOutlierItem>>;
+      outliers?: Array<MetricOutlier<ChangeRequestMetricOutlierItem>>;
     }>
   > {
     const changeRequests = await this.filterChangeRequests(filters);
-    const grouped = new Map<string, Array<MetricSample<ChangeRequestAverageOutlierItem>>>();
+    const grouped = new Map<string, Array<MetricSample<ChangeRequestMetricOutlierItem>>>();
 
     for (const changeRequest of changeRequests) {
       if (!Array.isArray(changeRequest.comments) || changeRequest.comments.length === 0) {
@@ -857,7 +829,7 @@ export class ChangeRequestsService implements IChangeRequestsService {
   private toChangeRequestSample(
     changeRequest: ChangeRequestDetails,
     value: number
-  ): MetricSample<ChangeRequestAverageOutlierItem> {
+  ): MetricSample<ChangeRequestMetricOutlierItem> {
     return {
       value,
       timestamp: changeRequest.mergedAt || changeRequest.closedAt || changeRequest.createdAt,
@@ -872,9 +844,9 @@ export class ChangeRequestsService implements IChangeRequestsService {
   }
 
   private cleanChangeRequestSamples(
-    samples: Array<MetricSample<ChangeRequestAverageOutlierItem>>,
+    samples: Array<MetricSample<ChangeRequestMetricOutlierItem>>,
     options?: MetricCleaningOptions
-  ): CleanedMetricSamples<ChangeRequestAverageOutlierItem> {
+  ): CleanedMetricSamples<ChangeRequestMetricOutlierItem> {
     return cleanMetricSamples(samples, options);
   }
 

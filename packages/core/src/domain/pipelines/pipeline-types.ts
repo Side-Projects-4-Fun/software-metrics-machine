@@ -64,14 +64,14 @@ export interface PipelineFilters {
   method?: MetricMethod;
 }
 
-export interface PipelineAverageOutlierItem {
+export interface PipelineMetricOutlierItem {
   runId: string;
   workflowName?: string;
   jobName?: string;
   stepName?: string;
 }
 
-export type PipelineAverageOutlier = MetricOutlier<PipelineAverageOutlierItem>;
+export type PipelineMetricOutlier = MetricOutlier<PipelineMetricOutlierItem>;
 
 export interface DeploymentFrequency {
   date: string;
@@ -85,7 +85,7 @@ export interface PipelineMetrics {
   successRate: number; // percentage
   value: number;
   method: MetricMethod;
-  outliers?: PipelineAverageOutlier[];
+  outliers?: PipelineMetricOutlier[];
 }
 
 export interface JobMetrics {
@@ -104,7 +104,7 @@ export interface JobMetrics {
   timedOutCount: number;
   actionRequiredCount: number;
   unknownCount: number;
-  outliers?: PipelineAverageOutlier[];
+  outliers?: PipelineMetricOutlier[];
 }
 
 export interface PipelineComputedDurations {
@@ -164,7 +164,7 @@ export interface PipelineDashboardRunsDurationItem {
   min_duration: number;
   max_duration: number;
   total_runs: number;
-  outliers?: PipelineAverageOutlier[];
+  outliers?: PipelineMetricOutlier[];
 }
 
 export interface PipelineDashboardRunsByItem {
@@ -173,21 +173,21 @@ export interface PipelineDashboardRunsByItem {
   runs: number;
 }
 
-export interface PipelineDashboardJobsAverageTimeItem {
+export interface PipelineDashboardJobsTimeItem {
   job_name: string;
   workflow_name?: string;
   value: number;
   method: MetricMethod;
   count: number;
-  outliers?: PipelineAverageOutlier[];
+  outliers?: PipelineMetricOutlier[];
 }
 
-export interface PipelineDashboardJobsAverageTimeByDayItem {
+export interface PipelineDashboardJobsTimeByDayItem {
   day: string;
   value: number;
   method: MetricMethod;
   count: number;
-  outliers?: PipelineAverageOutlier[];
+  outliers?: PipelineMetricOutlier[];
 }
 
 export interface PipelineDashboardJobsDurationByWorkflowItem {
@@ -206,7 +206,7 @@ export interface PipelineDashboardJobsSummaryItem {
   success_rate: number;
   failure_rate: number;
   rerun_count: number;
-  outliers?: PipelineAverageOutlier[];
+  outliers?: PipelineMetricOutlier[];
 }
 
 export interface PipelineDashboardRerunsByDayItem {
@@ -214,21 +214,21 @@ export interface PipelineDashboardRerunsByDayItem {
   rerun_count: number;
 }
 
-export interface PipelineDashboardStepsAverageTimeItem {
+export interface PipelineDashboardStepsTimeItem {
   name: string;
   value: number;
   method: MetricMethod;
   count: number;
-  outliers?: PipelineAverageOutlier[];
+  outliers?: PipelineMetricOutlier[];
 }
 
-export interface PipelineDashboardStepsAverageTimeByDayItem {
+export interface PipelineDashboardStepsTimeByDayItem {
   day: string;
   steps: Array<{
     name: string;
     value: number;
     method: MetricMethod;
-    outliers?: PipelineAverageOutlier[];
+    outliers?: PipelineMetricOutlier[];
   }>;
 }
 
@@ -237,11 +237,11 @@ export interface PipelineDashboard {
   jobs_by_status: Array<{ Status: string; Count: number }>;
   runs_duration: PipelineDashboardRunsDurationItem[];
   runs_by: PipelineDashboardRunsByItem[];
-  jobs_average_time: PipelineDashboardJobsAverageTimeItem[];
-  jobs_average_time_by_day: PipelineDashboardJobsAverageTimeByDayItem[];
+  jobs_time: PipelineDashboardJobsTimeItem[];
+  jobs_time_by_day: PipelineDashboardJobsTimeByDayItem[];
   jobs_duration_by_workflow: PipelineDashboardJobsDurationByWorkflowItem[];
   jobs_summary: PipelineDashboardJobsSummaryItem[];
   jobs_reruns_by_day: PipelineDashboardRerunsByDayItem[];
-  job_steps_average_time: PipelineDashboardStepsAverageTimeItem[];
-  job_steps_average_time_by_day: PipelineDashboardStepsAverageTimeByDayItem[];
+  job_steps_time: PipelineDashboardStepsTimeItem[];
+  job_steps_time_by_day: PipelineDashboardStepsTimeByDayItem[];
 }

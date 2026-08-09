@@ -86,7 +86,7 @@ export function Recommendations({
   deploymentFrequency,
   jobsSummary,
   selectedWorkflow,
-  averageReviewTime,
+  reviewTime,
 }: RecommendationsProps) {
   const recommendations = useMemo(() => {
     const recs: Recommendation[] = [];
@@ -193,7 +193,7 @@ export function Recommendations({
 
     // --- Average Job Duration ---
     if (jobsSummary && jobsSummary.length > 0) {
-      const target = METRIC_TARGETS['job-avg-time'];
+      const target = METRIC_TARGETS['job-time'];
       const avgDuration =
         jobsSummary.reduce((sum, j) => sum + j.value, 0) / jobsSummary.length;
       const avgDurationFormatted = jobsSummary[0]?.value_formatted || `${avgDuration.toFixed(1)} min`;
@@ -208,7 +208,7 @@ export function Recommendations({
         );
         recs.push({
           id: 'job-duration-high',
-          metric: 'job-avg-time',
+          metric: 'job-time',
           title: 'Optimize Job Duration',
           message: `Average job duration is ${avgDurationFormatted}, exceeding the 5 min target. Slowest jobs: ${slowJobsMessage}. Consider parallelizing steps, caching dependencies, or splitting large jobs.`,
           severity: 'warning',
@@ -224,32 +224,32 @@ export function Recommendations({
     }
 
     // --- Change Request Review Time ---
-    if (averageReviewTime && averageReviewTime.length > 0) {
-      const target = METRIC_TARGETS['average-review-time'];
-      const avgReviewDays =
-        averageReviewTime.reduce((sum, a) => sum + a.value, 0) / averageReviewTime.length;
-      const avgReviewTimeFormatted = averageReviewTime[0]?.value_formatted || `${avgReviewDays.toFixed(1)}d`;
+    if (reviewTime && reviewTime.length > 0) {
+      const target = METRIC_TARGETS['review-time'];
+      const reviewDays =
+        reviewTime.reduce((sum, a) => sum + a.value, 0) / reviewTime.length;
+      const reviewTimeDataFormatted = reviewTime[0]?.value_formatted || `${reviewDays.toFixed(1)}d`;
 
-      if (avgReviewDays > 1) {
+      if (reviewDays > 1) {
         recs.push({
           id: 'review-time-high',
-          metric: 'average-review-time',
+          metric: 'review-time',
           title: 'Speed Up Code Reviews',
-          message: `Average review time is ${avgReviewTimeFormatted}, exceeding the 24-hour target. Slow reviews create delivery bottlenecks and reduce author productivity.`,
+          message: `Review time is ${reviewTimeDataFormatted}, exceeding the 24-hour target. Slow reviews create delivery bottlenecks and reduce author productivity.`,
           severity: 'warning',
-          currentValue: avgReviewTimeFormatted,
+          currentValue: reviewTimeDataFormatted,
           targetValue: target?.target,
           href: '/dashboard/change-requests',
           hrefLabel: 'View Change Requests',
         });
-      } else if (avgReviewDays > 0) {
+      } else if (reviewDays > 0) {
         recs.push({
           id: 'review-time-good',
-          metric: 'average-review-time',
+          metric: 'review-time',
           title: 'Review Time on Track',
-          message: `Average review time is ${avgReviewTimeFormatted}, within the 24-hour target.`,
+          message: `Review time is ${reviewTimeDataFormatted}, within the 24-hour target.`,
           severity: 'success',
-          currentValue: avgReviewTimeFormatted,
+          currentValue: reviewTimeDataFormatted,
           targetValue: target?.target,
         });
       }
@@ -313,7 +313,7 @@ export function Recommendations({
     }
 
     return recs;
-  }, [pairingIndex, prSummary, deploymentFrequency, jobsSummary, selectedWorkflow, averageReviewTime]);
+  }, [pairingIndex, prSummary, deploymentFrequency, jobsSummary, selectedWorkflow, reviewTime]);
 
   if (recommendations.length === 0) {
     return null;

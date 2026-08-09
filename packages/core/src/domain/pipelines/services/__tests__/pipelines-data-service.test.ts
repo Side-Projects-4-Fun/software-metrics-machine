@@ -1073,7 +1073,7 @@ describe('PipelinesDataService', () => {
     });
   });
 
-  describe('getJobStepsAverageTime', () => {
+  describe('getJobStepsTime', () => {
     function runWithSteps(
       id: string,
       steps: Array<{ name?: string; startedAt?: string; completedAt?: string }>
@@ -1120,7 +1120,7 @@ describe('PipelinesDataService', () => {
 
       dataService = new PipelinesDataService([run], [], logger, new TimeZoneProvider('UTC'));
 
-      const result = await dataService.getJobStepsAverageTime();
+      const result = await dataService.getJobStepsTime();
 
       expect(result).toEqual([]);
     });
@@ -1141,7 +1141,7 @@ describe('PipelinesDataService', () => {
 
       dataService = new PipelinesDataService([run], [], logger, new TimeZoneProvider('UTC'));
 
-      const result = await dataService.getJobStepsAverageTime();
+      const result = await dataService.getJobStepsTime();
 
       expect(result).toEqual([]);
     });
@@ -1172,7 +1172,7 @@ describe('PipelinesDataService', () => {
 
       dataService = new PipelinesDataService([run], [], logger, new TimeZoneProvider('UTC'));
 
-      const result = await dataService.getJobStepsAverageTime();
+      const result = await dataService.getJobStepsTime();
 
       expect(result).toEqual([]);
     });
@@ -1188,7 +1188,7 @@ describe('PipelinesDataService', () => {
 
       dataService = new PipelinesDataService([run], [], logger, new TimeZoneProvider('UTC'));
 
-      const result = await dataService.getJobStepsAverageTime();
+      const result = await dataService.getJobStepsTime();
 
       expect(result).toEqual([{ name: 'checkout', value: 5, method: 'average', count: 1 }]);
     });
@@ -1211,13 +1211,13 @@ describe('PipelinesDataService', () => {
 
       dataService = new PipelinesDataService([runA, runB], [], logger, new TimeZoneProvider('UTC'));
 
-      const result = await dataService.getJobStepsAverageTime();
+      const result = await dataService.getJobStepsTime();
 
       expect(result).toEqual([{ name: 'checkout', value: 5, method: 'average', count: 2 }]);
     });
   });
 
-  describe('getJobStepsAverageTimeByDay', () => {
+  describe('getJobStepsTimeByDay', () => {
     function runWithStepsOnDay(
       id: string,
       createdAt: string,
@@ -1274,7 +1274,7 @@ describe('PipelinesDataService', () => {
 
       dataService = new PipelinesDataService([run], [], logger, new TimeZoneProvider('UTC'));
 
-      const result = await dataService.getJobStepsAverageTimeByDay();
+      const result = await dataService.getJobStepsTimeByDay();
 
       expect(result).toEqual([]);
     });
@@ -1305,7 +1305,7 @@ describe('PipelinesDataService', () => {
 
       dataService = new PipelinesDataService([run], [], logger, new TimeZoneProvider('UTC'));
 
-      const result = await dataService.getJobStepsAverageTimeByDay();
+      const result = await dataService.getJobStepsTimeByDay();
 
       expect(result).toEqual([]);
     });
@@ -1321,7 +1321,7 @@ describe('PipelinesDataService', () => {
 
       dataService = new PipelinesDataService([run], [], logger, new TimeZoneProvider('UTC'));
 
-      const result = await dataService.getJobStepsAverageTimeByDay();
+      const result = await dataService.getJobStepsTimeByDay();
 
       expect(result).toEqual([]);
     });
@@ -1349,7 +1349,7 @@ describe('PipelinesDataService', () => {
         new TimeZoneProvider('UTC')
       );
 
-      const result = await dataService.getJobStepsAverageTimeByDay();
+      const result = await dataService.getJobStepsTimeByDay();
 
       expect(result).toEqual([
         { day: '2025-01-01', steps: [{ name: 'checkout', value: 4, method: 'average' }] },
@@ -1373,7 +1373,7 @@ describe('PipelinesDataService', () => {
 
       dataService = new PipelinesDataService([run], [], logger, new TimeZoneProvider('UTC'));
 
-      const result = await dataService.getJobStepsAverageTimeByDay();
+      const result = await dataService.getJobStepsTimeByDay();
 
       expect(result).toEqual([
         { day: '2025-01-01', steps: [{ name: 'checkout', value: 5, method: 'average' }] },
@@ -1389,7 +1389,7 @@ describe('PipelinesDataService', () => {
 
       dataService = new PipelinesDataService([run], [], logger, new TimeZoneProvider('UTC'));
 
-      const result = await dataService.getJobStepsAverageTimeByDay();
+      const result = await dataService.getJobStepsTimeByDay();
 
       expect(result).toEqual([]);
     });

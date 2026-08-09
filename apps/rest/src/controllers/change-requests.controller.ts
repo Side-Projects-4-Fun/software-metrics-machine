@@ -11,9 +11,9 @@ import type {
   ChangeRequestSummaryResponse,
   ChangeRequestThroughTimeResponse,
   ChangeRequestByAuthorResponse,
-  ChangeRequestAverageReviewTimeResponse,
-  ChangeRequestAverageOpenByResponse,
-  ChangeRequestAverageCommentsResponse,
+  ChangeRequestReviewTimeResponse,
+  ChangeRequestOpenTimeResponse,
+  ChangeRequestCommentsResponse,
   ChangeRequestCommentsByAuthorResponse,
   ChangeRequestFirstCommentTimeResponse,
   ChangeRequestFilterOptionsResponse,
@@ -118,8 +118,8 @@ export class ChangeRequestsController {
     return { result };
   }
 
-  @Get('/change-requests/average-review-time')
-  async averageReviewTime(
+  @Get('/change-requests/review-time')
+  async reviewTime(
     @Query('start_date') startDate?: string,
     @Query('end_date') endDate?: string,
     @Query('labels') labels?: string,
@@ -131,7 +131,7 @@ export class ChangeRequestsController {
     @Query('weekends') weekends?: string,
     @Query('outlier_mode') outlierMode?: string,
     @Query('method') methodRaw?: string
-  ): Promise<ChangeRequestAverageReviewTimeResponse> {
+  ): Promise<ChangeRequestReviewTimeResponse> {
     const maxRows = top ? Number(top) : 10;
     const method = normalizeMetricMethod(methodRaw);
     const result = await this.changeRequestsService.getReviewTime(
@@ -161,8 +161,8 @@ export class ChangeRequestsController {
     };
   }
 
-  @Get('/change-requests/average-open-by')
-  async averageOpenBy(
+  @Get('/change-requests/open-time')
+  async openTime(
     @Query('start_date') startDate?: string,
     @Query('end_date') endDate?: string,
     @Query('aggregate_by') aggregateBy?: string,
@@ -174,7 +174,7 @@ export class ChangeRequestsController {
     @Query('weekends') weekends?: string,
     @Query('outlier_mode') outlierMode?: string,
     @Query('method') methodRaw?: string
-  ): Promise<ChangeRequestAverageOpenByResponse> {
+  ): Promise<ChangeRequestOpenTimeResponse> {
     const method = normalizeMetricMethod(methodRaw);
     const rows = await this.changeRequestsService.getOpenTimeBy(
       this.toFilters(
@@ -201,8 +201,8 @@ export class ChangeRequestsController {
     }));
   }
 
-  @Get('/change-requests/average-comments')
-  async averageComments(
+  @Get('/change-requests/comments')
+  async comments(
     @Query('start_date') startDate?: string,
     @Query('end_date') endDate?: string,
     @Query('labels') labels?: string,
@@ -213,7 +213,7 @@ export class ChangeRequestsController {
     @Query('weekends') weekends?: string,
     @Query('outlier_mode') outlierMode?: string,
     @Query('method') methodRaw?: string
-  ): Promise<ChangeRequestAverageCommentsResponse> {
+  ): Promise<ChangeRequestCommentsResponse> {
     const method = normalizeMetricMethod(methodRaw);
     const metrics = await this.changeRequestsService.getMetrics(
       this.toFilters(
@@ -229,7 +229,7 @@ export class ChangeRequestsController {
       ),
       method
     );
-    return { avg_comments: metrics.comments, outliers: metrics.outliers?.comments };
+    return { comments_count: metrics.comments, outliers: metrics.outliers?.comments };
   }
 
   @Get('/change-requests/comments-by-author')

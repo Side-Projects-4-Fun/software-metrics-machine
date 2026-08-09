@@ -41,7 +41,7 @@ export interface RecommendationsProps {
     total_runs: number;
   }>;
   selectedWorkflow?: string;
-  averageReviewTime?: Array<{
+  reviewTime?: Array<{
     author: string;
     value: number;
     value_formatted?: string;

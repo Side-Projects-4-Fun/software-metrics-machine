@@ -3,10 +3,10 @@ import {changeRequestAPI} from '@/server/api';
 import {buildChangeRequestApiParams} from '@/server/utils/apiParams';
 import {ensureArray} from '@/server/utils/chartData';
 import ChangeRequestsByAuthorCard from '@/components/charts/change-requests/ChangeRequestsByAuthorCard';
-import AverageReviewTimeCard from '@/components/charts/change-requests/AverageReviewTimeCard';
+import ReviewTimeCard from '@/components/charts/change-requests/ReviewTimeCard';
 import OpenChangeRequestsThroughTimeCard from '@/components/charts/change-requests/OpenChangeRequestsThroughTimeCard';
 import TopThemesCard from '@/components/charts/change-requests/TopThemesCard';
-import AverageDaysChangeRequestsRemainOpenCard from '@/components/charts/change-requests/AverageDaysChangeRequestsRemainOpenCard';
+import OpenTimeCard from '@/components/charts/change-requests/OpenTimeCard';
 import ChangeRequestStatisticsCard from '@/components/charts/change-requests/ChangeRequestStatisticsCard';
 import MostCommentedChangeRequestsCard from '@/components/charts/change-requests/MostCommentedChangeRequestsCard';
 import CommentsByAuthorCard from '@/components/charts/change-requests/CommentsByAuthorCard';
@@ -15,9 +15,9 @@ import OutliersCard, { MetricOutlierRow } from '@/components/charts/OutliersCard
 import ChangeRequestEvaluationCard from '@/components/charts/change-requests/ChangeRequestEvaluationCard';
 import { toOutlierRows } from '@/components/charts/outliers-utils';
 import {
-  AvgCommentsData,
-  AvgOpenByData,
-  AvgReviewTimeData,
+  CommentsData,
+  OpenTimeData,
+  ReviewTimeData,
   ByAuthorData,
   CommentsByAuthorData,
   FirstCommentTimeData,
@@ -51,7 +51,7 @@ interface EvaluationData {
     totalChangeRequests: number;
     mergedChangeRequests: number;
     openChangeRequests: number;
-    avgCommentsPerChangeRequest: number;
+    commentsPerChangeRequest: number;
     reviewHours: number;
     reviewHours_formatted: string;
     openDays: number;
@@ -70,10 +70,10 @@ export default async function ChangeRequestsPage({
 }) {
   const filters = parseDashboardFilters(await searchParams ?? {}, defaultFilters);
   let byAuthor: ByAuthorData[] = [];
-  let avgReviewTime: AvgReviewTimeData[] = [];
+  let reviewTimeData: ReviewTimeData[] = [];
   let openThroughTime: OpenThroughTimeData[] = [];
-  let avgOpenBy: AvgOpenByData[] = [];
-  let avgComments: AvgCommentsData | null = null;
+  let openTimeData: OpenTimeData[] = [];
+  let commentsData: CommentsData | null = null;
   let summary: SummaryData | null = null;
   let topThemes: Array<{ text: string; value: number }> = [];
   let commentsByAuthor: CommentsByAuthorData[] = [];
@@ -86,10 +86,10 @@ export default async function ChangeRequestsPage({
     const apiParams = buildChangeRequestApiParams(filters);
     const [author, review, open, openBy, comments, summaryData, commentsByAuthorData, firstCommentTimeData, evalData] = await Promise.all([
       changeRequestAPI.byAuthor(apiParams),
-      changeRequestAPI.averageReviewTime(apiParams),
+      changeRequestAPI.reviewTime(apiParams),
       changeRequestAPI.openThroughTime(apiParams),
-      changeRequestAPI.averageOpenBy(apiParams),
-      changeRequestAPI.averageComments(apiParams),
+      changeRequestAPI.openTime(apiParams),
+      changeRequestAPI.comments(apiParams),
       changeRequestAPI.summary(apiParams),
       changeRequestAPI.commentsByAuthor(apiParams),
       changeRequestAPI.firstCommentTime(apiParams),
@@ -99,7 +99,7 @@ export default async function ChangeRequestsPage({
     evaluation = evalData;
 
     byAuthor = ensureArray<ByAuthorData>(unwrapResult(author as ByAuthorData[] | ResultWrapper<ByAuthorData[]>));
-    avgReviewTime = ensureArray<AvgReviewTimeData>(unwrapResult(review as AvgReviewTimeData[] | ResultWrapper<AvgReviewTimeData[]>));
+    reviewTimeData = ensureArray<ReviewTimeData>(unwrapResult(review as ReviewTimeData[] | ResultWrapper<ReviewTimeData[]>));
     const openData = ensureArray<OpenThroughTimeResponseItem>(
       unwrapResult(open as OpenThroughTimeResponseItem[] | ResultWrapper<OpenThroughTimeResponseItem[]>)
     );
@@ -128,8 +128,8 @@ export default async function ChangeRequestsPage({
         closed: 0,
       }));
     }
-    avgOpenBy = ensureArray<AvgOpenByData>(unwrapResult(openBy as AvgOpenByData[] | ResultWrapper<AvgOpenByData[]>));
-    avgComments = unwrapResult(comments as AvgCommentsData | ResultWrapper<AvgCommentsData>);
+    openTimeData = ensureArray<OpenTimeData>(unwrapResult(openBy as OpenTimeData[] | ResultWrapper<OpenTimeData[]>));
+    commentsData = unwrapResult(comments as CommentsData | ResultWrapper<CommentsData>);
     const summaryResult = unwrapResult(summaryData as SummaryData | ResultWrapper<SummaryData>);
     summary = summaryResult;
     topThemes = Array.isArray(summaryResult?.top_themes)
@@ -142,13 +142,13 @@ export default async function ChangeRequestsPage({
       unwrapResult(firstCommentTimeData as FirstCommentTimeData[] | ResultWrapper<FirstCommentTimeData[]>)
     );
     outliers = [
-      ...avgReviewTime.flatMap((item) =>
-        toOutlierRows(`Average review time: ${item.author}`, item.outliers)
+      ...reviewTimeData.flatMap((item) =>
+        toOutlierRows(`Review time: ${item.author}`, item.outliers)
       ),
-      ...avgOpenBy.flatMap((item) =>
-        toOutlierRows(`Average open days: ${item.period}`, item.outliers)
+      ...openTimeData.flatMap((item) =>
+        toOutlierRows(`Open days: ${item.period}`, item.outliers)
       ),
-      ...toOutlierRows('Average comments per change request', avgComments?.outliers),
+      ...toOutlierRows('Comments per change request', commentsData?.outliers),
       ...firstCommentTime.flatMap((item) =>
         toOutlierRows(`Time to first comment: ${item.author}`, item.outliers)
       ),
@@ -175,7 +175,7 @@ export default async function ChangeRequestsPage({
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6">
-            <AverageReviewTimeCard data={avgReviewTime} method={filters.method} />
+            <ReviewTimeCard data={reviewTimeData} method={filters.method} />
           </div>
           <div className="grid grid-cols-2 gap-6">
             <CommentsByAuthorCard data={commentsByAuthor} />
@@ -192,10 +192,10 @@ export default async function ChangeRequestsPage({
             <OpenChangeRequestsThroughTimeCard data={openThroughTime} />
           </div>
           <div className="grid grid-cols-1 gap-6">
-            <AverageDaysChangeRequestsRemainOpenCard data={avgOpenBy} method={filters.method} />
+            <OpenTimeCard data={openTimeData} method={filters.method} />
           </div>
           <div className="grid grid-cols-1 gap-6">
-            <ChangeRequestStatisticsCard summary={summary} avgComments={avgComments} method={filters.method} />
+            <ChangeRequestStatisticsCard summary={summary} commentsData={commentsData} method={filters.method} />
           </div>
         </>
       )}

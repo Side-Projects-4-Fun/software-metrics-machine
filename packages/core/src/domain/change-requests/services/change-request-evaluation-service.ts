@@ -258,7 +258,7 @@ export class ChangeRequestEvaluationService {
       return this.insufficientData('comment_health', 'collaboration');
     }
 
-    const avgComments = summary.avg_comments_per_change_request;
+    const avgComments = summary.comments_per_change_request;
     const totalChangeRequests = summary.total_change_requests;
 
     const severity = avgComments === 0 ? 'critical' : avgComments < 1 ? 'warning' : 'good';
@@ -310,7 +310,7 @@ export class ChangeRequestEvaluationService {
       totalChangeRequests: summary?.total_change_requests ?? 0,
       mergedChangeRequests: summary?.merged_change_requests ?? 0,
       openChangeRequests: summary?.open_change_requests ?? 0,
-      avgCommentsPerChangeRequest: summary?.avg_comments_per_change_request ?? 0,
+      commentsPerChangeRequest: summary?.comments_per_change_request ?? 0,
       reviewHours: Math.round(avgReviewHours * 10) / 10,
       openDays: Math.round(avgOpenDays * 10) / 10,
       method,

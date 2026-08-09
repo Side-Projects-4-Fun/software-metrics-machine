@@ -60,17 +60,17 @@ See [apps/cli/README.md](../cli/README.md) for the full `smm_config.json` schema
 
 ## Endpoints
 
-### Pull requests
+### Change requests
 ```
-GET /pull-requests/summary
-GET /pull-requests/through-time
-GET /pull-requests/by-author
-GET /pull-requests/average-review-time
-GET /pull-requests/average-open-by
-GET /pull-requests/average-comments
-GET /pull-requests/comments-by-author
-GET /pull-requests/first-comment-time
-GET /pull-requests/filter-options
+GET /change-requests/summary
+GET /change-requests/through-time
+GET /change-requests/by-author
+GET /change-requests/review-time
+GET /change-requests/open-time
+GET /change-requests/comments
+GET /change-requests/comments-by-author
+GET /change-requests/first-comment-time
+GET /change-requests/filter-options
 ```
 
 ### Pipelines
@@ -82,10 +82,10 @@ GET /pipelines/runs-by
 GET /pipelines/jobs-summary
 GET /pipelines/jobs-by-status
 GET /pipelines/jobs-reruns-by-day
-GET /pipelines/jobs-average-time
-GET /pipelines/jobs-average-time-by-day
-GET /pipelines/jobs-steps-average-time
-GET /pipelines/jobs-steps-average-time-by-day
+GET /pipelines/jobs-time-execution
+GET /pipelines/jobs-time-execution-by-day
+GET /pipelines/jobs-steps-time
+GET /pipelines/jobs-steps-time-by-day
 GET /dora/deployment-frequency
 GET /pipelines/jobs-duration-by-workflow
 GET /pipelines/workflows
