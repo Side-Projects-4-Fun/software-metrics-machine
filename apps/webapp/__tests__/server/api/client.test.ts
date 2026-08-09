@@ -49,6 +49,27 @@ describe('fetchAPI', () => {
     );
   });
 
+  describe('active project cookie', () => {
+    it('appends the active project when skipProjectParam is not set', async () => {
+      mockCookieValues.set('smm_active_project', 'owner%2Frepo-a');
+
+      await fetchAPI('/filters');
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        'http://rest.test/filters?project=owner%2Frepo-a',
+        expect.anything()
+      );
+    });
+
+    it('does not append the active project when skipProjectParam is true', async () => {
+      mockCookieValues.set('smm_active_project', 'owner%2Frepo-a');
+
+      await fetchAPI('/filters', undefined, { skipProjectParam: true });
+
+      expect(global.fetch).toHaveBeenCalledWith('http://rest.test/filters', expect.anything());
+    });
+  });
+
   describe('sanitizeApiEndpoint (SSRF prevention)', () => {
     it('allows a valid absolute-path endpoint', async () => {
       await expect(fetchAPI('/projects')).resolves.toBeDefined();

@@ -11,9 +11,13 @@ type SavedFiltersDocument = {
   reports?: ReportEntry[];
 };
 
-async function readDocument(): Promise<SavedFiltersDocument> {
+type ReadDocumentOptions = {
+  skipProjectParam?: boolean;
+};
+
+async function readDocument(options?: ReadDocumentOptions): Promise<SavedFiltersDocument> {
   try {
-    const data = await fetchAPI<SavedFiltersDocument>('/filters');
+    const data = await fetchAPI<SavedFiltersDocument>('/filters', undefined, options);
     if (data && data.version === 1 && Array.isArray(data.filters)) {
       return {
         version: 1,
@@ -32,7 +36,7 @@ async function writeDocument(document: SavedFiltersDocument): Promise<void> {
 }
 
 export async function getSavedFilters(): Promise<SavedFilterEntry[]> {
-  const doc = await readDocument();
+  const doc = await readDocument({ skipProjectParam: true });
   return doc.filters;
 }
 

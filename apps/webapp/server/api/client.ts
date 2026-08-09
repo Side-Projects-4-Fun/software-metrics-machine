@@ -9,6 +9,10 @@ export interface ApiParams {
   [key: string]: string | number | undefined;
 }
 
+export interface FetchApiOptions {
+  skipProjectParam?: boolean;
+}
+
 type WebappSettings = {
   fetchCache?: boolean;
 };
@@ -110,7 +114,11 @@ function sanitizeApiEndpoint(endpoint: string): string {
   return trimmed;
 }
 
-export async function fetchAPI<T>(endpoint: string, params?: ApiParams): Promise<T> {
+export async function fetchAPI<T>(
+  endpoint: string,
+  params?: ApiParams,
+  options?: FetchApiOptions
+): Promise<T> {
   const { smmRestBaseUrl } = getServerEnv();
   const apiBaseUrl = `${smmRestBaseUrl}/api/v1`;
   const safeEndpoint = sanitizeApiEndpoint(endpoint);
@@ -119,7 +127,7 @@ export async function fetchAPI<T>(endpoint: string, params?: ApiParams): Promise
   // Append active project from cookie if set
   const cookieStore = await cookies();
   const activeProject = cookieStore.get('smm_active_project')?.value;
-  if (activeProject) {
+  if (activeProject && !options?.skipProjectParam) {
     url.searchParams.append('project', decodeURIComponent(activeProject));
   }
   

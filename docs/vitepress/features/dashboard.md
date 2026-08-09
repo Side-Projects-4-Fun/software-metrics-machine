@@ -78,7 +78,9 @@ read from the same file, so filters saved in one surface are available in the ot
 The filter drawer shows the **Save Filter** and **Delete Filter** buttons above the filter controls. When a saved view's
 filter values match the current URL parameters, the saved view is shown as selected in the filter dropdown.
 
-The home page shows saved views grouped by project and dashboard section so common slices can be reopened directly.
+The home page lists saved views from **every** configured project, grouped by project and dashboard section, so
+common slices can be reopened directly regardless of the currently selected project. Section pages keep showing the
+saved views for the active project, and saving or deleting a view always targets the active project.
 
 == CLI
 
