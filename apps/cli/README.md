@@ -32,7 +32,7 @@ export SMM_STORE_DATA_AT=~/.smm-data
 smm health-check
 
 # 4. Fetch data and start the dashboard
-smm prs fetch --start-date 2025-01-01 --end-date 2025-06-01
+smm change-requests fetch --start-date 2025-01-01 --end-date 2025-06-01
 smm pipelines fetch --start-date 2025-01-01 --end-date 2025-06-01 --by-day
 smm dashboard serve
 ```
@@ -40,6 +40,22 @@ smm dashboard serve
 ## Configuration
 
 `SMM_STORE_DATA_AT` (required) — path to the directory where `smm_config.json` lives and where all fetched data is stored.
+
+### Interactive project configuration
+
+The easiest way to create or update `smm_config.json` is the interactive wizard:
+
+```bash
+smm project configure
+```
+
+The wizard asks for the Git provider, repository, branch, tokens, and optional Jira / SonarQube integrations, then
+writes the file for you. If `SMM_STORE_DATA_AT` is not set, it asks for a data directory, creates it, and prints the
+`export SMM_STORE_DATA_AT=...` command to reuse later. List the configured projects with:
+
+```bash
+smm project list
+```
 
 ### `smm_config.json` schema
 
@@ -118,14 +134,14 @@ If an invalid value is provided (e.g. `log_level: "TRACE"`), it falls back to `C
 
 ```bash
 # Quick debug
-smm --debug pr summary
+smm --debug change-requests summary
 
 # Via environment
-DEBUG=true smm pr summary
+DEBUG=true smm change-requests summary
 
 # Per-project config
 export OWNER_REPO_LOGGING_LEVEL=INFO
-smm --project owner/repo pr summary
+smm --project owner/repo change-requests summary
 ```
 
 ### File logging
@@ -200,30 +216,30 @@ run, so it is already parallel-aware and is unaffected by this normalization.
 
 ## Commands
 
-### `smm prs` — Pull request operations
+### `smm change-requests` — Change request operations
 
-#### `smm prs fetch`
-Fetch pull requests from the configured Git provider.
+#### `smm change-requests fetch`
+Fetch change requests from the configured Git provider.
 
 ```
 --force               force re-fetch even if data already exists
 --update              incremental update: fetch only newer items and merge with cache
---start-date <date>   PRs created on or after this date (ISO 8601)
---end-date <date>     PRs created on or before this date (ISO 8601)
+--start-date <date>   change requests created on or after this date (ISO 8601)
+--end-date <date>     change requests created on or before this date (ISO 8601)
 ```
 
-#### `smm prs fetch-comments`
-Fetch pull request comments.
+#### `smm change-requests fetch-comments`
+Fetch change request comments.
 
 ```
 --force               force re-fetch
 --update              incremental update
---start-date <date>   filter PRs by creation date on or after (ISO 8601)
---end-date <date>     filter PRs by creation date on or before (ISO 8601)
+--start-date <date>   filter change requests by creation date on or after (ISO 8601)
+--end-date <date>     filter change requests by creation date on or before (ISO 8601)
 ```
 
-#### `smm prs summary`
-View PR summary statistics.
+#### `smm change-requests summary`
+View change request summary statistics.
 
 ```
 --start-date <date>
@@ -236,8 +252,8 @@ View PR summary statistics.
 --output <format>             text|json  (default: text)
 ```
 
-#### `smm prs by-month`
-View PR metrics grouped by month.
+#### `smm change-requests by-month`
+View change request metrics grouped by month.
 
 ```
 --start-date <date>
@@ -247,11 +263,11 @@ View PR metrics grouped by month.
 --output <format>             text|json  (default: text)
 ```
 
-#### `smm prs by-week`
-View PR metrics grouped by week. Same options as `by-month`.
+#### `smm change-requests by-week`
+View change request metrics grouped by week. Same options as `by-month`.
 
-#### `smm prs through-time`
-View PRs opened and closed over time (daily/weekly/monthly).
+#### `smm change-requests through-time`
+View change requests opened and closed over time (daily/weekly/monthly).
 
 ```
 --start-date <date>
@@ -265,8 +281,8 @@ View PRs opened and closed over time (daily/weekly/monthly).
 --output <format>             text|json  (default: text)
 ```
 
-#### `smm prs by-author`
-View PRs grouped by author.
+#### `smm change-requests by-author`
+View change requests grouped by author.
 
 ```
 --start-date <date>
@@ -639,6 +655,7 @@ month by month, and quarter by quarter.
 --end-date <date>             current window end date (YYYY-MM-DD)
 --compare-start-date <date>   previous window start date (YYYY-MM-DD)
 --compare-end-date <date>     previous window end date (YYYY-MM-DD)
+--change-request-labels <labels>  comma-separated change request labels filter (change request metrics only)
 --period <period>             day|week|month  (default: week)
 --weekends <mode>             include|exclude|weekends_only  (default: include)
 --outlier-mode <mode>         include|flag|exclude  (default: include)
@@ -711,6 +728,24 @@ Analyze local cache data quality (missing, stale, invalid, coverage gaps).
 --max-gap-days <days>  only report gaps larger than N days  (default: 1)
 --output <format>      text|json  (default: text)
 ```
+
+---
+
+### `smm project` — Project configuration
+
+Interactively configure projects stored in `smm_config.json`.
+
+#### `smm project configure`
+Create a new project or update an existing one through an interactive wizard. If `SMM_STORE_DATA_AT` is not set, the
+wizard asks for the data directory, creates it, and prints the `export SMM_STORE_DATA_AT=...` command to reuse later.
+
+The wizard walks through the Git provider (github/gitlab), repository (`owner/repo`), local clone path, main branch,
+provider token, optional Jira and SonarQube integrations, log level, timezone, and store-logs settings. Optional values
+are only written when provided, so updating a project keeps existing settings you left untouched.
+
+#### `smm project list`
+List the configured projects from `smm_config.json`. Prints a hint asking you to run `smm project configure` first when
+`SMM_STORE_DATA_AT` is not set or no projects are configured yet.
 
 ---
 
