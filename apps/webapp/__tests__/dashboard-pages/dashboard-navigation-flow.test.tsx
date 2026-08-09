@@ -2,7 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DashboardLayout from '@/app/dashboard/layout';
 import PipelinesPage from '@/app/dashboard/pipelines/page';
-import PullRequestsPage from '@/app/dashboard/pull-requests/page';
+import ChangeRequestsPage from '@/app/dashboard/change-requests/page';
 import {
   DashboardConfigurationBuilder,
 } from '../builders/builders';
@@ -25,7 +25,7 @@ jest.mock('@/server/api', () => ({
     dashboard: jest.fn(),
     evaluate: jest.fn(),
   },
-  pullRequestAPI: {
+  changeRequestAPI: {
     byAuthor: jest.fn(),
     averageReviewTime: jest.fn(),
     openThroughTime: jest.fn(),
@@ -43,13 +43,13 @@ jest.mock('@/app/theme-context', () => ({
   useTheme: jest.fn(() => ({ mode: 'light', toggleTheme: jest.fn() })),
 }));
 
-import { configurationAPI, projectsAPI, pipelineAPI, pullRequestAPI } from '@/server/api';
+import { configurationAPI, projectsAPI, pipelineAPI, changeRequestAPI } from '@/server/api';
 
 const mockConfigAPI = configurationAPI as jest.Mocked<typeof configurationAPI>;
 const mockProjectsAPI = projectsAPI as jest.Mocked<typeof projectsAPI>;
 
 const mockPipeline = pipelineAPI as jest.Mocked<typeof pipelineAPI>;
-const mockPRAPI = pullRequestAPI as jest.Mocked<typeof pullRequestAPI>;
+const mockPRAPI = changeRequestAPI as jest.Mocked<typeof changeRequestAPI>;
 
 describe('Dashboard Navigation with Filters Flow', () => {
   beforeEach(() => {
@@ -101,13 +101,13 @@ describe('Dashboard Navigation with Filters Flow', () => {
     mockPRAPI.openThroughTime.mockResolvedValue({ result: [{ date: '2026-01-01', kind: 'Opened', count: 3 }] });
     mockPRAPI.averageOpenBy.mockResolvedValue({ result: [{ period: '2026-01', value: 2.3, value_formatted: '2.3 days', method: 'average' }] });
     mockPRAPI.averageComments.mockResolvedValue({ result: { avg_comments: 3.5 } });
-    mockPRAPI.summary.mockResolvedValue({ result: { total: 20, merged: 15, closed: 3, open: 2, labels: [], top_themes: [], most_commented_prs: [] } });
+    mockPRAPI.summary.mockResolvedValue({ result: { total: 20, merged: 15, closed: 3, open: 2, labels: [], top_themes: [], most_commented_change_requests: [] } });
     mockPRAPI.commentsByAuthor.mockResolvedValue({ result: [{ author: 'alice', count: 8 }] });
-    mockPRAPI.firstCommentTime.mockResolvedValue({ result: [{ author: 'alice', value: 1.2, value_formatted: '1.2 h', method: 'average', prs_with_comments: 10 }] });
+    mockPRAPI.firstCommentTime.mockResolvedValue({ result: [{ author: 'alice', value: 1.2, value_formatted: '1.2 h', method: 'average', change_requests_with_comments: 10 }] });
     mockPRAPI.evaluate.mockResolvedValue({
       generatedAt: '2026-01-01T00:00:00Z',
       signals: [{ id: 'review-time', title: 'Review Time', description: 'Good', severity: 'good', category: 'review', metrics: [] }],
-      summary: { totalPRs: 20, mergedPRs: 15, openPRs: 2, avgCommentsPerPR: 3.5, reviewHours: 3.3, reviewHours_formatted: '3.3 h', openDays: 2.3, openDays_formatted: '2.3 days', method: 'average', uniqueAuthors: 2 },
+      summary: { totalChangeRequests: 20, mergedChangeRequests: 15, openChangeRequests: 2, avgCommentsPerChangeRequest: 3.5, reviewHours: 3.3, reviewHours_formatted: '3.3 h', openDays: 2.3, openDays_formatted: '2.3 days', method: 'average', uniqueAuthors: 2 },
     });
   });
 
@@ -127,18 +127,18 @@ describe('Dashboard Navigation with Filters Flow', () => {
     expect(screen.getByText('Pipeline Runs Duration')).toBeInTheDocument();
   });
 
-  it('renders pull requests dashboard with data', async () => {
+  it('renders change requests dashboard with data', async () => {
     const config = new DashboardConfigurationBuilder().build();
 
-    const ui = await PullRequestsPage({ searchParams: Promise.resolve({}) });
+    const ui = await ChangeRequestsPage({ searchParams: Promise.resolve({}) });
     renderWithProviders(ui, { config });
 
     await waitFor(() => {
-      expect(screen.getByText('PR Health Summary')).toBeInTheDocument();
+      expect(screen.getByText('Change Request Health Summary')).toBeInTheDocument();
     });
 
     expect(screen.getByText('Bottleneck Analysis')).toBeInTheDocument();
-    expect(screen.getByText('PR Statistics')).toBeInTheDocument();
+    expect(screen.getByText('Change Request Statistics')).toBeInTheDocument();
   });
 
   it('navigates between dashboard tabs', async () => {
@@ -153,7 +153,7 @@ describe('Dashboard Navigation with Filters Flow', () => {
       expect(screen.getByRole('tab', { name: /Pipelines/i })).toBeInTheDocument();
     });
 
-    const prTab = screen.getByRole('tab', { name: /Pull Requests/i });
+    const prTab = screen.getByRole('tab', { name: /Change Requests/i });
     
     await expect(userEvent.click(prTab)).resolves.not.toThrow();
   });
@@ -167,7 +167,7 @@ describe('Dashboard Navigation with Filters Flow', () => {
     await waitFor(() => {
       expect(screen.getByRole('tab', { name: /Insights/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /Pipelines/i })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /Pull Requests/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Change Requests/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /Source Code/i })).toBeInTheDocument();
     });
   });

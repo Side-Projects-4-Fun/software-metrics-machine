@@ -4,8 +4,7 @@ outline: deep
 
 # GitLab provider
 
-This provider fetches and visualizes data from GitLab repositories, including merge requests (equivalent to pull
-requests) and pipelines (CI/CD). It uses the [GitLab CLI (`glab`)](https://gitlab.com/gitlab-org/cli) to interact with
+This provider fetches and visualizes data from GitLab repositories, including merge requests (change requests) and pipelines (CI/CD). It uses the [GitLab CLI (`glab`)](https://gitlab.com/gitlab-org/cli) to interact with
 the GitLab API.
 
 > [!IMPORTANT]
@@ -136,12 +135,12 @@ A successful response returns your user information as JSON.
 
 The GitLab provider supports the same set of metrics as the GitHub provider:
 
-- **Merge requests** (PRs): title, author, state, labels, dates, and comments
+- **Merge requests** (change requests): title, author, state, labels, dates, and comments
 - **Pipelines** (workflows): status, duration, branch, and conclusion
 - **Jobs**: individual job names, status, duration, and steps
 
-All CLI commands work transparently with GitLab — use the same `smm prs fetch`, `smm pipelines fetch`, and other
-commands. The provider selection is driven by `git_provider` in your configuration.
+All CLI commands work transparently with GitLab — use the same `smm change-requests fetch`, `smm pipelines fetch`,
+and other commands. The provider selection is driven by `git_provider` in your configuration.
 
 ## Limitations
 

@@ -1,15 +1,15 @@
-import { buildPipelineApiParams, buildPullRequestApiParams } from '@/server/utils/apiParams';
+import { buildPipelineApiParams, buildChangeRequestApiParams } from '@/server/utils/apiParams';
 
-describe('buildPullRequestApiParams', () => {
-  it('includes status when pullRequestStatus is provided', () => {
-    const params = buildPullRequestApiParams({
+describe('buildChangeRequestApiParams', () => {
+  it('includes status when changeRequestStatus is provided', () => {
+    const params = buildChangeRequestApiParams({
       startDate: '2026-01-01',
       endDate: '2026-01-31',
       authorSelect: ['alice'],
       excludeAuthorSelect: ['bot'],
       excludeCommenterSelect: ['renovate'],
       labelSelector: ['bug'],
-      pullRequestStatus: 'merged',
+      changeRequestStatus: 'merged',
       aggregateBy: 'week',
       timezone: 'Europe/Madrid',
       weekends: 'weekends_only',
@@ -28,8 +28,8 @@ describe('buildPullRequestApiParams', () => {
     expect(params.outlier_mode).toBe('flag');
   });
 
-  it('omits status when pullRequestStatus is not provided', () => {
-    const params = buildPullRequestApiParams({
+  it('omits status when changeRequestStatus is not provided', () => {
+    const params = buildChangeRequestApiParams({
       startDate: '2026-01-01',
       endDate: '2026-01-31',
       authorSelect: [],

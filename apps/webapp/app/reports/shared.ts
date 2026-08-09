@@ -1,12 +1,12 @@
 import { fetchAPI } from '@/server/api/client';
 import { pipelineAPI } from '@/server/api/pipeline';
-import { pullRequestAPI } from '@/server/api/pullRequest';
+import { changeRequestAPI } from '@/server/api/changeRequest';
 import { sourceCodeAPI } from '@/server/api/sourceCode';
 import { architectureAPI } from '@/server/api/architecture';
 import { sonarqubeAPI } from '@/server/api/sonarqube';
 import {
   buildPipelineApiParams,
-  buildPullRequestApiParams,
+  buildChangeRequestApiParams,
   buildSourceCodeApiParams,
   buildSonarqubeApiParams,
 } from '@/server/utils/apiParams';
@@ -48,8 +48,8 @@ function buildEvaluateParams(
   switch (section) {
     case 'pipelines':
       return buildPipelineApiParams(filters);
-    case 'pull-requests':
-      return buildPullRequestApiParams(filters);
+    case 'change-requests':
+      return buildChangeRequestApiParams(filters);
     case 'source-code':
       return buildSourceCodeApiParams(filters);
     case 'sonarqube':
@@ -71,8 +71,8 @@ async function evaluateSection(
   switch (section) {
     case 'pipelines':
       return pipelineAPI.evaluate(params);
-    case 'pull-requests':
-      return pullRequestAPI.evaluate(params);
+    case 'change-requests':
+      return changeRequestAPI.evaluate(params);
     case 'source-code':
       return sourceCodeAPI.evaluate(params);
     case 'architecture':

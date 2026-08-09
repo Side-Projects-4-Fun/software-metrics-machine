@@ -24,7 +24,7 @@ describe('ReferencesPage', () => {
     expect(screen.getByText('How Outliers Work In SMM')).toBeInTheDocument();
   });
 
-  it('details which pipeline and pull request data are used for outliers', () => {
+  it('details which pipeline and change request data are used for outliers', () => {
     render(<ReferencesPage />);
 
     expect(screen.getByText('Pipeline Data Used')).toBeInTheDocument();
@@ -32,7 +32,7 @@ describe('ReferencesPage', () => {
     expect(screen.getByText(/Job average time per job/)).toBeInTheDocument();
     expect(screen.getByText(/Step average time by day and step/)).toBeInTheDocument();
 
-    expect(screen.getByText('Pull Request Data Used')).toBeInTheDocument();
+    expect(screen.getByText('Change Request Data Used')).toBeInTheDocument();
     expect(screen.getByText(/Average review time per author/)).toBeInTheDocument();
     expect(screen.getByText(/Average open days per period/)).toBeInTheDocument();
     expect(screen.getByText(/Time to first comment per author/)).toBeInTheDocument();
@@ -56,7 +56,7 @@ describe('ReferencesPage', () => {
 
     expect(screen.getByText('Code Analysis')).toBeInTheDocument();
     expect(screen.getByText('Pipelines')).toBeInTheDocument();
-    expect(screen.getByText('Pull Requests')).toBeInTheDocument();
+    expect(screen.getByText('Change Requests')).toBeInTheDocument();
     expect(screen.getByText('SonarQube')).toBeInTheDocument();
     expect(screen.getByText('Outlier Detection')).toBeInTheDocument();
     expect(screen.getByText(/SMM flags outliers using the interquartile range \(IQR\) method\./)).toBeInTheDocument();
@@ -140,12 +140,12 @@ describe('ReferencesPage', () => {
       'Jobs Success Rate',
       'Average Review Time',
       'Time To First Comment',
-      'Prs By Author',
-      'Prs Remain Open',
-      'Pr Statistics',
-      'Most Commented Prs',
+      'Change Requests By Author',
+      'Change Requests Remain Open',
+      'Change Request Statistics',
+      'Most Commented Change Requests',
       'Comments By Author',
-      'Open Prs Through Time',
+      'Open Change Requests Through Time',
       'Sonarqube Reliability',
       'Sonarqube Security',
       'Sonarqube Maintainability',

@@ -103,14 +103,14 @@ export const tools: RegisteredTool[] = [
     },
   },
   {
-    name: 'smm_get_pr_metrics',
+    name: 'smm_get_change_request_metrics',
     description:
-      'Get pull request metrics (throughput, review time, authors, outliers) for a configured SMM project.',
-    inputSchema: buildMetricsInputSchema('Pull request metric filters.'),
+      'Get change request metrics (throughput, review time, authors, outliers) for a configured SMM project.',
+    inputSchema: buildMetricsInputSchema('Change request metric filters.'),
     async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const { args, reader } = getReader(argumentsValue);
       return asToolResult(
-        await reader.getPRMetrics({
+        await reader.getChangeRequestMetrics({
           startDate: args.startDate,
           endDate: args.endDate,
         })
@@ -245,7 +245,7 @@ export const tools: RegisteredTool[] = [
   {
     name: 'smm_get_full_report',
     description:
-      'Get a complete metrics report (pull requests, deployment, code, issues, quality) for a configured SMM project.',
+      'Get a complete metrics report (change requests, deployment, code, issues, quality) for a configured SMM project.',
     inputSchema: buildMetricsInputSchema('Complete report filters.'),
     async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const { args, reader } = getReader(argumentsValue);
@@ -258,14 +258,14 @@ export const tools: RegisteredTool[] = [
     },
   },
   {
-    name: 'smm_evaluate_prs',
+    name: 'smm_evaluate_change_requests',
     description:
-      'Evaluate pull request health signals (review bottlenecks, throughput, collaboration) and produce severity-graded recommendations.',
-    inputSchema: buildEvaluationInputSchema('PR evaluation filters.'),
+      'Evaluate change request health signals (review bottlenecks, throughput, collaboration) and produce severity-graded recommendations.',
+    inputSchema: buildEvaluationInputSchema('Change request evaluation filters.'),
     async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const { args, reader } = getReader(argumentsValue);
       return asToolResult(
-        await reader.evaluatePRs({
+        await reader.evaluateChangeRequests({
           startDate: args.startDate,
           endDate: args.endDate,
         })
@@ -425,13 +425,13 @@ export const tools: RegisteredTool[] = [
     },
   },
   {
-    name: 'smm_list_pr_filter_options',
+    name: 'smm_list_change_request_filter_options',
     description:
-      'List available pull request filter values (authors, labels, commenters) for a configured SMM project.',
-    inputSchema: buildMetricsInputSchema('PR filter options lookup.'),
+      'List available change request filter values (authors, labels, commenters) for a configured SMM project.',
+    inputSchema: buildMetricsInputSchema('Change request filter options lookup.'),
     async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const { reader } = getReader(argumentsValue);
-      return asToolResult(await reader.listPRFilterOptions());
+      return asToolResult(await reader.listChangeRequestFilterOptions());
     },
   },
   {

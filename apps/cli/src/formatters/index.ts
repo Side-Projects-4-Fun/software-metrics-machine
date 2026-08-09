@@ -12,8 +12,8 @@ export interface FormatterOptions {
 type MetricValue = string | number | boolean | null | undefined;
 type MetricRecord = Record<string, MetricValue>;
 
-interface PullRequestMetrics {
-  totalPRs?: number;
+interface ChangeRequestMetrics {
+  totalChangeRequests?: number;
   leadTime?: { average?: number; unit?: string };
   commentSummary?: { total?: number };
   labelSummary?: Record<string, number>;
@@ -50,7 +50,7 @@ type QualityMetrics = MetricRecord & { filters?: unknown };
 interface CompleteReport {
   timestamp?: string;
   filters?: Record<string, MetricValue>;
-  pullRequests?: PullRequestMetrics;
+  changeRequests?: ChangeRequestMetrics;
   deployment?: DeploymentMetrics;
   code?: CodeMetrics;
   issues?: IssueMetrics;
@@ -60,8 +60,8 @@ interface CompleteReport {
 /**
  * Format pull request metrics for output
  */
-export function formatPullRequestMetrics(
-  data: PullRequestMetrics,
+export function formatChangeRequestMetrics(
+  data: ChangeRequestMetrics,
   options: FormatterOptions
 ): string {
   if (options.format === 'json') {
@@ -70,7 +70,7 @@ export function formatPullRequestMetrics(
 
   if (options.format === 'csv') {
     const lines: string[] = ['metric,value'];
-    if (data.totalPRs !== undefined) lines.push(`total_prs,${data.totalPRs}`);
+    if (data.totalChangeRequests !== undefined) lines.push(`total_prs,${data.totalChangeRequests}`);
     if (data.leadTime?.average !== undefined) lines.push(`lead_time_days,${data.leadTime.average}`);
     if (data.commentSummary?.total !== undefined)
       lines.push(`total_comments,${data.commentSummary.total}`);
@@ -78,9 +78,9 @@ export function formatPullRequestMetrics(
   }
 
   // Text format (default)
-  let output = '\n📊 Pull Request Metrics\n';
+  let output = '\n📊 Change Request Metrics\n';
   output += '═══════════════════════════════════════\n';
-  output += `Total PRs: ${data.totalPRs || 'N/A'}\n`;
+  output += `Total change requests: ${data.totalChangeRequests || 'N/A'}\n`;
 
   if (data.leadTime) {
     const unit = data.leadTime.unit || 'days';
@@ -291,11 +291,11 @@ export function formatCompleteReport(data: CompleteReport, options: FormatterOpt
   if (options.format === 'csv') {
     const lines: string[] = ['section,metric,value'];
 
-    // Add PR metrics
-    if (data.pullRequests) {
-      lines.push(`PR,total_prs,${data.pullRequests.totalPRs}`);
-      if (data.pullRequests.leadTime) {
-        lines.push(`PR,lead_time,${data.pullRequests.leadTime.average}`);
+    // Add change request metrics
+    if (data.changeRequests) {
+      lines.push(`Change request,total_prs,${data.changeRequests.totalChangeRequests}`);
+      if (data.changeRequests.leadTime) {
+        lines.push(`Change request,lead_time,${data.changeRequests.leadTime.average}`);
       }
     }
 
@@ -350,9 +350,9 @@ export function formatCompleteReport(data: CompleteReport, options: FormatterOpt
     }
   }
 
-  // Pull Requests
-  if (data.pullRequests) {
-    output += '\n' + formatPullRequestMetrics(data.pullRequests, { format: 'text' });
+  // Change Requests
+  if (data.changeRequests) {
+    output += '\n' + formatChangeRequestMetrics(data.changeRequests, { format: 'text' });
   }
 
   // Deployment

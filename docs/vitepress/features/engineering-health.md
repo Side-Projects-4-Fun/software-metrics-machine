@@ -101,10 +101,10 @@ smm engineering-health evaluate \
     --weekends exclude \
     --outlier-mode flag
 
-# Review pull-request-backed collaboration metrics for a label slice
+# Review change-request-backed collaboration metrics for a label slice
 smm engineering-health evaluate \
     --category collaboration \
-    --pr-labels feature,backend \
+    --change-request-labels feature,backend \
     --start-date 2026-07-01 \
     --end-date 2026-07-31 \
     --compare-start-date 2026-06-01 \
@@ -140,7 +140,7 @@ Typical workflow:
 3. Pick a comparison range when you want period-over-period movement.
 4. Choose the period granularity: day, week, biweekly, month, or quarter.
 5. Filter by category or metric when the report needs to focus on one area.
-6. Use PR labels when you want collaboration metrics to reflect a specific slice of work.
+6. Use change request labels when you want collaboration metrics to reflect a specific slice of work.
 7. Print the page when you need to share the report as a PDF.
 
 The page keeps the same layout for dashboard viewing and PDF export. The dashboard print action prints the page users
@@ -161,7 +161,7 @@ Important filters include:
 | Outlier mode | `--outlier-mode` | `outlier_mode` | Includes, flags, or excludes outliers where supported by the metric. |
 | Category | `--category` | `category` | Limits the report to delivery, quality, collaboration, or architecture. |
 | Metric | `--metric` | `metric` | Limits the report to one or more comma-separated metric ids. |
-| PR labels | `--pr-labels` | `pr_labels` | Filters pull-request-backed collaboration metrics by labels. |
+| Change request labels | `--change-request-labels` | `change_request_labels` | Filters change-request-backed collaboration metrics by labels. |
 | Raw filters | `--raw-filters` | `raw_filters` | Sends advanced provider-specific filters where supported. See [Raw filters](#raw-filters) below for usage. |
 | Output format | `--output` | Not applicable | Prints `text` or `json` output from the CLI. |
 
@@ -222,26 +222,26 @@ smm engineering-health evaluate \
     --raw-filters "status=success|name=ci-cd|event=push"
 ```
 
-#### Pull requests / Merge requests
+#### Change requests / Merge requests
 
-For collaboration metrics backed by pull requests or merge requests:
+For collaboration metrics backed by change requests or merge requests:
 
 ```bash
-# Filter by PR author
+# Filter by change request author
 smm engineering-health evaluate \
     --category collaboration \
     --start-date 2026-07-01 \
     --end-date 2026-07-31 \
     --raw-filters "author.login=alice|author.login=bob"
 
-# Filter by PR title pattern
+# Filter by change request title pattern
 smm engineering-health evaluate \
     --category collaboration \
     --start-date 2026-07-01 \
     --end-date 2026-07-31 \
     --raw-filters "title=feat:|title=fix:"
 
-# Combine multiple PR filters
+# Combine multiple change request filters
 smm engineering-health evaluate \
     --category collaboration \
     --start-date 2026-07-01 \
@@ -287,7 +287,7 @@ smm engineering-health evaluate \
     --end-date 2026-07-31 \
     --raw-filters "name=deploy,environment=production"
 
-# Exclude draft PRs from collaboration metrics
+# Exclude draft change requests from collaboration metrics
 smm engineering-health evaluate \
     --category collaboration \
     --start-date 2026-07-01 \

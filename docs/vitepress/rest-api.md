@@ -28,7 +28,7 @@ Use this parameter when sending date-only filters or when consuming grouped metr
 application:
 
 ```text
-GET /pull-requests/summary?start_date=2026-01-01&end_date=2026-01-31&timezone=Europe%2FMadrid
+GET /change-requests/summary?start_date=2026-01-01&end_date=2026-01-31&timezone=Europe%2FMadrid
 ```
 
 REST requests use the `timezone` query parameter first. If it is missing or invalid, SMM falls back to the active
@@ -37,17 +37,17 @@ project's configured `timezone`, then to `UTC`.
 Date-only values such as `2026-01-01` are interpreted as calendar dates in the selected timezone. Offset-aware date-time
 values such as `2026-01-01T09:00:00+01:00` are treated as exact instants.
 
-## Pull Requests
+## Change requests
 
-- `GET /pull-requests/summary`
-- `GET /pull-requests/through-time`
-- `GET /pull-requests/by-author`
-- `GET /pull-requests/average-review-time`
-- `GET /pull-requests/average-open-by`
-- `GET /pull-requests/average-comments`
-- `GET /pull-requests/comments-by-author`
-- `GET /pull-requests/first-comment-time`
-- `GET /pull-requests/filter-options`
+- `GET /change-requests/summary`
+- `GET /change-requests/through-time`
+- `GET /change-requests/by-author`
+- `GET /change-requests/average-review-time`
+- `GET /change-requests/average-open-by`
+- `GET /change-requests/average-comments`
+- `GET /change-requests/comments-by-author`
+- `GET /change-requests/first-comment-time`
+- `GET /change-requests/filter-options`
 
 Common query params:
 
@@ -133,7 +133,7 @@ The REST API has two logging layers:
 
 ### Domain service logging
 
-The core business logic (Jira, SonarQube, PRs, pipelines, etc.) always respects the project's configured `log_level`,
+The core business logic (Jira, SonarQube, change requests, pipelines, etc.) always respects the project's configured `log_level`,
 `<REPO>_LOGGING_LEVEL` env var, or falls back to `CRITICAL`. These logs use the standard SMM log format
 (`[timestamp] [LEVEL] [serviceName] message`) and can optionally write to the log file if `store_logs` is enabled.
 

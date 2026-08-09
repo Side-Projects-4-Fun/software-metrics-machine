@@ -12,7 +12,7 @@ export interface DashboardFilters {
   excludeAuthorSelect: string[];
   excludeCommenterSelect: string[];
   labelSelector: string[];
-  pullRequestStatus?: 'open' | 'closed' | 'merged' | 'draft';
+  changeRequestStatus?: 'open' | 'closed' | 'merged' | 'draft';
   aggregateBy?: string;
   weekends: 'include' | 'exclude' | 'weekends_only';
   outlierMode: 'include' | 'flag' | 'exclude';
@@ -37,7 +37,7 @@ export const DASHBOARD_FILTER_QUERY_KEYS = [
   'workflowConclusions', 'jobSelector', 'branch', 'event', 'aggregateMetric',
   'ignorePatternFiles', 'includePatternFiles', 'authorSelectSourceCode',
   'topEntries', 'typeChurn', 'authorSelect', 'excludeAuthorSelect',
-  'excludeCommenterSelect', 'labelSelector', 'pullRequestStatus',
+  'excludeCommenterSelect', 'labelSelector', 'changeRequestStatus',
   'aggregateBy', 'weekends', 'outlierMode', 'metric', 'category',
   'compareStartDate', 'compareEndDate', 'rawFilters', 'period',
   'sonarqubeRemoveFolders',
@@ -122,7 +122,7 @@ export function parseDashboardFilters(
     excludeAuthorSelect: getArrayValue(searchParams.excludeAuthorSelect),
     excludeCommenterSelect: getArrayValue(searchParams.excludeCommenterSelect),
     labelSelector: getArrayValue(searchParams.labelSelector),
-    pullRequestStatus: getSingleValue(searchParams.pullRequestStatus) as DashboardFilters['pullRequestStatus'] || fallback.pullRequestStatus,
+    changeRequestStatus: getSingleValue(searchParams.changeRequestStatus) as DashboardFilters['changeRequestStatus'] || fallback.changeRequestStatus,
     aggregateBy: getSingleValue(searchParams.aggregateBy) || fallback.aggregateBy,
     weekends: parseWeekends(getSingleValue(searchParams.weekends), fallback.weekends),
     outlierMode: parseOutlierMode(getSingleValue(searchParams.outlierMode), fallback.outlierMode),
@@ -169,7 +169,7 @@ export function serializeDashboardFilters(filters: DashboardFilters): URLSearchP
   al('excludeAuthorSelect', filters.excludeAuthorSelect);
   al('excludeCommenterSelect', filters.excludeCommenterSelect);
   al('labelSelector', filters.labelSelector);
-  a('pullRequestStatus', filters.pullRequestStatus);
+  a('changeRequestStatus', filters.changeRequestStatus);
   a('aggregateBy', filters.aggregateBy);
   a('weekends', filters.weekends);
   a('outlierMode', filters.outlierMode);

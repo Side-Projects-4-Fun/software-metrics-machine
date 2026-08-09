@@ -8,7 +8,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PipelineEvaluationCard from '@/components/charts/pipeline/PipelineEvaluationCard';
-import PREvaluationCard from '@/components/charts/pull-requests/PREvaluationCard';
+import ChangeRequestEvaluationCard from '@/components/charts/change-requests/ChangeRequestEvaluationCard';
 import CodeEvaluationCard from '@/components/charts/source-code/CodeEvaluationCard';
 import ArchitectureEvaluationCard from '@/components/charts/architecture/ArchitectureEvaluationCard';
 import SonarqubeEvaluationCard from '@/components/charts/sonarqube/SonarqubeEvaluationCard';
@@ -42,8 +42,8 @@ function renderEvaluationCard(section: EvaluatableSection, data: unknown) {
   switch (section) {
     case 'pipelines':
       return <PipelineEvaluationCard data={data as Parameters<typeof PipelineEvaluationCard>[0]['data']} />;
-    case 'pull-requests':
-      return <PREvaluationCard data={data as Parameters<typeof PREvaluationCard>[0]['data']} />;
+    case 'change-requests':
+      return <ChangeRequestEvaluationCard data={data as Parameters<typeof ChangeRequestEvaluationCard>[0]['data']} />;
     case 'source-code':
       return <CodeEvaluationCard data={data as Parameters<typeof CodeEvaluationCard>[0]['data']} />;
     case 'architecture':

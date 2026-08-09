@@ -6,14 +6,14 @@ import type {
   PipelineImplementation,
 } from '../domain/pipelines';
 import type { DeploymentFrequencyService } from '../domain/pipelines/services/deployment-frequency-service';
-import type { IPRsService } from '../domain/prs';
+import type { IChangeRequestsService } from '../domain/change-requests';
 
 export interface EngineeringHealthDependencies {
   deploymentTargets: DeploymentFrequencyTarget[];
   pipelinesService: IPipelinesService;
   deploymentFrequencyService: DeploymentFrequencyService;
   pipelineImplementation: PipelineImplementation;
-  prsService: IPRsService;
+  changeRequestsService: IChangeRequestsService;
   pairingService: IPairingIndexService;
   codemaatService: CodemaatService;
   sonarQubeService: SonarQubeService;

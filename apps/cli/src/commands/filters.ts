@@ -5,7 +5,7 @@ import { listFilters, saveFilter, showFilter, deleteFilter } from './helpers/fil
 
 const VALID_SECTIONS: DashboardSection[] = [
   'pipelines',
-  'pull-requests',
+  'change-requests',
   'source-code',
   'engineering-health',
   'architecture',
@@ -35,9 +35,9 @@ function buildFiltersFromOptions(options: Record<string, unknown>): DashboardFil
     excludeAuthorSelect: parseArrayOption(options.excludeAuthorSelect),
     excludeCommenterSelect: parseArrayOption(options.excludeCommenterSelect),
     labelSelector: parseArrayOption(options.labelSelector),
-    pullRequestStatus:
-      (options.pullRequestStatus as DashboardFilters['pullRequestStatus']) ||
-      defaultFilters.pullRequestStatus,
+    changeRequestStatus:
+      (options.changeRequestStatus as DashboardFilters['changeRequestStatus']) ||
+      defaultFilters.changeRequestStatus,
     aggregateBy: (options.aggregateBy as string) ?? defaultFilters.aggregateBy,
     weekends: (options.weekends as DashboardFilters['weekends']) ?? defaultFilters.weekends,
     outlierMode:
@@ -92,7 +92,7 @@ export function createFiltersCommands(program: SmmCommand): void {
   filtersGroup
     .subcommand('list')
     .description('List saved filters')
-    .option('--section <section>', 'Filter by section (pipelines, pull-requests, etc.)')
+    .option('--section <section>', 'Filter by section (pipelines, change-requests, etc.)')
     .option('--output <format>', 'Output format (text|json)', 'text')
     .actionWithSmm(async (options, command) => {
       const screen = command.getScreen();
@@ -128,7 +128,7 @@ export function createFiltersCommands(program: SmmCommand): void {
     .description('Save current filter options as a named filter')
     .requiredOption(
       '--section <section>',
-      'Section for the filter (pipelines, pull-requests, etc.)'
+      'Section for the filter (pipelines, change-requests, etc.)'
     )
     .option('--start-date <date>', 'Start date (YYYY-MM-DD)')
     .option('--end-date <date>', 'End date (YYYY-MM-DD)')
@@ -139,7 +139,7 @@ export function createFiltersCommands(program: SmmCommand): void {
     .option('--exclude-authors <authors>', 'Authors to exclude (comma-separated)')
     .option('--exclude-commenters <commenters>', 'Commenters to exclude (comma-separated)')
     .option('--labels <labels>', 'Labels filter (comma-separated)')
-    .option('--pull-request-status <status>', 'PR status (open|closed|merged|draft)')
+    .option('--change-request-status <status>', 'Change request status (open|closed|merged|draft)')
     .option('--aggregate-by <period>', 'Aggregation period (day|week|month)')
     .option('--weekends <mode>', 'Weekend handling (include|exclude|weekends_only)')
     .option('--outlier-mode <mode>', 'Outlier handling (include|flag|exclude)')
@@ -213,7 +213,7 @@ export function createFiltersCommands(program: SmmCommand): void {
           `  excludeCommenterSelect: ${f.excludeCommenterSelect.join(', ') || '(none)'}`
         );
         screen.printLine(`  labelSelector: ${f.labelSelector.join(', ') || '(none)'}`);
-        screen.printLine(`  pullRequestStatus: ${f.pullRequestStatus || '(none)'}`);
+        screen.printLine(`  changeRequestStatus: ${f.changeRequestStatus || '(none)'}`);
         screen.printLine(`  aggregateBy: ${f.aggregateBy}`);
         screen.printLine(`  weekends: ${f.weekends}`);
         screen.printLine(`  outlierMode: ${f.outlierMode}`);

@@ -1,13 +1,13 @@
-import type { PRFilters } from '../../domain/prs';
+import type { ChangeRequestFilters } from '../../domain/change-requests';
 import { BaseMetric } from '../metric';
 import type { EngineeringHealthDependencies } from '../dependencies';
 import type { MetricCalculationInput, MetricTarget, MetricValue } from '../types';
 
-function toPrFilters(input?: MetricCalculationInput): PRFilters {
+function toChangeRequestFilters(input?: MetricCalculationInput): ChangeRequestFilters {
   return {
     startDate: input?.startDate,
     endDate: input?.endDate,
-    labels: input?.prLabels,
+    labels: input?.changeRequestLabels,
     rawFilters: input?.rawFilters,
   };
 }
@@ -41,8 +41,8 @@ export class ReviewTimeMetric extends BaseMetric {
   }
 
   async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
-    const rows = await this.dependencies.prsService.getReviewTime(
-      toPrFilters(input),
+    const rows = await this.dependencies.changeRequestsService.getReviewTime(
+      toChangeRequestFilters(input),
       input?.top,
       'average'
     );
@@ -75,8 +75,8 @@ export class ReviewParticipationMetric extends BaseMetric {
   }
 
   async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
-    const commentsByAuthor = await this.dependencies.prsService.getCommentsByAuthor(
-      toPrFilters(input),
+    const commentsByAuthor = await this.dependencies.changeRequestsService.getCommentsByAuthor(
+      toChangeRequestFilters(input),
       input?.top
     );
     const totalComments = commentsByAuthor.reduce((sum, item) => sum + item.count, 0);

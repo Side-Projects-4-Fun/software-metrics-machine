@@ -20,7 +20,7 @@ export interface DashboardFilters {
   excludeAuthorSelect?: string[];
   excludeCommenterSelect?: string[];
   labelSelector?: string[];
-  pullRequestStatus?: 'open' | 'closed' | 'merged' | 'draft';
+  changeRequestStatus?: 'open' | 'closed' | 'merged' | 'draft';
   aggregateBy?: string;
   weekends?: 'include' | 'exclude' | 'weekends_only';
   outlierMode?: 'include' | 'flag' | 'exclude';
@@ -68,9 +68,9 @@ export function buildSourceCodeApiParams(filters: DashboardFilters): ApiParams {
 }
 
 /**
- * Convert pull request section filters to API parameters
+ * Convert change request section filters to API parameters
  */
-export function buildPullRequestApiParams(filters: DashboardFilters): ApiParams {
+export function buildChangeRequestApiParams(filters: DashboardFilters): ApiParams {
   return {
     start_date: filters.startDate,
     end_date: filters.endDate,
@@ -83,7 +83,7 @@ export function buildPullRequestApiParams(filters: DashboardFilters): ApiParams 
       ? filters.excludeCommenterSelect.join(',')
       : undefined,
     labels: filters.labelSelector?.length ? filters.labelSelector.join(',') : undefined,
-    status: filters.pullRequestStatus,
+    status: filters.changeRequestStatus,
     aggregate_by: filters.aggregateBy,
     weekends: filters.weekends,
     outlier_mode: filters.outlierMode,
@@ -108,6 +108,6 @@ export function buildSonarqubeApiParams(filters: DashboardFilters): ApiParams {
 export const apiParamBuilders = {
   pipeline: buildPipelineApiParams,
   sourceCode: buildSourceCodeApiParams,
-  pullRequest: buildPullRequestApiParams,
+  changeRequest: buildChangeRequestApiParams,
   sonarqube: buildSonarqubeApiParams,
 };

@@ -16,7 +16,7 @@ export type EngineeringHealthArguments = {
   endDate?: string;
   compareStartDate?: string;
   compareEndDate?: string;
-  prLabels?: string;
+  changeRequestLabels?: string;
   rawFilters?: string;
   period?: 'day' | 'week' | 'month';
   weekends?: 'include' | 'exclude' | 'weekends_only';
@@ -194,7 +194,7 @@ export function parseEngineeringHealthArguments(
     endDate: readString(args.endDate, 'endDate'),
     compareStartDate: readString(args.compareStartDate, 'compareStartDate'),
     compareEndDate: readString(args.compareEndDate, 'compareEndDate'),
-    prLabels: readString(args.prLabels, 'prLabels'),
+    changeRequestLabels: readString(args.changeRequestLabels, 'changeRequestLabels'),
     rawFilters: readString(args.rawFilters, 'rawFilters'),
     period: readEnum(args.period, 'period', ['day', 'week', 'month'] as const),
     weekends: readEnum(args.weekends, 'weekends', ['include', 'exclude', 'weekends_only'] as const),
@@ -390,9 +390,10 @@ export function buildEngineeringHealthInputSchema(): JsonObject {
         type: 'string',
         description: 'Previous window end date to compute trend deltas.',
       },
-      prLabels: {
+      changeRequestLabels: {
         type: 'string',
-        description: 'Optional comma-separated PR labels filter (PR metrics only).',
+        description:
+          'Optional comma-separated change request labels filter (change request metrics only).',
       },
       rawFilters: {
         type: 'string',

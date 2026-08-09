@@ -235,7 +235,7 @@ describe('Recommendations', () => {
     });
   });
 
-  describe('PR Review Time', () => {
+  describe('Change Request Review Time', () => {
     it('shows warning when average review time exceeds 24 hours (1 day)', () => {
       renderWithProviders(
         <Recommendations
@@ -267,7 +267,7 @@ describe('Recommendations', () => {
     });
   });
 
-  describe('Open PRs', () => {
+  describe('Open Change Requests', () => {
     it('shows info when there are open PRs', () => {
       renderWithProviders(
         <Recommendations
@@ -276,8 +276,8 @@ describe('Recommendations', () => {
         />
       );
 
-      expect(screen.getByText('Review Open Pull Requests')).toBeInTheDocument();
-      expect(screen.getByText(/You have 3 open PR\(s\)/)).toBeInTheDocument();
+      expect(screen.getByText('Review Open Change Requests')).toBeInTheDocument();
+      expect(screen.getByText(/You have 3 open change request\(s\)/)).toBeInTheDocument();
     });
 
     it('does not show open PRs info when there are none', () => {
@@ -288,7 +288,7 @@ describe('Recommendations', () => {
         />
       );
 
-      expect(screen.queryByText('Review Open Pull Requests')).not.toBeInTheDocument();
+      expect(screen.queryByText('Review Open Change Requests')).not.toBeInTheDocument();
     });
   });
 

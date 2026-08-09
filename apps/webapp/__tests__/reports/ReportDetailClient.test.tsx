@@ -8,7 +8,7 @@ jest.mock('@/components/charts/pipeline/PipelineEvaluationCard', () => ({
   __esModule: true,
   default: () => <div data-testid="pipeline-eval">Pipeline Eval</div>,
 }));
-jest.mock('@/components/charts/pull-requests/PREvaluationCard', () => ({
+jest.mock('@/components/charts/change-requests/ChangeRequestEvaluationCard', () => ({
   __esModule: true,
   default: () => <div data-testid="pr-eval">PR Eval</div>,
 }));

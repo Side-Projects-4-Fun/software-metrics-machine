@@ -73,8 +73,8 @@ async function bootstrap(): Promise<void> {
   logger.log(`  📋 OpenAPI JSON: http://localhost:${port}/api-json`);
   logger.log(``);
   logger.log(`API Endpoints:`);
-  logger.log(`  📊 Pull Request Metrics`);
-  logger.log(`     GET /api/metrics/pr?startDate=2024-01-01&endDate=2024-12-31`);
+  logger.log(`  📊 Change Request Metrics`);
+  logger.log(`     GET /api/metrics/change-requests?startDate=2024-01-01&endDate=2024-12-31`);
   logger.log(``);
   logger.log(`  🚀 Deployment Metrics`);
   logger.log(`     GET /api/metrics/deployment?frequency=week`);

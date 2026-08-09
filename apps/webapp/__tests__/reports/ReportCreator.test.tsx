@@ -70,7 +70,7 @@ describe('ReportCreator', () => {
     render(<ReportCreator {...defaultProps} />);
 
     expect(screen.getByLabelText('Pipelines')).toBeVisible();
-    expect(screen.getByLabelText('Pull Requests')).toBeVisible();
+    expect(screen.getByLabelText('Change Requests')).toBeVisible();
     expect(screen.getByLabelText('Source Code')).toBeVisible();
     expect(screen.getByLabelText('Architecture')).toBeVisible();
     expect(screen.getByLabelText('SonarQube')).toBeVisible();

@@ -13,17 +13,17 @@ export interface PipelineSummary {
   first_run?: { createdAt?: string; created_at?: string } | string | null;
   last_run?: { createdAt?: string; created_at?: string } | string | null;
 }
-export interface PullRequestSummary {
-  total_prs?: number;
+export interface ChangeRequestSummary {
+  total_change_requests?: number;
   total?: number;
-  merged_prs?: number;
+  merged_change_requests?: number;
   merged?: number;
-  closed_prs?: number;
+  closed_change_requests?: number;
   closed?: number;
-  open_prs?: number;
+  open_change_requests?: number;
   open?: number;
-  first_pr?: { created?: string; createdAt?: string; created_at?: string } | string | null;
-  last_pr?: { created?: string; createdAt?: string; created_at?: string } | string | null;
+  first_change_request?: { created?: string; createdAt?: string; created_at?: string } | string | null;
+  last_change_request?: { created?: string; createdAt?: string; created_at?: string } | string | null;
 }
 export interface DeploymentFrequencyResponseItem {
   pipeline?: string;

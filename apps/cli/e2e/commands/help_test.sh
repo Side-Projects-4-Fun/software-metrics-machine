@@ -5,7 +5,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/support/bootstrap.sh"
 
 function test_command_help_pages_render_successfully() {
   local commands=(
-    "prs"
+    "change-requests"
     "pipelines"
     "code"
     "jira"

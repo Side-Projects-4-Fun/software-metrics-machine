@@ -206,7 +206,7 @@ describe('FiltersContext', () => {
 
     expect(filters).toHaveProperty('authorSelect');
     expect(filters).toHaveProperty('labelSelector');
-    expect(filters).toHaveProperty('pullRequestStatus');
+    expect(filters).toHaveProperty('changeRequestStatus');
     expect(filters).toHaveProperty('aggregateBy');
 
     expect(filters).toHaveProperty('ignorePatternFiles');

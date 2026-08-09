@@ -22,10 +22,10 @@ The Insights tab includes three summary cards:
 
 - **Pairing Index**: percentage of analyzed commits with co-authors, plus paired commit count.
 - **Pipeline Runs**: total runs, success, in-progress, queued, and first/last data frame.
-- **Pull Requests**: total PRs, merged, closed, open, and first/last data frame.
+- **Change Requests**: total change requests, merged, closed, open, and first/last data frame.
 
-The status values in the Pipeline Runs and Pull Requests cards link to the related dashboard page with matching filters
-applied.
+The status values in the Pipeline Runs and Change Requests cards link to the related dashboard page with matching
+filters applied.
 
 Each card has a CLI equivalent:
 
@@ -33,7 +33,7 @@ Each card has a CLI equivalent:
 |-----------------|------------------------------|
 | Pairing Index   | `smm code pairing-index`     |
 | Pipeline Runs   | `smm pipelines summary`      |
-| Pull Requests   | `smm prs summary`            |
+| Change Requests | `smm change-requests summary`|
 
 ## Deployment Frequency
 
@@ -107,8 +107,8 @@ smm code pairing-index
 
 | Option         | Description                          | Example                  |
 |----------------|--------------------------------------|--------------------------|
-| Start date     | Fetches PRs created after a date.    | `--start-date=2025-01-01`     |
-| End date       | Fetches PRs created before a date.   | `--end-date=2025-12-31`     |
+| Start date     | Fetches commits after a date.    | `--start-date=2025-01-01`     |
+| End date       | Fetches commits before a date.   | `--end-date=2025-12-31`     |
 | Authors        | The comma separated authors to include in the index. It must be the email used in the commit. | `--authors=me@me.com`       |
 | Exclude Authors        | The comma separated authors to exclude in the index. It must be the email used in the commit. It will exclude every commit this author appears. | `--exclude-authors=me@me.com`       |
 
@@ -125,7 +125,7 @@ smm code pairing-index \
 
 ## Dashboard filters
 
-Insights supports global date filters and uses pipeline, pull request, and source-code filters when building
+Insights supports global date filters and uses pipeline, change request, and source-code filters when building
 recommendations and summary cards.
 
 | Dashboard filter | Backend query parameter |

@@ -14,7 +14,7 @@ The dashboard provides the following features:
 - **Filtering and Sorting**: Filter by date, timezone, provider-specific fields, authors, labels, paths, branches, and events.
 - **Saved Views**: Save frequently used filters per project and dashboard section.
 - **Project Switching**: Move between configured repositories from the project drawer.
-- **Cross-domain Insights**: PRs, pipelines, source code, and SonarQube.
+- **Cross-domain Insights**: Change requests, pipelines, source code, and SonarQube.
 - **Engineering Health Report**: leadership scorecards across delivery, quality, collaboration, and architecture in the dashboard or CLI.
 - **References and Targets**: Review the sources used to define metric targets and recommendations.
 
@@ -30,7 +30,7 @@ smm
 
 Main command groups:
 
-- `smm prs`
+- `smm change-requests`
 - `smm pipelines`
 - `smm code`
 - `smm architecture`
@@ -63,7 +63,7 @@ Each feature has its own page:
 - [Engineering Health](./features/engineering-health.md)
 - [Source Code](./features/code.md)
 - [Architecture](./features/architecture.md)
-- [Pull Requests](./features/prs.md)
+- [Change Requests](./features/change-requests.md)
 - [Pipelines](./features/pipelines.md)
 - [Configuration](./features/configuration.md)
 - [SonarQube](./sonarqube.md)

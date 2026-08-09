@@ -4,7 +4,7 @@ import * as path from 'path';
 import { MetricsController } from './metrics.controller';
 import { CodeController } from './controllers/code.controller';
 import { PipelinesController } from './controllers/pipelines.controller';
-import { PullRequestsController } from './controllers/pull-requests.controller';
+import { ChangeRequestsController } from './controllers/change-requests.controller';
 import { ConfigurationController } from './controllers/configuration.controller';
 import { ProjectsController } from './controllers/projects.controller';
 import { SonarqubeController } from './controllers/sonarqube.controller';
@@ -12,8 +12,8 @@ import { ArchitectureController } from './controllers/architecture.controller';
 import { PipelineDashboardController } from './controllers/pipeline-dashboard.controller';
 import { LoggingMiddleware } from './middleware/logging.middleware';
 import {
-  PullRequestsRepository,
-  PullRequestFiltersRepository,
+  ChangeRequestsRepository,
+  ChangeRequestFiltersRepository,
   PipelinesRepository,
   PipelineFiltersRepository,
   IssuesRepository,
@@ -23,8 +23,8 @@ import {
   ConfigurationRepository,
   Configuration,
   PipelinesService,
-  PRsService,
-  PullRequestFactory,
+  ChangeRequestsService,
+  ChangeRequestFactory,
   SonarQubeService,
   SonarqubeRepository,
   SonarqubeFactory,
@@ -45,7 +45,7 @@ import { DoraController } from './controllers/dora.controller';
 import { EngineeringHealthController } from './controllers/engineering-health.controller';
 import { FiltersController } from './controllers/filters.controller';
 import { PipelineEvaluationController } from './controllers/pipeline-evaluation.controller';
-import { PREvaluationController } from './controllers/pr-evaluation.controller';
+import { ChangeRequestEvaluationController } from './controllers/change-request-evaluation.controller';
 import { CodeEvaluationController } from './controllers/code-evaluation.controller';
 import { ArchitectureEvaluationController } from './controllers/architecture-evaluation.controller';
 import { SonarqubeEvaluationController } from './controllers/sonarqube-evaluation.controller';
@@ -113,7 +113,7 @@ function createRequestTimeZoneProvider(
     MetricsController,
     CodeController,
     PipelinesController,
-    PullRequestsController,
+    ChangeRequestsController,
     ConfigurationController,
     ProjectsController,
     SonarqubeController,
@@ -123,7 +123,7 @@ function createRequestTimeZoneProvider(
     EngineeringHealthController,
     FiltersController,
     PipelineEvaluationController,
-    PREvaluationController,
+    ChangeRequestEvaluationController,
     CodeEvaluationController,
     ArchitectureEvaluationController,
     SonarqubeEvaluationController,
@@ -205,25 +205,27 @@ function createRequestTimeZoneProvider(
     },
     // Repositories
     {
-      provide: PullRequestsRepository,
+      provide: ChangeRequestsRepository,
       useFactory: (
         config: Configuration,
         timeZoneProvider: TimeZoneProvider
-      ): ReturnType<typeof PullRequestFactory.create> => {
-        return PullRequestFactory.create(
+      ): ReturnType<typeof ChangeRequestFactory.create> => {
+        return ChangeRequestFactory.create(
           config,
-          createLogger(config, 'PullRequestsRepository'),
+          createLogger(config, 'ChangeRequestsRepository'),
           timeZoneProvider
         );
       },
       inject: [Configuration, TimeZoneProvider],
     },
     {
-      provide: PullRequestFiltersRepository,
-      useFactory: (config: Configuration): ReturnType<typeof PullRequestFactory.createFilters> => {
-        return PullRequestFactory.createFilters(
+      provide: ChangeRequestFiltersRepository,
+      useFactory: (
+        config: Configuration
+      ): ReturnType<typeof ChangeRequestFactory.createFilters> => {
+        return ChangeRequestFactory.createFilters(
           config,
-          createLogger(config, 'PullRequestFiltersRepository')
+          createLogger(config, 'ChangeRequestFiltersRepository')
         );
       },
       inject: [Configuration],
@@ -323,19 +325,19 @@ function createRequestTimeZoneProvider(
       inject: [Configuration],
     },
     {
-      provide: PRsService,
+      provide: ChangeRequestsService,
       useFactory: (
-        pullRequestRepository: PullRequestsRepository,
+        changeRequestsRepository: ChangeRequestsRepository,
         config: Configuration,
         timeZoneProvider: TimeZoneProvider
-      ): PRsService => {
-        return new PRsService(
-          pullRequestRepository,
+      ): ChangeRequestsService => {
+        return new ChangeRequestsService(
+          changeRequestsRepository,
           timeZoneProvider,
-          createLogger(config, 'PRsService')
+          createLogger(config, 'ChangeRequestsService')
         );
       },
-      inject: [PullRequestsRepository, Configuration, TimeZoneProvider],
+      inject: [ChangeRequestsRepository, Configuration, TimeZoneProvider],
     },
     {
       provide: SonarQubeService,

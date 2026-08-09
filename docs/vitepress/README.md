@@ -28,8 +28,8 @@ This project relies on metrics that are extracted from:
 * Pipeline
   * Success rate of pipeline 
   * Average time to complete pipeline from start to finish 
-* Pull requests
-  * Average of Pull requests opened 
+* Change requests
+  * Average of Change requests opened 
 * Git history
   * Code churn  
   * Hotspots  

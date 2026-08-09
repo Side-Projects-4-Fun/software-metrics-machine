@@ -26,7 +26,7 @@ describe('buildDashboardLink', () => {
     expect(link).toContain('endDate=2026-06-30');
   });
 
-  it('builds a pull-requests dashboard link with author and label filters', () => {
+  it('builds a change-requests dashboard link with author and label filters', () => {
     const filters = new DashboardFiltersBuilder()
       .withStartDate('2026-03-01')
       .withEndDate('2026-03-31')
@@ -35,9 +35,9 @@ describe('buildDashboardLink', () => {
       .withAggregateBy('month')
       .build();
 
-    const link = buildDashboardLink('pull-requests', filters);
+    const link = buildDashboardLink('change-requests', filters);
 
-    expect(link).toContain('/dashboard/pull-requests?');
+    expect(link).toContain('/dashboard/change-requests?');
     expect(link).toContain('startDate=2026-03-01');
     expect(link).toContain('endDate=2026-03-31');
     expect(link).toContain('authorSelect=alice%2Cbob');
@@ -109,7 +109,7 @@ describe('buildDashboardLink', () => {
       .withStartDate('2026-01-01')
       .build();
 
-    const link = buildDashboardLink('pull-requests', filters);
+    const link = buildDashboardLink('change-requests', filters);
 
     expect(link).toContain('startDate=2026-01-01');
     // serializeDashboardFilters includes all non-empty values for URL fidelity

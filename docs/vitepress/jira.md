@@ -189,7 +189,7 @@ Combine Jira data with GitHub/GitLab data for comprehensive metrics:
 
 ```bash
 # Fetch both GitHub and Jira data
-smm prs fetch
+smm change-requests fetch
 smm pipelines fetch
 smm pipelines fetch-jobs
 smm jira fetch-issues

@@ -64,9 +64,9 @@ export function listResourceTemplates(): McpResourceTemplateDefinition[] {
       mimeType: 'application/json',
     },
     {
-      uriTemplate: 'smm://project/{project}/evaluation/prs',
-      name: 'Project PR evaluation',
-      description: 'Pull request health evaluation for a project.',
+      uriTemplate: 'smm://project/{project}/evaluation/change-requests',
+      name: 'Project change request evaluation',
+      description: 'Change request health evaluation for a project.',
       mimeType: 'application/json',
     },
     {
@@ -158,9 +158,9 @@ export function listResources(): McpResourceDefinition[] {
         mimeType: 'application/json',
       },
       {
-        uri: `smm://project/${encodeProject(project)}/evaluation/prs`,
-        name: `${project} PR evaluation`,
-        description: 'Pull request health evaluation for the project.',
+        uri: `smm://project/${encodeProject(project)}/evaluation/change-requests`,
+        name: `${project} change request evaluation`,
+        description: 'Change request health evaluation for the project.',
         mimeType: 'application/json',
       },
       {
@@ -231,7 +231,7 @@ export async function readResource(uri: string): Promise<ResourceReadResult> {
   }
 
   const match = uri.match(
-    /^smm:\/\/project\/([^/]+)\/(configuration|report|engineering-health|dora|architecture\/snapshots|evaluation\/(prs|pipelines|code|quality|architecture)|big-o|health-check)$/
+    /^smm:\/\/project\/([^/]+)\/(configuration|report|engineering-health|dora|architecture\/snapshots|evaluation\/(change-requests|pipelines|code|quality|architecture)|big-o|health-check)$/
   );
   if (!match) {
     resourceLogger.warn(`Unknown MCP resource requested: ${uri}`);
@@ -281,8 +281,8 @@ export async function readResource(uri: string): Promise<ResourceReadResult> {
     return result;
   }
 
-  if (resourceType === 'evaluation/prs') {
-    const result = jsonResource(uri, (await reader.evaluatePRs()) as JsonValue);
+  if (resourceType === 'evaluation/change-requests') {
+    const result = jsonResource(uri, (await reader.evaluateChangeRequests()) as JsonValue);
     resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
     return result;
   }

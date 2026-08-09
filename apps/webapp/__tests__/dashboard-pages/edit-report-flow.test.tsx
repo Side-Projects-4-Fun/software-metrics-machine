@@ -144,7 +144,7 @@ describe('Edit Existing Report Flow', () => {
     const prFilter = new SavedFilterBuilder()
       .withId('f-pr')
       .withName('PR Reviews')
-      .withSection('pull-requests')
+      .withSection('change-requests')
       .build();
 
     const existingReport = new ReportEntryBuilder()
@@ -159,7 +159,7 @@ describe('Edit Existing Report Flow', () => {
     ]);
     mockGetSavedFiltersBySection.mockImplementation((section: string) => {
       if (section === 'pipelines') {return Promise.resolve([pipelinesFilter]);}
-      if (section === 'pull-requests') {return Promise.resolve([prFilter]);}
+      if (section === 'change-requests') {return Promise.resolve([prFilter]);}
       return Promise.resolve([]);
     });
 
@@ -168,7 +168,7 @@ describe('Edit Existing Report Flow', () => {
       .withName('Sprint 42')
       .withSections([
         { section: 'pipelines', savedFilterId: 'f-pipelines' },
-        { section: 'pull-requests', savedFilterId: 'f-pr' },
+        { section: 'change-requests', savedFilterId: 'f-pr' },
       ])
       .build();
 
@@ -188,7 +188,7 @@ describe('Edit Existing Report Flow', () => {
       expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 
-    const prSelect = screen.getByLabelText('Pull Requests');
+    const prSelect = screen.getByLabelText('Change Requests');
     await userEvent.click(prSelect);
     await userEvent.type(prSelect, 'PR Reviews');
     await userEvent.click(await screen.findByRole('option', { name: 'PR Reviews' }));
@@ -201,7 +201,7 @@ describe('Edit Existing Report Flow', () => {
         'Sprint 42',
         expect.arrayContaining([
           { section: 'pipelines', savedFilterId: 'f-pipelines' },
-          { section: 'pull-requests', savedFilterId: 'f-pr' },
+          { section: 'change-requests', savedFilterId: 'f-pr' },
         ]),
         expect.any(String),
         undefined,

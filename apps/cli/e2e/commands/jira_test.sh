@@ -107,17 +107,17 @@ function test_jira_filters_save_and_list_across_sections() {
 
   run_smm filters save jira-pipeline --section pipelines --start-date 2026-01-01
   assert_smm_success
-  run_smm filters save jira-pr --section pull-requests --start-date 2026-01-01
+  run_smm filters save jira-change-request --section change-requests --start-date 2026-01-01
   assert_smm_success
 
   run_smm filters list
   assert_smm_output_contains "[pipelines] jira-pipeline"
-  assert_smm_output_contains "[pull-requests] jira-pr"
+  assert_smm_output_contains "[change-requests] jira-change-request"
   assert_smm_success
 
   run_smm filters delete jira-pipeline
   assert_smm_success
-  run_smm filters delete jira-pr
+  run_smm filters delete jira-change-request
   assert_smm_success
 
   unset SMM_STORE_DATA_AT

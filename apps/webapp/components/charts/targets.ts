@@ -103,7 +103,7 @@ export const METRIC_TARGETS: Record<string, TargetDefinition> = {
   'average-review-time': {
     target: '< 24 hours',
     description:
-      'Elite teams review PRs within 24 hours. Longer times create delivery bottlenecks.',
+      'Elite teams review change requests within 24 hours. Longer times create delivery bottlenecks.',
     sources: [
       {
         label: 'Forsgren et al. (2018) — Accelerate review lead time benchmarks',
@@ -118,7 +118,7 @@ export const METRIC_TARGETS: Record<string, TargetDefinition> = {
   'time-to-first-comment': {
     target: '< 4 hours',
     description:
-      'Quick first responses keep PR momentum. Delays reduce author productivity.',
+      'Quick first responses keep change request momentum. Delays reduce author productivity.',
     sources: [
       {
         label: 'Beller et al. (2014) — MSR on modern code review practices in open-source',
@@ -130,7 +130,7 @@ export const METRIC_TARGETS: Record<string, TargetDefinition> = {
       },
     ],
   },
-  'prs-by-author': {
+  'change-requests-by-author': {
     target: 'Balanced distribution',
     description:
       'Over-reliance on a few authors creates bus-factor risk. Balanced contributions improve resilience.',
@@ -145,10 +145,10 @@ export const METRIC_TARGETS: Record<string, TargetDefinition> = {
       },
     ],
   },
-  'prs-remain-open': {
+  'change-requests-remain-open': {
     target: '< 3 days',
     description:
-      'PRs open beyond 3 days slow delivery and increase merge conflicts.',
+      'Change requests open beyond 3 days slow delivery and increase merge conflicts.',
     sources: [
       {
         label: 'Gousios et al. (2015) — ICSE on work practices in pull-based development',
@@ -160,10 +160,10 @@ export const METRIC_TARGETS: Record<string, TargetDefinition> = {
       },
     ],
   },
-  'pr-statistics': {
+  'change-request-statistics': {
     target: 'High merge rate',
     description:
-      'A healthy process merges most PRs with constructive discussion. Stalled PRs signal process issues.',
+      'A healthy process merges most change requests with constructive discussion. Stalled change requests signal process issues.',
     sources: [
       {
         label: 'Gousios et al. (2015) — ICSE integrator perspective on pull-based development',
@@ -175,7 +175,7 @@ export const METRIC_TARGETS: Record<string, TargetDefinition> = {
       },
     ],
   },
-  'most-commented-prs': {
+  'most-commented-change-requests': {
     target: 'Monitor outliers',
     description:
       'Excessive comments may indicate unclear requirements or scope creep. Moderate discussion is healthy.',
@@ -224,10 +224,10 @@ export const METRIC_TARGETS: Record<string, TargetDefinition> = {
       },
     ],
   },
-  'open-prs-through-time': {
+  'open-change-requests-through-time': {
     target: 'Opened ≈ Closed',
     description:
-      'A growing gap between opened and closed PRs signals review bottlenecks.',
+      'A growing gap between opened and closed change requests signals review bottlenecks.',
     sources: [
       {
         label: 'Gousios et al. (2015) — ICSE on pull request dynamics and practices',

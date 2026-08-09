@@ -110,7 +110,7 @@ function test_engineering_health_evaluate_renders_json_output() {
   run_seeded_engineering_health_command \
     engineering-health evaluate \
     --metric pipeline-duration \
-    --pr-labels feature \
+    --change-request-labels feature \
     --start-date 2026-02-01 \
     --end-date 2026-02-28 \
     --compare-start-date 2026-01-01 \
@@ -138,7 +138,7 @@ function test_engineering_health_evaluate_applies_pr_labels_to_output() {
   run_seeded_engineering_health_command \
     engineering-health evaluate \
     --metric review-time \
-    --pr-labels feature \
+    --change-request-labels feature \
     --start-date 2026-01-01 \
     --end-date 2026-01-31 \
     --output json

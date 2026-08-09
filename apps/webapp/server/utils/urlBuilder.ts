@@ -7,8 +7,8 @@ import { DashboardGlobalConfiguration } from "../api/configuration";
 
 export interface UrlBuilder {
   // PR/MR links
-  getPRsUrl(filters?: { status?: string; author?: string; label?: string }): string;
-  getPRUrl(prNumber: number): string;
+  getChangeRequestsUrl(filters?: { status?: string; author?: string; label?: string }): string;
+  getChangeRequestUrl(prNumber: number): string;
   
   // Commit links
   getCommitUrl(hash: string): string;
@@ -206,7 +206,7 @@ function createGitHubBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
   const baseUrl = `https://github.com/${owner}/${repo}`;
 
   return {
-    getPRsUrl(filters) {
+    getChangeRequestsUrl(filters) {
       const params: string[] = [];
 
       if (filters?.status) {
@@ -223,7 +223,7 @@ function createGitHubBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
       return query ? `${baseUrl}/pulls?q=${query}` : `${baseUrl}/pulls`;
     },
 
-    getPRUrl(prNumber) {
+    getChangeRequestUrl(prNumber) {
       return `${baseUrl}/pull/${prNumber}`;
     },
 
@@ -309,7 +309,7 @@ function createGitLabBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
   const baseUrl = config.gitlab_url || `https://gitlab.com/${owner}/${repo}`;
   
   return {
-    getPRsUrl(filters) {
+    getChangeRequestsUrl(filters) {
       const params: string[] = [];
       
       if (filters?.status === 'open') {
@@ -332,7 +332,7 @@ function createGitLabBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
       return query ? `${baseUrl}/-/merge_requests?${query}` : `${baseUrl}/-/merge_requests`;
     },
     
-    getPRUrl(prNumber) {
+    getChangeRequestUrl(prNumber) {
       return `${baseUrl}/-/merge_requests/${prNumber}`;
     },
     

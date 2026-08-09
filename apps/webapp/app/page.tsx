@@ -66,7 +66,7 @@ export default async function Home() {
               </h1>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
                 Analyze your repository&apos;s health with comprehensive metrics for source code,
-                CI/CD pipelines, and pull requests.
+                CI/CD pipelines, and change requests.
               </p>
               <div className="flex gap-4 justify-center flex-wrap">
                 <Link

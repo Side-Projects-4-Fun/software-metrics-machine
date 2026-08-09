@@ -15,7 +15,7 @@ software development process.
 
 ## The project
 
-For this first analysis, we will be using a sample GitHub repository that contains a variety of pull requests and
+For this first analysis, we will be using a sample GitHub repository that contains a variety of change requests and
 workflows. You can use your own repository if you prefer. We will be using the [vuejs repository](https://github.com/vuejs/vue)
 as it is a heavily active open source project so that you can see most of the features of the tool.
 
@@ -80,25 +80,27 @@ To fetch the git history data using codemaat, run the following command:
 smm code codemaat-fetch --start-date 2023-01-01 --end-date 2023-01-10
 ```
 
-### Fetch Pull Requests
+### Fetch change requests
 
-To fetch pull requests from the repository, run the following command:
-
-```bash
-smm prs fetch --start-date 2023-01-01 --end-date 2023-01-10
-```
-
-This command fetches pull requests created between January 1, 2025, and January 10, 2025. You can adjust the dates as
-needed. If you want to fetch all pull requests, you can omit the date filters. However, be aware that fetching a large number of
-pull requests may take a while and could hit GitHub API rate limits.
-
-In addition to fetching pull requests, you can also fetch associated reviews and comments by running the following command:
+To fetch change requests from the repository, run the following command:
 
 ```bash
-smm prs fetch-comments --start-date 2023-01-01 --end-date 2023-01-10
+smm change-requests fetch --start-date 2023-01-01 --end-date 2023-01-10
 ```
 
-The comments fetched are based in the pull requests already fetched, so ensure you run the `smm prs fetch` command first.
+This command fetches change requests created between January 1, 2025, and January 10, 2025. You can adjust the dates as
+needed. If you want to fetch all change requests, you can omit the date filters. However, be aware that fetching a large
+number of change requests may take a while and could hit GitHub API rate limits.
+
+In addition to fetching change requests, you can also fetch associated reviews and comments by running the following
+command:
+
+```bash
+smm change-requests fetch-comments --start-date 2023-01-01 --end-date 2023-01-10
+```
+
+The comments fetched are based on the change requests already fetched, so ensure you run the
+`smm change-requests fetch` command first.
 
 ### Fetch pipelines (workflow runs)
 
@@ -110,7 +112,7 @@ smm pipelines fetch --start-date 2025-01-01 --end-date 2025-12-10
 
 This command fetches pipelines created between January 1, 2025, and December 10, 2025. You can adjust the dates as
 needed. If you want to fetch all runs, you can omit the date filters. However, be aware that fetching a large number of
-pull requests may take a while and could hit GitHub API rate limits.
+change requests may take a while and could hit GitHub API rate limits.
 
 Pipelines are associated with jobs, to fetch the jobs associated with the fetched pipelines, run the following command:
 
@@ -118,7 +120,7 @@ Pipelines are associated with jobs, to fetch the jobs associated with the fetche
 smm pipelines fetch-jobs --start-date 2025-01-01 --end-date 2025-12-10
 ```
 
-Like the pull request comments, the jobs fetched are based in the pipelines already fetched, so ensure you run the
+Like the change request comments, the jobs fetched are based in the pipelines already fetched, so ensure you run the
 `smm pipelines fetch` command first.
 
 ## Data quality
@@ -126,22 +128,22 @@ Like the pull request comments, the jobs fetched are based in the pipelines alre
 Once data is fetched, you might want to check the quality of it and if the data matches the expected values. To achieve that,
 SMM has a summary command that shows basic information about the quality of the data. Such as:
 
-It will print a summary of the PRs fetched, including:
+It will print a summary of the change requests fetched, including:
 
-- Total PRs (total_prs): The total number of pull requests.
-- First PR (first_pr): Details of the first pull request.
-- Last PR (last_pr): Details of the last pull request.
-- Merged PRs (merged_prs): The number of pull requests that were merged.
-- Closed PRs (closed_prs): The number of pull requests that were closed but not merged.
-- PRs Without Conclusion (without_conclusion): The number of pull requests that are neither closed nor merged.
-- Unique Authors (unique_authors): The number of unique authors who created pull requests.
-- Unique Labels (unique_labels): The number of unique labels used across pull requests.
-- Labels (labels): A list of all unique labels used in pull requests.
+- Total change requests (total_change_requests): The total number of change requests.
+- First change request (first_change_request): Details of the first change request.
+- Last change request (last_change_request): Details of the last change request.
+- Merged change requests (merged_change_requests): The number of change requests that were merged.
+- Closed change requests (closed_change_requests): The number of change requests that were closed but not merged.
+- Change requests Without Conclusion (change_requests_without_conclusion): The number of change requests that are neither closed nor merged.
+- Unique Authors (unique_authors): The number of unique authors who created change requests.
+- Unique Labels (unique_labels): The number of unique labels used across change requests.
+- Labels (labels): A list of all unique labels used in change requests.
 
 The command to get the summary is:
 
 ```bash
-smm prs summary
+smm change-requests summary
 ```
 
 ## Visualizing the data

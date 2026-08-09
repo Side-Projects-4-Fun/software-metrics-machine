@@ -134,7 +134,7 @@ JSON
   printf '%s\n' "${workspace}"
 }
 
-run_smm_with_github_prs_msw() {
+run_smm_with_github_change_requests_msw() {
   SMM_E2E_OUTPUT="$(node "${SMM_E2E_DIR}/support/github-prs-msw-runner.mjs" "$@" 2>&1)"
   SMM_E2E_STATUS=$?
   return 0
@@ -252,8 +252,8 @@ function ensureSchema() {
     CREATE TABLE IF NOT EXISTS change_request_comments (
       namespace TEXT NOT NULL,
       id TEXT NOT NULL,
-      pull_request_number INTEGER,
-      pull_request_url TEXT,
+      change_request_number INTEGER,
+      change_request_url TEXT,
       author_login TEXT,
       author_id TEXT,
       path TEXT,
@@ -265,6 +265,9 @@ function ensureSchema() {
       stored_at TEXT NOT NULL,
       PRIMARY KEY (namespace, id)
     );
+
+    CREATE INDEX IF NOT EXISTS idx_change_request_comments_change_request_number
+      ON change_request_comments(namespace, change_request_number);
 
     CREATE TABLE IF NOT EXISTS codemaat_code_churn (
       date TEXT NOT NULL,
@@ -415,7 +418,7 @@ function seedPrs() {
 
   db.prepare(`
     INSERT INTO change_request_comments
-    (namespace, id, pull_request_number, pull_request_url, author_login, author_id, path, created_at, updated_at, html_url, payload, position, stored_at)
+    (namespace, id, change_request_number, change_request_url, author_login, author_id, path, created_at, updated_at, html_url, payload, position, stored_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     namespaceComments,
@@ -746,7 +749,7 @@ try {
   ensureSchema();
 
   switch (fixture) {
-    case 'prs':
+    case 'change-requests':
       seedPrs();
       break;
     case 'pipelines':
@@ -770,9 +773,9 @@ try {
 NODE
 }
 
-seed_sqlite_prs_fixture() {
+seed_sqlite_change_requests_fixture() {
   local workspace="$1"
-  seed_sqlite_fixture "${workspace}" prs
+  seed_sqlite_fixture "${workspace}" change-requests
 }
 
 seed_sqlite_pipelines_fixture() {
@@ -795,7 +798,7 @@ seed_sqlite_code_analysis_fixture() {
   seed_sqlite_fixture "${workspace}" code-analysis
 }
 
-seed_sqlite_gitlab_prs_fixture() {
+seed_sqlite_gitlab_change_requests_fixture() {
   local workspace="$1"
 
   node - "${workspace}" <<'NODE'
@@ -834,8 +837,8 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS change_request_comments (
     namespace TEXT NOT NULL,
     id TEXT NOT NULL,
-    pull_request_number INTEGER,
-    pull_request_url TEXT,
+    change_request_number INTEGER,
+    change_request_url TEXT,
     author_login TEXT,
     author_id TEXT,
     path TEXT,
@@ -955,7 +958,7 @@ const comment = {
 
 db.prepare(`
   INSERT INTO change_request_comments
-  (namespace, id, pull_request_number, pull_request_url, author_login, author_id, path, created_at, updated_at, html_url, payload, position, stored_at)
+  (namespace, id, change_request_number, change_request_url, author_login, author_id, path, created_at, updated_at, html_url, payload, position, stored_at)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `).run(
   nsComments,

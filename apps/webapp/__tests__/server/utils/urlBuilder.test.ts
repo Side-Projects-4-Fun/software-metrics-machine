@@ -156,7 +156,7 @@ describe('createUrlBuilder', () => {
       .build();
     const builder = createUrlBuilder(config);
 
-    expect(builder.getPRUrl(42)).toBe(
+    expect(builder.getChangeRequestUrl(42)).toBe(
       'https://gitlab.example.com/acme/widgets/-/merge_requests/42'
     );
   });

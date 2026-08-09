@@ -6,18 +6,18 @@ import {
   IssuesRepository,
   PairingIndexService,
   PipelinesService,
-  PRsService,
+  ChangeRequestsService,
   SonarQubeService,
 } from '@smmachine/core';
 import {
   IssueMetricsQueryDto,
-  PRMetricsQueryDto,
+  ChangeRequestMetricsQueryDto,
   DeploymentMetricsQueryDto,
   CodeMetricsQueryDto,
   QualityMetricsQueryDto,
   ErrorResponse,
   MetricsIssueResponse,
-  MetricsPRResponse,
+  MetricsChangeRequestsResponse,
   MetricsDeploymentResponse,
   MetricsCodeResponse,
   MetricsQualityResponse,
@@ -39,7 +39,7 @@ export class MetricsController {
   private readonly logger = new SmmLogger('MetricsController', 'CRITICAL');
 
   constructor(
-    private prsService: PRsService,
+    private changeRequestsService: ChangeRequestsService,
     private pipelinesService: PipelinesService,
     @Inject('ICodeMetricsRepository')
     private codeMetricsRepository: ICodeMetricsRepository,
@@ -80,19 +80,21 @@ export class MetricsController {
   }
 
   /**
-   * GET /api/metrics/pr
-   * Retrieve pull request metrics
+   * GET /api/metrics/change-requests
+   * Retrieve change request metrics
    */
-  @Get('api/metrics/pr')
-  @ApiOperation({ summary: 'Get pull request metrics' })
+  @Get('api/metrics/change-requests')
+  @ApiOperation({ summary: 'Get change request metrics' })
   @ApiQuery({ name: 'startDate', required: false, type: String, example: '2024-01-01T08:30:00Z' })
   @ApiQuery({ name: 'endDate', required: false, type: String, example: '2024-12-31T17:45:00Z' })
-  @ApiOkResponse({ description: 'Pull request metrics retrieved successfully', type: Object })
+  @ApiOkResponse({ description: 'Change request metrics retrieved successfully', type: Object })
   @ApiResponse({ status: 500, description: 'Internal server error', type: ErrorResponse })
-  async getPRMetrics(@Query() query: PRMetricsQueryDto): Promise<MetricsPRResponse> {
+  async getChangeRequestMetrics(
+    @Query() query: ChangeRequestMetricsQueryDto
+  ): Promise<MetricsChangeRequestsResponse> {
     try {
-      this.logger.debug(`Fetching PR metrics: ${JSON.stringify(query)}`);
-      const metrics = await this.prsService.getMetrics({
+      this.logger.debug(`Fetching change request metrics: ${JSON.stringify(query)}`);
+      const metrics = await this.changeRequestsService.getMetrics({
         startDate: query.startDate,
         endDate: query.endDate,
       });
@@ -100,12 +102,12 @@ export class MetricsController {
       return {
         openDays: metrics.openDays,
         openDays_formatted: formatDuration(metrics.openDays, 'days'),
-        totalPRs: metrics.totalPRs,
-        mergedPRs: metrics.mergedPRs,
-        closedPRs: metrics.closedPRs,
-        openPRs: metrics.openPRs,
+        totalChangeRequests: metrics.totalChangeRequests,
+        mergedChangeRequests: metrics.mergedChangeRequests,
+        closedChangeRequests: metrics.closedChangeRequests,
+        openChangeRequests: metrics.openChangeRequests,
         comments: metrics.comments,
-        most_commented_prs: metrics.most_commented_prs,
+        most_commented_change_requests: metrics.most_commented_change_requests,
         leadTime: metrics.leadTime,
         leadTime_formatted: formatDuration(metrics.leadTime, 'hours'),
         method: metrics.method,
@@ -119,11 +121,11 @@ export class MetricsController {
       };
     } catch (error) {
       this.logger.error(
-        `Failed to fetch PR metrics: ${error}`,
+        `Failed to fetch change request metrics: ${error}`,
         error instanceof Error ? error.stack : ''
       );
       throw new HttpException(
-        `Failed to fetch PR metrics: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to fetch change request metrics: ${error instanceof Error ? error.message : String(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
@@ -231,28 +233,28 @@ export class MetricsController {
   async getFullReport(): Promise<MetricsFullReportResponse> {
     try {
       this.logger.debug('Fetching full metrics report');
-      const [pullRequests, deployment, code, issues, quality] = await Promise.all([
-        this.prsService.getMetrics(),
+      const [changeRequests, deployment, code, issues, quality] = await Promise.all([
+        this.changeRequestsService.getMetrics(),
         this.getDeploymentMetricsReport(),
         this.getCodeMetricsReport(),
         this.getIssueMetricsReport(),
         this.sonarqubeService.getQualityMetrics(),
       ]);
 
-      const formattedPRs: MetricsPRResponse = {
-        openDays: pullRequests.openDays,
-        openDays_formatted: formatDuration(pullRequests.openDays, 'days'),
-        totalPRs: pullRequests.totalPRs,
-        mergedPRs: pullRequests.mergedPRs,
-        closedPRs: pullRequests.closedPRs,
-        openPRs: pullRequests.openPRs,
-        comments: pullRequests.comments,
-        most_commented_prs: pullRequests.most_commented_prs,
-        leadTime: pullRequests.leadTime,
-        leadTime_formatted: formatDuration(pullRequests.leadTime, 'hours'),
-        method: pullRequests.method,
-        commentSummary: pullRequests.commentSummary,
-        labelSummary: pullRequests.labelSummary?.map((label) => ({
+      const formattedChangeRequests: MetricsChangeRequestsResponse = {
+        openDays: changeRequests.openDays,
+        openDays_formatted: formatDuration(changeRequests.openDays, 'days'),
+        totalChangeRequests: changeRequests.totalChangeRequests,
+        mergedChangeRequests: changeRequests.mergedChangeRequests,
+        closedChangeRequests: changeRequests.closedChangeRequests,
+        openChangeRequests: changeRequests.openChangeRequests,
+        comments: changeRequests.comments,
+        most_commented_change_requests: changeRequests.most_commented_change_requests,
+        leadTime: changeRequests.leadTime,
+        leadTime_formatted: formatDuration(changeRequests.leadTime, 'hours'),
+        method: changeRequests.method,
+        commentSummary: changeRequests.commentSummary,
+        labelSummary: changeRequests.labelSummary?.map((label) => ({
           label: label.label,
           count: label.count,
           openDays: label.openDays,
@@ -262,7 +264,7 @@ export class MetricsController {
 
       return {
         timestamp: new Date().toISOString(),
-        pullRequests: formattedPRs,
+        changeRequests: formattedChangeRequests,
         deployment,
         code,
         issues,

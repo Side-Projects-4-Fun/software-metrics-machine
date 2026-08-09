@@ -3,14 +3,14 @@ import { ReviewParticipationMetric, ReviewTimeMetric } from '../adapters/collabo
 import type { EngineeringHealthDependencies } from '../dependencies';
 
 describe('collaboration engineering health metrics', () => {
-  it('forwards prLabels to review time PR filters', async () => {
+  it('forwards changeRequestLabels to review time change request filters', async () => {
     const getReviewTime = vi.fn().mockResolvedValue([
       { author: 'alice', value: 1.5, method: 'average' as const },
       { author: 'bob', value: 0.5, method: 'average' as const },
     ]);
 
     const metric = new ReviewTimeMetric({
-      prsService: { getReviewTime } as never,
+      changeRequestsService: { getReviewTime } as never,
       pipelinesService: {} as never,
       deploymentFrequencyService: {} as never,
       pipelineImplementation: {} as never,
@@ -24,7 +24,7 @@ describe('collaboration engineering health metrics', () => {
     await metric.calculate({
       startDate: '2026-07-01',
       endDate: '2026-07-31',
-      prLabels: ['bug', 'frontend'],
+      changeRequestLabels: ['bug', 'frontend'],
       top: 10,
     });
 
@@ -39,14 +39,14 @@ describe('collaboration engineering health metrics', () => {
     );
   });
 
-  it('forwards prLabels to review participation PR filters', async () => {
+  it('forwards changeRequestLabels to review participation change request filters', async () => {
     const getCommentsByAuthor = vi.fn().mockResolvedValue([
       { author: 'alice', count: 3 },
       { author: 'bob', count: 2 },
     ]);
 
     const metric = new ReviewParticipationMetric({
-      prsService: { getCommentsByAuthor } as never,
+      changeRequestsService: { getCommentsByAuthor } as never,
       pipelinesService: {} as never,
       deploymentFrequencyService: {} as never,
       pipelineImplementation: {} as never,
@@ -60,7 +60,7 @@ describe('collaboration engineering health metrics', () => {
     await metric.calculate({
       startDate: '2026-07-01',
       endDate: '2026-07-31',
-      prLabels: ['bug'],
+      changeRequestLabels: ['bug'],
       top: 5,
     });
 

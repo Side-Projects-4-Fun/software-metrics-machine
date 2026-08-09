@@ -116,7 +116,7 @@ export default function ReportCreator({
     Record<EvaluatableSection, string[]>
   >({
     pipelines: [],
-    'pull-requests': [],
+    'change-requests': [],
     'source-code': [],
     architecture: [],
     sonarqube: [],
@@ -141,7 +141,7 @@ export default function ReportCreator({
 
     const existingSelections: Record<EvaluatableSection, string[]> = {
       pipelines: [],
-      'pull-requests': [],
+      'change-requests': [],
       'source-code': [],
       architecture: [],
       sonarqube: [],
@@ -190,7 +190,7 @@ export default function ReportCreator({
     setEndDate('');
     setSelections({
       pipelines: [],
-      'pull-requests': [],
+      'change-requests': [],
       'source-code': [],
       architecture: [],
       sonarqube: [],

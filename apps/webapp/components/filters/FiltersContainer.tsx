@@ -10,7 +10,7 @@ import TextInputFilter from "@/components/filters/TextInputFilter";
 import SliderFilter from "@/components/filters/SliderFilter";
 import { DashboardFilters } from "@/components/filters/DashboardFilters";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { pipelineAPI, pullRequestAPI, sourceCodeAPI } from "@/server/api";
+import { pipelineAPI, changeRequestAPI, sourceCodeAPI } from "@/server/api";
 import { DashboardSection, dashboardSectionFromPathname, SavedFilterEntry } from './saved-filters-store';
 import SavedFiltersSection from './SavedFiltersSection';
 
@@ -38,12 +38,12 @@ const SECTION_FILTER_KEYS: Record<DashboardSection, (keyof DashboardFilters)[]> 
     'outlierMode',
     'method',
   ],
-  'pull-requests': [
+  'change-requests': [
     'authorSelect',
     'excludeAuthorSelect',
     'excludeCommenterSelect',
     'labelSelector',
-    'pullRequestStatus',
+    'changeRequestStatus',
     'aggregateBy',
     'weekends',
     'outlierMode',
@@ -165,18 +165,18 @@ export default function FiltersContainer({ repository }: { repository: string })
         );
         setJobOptions(pipelineOptions.jobs.map((j) => j.name).filter(Boolean) as string[]);
 
-        const pullRequestOptions = await pullRequestAPI.getFilterOptions().catch(() => ({
+        const changeRequestOptions = await changeRequestAPI.getFilterOptions().catch(() => ({
           authors: [],
           commenters: [],
           labels: [],
         }));
-        setAuthorOptions(pullRequestOptions.authors);
-        setCommenterOptions(pullRequestOptions.commenters || []);
+        setAuthorOptions(changeRequestOptions.authors);
+        setCommenterOptions(changeRequestOptions.commenters || []);
 
         const sourceCodeAuthors = await sourceCodeAPI.getAuthors().catch(() => []);
         setAuthorSourceCodeOptions(sourceCodeAuthors);
 
-        setLabelOptions(pullRequestOptions.labels);
+        setLabelOptions(changeRequestOptions.labels);
       } catch (error) {
         console.warn('Some filter options could not be loaded:', error);
       }
@@ -343,11 +343,11 @@ export default function FiltersContainer({ repository }: { repository: string })
         </Box>
       )}
 
-      {/* Pull Request Tab - Pull Request Filters */}
-      {activeSection === 'pull-requests' && (
+      {/* Change Request Tab - Change Request Filters */}
+      {activeSection === 'change-requests' && (
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-            Pull Request Filters
+            Change Request Filters
           </Typography>
           <Stack direction="column" spacing={2}>
             <MultiSelectFilter
@@ -376,9 +376,9 @@ export default function FiltersContainer({ repository }: { repository: string })
             />
             <SelectFilter
               label="Status"
-              value={filters.pullRequestStatus}
+              value={filters.changeRequestStatus}
               options={['open', 'closed', 'merged', 'draft']}
-              onChange={(value) => updateFilter('pullRequestStatus', value as 'open' | 'closed' | 'merged' | 'draft')}
+              onChange={(value) => updateFilter('changeRequestStatus', value as 'open' | 'closed' | 'merged' | 'draft')}
             />
             <SelectFilter
               label="Aggregate By"

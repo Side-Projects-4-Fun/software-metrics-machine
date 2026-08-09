@@ -4,7 +4,7 @@ outline: deep
 
 # GitHub provider
 
-This provider is focused on fetching and visualizing data from GitHub repositories, specifically pull requests and
+This provider is focused on fetching and visualizing data from GitHub repositories, specifically change requests and
 workflows (pipelines). It leverages the GitHub REST API to gather the necessary information and provides a set of
 tools to visualize and analyze the data.
 
@@ -29,7 +29,7 @@ Follow these steps:
 3. Click on "Generate new token" and select the necessary scopes:
    - `repo` (for accessing private repositories if needed)
    - `workflow` (for accessing GitHub Actions workflows)
-   - `pull requests` (for accessing pull request data)
+   - `pull requests` (for accessing change request data)
 4. Generate the token and copy it. Make sure to store it securely, as you won't be able to see it again.
 5. Store it in the configuration file `smm_config.json` under the key `github_token`, or use the project-specific token environment variable documented in [Configuration](./features/configuration.md#project-specific-environment-variables).
 

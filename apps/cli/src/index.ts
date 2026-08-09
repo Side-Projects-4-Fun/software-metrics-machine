@@ -1,4 +1,4 @@
-import { createPRsCommands } from './commands/prs';
+import { createChangeRequestsCommands } from './commands/change-requests';
 import { createPipelinesCommands } from './commands/pipelines';
 import { createCodeCommands } from './commands/code';
 import { createJiraCommands } from './commands/jira';
@@ -24,7 +24,7 @@ export function commands(): SmmCommand {
     .option('--project <name>', 'Select active project by name (github_repository)');
 
   // Register command groups
-  createPRsCommands(program);
+  createChangeRequestsCommands(program);
   createPipelinesCommands(program);
   createCodeCommands(program);
   createJiraCommands(program);
@@ -54,7 +54,7 @@ export function commands(): SmmCommand {
  * Provides commands for accessing metrics from various data sources.
  *
  * Available command groups:
- *   - smm prs           Pull request operations (fetch, analyze)
+ *   - smm change-requests  Change request operations (fetch, analyze)
  *   - smm pipelines     Pipeline/workflow operations (fetch, analyze)
  *   - smm code          Code analysis operations (churn, coupling, etc.)
  *   - smm jira          Jira integration (fetch issues, changelog, comments)

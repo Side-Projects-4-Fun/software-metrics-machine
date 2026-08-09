@@ -1,11 +1,11 @@
 import { shouldIncludeTimestampForWeekendsMode } from '../../domain/metric-samples';
 import type {
-  IReadPullRequestsRepository,
+  IReadChangeRequestsRepository,
   IRepository,
   PipelineJob,
   PipelineRun,
-  PRDetails,
-  PRFilters,
+  ChangeRequestDetails,
+  ChangeRequestFilters,
 } from '../../index';
 import type {
   PipelinesRepository,
@@ -13,36 +13,38 @@ import type {
 } from 'src/domain/pipelines/repositories/pipeline-repository';
 
 /**
- * Builder for creating an in-memory IReadPullRequestsRepository.
+ * Builder for creating an in-memory IReadChangeRequestsRepository.
  * Returns a real implementation — no vi.fn() mocks.
  *
  * Usage:
- *   const repo = new ReadPullRequestsRepositoryBuilder()
- *     .withPullRequests([prDetails1, prDetails2])
+ *   const repo = new ReadChangeRequestsRepositoryBuilder()
+ *     .withChangeRequests([changeRequest1, changeRequest2])
  *     .build();
  *
- *   const service = new PRsService(repo);
+ *   const service = new ChangeRequestsService(repo);
  *
  * If the test needs to spy on method calls, wrap with vi.fn() in the test:
- *   const repo = new ReadPullRequestsRepositoryBuilder()
- *     .withPullRequests([prDetails1, prDetails2])
+ *   const repo = new ReadChangeRequestsRepositoryBuilder()
+ *     .withChangeRequests([changeRequest1, changeRequest2])
  *     .build();
- *   vi.spyOn(repo, 'loadPrsWithFilters');
+ *   vi.spyOn(repo, 'loadChangeRequestsWithFilters');
  */
-export class ReadPullRequestsRepositoryBuilder {
-  private prs: PRDetails[] = [];
+export class ReadChangeRequestsRepositoryBuilder {
+  private changeRequests: ChangeRequestDetails[] = [];
 
-  withPullRequests(prs: PRDetails[]): this {
-    this.prs = prs;
+  withChangeRequests(changeRequests: ChangeRequestDetails[]): this {
+    this.changeRequests = changeRequests;
     return this;
   }
 
-  build(): IReadPullRequestsRepository {
+  build(): IReadChangeRequestsRepository {
     return {
-      loadPrsWithFilters: async (filters?: PRFilters): Promise<PRDetails[]> => {
-        return this.prs.filter((pr) =>
+      loadChangeRequestsWithFilters: async (
+        filters?: ChangeRequestFilters
+      ): Promise<ChangeRequestDetails[]> => {
+        return this.changeRequests.filter((changeRequest) =>
           shouldIncludeTimestampForWeekendsMode(
-            pr.mergedAt || pr.closedAt || pr.createdAt,
+            changeRequest.mergedAt || changeRequest.closedAt || changeRequest.createdAt,
             filters?.cleaning?.weekends,
             (dateString) => this.isWeekday(dateString)
           )

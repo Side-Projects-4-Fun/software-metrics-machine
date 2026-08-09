@@ -14,7 +14,7 @@ import { useProjects } from '@/components/providers/ProjectsContext';
 const sectionOrder: DashboardSection[] = [
   'insights',
   'pipelines',
-  'pull-requests',
+  'change-requests',
   'source-code',
   'engineering-health',
   'architecture',
@@ -24,7 +24,7 @@ const sectionOrder: DashboardSection[] = [
 const sectionLabels: Record<DashboardSection, string> = {
   insights: 'Insights',
   pipelines: 'Pipelines',
-  'pull-requests': 'Pull Requests',
+  'change-requests': 'Change Requests',
   'source-code': 'Source Code',
   'engineering-health': 'Engineering Health',
   architecture: 'Architecture',

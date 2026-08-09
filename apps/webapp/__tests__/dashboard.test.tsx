@@ -39,7 +39,7 @@ describe('Dashboard', () => {
 
     const insightsTab = screen.getByRole('tab', { name: /Insights/i });
     const pipelinesTab = screen.getByRole('tab', { name: /Pipelines/i });
-    const prTab = screen.getByRole('tab', { name: /Pull Requests/i });
+    const prTab = screen.getByRole('tab', { name: /Change Requests/i });
     const sourceCodeTab = screen.getByRole('tab', { name: /Source Code/i });
 
     expect(insightsTab).toBeInTheDocument();

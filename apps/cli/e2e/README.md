@@ -31,7 +31,7 @@ function test_fetch() {
   export SMM_STORE_DATA_AT="${workspace}"
   export DEBUG=true
 
-  run_smm_with_github_prs_msw prs fetch --force
+  run_smm_with_github_change_requests_msw change-requests fetch --force
 
   unset DEBUG
   unset SMM_STORE_DATA_AT

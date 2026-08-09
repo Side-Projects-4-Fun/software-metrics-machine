@@ -64,24 +64,24 @@ export interface TraverserResult {
 }
 
 /**
- * Pull request information
+ * Change request user information
  */
-export interface PRUser {
+export interface ChangeRequestUser {
   login: string;
   id: number;
 }
 
-export interface PRLabel {
+export interface ChangeRequestLabel {
   name: string;
   description?: string;
 }
 
-// export interface PullRequest {
+// export interface ChangeRequest {
 //   id: number;
 //   number: number;
 //   title: string;
 //   body?: string;
-//   author: PRUser;
+//   author: ChangeRequestUser;
 //   url: string;
 //   createdAt: string; // ISO format
 //   updatedAt: string;
@@ -91,14 +91,14 @@ export interface PRLabel {
 //   additions?: number;
 //   deletions?: number;
 //   filesChanged?: number;
-//   labels?: PRLabel[];
+//   labels?: ChangeRequestLabel[];
 //   comments?: number;
 // }
 
 /**
- * Detailed pull request for analytics
+ * Detailed change request for analytics
  */
-export interface PRDetails {
+export interface ChangeRequestDetails {
   id: number;
   number: number;
   title: string;
@@ -106,8 +106,8 @@ export interface PRDetails {
   updatedAt: string;
   mergedAt?: string; // null if not merged
   closedAt?: string;
-  author: PRUser;
-  labels: PRLabel[];
+  author: ChangeRequestUser;
+  labels: ChangeRequestLabel[];
   state: 'open' | 'closed' | 'merged' | 'draft';
   url: string;
   comments: number;

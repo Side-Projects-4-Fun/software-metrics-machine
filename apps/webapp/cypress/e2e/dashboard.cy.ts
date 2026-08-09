@@ -50,8 +50,8 @@ describe('Dashboard Page', () => {
     cy.contains('CD Pipeline').should('exist');
   });
 
-  it('should display pull requests data', () => {
-    cy.visit('/dashboard/pull-requests');
+  it('should display change requests data', () => {
+    cy.visit('/dashboard/change-requests');
     
     // Verify mocked PR data
     cy.contains('Feature X').should('exist');

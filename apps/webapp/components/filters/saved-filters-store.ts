@@ -1,7 +1,7 @@
 export type DashboardSection =
   | 'insights'
   | 'pipelines'
-  | 'pull-requests'
+  | 'change-requests'
   | 'source-code'
   | 'engineering-health'
   | 'architecture'
@@ -19,7 +19,7 @@ export interface SavedFilterEntry {
 
 export function dashboardSectionFromPathname(pathname: string): DashboardSection {
   if (pathname.includes('/pipelines')) {return 'pipelines';}
-  if (pathname.includes('/pull-requests')) {return 'pull-requests';}
+  if (pathname.includes('/change-requests')) {return 'change-requests';}
   if (pathname.includes('/source-code')) {return 'source-code';}
   if (pathname.includes('/engineering-health')) {return 'engineering-health';}
   if (pathname.includes('/architecture')) {return 'architecture';}

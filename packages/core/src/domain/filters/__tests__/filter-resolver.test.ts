@@ -45,7 +45,7 @@ describe('FilterResolver', () => {
       const filters: DashboardFilters = { ...defaultFilters, startDate: '2025-02-01' };
 
       await resolver.saveFilter(config, 'pipelines', 'CI Main', filters);
-      await resolver.saveFilter(config, 'pull-requests', 'Open PRs', filters);
+      await resolver.saveFilter(config, 'change-requests', 'Open change requests', filters);
 
       const all = await resolver.listFilters(config);
       expect(all).toHaveLength(2);
@@ -98,7 +98,7 @@ describe('FilterResolver', () => {
 
       await resolver.saveFilter(config, 'pipelines', 'CI Main', filters);
 
-      const merged = await resolver.resolveSavedFilterOptions(config, 'pull-requests', {
+      const merged = await resolver.resolveSavedFilterOptions(config, 'change-requests', {
         filter: 'CI Main',
         startDate: '2025-03-01',
       });

@@ -16,10 +16,10 @@ Then open `http://localhost:3000`. The `/dashboard` route opens the Insights tab
 
 The dashboard is split into these tabs:
 
-- **Insights**: cross-domain recommendations, deployment frequency, pairing index, pipeline summary, and pull request summary.
+- **Insights**: cross-domain recommendations, deployment frequency, pairing index, pipeline summary, and change request summary.
 - **Engineering Health**: leadership report for delivery, quality, collaboration, and architecture signals.
 - **Pipelines**: workflow run duration, job duration, job status, reruns, and job step analysis.
-- **Pull Requests**: review time, comment activity, PR throughput, themes, and PR statistics.
+- **Change Requests**: review time, comment activity, change request throughput, themes, and change request statistics.
 - **Source Code**: churn, effort, ownership, coupling, pairing, paired commits, and Big O classification.
 - **Architecture**: C4-style diagrams, elements, and relationships from generated architecture snapshots.
 - **SonarQube**: quality ratings, measurements, component metrics, and historical trends.
@@ -100,7 +100,7 @@ smm filters save "Q3 main branch" \
   --weekends exclude
 ```
 
-The `--section` option is required. Available sections are `insights`, `pipelines`, `pull-requests`,
+The `--section` option is required. Available sections are `insights`, `pipelines`, `change-requests`,
 `source-code`, `engineering-health`, `architecture`, and `sonarqube`.
 
 Show and delete saved filters:
@@ -125,16 +125,16 @@ Explicit command-line flags override the saved filter.
 ```bash
 smm pipelines summary --filter "Q3 main branch"
 smm pipelines runs-by --filter "Q3 main branch" --period month
-smm prs summary --filter "Team Alpha reviews"
+smm change-requests summary --filter "Team Alpha reviews"
 ```
 
 The filter section must match the command that uses it. A filter saved under `pipelines` is applied
-to `smm pipelines ...` commands, a `pull-requests` filter to `smm prs ...` commands, and so on.
+to `smm pipelines ...` commands, a `change-requests` filter to `smm change-requests ...` commands, and so on.
 
 ## References and targets
 
 The `/dashboard/references` page lists the metric targets and sources used by dashboard recommendations and target info
-popovers. Sources are grouped by Code Analysis, Pipelines, Pull Requests, and SonarQube.
+popovers. Sources are grouped by Code Analysis, Pipelines, Change Requests, and SonarQube.
 
 Many dashboard cards show an info control with the target value, explanation, and supporting sources for that metric.
 

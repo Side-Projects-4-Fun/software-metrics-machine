@@ -9,7 +9,7 @@ export const handlers = [
     return HttpResponse.json({
       data: {
         totalCommits: 1234,
-        totalPullRequests: 56,
+        totalChangeRequests: 56,
         totalIssues: 78,
         codeCoverage: 85.5,
       },
@@ -44,8 +44,8 @@ export const handlers = [
     });
   }),
 
-  // Example: Mock GET /api/pull-requests
-  http.get('/api/pull-requests', () => {
+  // Example: Mock GET /api/change-requests
+  http.get('/api/change-requests', () => {
     return HttpResponse.json({
       data: [
         { id: 1, title: 'Feature X', status: 'open', author: 'user1' },

@@ -28,16 +28,16 @@ function test_filters_save_and_show_renders_filter_details() {
   workspace="$(create_smm_e2e_workspace)"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm filters save my-pr-filter --section pull-requests --pull-request-status merged --start-date 2026-01-01 --end-date 2026-01-31 --aggregate-by week
+  run_smm filters save my-change-request-filter --section change-requests --change-request-status merged --start-date 2026-01-01 --end-date 2026-01-31 --aggregate-by week
   assert_smm_success
 
-  run_smm filters show my-pr-filter
+  run_smm filters show my-change-request-filter
   assert_smm_success
-  assert_smm_output_contains "Filter: my-pr-filter"
-  assert_smm_output_contains "Section: pull-requests"
+  assert_smm_output_contains "Filter: my-change-request-filter"
+  assert_smm_output_contains "Section: change-requests"
   assert_smm_output_contains "startDate: 2026-01-01"
   assert_smm_output_contains "endDate: 2026-01-31"
-  assert_smm_output_contains "pullRequestStatus: merged"
+  assert_smm_output_contains "changeRequestStatus: merged"
   assert_smm_output_contains "aggregateBy: week"
 
   unset SMM_STORE_DATA_AT
@@ -72,13 +72,13 @@ function test_filters_list_by_section_filters_entries() {
 
   run_smm filters save pipelines-one --section pipelines --start-date 2026-01-01
   assert_smm_success
-  run_smm filters save prs-one --section pull-requests --start-date 2026-01-01
+  run_smm filters save change-requests-one --section change-requests --start-date 2026-01-01
   assert_smm_success
 
   run_smm filters list --section pipelines
   assert_smm_success
   assert_smm_output_contains "[pipelines] pipelines-one"
-  assert_smm_output_not_contains "[pull-requests]"
+  assert_smm_output_not_contains "[change-requests]"
 
   unset SMM_STORE_DATA_AT
 }
@@ -175,27 +175,27 @@ function test_filters_save_with_all_pipelines_options() {
   unset SMM_STORE_DATA_AT
 }
 
-function test_filters_save_with_all_pull_requests_options() {
+function test_filters_save_with_all_change_requests_options() {
   local workspace
 
   workspace="$(create_smm_e2e_workspace)"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm filters save full-pr \
-    --section pull-requests \
+  run_smm filters save full-change-request \
+    --section change-requests \
     --start-date 2026-01-01 \
     --end-date 2026-06-30 \
-    --pull-request-status merged \
+    --change-request-status merged \
     --aggregate-by week \
     --weekends exclude \
     --outlier-mode flag
   assert_smm_success
 
-  run_smm filters show full-pr
+  run_smm filters show full-change-request
   assert_smm_success
   assert_smm_output_contains "startDate: 2026-01-01"
   assert_smm_output_contains "endDate: 2026-06-30"
-  assert_smm_output_contains "pullRequestStatus: merged"
+  assert_smm_output_contains "changeRequestStatus: merged"
   assert_smm_output_contains "aggregateBy: week"
   assert_smm_output_contains "weekends: exclude"
   assert_smm_output_contains "outlierMode: flag"

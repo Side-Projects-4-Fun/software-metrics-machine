@@ -15,7 +15,7 @@ Provides comprehensive metrics from GitHub, Jira, SonarQube, Git repositories, a
 
 ## Features
 
-- **Pull Request Metrics**: Analyze PR metrics including lead time and comments
+- **Change Request Metrics**: Analyze change request metrics including lead time and comments
 - **Deployment Metrics**: Track deployment frequency and job performance
 - **Code Metrics**: Get pairing index, code churn, and file coupling data
 - **Issue Metrics**: Query Jira issue data and metrics
@@ -48,7 +48,7 @@ Errors return HTTP status codes with JSON error response:
   "message": "Error message",
   "error": "BadRequest",
   "timestamp": "2024-03-29T10:30:00.000Z",
-  "path": "/api/metrics/pr"
+  "path": "/api/metrics/change-requests"
 }
 \`\`\`
       `

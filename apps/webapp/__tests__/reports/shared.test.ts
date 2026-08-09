@@ -3,22 +3,22 @@ import { SavedFilterBuilder, ReportEntryBuilder } from '../builders/builders';
 
 jest.mock('@/server/api/client');
 jest.mock('@/server/api/pipeline', () => ({ pipelineAPI: { evaluate: jest.fn() } }));
-jest.mock('@/server/api/pullRequest', () => ({ pullRequestAPI: { evaluate: jest.fn() } }));
+jest.mock('@/server/api/changeRequest', () => ({ changeRequestAPI: { evaluate: jest.fn() } }));
 jest.mock('@/server/api/sourceCode', () => ({ sourceCodeAPI: { evaluate: jest.fn() } }));
 jest.mock('@/server/api/architecture', () => ({ architectureAPI: { evaluate: jest.fn() } }));
 jest.mock('@/server/api/sonarqube', () => ({ sonarqubeAPI: { evaluate: jest.fn() } }));
 
 import { pipelineAPI } from '@/server/api/pipeline';
-import { pullRequestAPI } from '@/server/api/pullRequest';
+import { changeRequestAPI } from '@/server/api/changeRequest';
 import { sourceCodeAPI } from '@/server/api/sourceCode';
 import { architectureAPI } from '@/server/api/architecture';
 import { sonarqubeAPI } from '@/server/api/sonarqube';
 
-type TestFilterSection = 'pipelines' | 'pull-requests' | 'source-code' | 'architecture' | 'sonarqube';
+type TestFilterSection = 'pipelines' | 'change-requests' | 'source-code' | 'architecture' | 'sonarqube';
 
 function evaluateMock(section: TestFilterSection): jest.Mock {
   switch (section) {
-    case 'pull-requests': return pullRequestAPI.evaluate as jest.Mock;
+    case 'change-requests': return changeRequestAPI.evaluate as jest.Mock;
     case 'pipelines': return pipelineAPI.evaluate as jest.Mock;
     case 'source-code': return sourceCodeAPI.evaluate as jest.Mock;
     case 'architecture': return architectureAPI.evaluate as jest.Mock;
@@ -37,10 +37,10 @@ function buildFilter(section: TestFilterSection) {
 describe('resolveReport', () => {
   it('dispatches to the correct evaluate endpoint per section and returns results', async () => {
     const pipelineEval = evaluateMock('pipelines');
-    const prEval = evaluateMock('pull-requests');
+    const prEval = evaluateMock('change-requests');
 
     pipelineEval.mockResolvedValue({ generatedAt: 't1', signals: [], summary: { totalRuns: 42 } });
-    prEval.mockResolvedValue({ generatedAt: 't2', signals: [], summary: { totalPRs: 7 } });
+    prEval.mockResolvedValue({ generatedAt: 't2', signals: [], summary: { totalChangeRequests: 7 } });
 
     const result = await resolveReport(
       new ReportEntryBuilder()
@@ -48,17 +48,17 @@ describe('resolveReport', () => {
         .withName('Report 1')
         .withSections([
           { section: 'pipelines', savedFilterId: 'f_pipelines' },
-          { section: 'pull-requests', savedFilterId: 'f_pull-requests' },
+          { section: 'change-requests', savedFilterId: 'f_change-requests' },
         ])
         .build(),
       new Map([
         ['f_pipelines', buildFilter('pipelines')],
-        ['f_pull-requests', buildFilter('pull-requests')],
+        ['f_change-requests', buildFilter('change-requests')],
       ]),
     );
 
     expect(result.windows[0].evaluations['pipelines-f_pipelines']).toEqual({ generatedAt: 't1', signals: [], summary: { totalRuns: 42 } });
-    expect(result.windows[0].evaluations['pull-requests-f_pull-requests']).toEqual({ generatedAt: 't2', signals: [], summary: { totalPRs: 7 } });
+    expect(result.windows[0].evaluations['change-requests-f_change-requests']).toEqual({ generatedAt: 't2', signals: [], summary: { totalChangeRequests: 7 } });
     expect(result.windows[0].errors).toEqual({});
   });
 
@@ -114,7 +114,7 @@ describe('resolveReport', () => {
   });
 
   it('dispatches to every section type correctly', async () => {
-    for (const section of ['pipelines', 'pull-requests', 'source-code', 'architecture', 'sonarqube'] as TestFilterSection[]) {
+    for (const section of ['pipelines', 'change-requests', 'source-code', 'architecture', 'sonarqube'] as TestFilterSection[]) {
       evaluateMock(section).mockResolvedValue({ generatedAt: '', signals: [], summary: {} });
     }
 
@@ -124,7 +124,7 @@ describe('resolveReport', () => {
         .withName('Full Report')
         .withSections([
           { section: 'pipelines', savedFilterId: 'f_pipelines' },
-          { section: 'pull-requests', savedFilterId: 'f_pull-requests' },
+          { section: 'change-requests', savedFilterId: 'f_change-requests' },
           { section: 'source-code', savedFilterId: 'f_source-code' },
           { section: 'architecture', savedFilterId: 'f_architecture' },
           { section: 'sonarqube', savedFilterId: 'f_sonarqube' },
@@ -132,7 +132,7 @@ describe('resolveReport', () => {
         .build(),
       new Map([
         ['f_pipelines', buildFilter('pipelines')],
-        ['f_pull-requests', buildFilter('pull-requests')],
+        ['f_change-requests', buildFilter('change-requests')],
         ['f_source-code', buildFilter('source-code')],
         ['f_architecture', buildFilter('architecture')],
         ['f_sonarqube', buildFilter('sonarqube')],
@@ -140,7 +140,7 @@ describe('resolveReport', () => {
     );
 
     expect(result.windows[0].evaluations['pipelines-f_pipelines']).toBeDefined();
-    expect(result.windows[0].evaluations['pull-requests-f_pull-requests']).toBeDefined();
+    expect(result.windows[0].evaluations['change-requests-f_change-requests']).toBeDefined();
     expect(result.windows[0].evaluations['source-code-f_source-code']).toBeDefined();
     expect(result.windows[0].evaluations['architecture-f_architecture']).toBeDefined();
     expect(result.windows[0].evaluations['sonarqube-f_sonarqube']).toBeDefined();

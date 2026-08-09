@@ -1,6 +1,6 @@
 export { sourceCodeAPI } from './sourceCode';
 export { pipelineAPI } from './pipeline';
-export { pullRequestAPI } from './pullRequest';
+export { changeRequestAPI } from './changeRequest';
 export { sonarqubeAPI } from './sonarqube';
 export { architectureAPI } from './architecture';
 export { engineeringHealthAPI } from './engineeringHealth';
@@ -14,7 +14,7 @@ function sourceCodeAPI() {
 function sonarqubeAPI() {
   return () => import('./sonarqube').then(m => m.sonarqubeAPI);
 }
-const pullRequestAPI = () => import('./pullRequest').then(m => m.pullRequestAPI);
+const changeRequestAPI = () => import('./changeRequest').then(m => m.changeRequestAPI);
 function pipelineAPI() {
   return () => import('./pipeline').then(m => m.pipelineAPI);
 }
@@ -24,6 +24,6 @@ export default {
   sourceCodeAPI,
   sonarqubeAPI,
   pipelineAPI,
-  pullRequestAPI,
+  changeRequestAPI,
 };
 

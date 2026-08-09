@@ -117,7 +117,7 @@ export default function ReportsClient({
         <div className="mt-5 mb-5">
             <Typography variant="body2" color="text.secondary">
                 Compose a report by selecting one saved filter per section. The report stacks
-                evaluation cards from Pipelines, Pull Requests, Source Code, Architecture, and
+                evaluation cards from Pipelines, Change Requests, Source Code, Architecture, and
                 SonarQube.
             </Typography>
         </div>

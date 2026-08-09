@@ -223,7 +223,7 @@ export function Recommendations({
       }
     }
 
-    // --- PR Review Time ---
+    // --- Change Request Review Time ---
     if (averageReviewTime && averageReviewTime.length > 0) {
       const target = METRIC_TARGETS['average-review-time'];
       const avgReviewDays =
@@ -239,8 +239,8 @@ export function Recommendations({
           severity: 'warning',
           currentValue: avgReviewTimeFormatted,
           targetValue: target?.target,
-          href: '/dashboard/pull-requests',
-          hrefLabel: 'View Pull Requests',
+          href: '/dashboard/change-requests',
+          hrefLabel: 'View Change Requests',
         });
       } else if (avgReviewDays > 0) {
         recs.push({
@@ -255,19 +255,19 @@ export function Recommendations({
       }
     }
 
-    // --- Open PRs ---
+    // --- Open Change Requests ---
     if (prSummary && prSummary.open > 0) {
-      const target = METRIC_TARGETS['prs-remain-open'];
+      const target = METRIC_TARGETS['change-requests-remain-open'];
       recs.push({
-        id: 'open-prs',
-        metric: 'prs-remain-open',
-        title: 'Review Open Pull Requests',
-        message: `You have ${prSummary.open} open PR(s). PRs open beyond 3 days slow delivery and increase merge conflicts. Prioritize reviewing stale PRs.`,
+        id: 'open-change-requests',
+        metric: 'change-requests-remain-open',
+        title: 'Review Open Change Requests',
+        message: `You have ${prSummary.open} open change request(s). Change requests open beyond 3 days slow delivery and increase merge conflicts. Prioritize reviewing stale change requests.`,
         severity: 'info',
         currentValue: `${prSummary.open} open`,
         targetValue: target?.target,
-        href: '/dashboard/pull-requests',
-        hrefLabel: 'View Pull Requests',
+        href: '/dashboard/change-requests',
+        hrefLabel: 'View Change Requests',
       });
     }
 

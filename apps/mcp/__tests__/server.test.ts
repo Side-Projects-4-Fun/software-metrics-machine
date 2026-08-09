@@ -68,12 +68,12 @@ describe('MCP server request handling', () => {
         tools: expect.arrayContaining([
           expect.objectContaining({ name: 'smm_list_projects' }),
           expect.objectContaining({ name: 'smm_list_engineering_health_metrics' }),
-          expect.objectContaining({ name: 'smm_get_pr_metrics' }),
+          expect.objectContaining({ name: 'smm_get_change_request_metrics' }),
           expect.objectContaining({ name: 'smm_get_engineering_health' }),
           expect.objectContaining({ name: 'smm_get_dora_metrics' }),
           expect.objectContaining({ name: 'smm_get_architecture_view' }),
           expect.objectContaining({ name: 'smm_get_full_report' }),
-          expect.objectContaining({ name: 'smm_evaluate_prs' }),
+          expect.objectContaining({ name: 'smm_evaluate_change_requests' }),
           expect.objectContaining({ name: 'smm_evaluate_pipelines' }),
           expect.objectContaining({ name: 'smm_evaluate_code' }),
           expect.objectContaining({ name: 'smm_evaluate_quality' }),
@@ -83,7 +83,7 @@ describe('MCP server request handling', () => {
           expect.objectContaining({ name: 'smm_health_check' }),
           expect.objectContaining({ name: 'smm_get_version' }),
           expect.objectContaining({ name: 'smm_get_configuration' }),
-          expect.objectContaining({ name: 'smm_list_pr_filter_options' }),
+          expect.objectContaining({ name: 'smm_list_change_request_filter_options' }),
           expect.objectContaining({ name: 'smm_list_pipeline_filter_options' }),
           expect.objectContaining({ name: 'smm_list_code_authors' }),
         ]),
@@ -302,7 +302,7 @@ describe('MCP server request handling', () => {
             uriTemplate: 'smm://project/{project}/architecture/snapshots',
           }),
           expect.objectContaining({
-            uriTemplate: 'smm://project/{project}/evaluation/prs',
+            uriTemplate: 'smm://project/{project}/evaluation/change-requests',
           }),
           expect.objectContaining({
             uriTemplate: 'smm://project/{project}/evaluation/pipelines',

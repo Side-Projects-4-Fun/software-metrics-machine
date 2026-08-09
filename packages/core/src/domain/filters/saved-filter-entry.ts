@@ -12,12 +12,12 @@ export interface DashboardFilters {
   branch: string[];
   event: string[];
 
-  // PR filters
+  // Change request filters
   authorSelect: string[];
   excludeAuthorSelect: string[];
   excludeCommenterSelect: string[];
   labelSelector: string[];
-  pullRequestStatus?: 'open' | 'closed' | 'merged' | 'draft';
+  changeRequestStatus?: 'open' | 'closed' | 'merged' | 'draft';
   aggregateBy?: string;
 
   // Average computation filters
@@ -49,7 +49,7 @@ export interface DashboardFilters {
 export type DashboardSection =
   | 'insights'
   | 'pipelines'
-  | 'pull-requests'
+  | 'change-requests'
   | 'source-code'
   | 'engineering-health'
   | 'architecture'
@@ -67,7 +67,7 @@ export interface SavedFilterEntry {
 
 export type EvaluatableSection =
   | 'pipelines'
-  | 'pull-requests'
+  | 'change-requests'
   | 'source-code'
   | 'architecture'
   | 'sonarqube';
@@ -113,7 +113,7 @@ export const DASHBOARD_FILTER_QUERY_KEYS = [
   'excludeAuthorSelect',
   'excludeCommenterSelect',
   'labelSelector',
-  'pullRequestStatus',
+  'changeRequestStatus',
   'aggregateBy',
   'weekends',
   'outlierMode',
@@ -236,9 +236,10 @@ export function parseDashboardFilters(
     excludeAuthorSelect: getArrayValue(searchParams.excludeAuthorSelect),
     excludeCommenterSelect: getArrayValue(searchParams.excludeCommenterSelect),
     labelSelector: getArrayValue(searchParams.labelSelector),
-    pullRequestStatus:
-      (getSingleValue(searchParams.pullRequestStatus) as DashboardFilters['pullRequestStatus']) ||
-      fallback.pullRequestStatus,
+    changeRequestStatus:
+      (getSingleValue(
+        searchParams.changeRequestStatus
+      ) as DashboardFilters['changeRequestStatus']) || fallback.changeRequestStatus,
     aggregateBy: getSingleValue(searchParams.aggregateBy) || fallback.aggregateBy,
     weekends: parseWeekends(getSingleValue(searchParams.weekends), fallback.weekends),
     outlierMode: parseOutlierMode(getSingleValue(searchParams.outlierMode), fallback.outlierMode),
@@ -298,7 +299,7 @@ export function serializeDashboardFilters(filters: DashboardFilters): URLSearchP
   appendList('excludeAuthorSelect', filters.excludeAuthorSelect);
   appendList('excludeCommenterSelect', filters.excludeCommenterSelect);
   appendList('labelSelector', filters.labelSelector);
-  append('pullRequestStatus', filters.pullRequestStatus);
+  append('changeRequestStatus', filters.changeRequestStatus);
   append('aggregateBy', filters.aggregateBy);
   append('weekends', filters.weekends);
   append('outlierMode', filters.outlierMode);

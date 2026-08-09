@@ -62,7 +62,7 @@ SMM uses a multi-project configuration format. Wrap your project configurations 
 When you have multiple projects, select which one to use with the CLI global option:
 
 ```bash
-smm --project your-org/frontend-app prs fetch
+smm --project your-org/frontend-app change-requests fetch
 ```
 
 If `smm_config.json` has more than one project and `--project` is not provided, SMM uses the first project in the
@@ -147,7 +147,7 @@ variable. If neither is set, SMM uses `UTC`.
 
 ```bash
 export YOUR_ORG_FRONTEND_APP_SMM_TIMEZONE=Europe/Madrid
-smm --project your-org/frontend-app prs summary --start-date 2026-01-01 --end-date 2026-01-31
+smm --project your-org/frontend-app change-requests summary --start-date 2026-01-01 --end-date 2026-01-31
 ```
 
 For client dashboards and REST API calls, send the browser or viewer timezone as the `timezone` query parameter. The
@@ -155,7 +155,7 @@ dashboard does this automatically from the browser's `Intl.DateTimeFormat().reso
 clients should pass the same kind of IANA identifier:
 
 ```text
-/pull-requests/summary?start_date=2026-01-01&end_date=2026-01-31&timezone=Europe%2FMadrid
+/change-requests/summary?start_date=2026-01-01&end_date=2026-01-31&timezone=Europe%2FMadrid
 ```
 
 Date-only filters such as `2026-01-01` are expanded to the beginning or end of that day in the selected timezone.
@@ -166,7 +166,7 @@ Offset-aware date-time values such as `2026-01-01T09:00:00+01:00` are treated as
 | Key | Description | Required |
 |-----|-------------|----------|
 | `git_provider` | Git provider (`github` or `gitlab`) | Yes |
-| `github_token` | GitHub personal access token | Yes for GitHub PR/pipeline |
+| `github_token` | GitHub personal access token | Yes for GitHub change request/pipeline |
 | `gitlab_token` | GitLab personal access token | Yes for GitLab MR/pipeline |
 | `gitlab_url` | GitLab instance URL for self-hosted GitLab (e.g. `https://gitlab.example.com`). Used for both `glab api --hostname` provider calls and dashboard links. No effect when `git_provider` is not `gitlab`. | No |
 | `github_repository` | Repository in `owner/repo` format (also used as project identifier) | Yes |

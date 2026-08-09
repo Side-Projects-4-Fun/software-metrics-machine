@@ -41,9 +41,9 @@ export class BaseQueryDto {
 }
 
 /**
- * Pull Request Metrics Query DTO
+ * Change Request Metrics Query DTO
  */
-export class PRMetricsQueryDto extends BaseQueryDto {}
+export class ChangeRequestMetricsQueryDto extends BaseQueryDto {}
 
 /**
  * Deployment Metrics Query DTO

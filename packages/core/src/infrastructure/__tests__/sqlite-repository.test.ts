@@ -458,7 +458,7 @@ describe('sqlite repository implementations', () => {
       const db = new DatabaseSync(dbPath);
       const row = db
         .prepare(
-          `SELECT id, pull_request_number, pull_request_url, author_login, author_id, path, created_at
+          `SELECT id, change_request_number, change_request_url, author_login, author_id, path, created_at
            FROM change_request_comments
            WHERE namespace = ?`
         )
@@ -467,8 +467,8 @@ describe('sqlite repository implementations', () => {
 
       expect(row).toMatchObject({
         id: '100',
-        pull_request_number: 42,
-        pull_request_url: 'https://api.github.example/repos/owner/repo/pulls/42',
+        change_request_number: 42,
+        change_request_url: 'https://api.github.example/repos/owner/repo/pulls/42',
         author_login: 'reviewer',
         author_id: '2',
         path: 'src/index.ts',

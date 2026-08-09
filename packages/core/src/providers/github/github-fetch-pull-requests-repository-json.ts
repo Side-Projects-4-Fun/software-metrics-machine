@@ -7,8 +7,8 @@ import type {
   PullRequestJsonResponse,
 } from './github-response-types';
 import type { Configuration } from '../../';
-import type { PullRequestFilterOptions } from '../../domain/prs/repositories/pull-request-filters-repository-json';
-import { PullRequestFiltersRepository } from '../../domain/prs/repositories/pull-request-filters-repository-json';
+import type { ChangeRequestFilterOptions } from '../../domain/change-requests/repositories/change-request-filters-repository-json';
+import { ChangeRequestFiltersRepository } from '../../domain/change-requests/repositories/change-request-filters-repository-json';
 
 export interface IPullRequestsRepository {
   fetchPRs(options?: {
@@ -28,7 +28,7 @@ export interface IPullRequestsRepository {
 export class GitHubPullRequestsFetchRepository implements IPullRequestsRepository {
   private pullRequestsJsonRepository: IRepository<PullRequestJsonResponse>;
   private pullRequestCommentsJsonRepository: IRepository<PullRequestCommentJsonResponse>;
-  private pullRequestFiltersRepository: PullRequestFiltersRepository;
+  private pullRequestFiltersRepository: ChangeRequestFiltersRepository;
 
   constructor(
     private githubPrsClient: IGithubPrsClient,
@@ -47,12 +47,12 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
         logger,
         config
       );
-    const pullRequestFiltersJsonRepository = RepositoryFactory.create<PullRequestFilterOptions>(
+    const pullRequestFiltersJsonRepository = RepositoryFactory.create<ChangeRequestFilterOptions>(
       `${providerDir}/pull-request-filter-options.json`,
       logger,
       config
     );
-    this.pullRequestFiltersRepository = new PullRequestFiltersRepository(
+    this.pullRequestFiltersRepository = new ChangeRequestFiltersRepository(
       this.pullRequestsJsonRepository,
       this.pullRequestCommentsJsonRepository,
       pullRequestFiltersJsonRepository

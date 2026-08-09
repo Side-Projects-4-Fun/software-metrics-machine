@@ -15,8 +15,8 @@ pnpm run --filter=cli dev code codemaat-fetch --start-date=$start_date --end-dat
 pnpm run --filter=cli dev architecture generate --start-date=$start_date --end-date=$end_date --project=$PROJECT --debug
 
 # prs
-pnpm run --filter=cli dev prs fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
-pnpm run --filter=cli dev prs fetch-comments --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
+pnpm run --filter=cli dev change-requests fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
+pnpm run --filter=cli dev change-requests fetch-comments --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
 
 # pipelines
 pnpm run --filter=cli dev pipelines fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force --by-day
@@ -27,7 +27,7 @@ pnpm run --filter=cli dev sonarqube fetch-measures
 pnpm run --filter=cli dev sonarqube fetch-component-tree
 pnpm run --filter=cli dev sonarqube fetch-historical-measures
 
-pnpm run --filter=cli dev prs summary --output=json
+pnpm run --filter=cli dev change-requests summary --output=json
 pnpm run --filter=cli dev pipelines summary --output=json
 pnpm run --filter=cli dev pipelines jobs-summary --output=json
 pnpm run --filter=cli dev health-check --output=json

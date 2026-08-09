@@ -20,17 +20,17 @@ function test_health_check_detects_empty_databases() {
   assert_smm_success
 }
 
-function test_prs_summary_handles_no_data_gracefully() {
+function test_change_requests_summary_handles_no_data_gracefully() {
   local workspace
 
   workspace="$(create_smm_e2e_workspace)"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm prs summary
+  run_smm change-requests summary
 
   unset SMM_STORE_DATA_AT
 
-  assert_smm_output_contains "Total PRs: 0"
+  assert_smm_output_contains "Total change requests: 0"
   assert_smm_success
 }
 

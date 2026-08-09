@@ -20,7 +20,7 @@ describe('MetricsController - Configuration and Cross-Cutting Behavior', () => {
       .expect(200)
       .expect((res) => {
         expect(res.body).toHaveProperty('timestamp');
-        expect(res.body).toHaveProperty('pullRequests');
+        expect(res.body).toHaveProperty('changeRequests');
         expect(res.body).toHaveProperty('deployment');
         expect(res.body).toHaveProperty('code');
         expect(res.body).toHaveProperty('issues');

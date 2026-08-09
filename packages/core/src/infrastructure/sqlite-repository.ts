@@ -348,7 +348,7 @@ export class SqliteRepository<T> implements IRepository<T> {
     const insert = db.prepare(
       `INSERT INTO change_request_comments
         (
-          namespace, id, pull_request_number, pull_request_url, author_login,
+          namespace, id, change_request_number, change_request_url, author_login,
           author_id, path, created_at, updated_at, html_url,
           payload, position, stored_at
         )

@@ -83,7 +83,7 @@ export default withMermaid(
               { text: 'Engineering Health', link: '/features/engineering-health' },
               { text: 'Dashboard', link: '/features/dashboard' },
               { text: 'Insights', link: '/features/insights' },
-              { text: 'Pull requests', link: '/features/prs' },
+              { text: 'Change requests', link: '/features/change-requests' },
               { text: 'Pipelines', link: '/features/pipelines' },
               { text: 'Source code', link: '/features/code' },
               { text: 'Architecture', link: '/features/architecture' },
@@ -121,7 +121,7 @@ export default withMermaid(
           text: 'Investigations',
           items: [
             {
-              text: 'Pull request review process', link: '/investigations/pull-request-review-process', items: [ ]
+              text: 'Change request review process', link: '/investigations/change-request-review-process', items: [ ]
             },
             {
               text: 'Pipeline run time', link: '/investigations/pipeline-run-time', items: [ ]

@@ -28,7 +28,7 @@ team performance.
 SMM addresses these challenges by offering a data-driven approach to software metrics. It collects and analyzes data from various sources, including:
 
 - **Pipeline Metrics**: Tracks success rates and average completion times to ensure a stable and efficient development pipeline.
-- **Pull Request Metrics**: Provides insights into the average time PRs remain open, helping teams identify bottlenecks and improve collaboration.
+- **Change Request Metrics**: Provides insights into the average time change requests remain open, helping teams identify bottlenecks and improve collaboration.
 - **Git History Metrics**: Analyzes code churn, hotspots, and change frequency to highlight areas of technical debt and opportunities for improvement.
 
 The process is:
@@ -53,7 +53,7 @@ To accomplish SMM mission, this project is built based on a provider model, wher
 data from a specific source. This is because depending on the desired metric, it might come from a difference source. For
 example, there are metrics extractd about coupling that are from the git log.
 
-Other metrics such as pipeline execution and pull request open days average comes from GitHub API (or other providers).
+Other metrics such as pipeline execution and change request open days average comes from GitHub API (or other providers).
 Visit [supported providers](./supported-providers.md) for a full list of the metrics generated based on them.
 
 ## Why Join the SMM Project?

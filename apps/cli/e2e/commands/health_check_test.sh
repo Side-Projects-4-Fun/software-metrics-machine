@@ -47,7 +47,7 @@ function test_health_check_provider_github_filters_datasets() {
 
   unset SMM_STORE_DATA_AT
 
-  assert_smm_output_contains "github.prs"
+  assert_smm_output_contains "github.change-requests"
   assert_smm_output_not_contains "jira.issues"
   assert_smm_output_not_contains "sonarqube"
   assert_smm_success

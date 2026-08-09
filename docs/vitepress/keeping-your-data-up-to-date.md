@@ -5,7 +5,7 @@ outline: deep
 # Keeping your data up to date
 
 Once you have completed your first analysis, you will want to periodically refresh the data to reflect new commits,
-pull requests, pipeline runs, and quality metrics. This page shows how to run a full data update using a reusable
+change requests, pipeline runs, and quality metrics. This page shows how to run a full data update using a reusable
 shell script based on the commands from [your first analysis](./your-first-analysis-with-github.md).
 
 ## The update script
@@ -28,9 +28,9 @@ smm code fetch-commits --start-date=$start_date --end-date=$end_date --project=$
 smm code codemaat-fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
 smm architecture generate --start-date=$start_date --end-date=$end_date --project=$PROJECT --debug
 
-# prs
-smm prs fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
-smm prs fetch-comments --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
+# change-requests
+smm change-requests fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
+smm change-requests fetch-comments --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
 
 # pipelines
 smm pipelines fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force --by-day
@@ -41,7 +41,7 @@ smm sonarqube fetch-measures
 smm sonarqube fetch-component-tree
 smm sonarqube fetch-historical-measures
 
-smm prs summary --output=json
+smm change-requests summary --output=json
 smm pipelines summary --output=json
 smm pipelines jobs-summary --output=json
 smm health-check --output=json
@@ -86,16 +86,17 @@ smm architecture generate --start-date=$start_date --end-date=$end_date --projec
 `fetch-commits` pulls the git log, `codemaat-fetch` processes it with [codemaat](./codemaat.md), and
 `architecture generate` produces component-level coupling and cohesion metrics.
 
-### Pull requests
+### Change requests
 
-Fetches pull requests and their review comments from the configured provider.
+Fetches change requests and their review comments from the configured provider.
 
 ```bash
-smm prs fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
-smm prs fetch-comments --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
+smm change-requests fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
+smm change-requests fetch-comments --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
 ```
 
-Always run `prs fetch` before `prs fetch-comments`, as comments are tied to the pull requests already stored locally.
+Always run `change-requests fetch` before `change-requests fetch-comments`, as comments are tied to the change
+requests already stored locally.
 
 ### Pipelines
 
@@ -130,14 +131,14 @@ smm sonarqube fetch-historical-measures
 After all data is fetched, regenerate summaries and run a health check to validate the data quality.
 
 ```bash
-smm prs summary --output=json
+smm change-requests summary --output=json
 smm pipelines summary --output=json
 smm pipelines jobs-summary --output=json
 smm health-check --output=json
 ```
 
-Summaries provide an overview of fetched PR and pipeline data. The health check identifies gaps, stale entries,
-and coverage issues across all providers.
+Summaries provide an overview of fetched change request and pipeline data. The health check identifies gaps, stale
+entries, and coverage issues across all providers.
 
 ## Using the script
 
@@ -155,8 +156,8 @@ smm code fetch-commits --start-date=$start_date --end-date=$end_date --project=$
 smm code codemaat-fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
 smm architecture generate --start-date=$start_date --end-date=$end_date --project=$PROJECT --debug
 
-smm prs fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
-smm prs fetch-comments --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
+smm change-requests fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
+smm change-requests fetch-comments --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
 
 smm pipelines fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force --by-day
 smm pipelines fetch-jobs --run-start-date=$start_date --run-end-date=$end_date --project=$PROJECT --force --by-day
@@ -166,7 +167,7 @@ smm sonarqube fetch-measures
 smm sonarqube fetch-component-tree
 smm sonarqube fetch-historical-measures
 
-smm prs summary --output=json
+smm change-requests summary --output=json
 smm pipelines summary --output=json
 smm pipelines jobs-summary --output=json
 smm health-check --output=json
@@ -188,10 +189,10 @@ The script above runs a full refresh with `--force`. For smaller, incremental up
 commands with a narrower date range:
 
 ```bash
-smm prs fetch --start-date 2026-06-01 --end-date 2026-06-06 --project=$PROJECT --force
+smm change-requests fetch --start-date 2026-06-01 --end-date 2026-06-06 --project=$PROJECT --force
 ```
 
-This fetches only the last week of pull requests without re-downloading the full history.
+This fetches only the last week of change requests without re-downloading the full history.
 
 ## Update cadence
 
@@ -200,8 +201,8 @@ data changes while respecting API rate limits.
 
 | Data source | Recommended cadence | Why |
 |---|---|---|
-| Pull requests | Weekly | PRs open and close regularly; a weekly window captures merges, reviews, and comments without excessive API calls. |
-| PR comments | Weekly | Always run after `prs fetch` to capture review activity on the updated PR list. |
+| Change requests | Weekly | Change requests open and close regularly; a weekly window captures merges, reviews, and comments without excessive API calls. |
+| Change request comments | Weekly | Always run after `change-requests fetch` to capture review activity on the updated change request list. |
 | Pipelines | Weekly | Pipeline runs track CI/CD activity; a weekly fetch keeps trend lines current. |
 | Pipeline jobs | Weekly | Always run after `pipelines fetch` to capture job details for the updated runs. |
 | Commits (git log) | Weekly to monthly | Commit history changes frequently but accumulates in git locally; fetching too often adds load without much new signal. |
@@ -226,14 +227,14 @@ PROJECT=your-org/your-repo
 start_date=$(date -v-14d +%Y-%m-%d)
 end_date=$(date +%Y-%m-%d)
 
-smm prs fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
-smm prs fetch-comments --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
+smm change-requests fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
+smm change-requests fetch-comments --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
 smm pipelines fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force --by-day
 smm pipelines fetch-jobs --run-start-date=$start_date --run-end-date=$end_date --project=$PROJECT --force --by-day
 smm code fetch-commits --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
 smm code codemaat-fetch --start-date=$start_date --end-date=$end_date --project=$PROJECT --force
 
-smm prs summary --output=json
+smm change-requests summary --output=json
 smm pipelines summary --output=json
 smm pipelines jobs-summary --output=json
 smm health-check --output=json

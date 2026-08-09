@@ -10,7 +10,7 @@ const navigation = jest.requireMock('next/navigation');
 jest.mock('@/server/api');
 
 const mockPipelineAPI = api.pipelineAPI as jest.Mocked<typeof api.pipelineAPI>;
-const mockPullRequestAPI = api.pullRequestAPI as jest.Mocked<typeof api.pullRequestAPI>;
+const mockChangeRequestAPI = api.changeRequestAPI as jest.Mocked<typeof api.changeRequestAPI>;
 const mockSourceCodeAPI = api.sourceCodeAPI as jest.Mocked<typeof api.sourceCodeAPI>;
 const mockFetchAPI = api.fetchAPI as jest.Mock;
 
@@ -38,7 +38,7 @@ describe('FiltersContainer', () => {
       events: ['push', 'pull_request', 'schedule'],
       jobs: [{ name: 'build', id: 'build' }],
     });
-    mockPullRequestAPI.getFilterOptions = jest.fn().mockResolvedValue({
+    mockChangeRequestAPI.getFilterOptions = jest.fn().mockResolvedValue({
       authors: ['alice'],
       labels: ['bug'],
     });

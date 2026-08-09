@@ -62,7 +62,7 @@ describe('ReportsClient', () => {
               .withName('Report 42')
               .withSections([
                 { section: 'pipelines', savedFilterId: 'f1' },
-                { section: 'pull-requests', savedFilterId: 'f2' },
+                { section: 'change-requests', savedFilterId: 'f2' },
               ])
               .build(),
             windows: [],

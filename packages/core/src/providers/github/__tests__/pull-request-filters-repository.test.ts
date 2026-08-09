@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { PullRequestFilterOptions } from '../../..';
-import { PullRequestFiltersRepository } from '../../..';
+import type { ChangeRequestFilterOptions } from '../../..';
+import { ChangeRequestFiltersRepository } from '../../..';
 import type {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
@@ -11,11 +11,11 @@ import {
   PullRequestCommentJsonResponseBuilder,
 } from '../../../test/github/github-builders';
 
-describe('PullRequestFiltersRepository', () => {
+describe('ChangeRequestFiltersRepository', () => {
   it('loads distinct filter options from cached pull requests', async () => {
     const pullRequestRepository = new InMemoryRepository<PullRequestJsonResponse>();
     const pullRequestCommentsRepository = new InMemoryRepository<PullRequestCommentJsonResponse>();
-    const filterOptionsRepository = new InMemoryRepository<PullRequestFilterOptions>();
+    const filterOptionsRepository = new InMemoryRepository<ChangeRequestFilterOptions>();
     await pullRequestRepository.saveAll([
       new PullRequestJsonResponseBuilder()
         .withId('1')
@@ -65,7 +65,7 @@ describe('PullRequestFiltersRepository', () => {
       new PullRequestCommentJsonResponseBuilder().withId(3).withAuthor('reviewer').build(),
     ]);
 
-    const repository = new PullRequestFiltersRepository(
+    const repository = new ChangeRequestFiltersRepository(
       pullRequestRepository,
       pullRequestCommentsRepository,
       filterOptionsRepository

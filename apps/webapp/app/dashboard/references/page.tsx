@@ -44,16 +44,16 @@ const CATEGORIES: MetricCategory[] = [
     ],
   },
   {
-    label: 'Pull Requests',
+    label: 'Change Requests',
     metrics: [
       { key: 'average-review-time', definition: METRIC_TARGETS['average-review-time'] },
       { key: 'time-to-first-comment', definition: METRIC_TARGETS['time-to-first-comment'] },
-      { key: 'prs-by-author', definition: METRIC_TARGETS['prs-by-author'] },
-      { key: 'prs-remain-open', definition: METRIC_TARGETS['prs-remain-open'] },
-      { key: 'pr-statistics', definition: METRIC_TARGETS['pr-statistics'] },
-      { key: 'most-commented-prs', definition: METRIC_TARGETS['most-commented-prs'] },
+      { key: 'change-requests-by-author', definition: METRIC_TARGETS['change-requests-by-author'] },
+      { key: 'change-requests-remain-open', definition: METRIC_TARGETS['change-requests-remain-open'] },
+      { key: 'change-request-statistics', definition: METRIC_TARGETS['change-request-statistics'] },
+      { key: 'most-commented-change-requests', definition: METRIC_TARGETS['most-commented-change-requests'] },
       { key: 'comments-by-author', definition: METRIC_TARGETS['comments-by-author'] },
-      { key: 'open-prs-through-time', definition: METRIC_TARGETS['open-prs-through-time'] },
+      { key: 'open-change-requests-through-time', definition: METRIC_TARGETS['open-change-requests-through-time'] },
     ],
   },
   {
@@ -299,7 +299,7 @@ function OutlierImplementationDetails() {
       </Box>
 
       <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-        Pull Request Data Used
+        Change Request Data Used
       </Typography>
       <Box component="ul" sx={{ m: 0, mb: 2, pl: 2.5 }}>
         <Box component="li" sx={{ mb: 0.75 }}>
@@ -309,7 +309,7 @@ function OutlierImplementationDetails() {
           <Typography variant="body2">Average open days per period (averageOpenBy outliers)</Typography>
         </Box>
         <Box component="li" sx={{ mb: 0.75 }}>
-          <Typography variant="body2">Average comments per PR (averageComments outliers)</Typography>
+          <Typography variant="body2">Average comments per change request (averageComments outliers)</Typography>
         </Box>
         <Box component="li" sx={{ mb: 0 }}>
           <Typography variant="body2">Time to first comment per author (firstCommentTime outliers)</Typography>

@@ -5,8 +5,8 @@ import { PipelineFactory } from '../domain/pipelines/factories';
 import { PipelinesService } from '../domain/pipelines/services/pipelines-service';
 import { DeploymentFrequencyService } from '../domain/pipelines/services/deployment-frequency-service';
 import { PipelineImplementation } from '../domain/pipelines/services/pipeline-implementation';
-import { PullRequestFactory } from '../domain/prs/factories';
-import { PRsService } from '../domain/prs/services/prs-service';
+import { ChangeRequestFactory } from '../domain/change-requests/factories';
+import { ChangeRequestsService } from '../domain/change-requests/services/change-requests-service';
 import { PairingFactory } from '../domain/code/pairing/pairing-factory';
 import { CodemaatFactory } from '../domain/code/codemaat/codemaat-factory';
 import { CodemaatService } from '../domain/code/codemaat/codemaat-service';
@@ -46,8 +46,16 @@ export function createEngineeringHealthDependencies(
     timeZoneProvider
   );
 
-  const prsRepository = PullRequestFactory.create(configuration, logger, timeZoneProvider);
-  const prsService = new PRsService(prsRepository, timeZoneProvider, logger);
+  const changeRequestsRepository = ChangeRequestFactory.create(
+    configuration,
+    logger,
+    timeZoneProvider
+  );
+  const changeRequestsService = new ChangeRequestsService(
+    changeRequestsRepository,
+    timeZoneProvider,
+    logger
+  );
   const pairingService = PairingFactory.create(configuration, logger, timeZoneProvider);
 
   const codemaatRepository = CodemaatFactory.create(configuration, logger);
@@ -63,7 +71,7 @@ export function createEngineeringHealthDependencies(
     pipelinesService,
     deploymentFrequencyService,
     pipelineImplementation,
-    prsService,
+    changeRequestsService,
     pairingService,
     codemaatService,
     sonarQubeService,

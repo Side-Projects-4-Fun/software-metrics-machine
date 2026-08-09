@@ -157,8 +157,8 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
         CREATE TABLE IF NOT EXISTS change_request_comments (
           namespace TEXT NOT NULL,
           id TEXT NOT NULL,
-          pull_request_number INTEGER,
-          pull_request_url TEXT,
+          change_request_number INTEGER,
+          change_request_url TEXT,
           author_login TEXT,
           author_id TEXT,
           path TEXT,
@@ -173,8 +173,8 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
 
         CREATE INDEX IF NOT EXISTS idx_change_request_comments_namespace_position
           ON change_request_comments(namespace, position);
-        CREATE INDEX IF NOT EXISTS idx_change_request_comments_pr_number
-          ON change_request_comments(namespace, pull_request_number);
+        CREATE INDEX IF NOT EXISTS idx_change_request_comments_change_request_number
+          ON change_request_comments(namespace, change_request_number);
         CREATE INDEX IF NOT EXISTS idx_change_request_comments_author_login
           ON change_request_comments(namespace, author_login);
         CREATE INDEX IF NOT EXISTS idx_change_request_comments_created_at
@@ -428,6 +428,41 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
       ]);
     },
   },
+  {
+    id: '005_rename_change_request_comment_columns',
+    up: (db: DatabaseSync): void => {
+      // Rename the last GitHub-centric column names in the change_request_comments
+      // table to provider-neutral names. SQLite (>=3.25) supports ALTER TABLE RENAME
+      // COLUMN, so we rename in place and recreate the affected index.
+      if (
+        tableExists(db, 'change_request_comments') &&
+        columnExists(db, 'change_request_comments', 'pull_request_number')
+      ) {
+        db.exec(
+          'ALTER TABLE change_request_comments RENAME COLUMN pull_request_number TO change_request_number'
+        );
+      }
+
+      if (
+        tableExists(db, 'change_request_comments') &&
+        columnExists(db, 'change_request_comments', 'pull_request_url')
+      ) {
+        db.exec(
+          'ALTER TABLE change_request_comments RENAME COLUMN pull_request_url TO change_request_url'
+        );
+      }
+
+      // Recreate the index with the new column name. The old index
+      // (idx_change_request_comments_pr_number) referenced pull_request_number and
+      // is automatically updated by SQLite to track the renamed column, but its name
+      // is misleading, so drop it and create the correctly-named index.
+      db.exec('DROP INDEX IF EXISTS idx_change_request_comments_pr_number');
+      db.exec(`
+        CREATE INDEX IF NOT EXISTS idx_change_request_comments_change_request_number
+          ON change_request_comments(namespace, change_request_number)
+      `);
+    },
+  },
 ];
 
 export function applySqliteMigrations(db: DatabaseSync): void {
@@ -611,8 +646,8 @@ function createIndexesForRenamedTable(db: DatabaseSync, tableName: string): void
     db.exec(`
       CREATE INDEX IF NOT EXISTS idx_change_request_comments_namespace_position
         ON change_request_comments(namespace, position);
-      CREATE INDEX IF NOT EXISTS idx_change_request_comments_pr_number
-        ON change_request_comments(namespace, pull_request_number);
+      CREATE INDEX IF NOT EXISTS idx_change_request_comments_change_request_number
+        ON change_request_comments(namespace, change_request_number);
       CREATE INDEX IF NOT EXISTS idx_change_request_comments_author_login
         ON change_request_comments(namespace, author_login);
       CREATE INDEX IF NOT EXISTS idx_change_request_comments_created_at

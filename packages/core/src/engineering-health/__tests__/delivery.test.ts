@@ -75,7 +75,7 @@ function buildDependencies(): EngineeringHealthDependencies {
     pipelineImplementation: {
       dashboard: vi.fn(),
     } as never,
-    prsService: {} as never,
+    changeRequestsService: {} as never,
     pairingService: {} as never,
     codemaatService: {} as never,
     sonarQubeService: {} as never,

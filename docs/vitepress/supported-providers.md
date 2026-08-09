@@ -14,7 +14,7 @@ If you are using [GitHub and GitHub Actions](./github.md), the following are sup
 
 - Insights
 - Pipelines
-- Pull requests
+- Change requests
 - Source code analysis via local git repository
 
 ### GitLab
@@ -23,7 +23,7 @@ If you are using [GitLab](./gitlab.md), the following are supported:
 
 - Insights
 - Pipelines
-- Merge requests (pull requests)
+- Merge requests (change requests)
 - Source code analysis via local git repository
 
 ### Bitbucket

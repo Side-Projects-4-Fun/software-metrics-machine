@@ -1,12 +1,12 @@
 import Card from '@mui/material/Card';
 import { DashboardFilters, defaultFilters, parseDashboardFilters } from "@/components/filters/DashboardFilters";
 import { CardContent, CardHeader } from '@mui/material';
-import { sourceCodeAPI, pipelineAPI, pullRequestAPI, ApiParams } from '@/server/api';
+import { sourceCodeAPI, pipelineAPI, changeRequestAPI, ApiParams } from '@/server/api';
 import { DeploymentFrequency } from '@/components/charts/DeploymentFrequency';
 import { Recommendations } from '@/components/charts/Recommendations';
 import { ContextLink } from '@/components/filters/ContextLink';
-import { AverageReviewTimeItem, DeploymentFrequencyPoint, DeploymentFrequencyResponseItem, JobsSummaryItem, PairingIndex, PipelineSummary, PullRequestSummary, ResultWrapper } from './insights-types';
-import { buildPullRequestApiParams } from '@/server/utils/apiParams';
+import { AverageReviewTimeItem, DeploymentFrequencyPoint, DeploymentFrequencyResponseItem, JobsSummaryItem, PairingIndex, PipelineSummary, ChangeRequestSummary, ResultWrapper } from './insights-types';
+import { buildChangeRequestApiParams } from '@/server/utils/apiParams';
 
 function unwrapResult<T>(data: T | ResultWrapper<T>): T {
   if (typeof data === 'object' && data !== null && 'result' in data) {
@@ -78,24 +78,24 @@ export default async function InsightsSection({
 
   let pairingIndex: PairingIndex | null = null;
   let pipelineSummary: PipelineSummary | null = null;
-  let prSummary: PullRequestSummary | null = null;
+  let prSummary: ChangeRequestSummary | null = null;
   let deploymentFrequency: DeploymentFrequencyPoint[] = [];
   let jobsSummary: JobsSummaryItem[] = [];
   let averageReviewTime: AverageReviewTimeItem[] = [];
 
   try {
     const sourceCodeParams = buildSourceCodeApiParams(filters);
-    const pullRequestParams = buildPullRequestApiParams(filters);
+    const changeRequestParams = buildChangeRequestApiParams(filters);
     const pipelineParams = buildPipelineApiParams(filters);
     const [pairing, pipeline, pr, deployment, jobs, reviewTime] = await Promise.all([
       sourceCodeAPI.pairingIndex(sourceCodeParams),
       pipelineAPI.summary(pipelineParams),
-      pullRequestAPI.summary(pullRequestParams),
+      changeRequestAPI.summary(changeRequestParams),
       pipelineAPI.deploymentFrequency(pipelineParams),
       pipelineAPI.jobsSummary(pipelineParams),
-      pullRequestAPI.averageReviewTime(pullRequestParams),
+      changeRequestAPI.averageReviewTime(changeRequestParams),
     ]);
-    const prData = unwrapResult(pr as PullRequestSummary | ResultWrapper<PullRequestSummary>);
+    const prData = unwrapResult(pr as ChangeRequestSummary | ResultWrapper<ChangeRequestSummary>);
     const pairingData = unwrapResult(pairing as PairingIndex | ResultWrapper<PairingIndex>);
     const pipelineData = unwrapResult(pipeline as PipelineSummary | ResultWrapper<PipelineSummary>);
     const deploymentResult = unwrapResult(
@@ -172,8 +172,8 @@ export default async function InsightsSection({
 
   const pipelineFirstDataPoint = extractDate(pipelineSummary?.first_run);
   const pipelineLastDataPoint = extractDate(pipelineSummary?.last_run);
-  const prFirstDataPoint = extractDate(prSummary?.first_pr);
-  const prLastDataPoint = extractDate(prSummary?.last_pr);
+  const prFirstDataPoint = extractDate(prSummary?.first_change_request);
+  const prLastDataPoint = extractDate(prSummary?.last_change_request);
   
   return (
     <div className="space-y-6">
@@ -182,10 +182,10 @@ export default async function InsightsSection({
         prSummary={
           prSummary
             ? {
-                total: prSummary.total_prs ?? prSummary.total ?? 0,
-                merged: prSummary.merged_prs ?? prSummary.merged ?? 0,
-                closed: prSummary.closed_prs ?? prSummary.closed ?? 0,
-                open: prSummary.open_prs ?? prSummary.open ?? 0,
+                total: prSummary.total_change_requests ?? prSummary.total ?? 0,
+                merged: prSummary.merged_change_requests ?? prSummary.merged ?? 0,
+                closed: prSummary.closed_change_requests ?? prSummary.closed ?? 0,
+                open: prSummary.open_change_requests ?? prSummary.open ?? 0,
               }
             : null
         }
@@ -249,31 +249,31 @@ export default async function InsightsSection({
         </Card>
 
         <Card>
-          <CardHeader title="Pull Requests">
+          <CardHeader title="Change Requests">
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold">{prSummary?.total_prs || prSummary?.total || 0}</div>
+            <div className="text-4xl font-bold">{prSummary?.total_change_requests || prSummary?.total || 0}</div>
             <div className="grid grid-cols-3 gap-2 mt-4 text-sm">
               <ContextLink 
-                href="/dashboard/pull-requests" 
-                filterOverrides={{ pullRequestStatus: 'merged' }}
+                href="/dashboard/change-requests" 
+                filterOverrides={{ changeRequestStatus: 'merged' }}
                 className="text-green-600 font-semibold cursor-pointer hover:text-green-800 hover:underline transition-colors"
               >
-                {prSummary?.merged_prs || prSummary?.merged || 0} Merged
+                {prSummary?.merged_change_requests || prSummary?.merged || 0} Merged
               </ContextLink>
               <ContextLink 
-                href="/dashboard/pull-requests" 
-                filterOverrides={{ pullRequestStatus: 'closed' }}
+                href="/dashboard/change-requests" 
+                filterOverrides={{ changeRequestStatus: 'closed' }}
                 className="text-gray-600 font-semibold cursor-pointer hover:text-gray-800 hover:underline transition-colors"
               >
-                {prSummary?.closed_prs || prSummary?.closed || 0} Closed
+                {prSummary?.closed_change_requests || prSummary?.closed || 0} Closed
               </ContextLink>
               <ContextLink 
-                href="/dashboard/pull-requests" 
-                filterOverrides={{ pullRequestStatus: 'open' }}
+                href="/dashboard/change-requests" 
+                filterOverrides={{ changeRequestStatus: 'open' }}
                 className="text-blue-600 font-semibold cursor-pointer hover:text-blue-800 hover:underline transition-colors"
               >
-                {prSummary?.open_prs || prSummary?.open || 0} Open
+                {prSummary?.open_change_requests || prSummary?.open || 0} Open
               </ContextLink>
             </div>
             <p className="text-xs text-muted-foreground mt-3">

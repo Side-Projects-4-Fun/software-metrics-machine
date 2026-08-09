@@ -7,7 +7,7 @@ jest.mock('@/components/charts/pipeline/PipelineEvaluationCard', () => ({
   __esModule: true,
   default: () => <div data-testid="pipeline-eval">Pipeline Eval</div>,
 }));
-jest.mock('@/components/charts/pull-requests/PREvaluationCard', () => ({
+jest.mock('@/components/charts/change-requests/ChangeRequestEvaluationCard', () => ({
   __esModule: true,
   default: () => <div data-testid="pr-eval">PR Eval</div>,
 }));
@@ -71,14 +71,14 @@ describe('ReportRenderer', () => {
             .withName('Report 42')
             .withSections([
               { section: 'pipelines', savedFilterId: 'f1' },
-              { section: 'pull-requests', savedFilterId: 'f2' },
+              { section: 'change-requests', savedFilterId: 'f2' },
             ])
             .build()
         }
         savedFiltersMap={savedFiltersMap}
         evaluations={{
           'pipelines-f1': { generatedAt: '', signals: [], summary: {} },
-          'pull-requests-f2': { generatedAt: '', signals: [], summary: {} },
+          'change-requests-f2': { generatedAt: '', signals: [], summary: {} },
         }}
         errors={{}}
       />,
@@ -139,7 +139,7 @@ describe('ReportRenderer', () => {
     function renderWithTwoSections() {
       const savedFiltersMap = new Map([
         ['f1', new SavedFilterBuilder().withId('f1').withName('CI Filter').withSection('pipelines').build()],
-        ['f2', new SavedFilterBuilder().withId('f2').withName('PR Filter').withSection('pull-requests').build()],
+        ['f2', new SavedFilterBuilder().withId('f2').withName('PR Filter').withSection('change-requests').build()],
       ]);
 
       return render(
@@ -150,14 +150,14 @@ describe('ReportRenderer', () => {
               .withName('Report 42')
               .withSections([
                 { section: 'pipelines', savedFilterId: 'f1' },
-                { section: 'pull-requests', savedFilterId: 'f2' },
+                { section: 'change-requests', savedFilterId: 'f2' },
               ])
               .build()
           }
           savedFiltersMap={savedFiltersMap}
           evaluations={{
             'pipelines-f1': { generatedAt: '', signals: [], summary: {} },
-            'pull-requests-f2': { generatedAt: '', signals: [], summary: {} },
+            'change-requests-f2': { generatedAt: '', signals: [], summary: {} },
           }}
           errors={{}}
         />,

@@ -104,7 +104,7 @@ describe('cli: Engineering Health Commands', () => {
         '2026-06-01',
         '--compare-end-date',
         '2026-06-30',
-        '--pr-labels',
+        '--change-request-labels',
         'bug,frontend',
         '--period',
         'month',
@@ -124,7 +124,7 @@ describe('cli: Engineering Health Commands', () => {
       current: {
         startDate: '2026-07-01',
         endDate: '2026-07-31',
-        prLabels: ['bug', 'frontend'],
+        changeRequestLabels: ['bug', 'frontend'],
         rawFilters: 'status=success',
         period: 'month',
         weekends: 'exclude',
@@ -133,7 +133,7 @@ describe('cli: Engineering Health Commands', () => {
       previous: {
         startDate: '2026-06-01',
         endDate: '2026-06-30',
-        prLabels: ['bug', 'frontend'],
+        changeRequestLabels: ['bug', 'frontend'],
         rawFilters: 'status=success',
         period: 'month',
         weekends: 'exclude',

@@ -122,7 +122,7 @@ export class HealthCheckService {
 
     const allDefinitions: DatasetDefinition[] = [
       {
-        id: `${gitProviderId}.prs`,
+        id: `${gitProviderId}.change-requests`,
         displayName: `${gitProviderId.toUpperCase()} Change Requests (table: change_requests)`,
         dateFields: ['updated_at', 'created_at'],
         requiredFields: ['id', 'created_at', 'updated_at', 'state'],
@@ -133,7 +133,7 @@ export class HealthCheckService {
         },
       },
       {
-        id: `${gitProviderId}.pr-comments`,
+        id: `${gitProviderId}.change-request-comments`,
         displayName: `${gitProviderId.toUpperCase()} Change Request Comments (table: change_request_comments)`,
         dateFields: ['updated_at', 'created_at'],
         requiredFields: ['id', 'pull_request_url', 'created_at', 'updated_at'],

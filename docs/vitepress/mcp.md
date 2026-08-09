@@ -9,7 +9,7 @@ Cursor, and other MCP-compatible clients) can read engineering metrics through a
 
 The server is **read-only**. It exposes metrics that already exist in the SMM data store and does not fetch from
 GitHub, GitLab, Jira, or SonarQube by itself. For data collection, continue to use the CLI commands such as
-`smm prs fetch`, `smm pipelines fetch`, `smm jira fetch`, and the SonarQube commands.
+`smm change-requests fetch`, `smm pipelines fetch`, `smm jira fetch`, and the SonarQube commands.
 
 ## When to use it
 
@@ -159,7 +159,7 @@ The MCP server exposes these tools:
 | ---- | ----------- |
 | `smm_list_projects` | Lists configured projects from `smm_config.json`. |
 | `smm_list_engineering_health_metrics` | Lists the available engineering health metric ids, categories, and labels. |
-| `smm_get_pr_metrics` | Reads pull request metrics (throughput, review time, authors, outliers). |
+| `smm_get_change_request_metrics` | Reads change request metrics (throughput, review time, authors, outliers). |
 | `smm_get_deployment_metrics` | Reads pipeline and deployment metrics (durations, success rate, deployment frequency, jobs). |
 | `smm_get_code_metrics` | Reads code churn, coupling, and pairing metrics. Supports author and file pattern filters. |
 | `smm_get_issue_metrics` | Reads Jira issue metrics. Supports an optional status filter. |
@@ -168,8 +168,8 @@ The MCP server exposes these tools:
 | `smm_get_dora_metrics` | Reads DORA and pipeline metrics with rich filters (workflow, branch, status, conclusion, event, cleaning). |
 | `smm_list_architecture_snapshots` | Lists architecture snapshots previously generated for a project. |
 | `smm_get_architecture_view` | Reads a C4 architecture view (context, container, component, or code) for a project. |
-| `smm_get_full_report` | Reads a combined project report (PRs, deployment, code, issues, quality). |
-| `smm_evaluate_prs` | Evaluates pull request health signals (review bottlenecks, throughput, collaboration) and produces severity-graded recommendations. |
+| `smm_get_full_report` | Reads a combined project report (change requests, deployment, code, issues, quality). |
+| `smm_evaluate_change_requests` | Evaluates change request health signals (review bottlenecks, throughput, collaboration) and produces severity-graded recommendations. |
 | `smm_evaluate_pipelines` | Evaluates pipeline health signals (duration, stability, throughput) and produces severity-graded recommendations. |
 | `smm_evaluate_code` | Evaluates code health signals (churn, coupling, ownership, complexity, collaboration) and produces severity-graded recommendations. |
 | `smm_evaluate_quality` | Evaluates SonarQube quality signals (ratings, complexity, coverage, duplication) and produces severity-graded recommendations. |
@@ -179,7 +179,7 @@ The MCP server exposes these tools:
 | `smm_health_check` | Generates a health report on dataset freshness, gaps, missing fields, and item counts across all data providers. |
 | `smm_get_version` | Returns the Software Metrics Machine version and server name. |
 | `smm_get_configuration` | Returns the redacted project configuration (tokens and secrets are masked). |
-| `smm_list_pr_filter_options` | Lists available pull request filter values (authors, labels, commenters). |
+| `smm_list_change_request_filter_options` | Lists available change request filter values (authors, labels, commenters). |
 | `smm_list_pipeline_filter_options` | Lists available pipeline filter values (workflows, statuses, conclusions, branches, events, jobs). |
 | `smm_list_code_authors` | Lists all code authors available in the CodeMaat data. |
 
@@ -235,7 +235,7 @@ repository.
   "endDate": "2026-07-31",
   "compareStartDate": "2026-06-01",
   "compareEndDate": "2026-06-30",
-  "prLabels": "feature,backend",
+  "changeRequestLabels": "feature,backend",
   "period": "week",
   "weekends": "exclude",
   "outlierMode": "flag"
@@ -286,7 +286,7 @@ omitted, the latest snapshot is used.
 
 ### Evaluation filters
 
-`smm_evaluate_prs`, `smm_evaluate_pipelines`, and `smm_evaluate_code` accept the shared metric filters
+`smm_evaluate_change_requests`, `smm_evaluate_pipelines`, and `smm_evaluate_code` accept the shared metric filters
 (`project`, `startDate`, `endDate`, `timezone`). `smm_evaluate_code` also accepts `authors` and file pattern filters
 matching `smm_get_code_metrics`. `smm_evaluate_quality` accepts only `project` since it evaluates the latest SonarQube
 snapshot. `smm_evaluate_architecture` accepts the architecture view filters above.
@@ -341,7 +341,7 @@ The MCP server exposes these static resources:
 | `smm://project/{name}/engineering-health` | Engineering health evaluation for the project. |
 | `smm://project/{name}/dora` | DORA and pipeline metrics for the project. |
 | `smm://project/{name}/architecture/snapshots` | Architecture snapshots stored for the project. |
-| `smm://project/{name}/evaluation/prs` | Pull request health evaluation for the project. |
+| `smm://project/{name}/evaluation/change-requests` | Change request health evaluation for the project. |
 | `smm://project/{name}/evaluation/pipelines` | Pipeline health evaluation for the project. |
 | `smm://project/{name}/evaluation/code` | Code health evaluation for the project. |
 | `smm://project/{name}/evaluation/quality` | SonarQube quality evaluation for the project. |
@@ -356,7 +356,7 @@ The server also advertises these resource templates through `resources/templates
 | `smm://project/{project}/engineering-health` | Engineering health evaluation for a project. |
 | `smm://project/{project}/dora` | DORA metrics for a project. |
 | `smm://project/{project}/architecture/snapshots` | Architecture snapshots for a project. |
-| `smm://project/{project}/evaluation/prs` | Pull request health evaluation for a project. |
+| `smm://project/{project}/evaluation/change-requests` | Change request health evaluation for a project. |
 | `smm://project/{project}/evaluation/pipelines` | Pipeline health evaluation for a project. |
 | `smm://project/{project}/evaluation/code` | Code health evaluation for a project. |
 | `smm://project/{project}/evaluation/quality` | SonarQube quality evaluation for a project. |

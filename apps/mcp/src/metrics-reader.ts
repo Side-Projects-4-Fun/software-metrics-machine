@@ -14,9 +14,9 @@ import {
   PipelineFactory,
   PipelineImplementation,
   PipelinesService,
-  PREvaluationService,
-  PRsService,
-  PullRequestFactory,
+  ChangeRequestEvaluationService,
+  ChangeRequestsService,
+  ChangeRequestFactory,
   SonarqubeEvaluationService,
   SonarqubeFactory,
   SonarQubeService,
@@ -30,8 +30,8 @@ import {
   type MetricId,
   type PipelineDashboard,
   type PipelineFilters,
-  type PRDashboardData,
-  type PRFilters,
+  type ChangeRequestDashboardData,
+  type ChangeRequestFilters,
   type SonarqubeDashboardData,
   TimeZoneProvider,
   ConfigurationRepository,
@@ -122,27 +122,27 @@ export class McpMetricsReader {
     return this.timeZoneProvider;
   }
 
-  async getPRMetrics(filters: MetricFilters): Promise<unknown> {
+  async getChangeRequestMetrics(filters: MetricFilters): Promise<unknown> {
     return traceOperation(
-      'getPRMetrics',
+      'getChangeRequestMetrics',
       {
         project: this.configuration.githubRepository,
         startDate: filters.startDate,
         endDate: filters.endDate,
       },
       async () => {
-        const repository = PullRequestFactory.create(
+        const repository = ChangeRequestFactory.create(
           this.configuration,
-          createLogger(this.configuration, 'PullRequestsRepository'),
+          createLogger(this.configuration, 'ChangeRequestsRepository'),
           this.timeZoneProvider
         );
-        const service = new PRsService(
+        const service = new ChangeRequestsService(
           repository,
           this.timeZoneProvider,
-          createLogger(this.configuration, 'PRsService')
+          createLogger(this.configuration, 'ChangeRequestsService')
         );
 
-        return service.getMetrics(filters as PRFilters);
+        return service.getMetrics(filters as ChangeRequestFilters);
       }
     );
   }
@@ -287,9 +287,11 @@ export class McpMetricsReader {
         endDate: filters.endDate,
       },
       async () => {
-        operationLogger.debug('getFullReport: fetching PR, deployment, code, issues, quality');
-        const [pullRequests, deployment, code, issues, quality] = await Promise.all([
-          this.getPRMetrics(filters),
+        operationLogger.debug(
+          'getFullReport: fetching change requests, deployment, code, issues, quality'
+        );
+        const [changeRequests, deployment, code, issues, quality] = await Promise.all([
+          this.getChangeRequestMetrics(filters),
           this.getDeploymentMetrics(filters),
           this.getCodeMetrics(filters),
           this.getIssueMetrics(filters),
@@ -298,7 +300,7 @@ export class McpMetricsReader {
 
         return {
           timestamp: new Date().toISOString(),
-          pullRequests,
+          changeRequests,
           deployment,
           code,
           issues,
@@ -338,7 +340,7 @@ export class McpMetricsReader {
           current: {
             startDate: args.startDate,
             endDate: args.endDate,
-            prLabels: parseCsvList(args.prLabels, 'prLabels'),
+            changeRequestLabels: parseCsvList(args.changeRequestLabels, 'changeRequestLabels'),
             rawFilters: args.rawFilters,
             period: args.period,
             weekends: args.weekends,
@@ -348,7 +350,7 @@ export class McpMetricsReader {
             ? {
                 startDate: args.compareStartDate,
                 endDate: args.compareEndDate,
-                prLabels: parseCsvList(args.prLabels, 'prLabels'),
+                changeRequestLabels: parseCsvList(args.changeRequestLabels, 'changeRequestLabels'),
                 rawFilters: args.rawFilters,
                 period: args.period,
                 weekends: args.weekends,
@@ -488,28 +490,28 @@ export class McpMetricsReader {
     );
   }
 
-  async evaluatePRs(filters: MetricFilters = {}): Promise<unknown> {
+  async evaluateChangeRequests(filters: MetricFilters = {}): Promise<unknown> {
     return traceOperation(
-      'evaluatePRs',
+      'evaluateChangeRequests',
       {
         project: this.configuration.githubRepository,
         startDate: filters.startDate,
         endDate: filters.endDate,
       },
       async () => {
-        const repository = PullRequestFactory.create(
+        const repository = ChangeRequestFactory.create(
           this.configuration,
-          createLogger(this.configuration, 'PullRequestsRepository'),
+          createLogger(this.configuration, 'ChangeRequestsRepository'),
           this.timeZoneProvider
         );
-        const service = new PRsService(
+        const service = new ChangeRequestsService(
           repository,
           this.timeZoneProvider,
-          createLogger(this.configuration, 'PRsService')
+          createLogger(this.configuration, 'ChangeRequestsService')
         );
-        const evaluationService = new PREvaluationService();
+        const evaluationService = new ChangeRequestEvaluationService();
 
-        const prFilters = filters as PRFilters;
+        const changeRequestFilters = filters as ChangeRequestFilters;
 
         const [
           summary,
@@ -520,13 +522,13 @@ export class McpMetricsReader {
           firstCommentTime,
           throughputRaw,
         ] = await Promise.all([
-          service.getSummary(prFilters),
-          service.getReviewTime(prFilters, 20),
-          service.getOpenTimeBy(prFilters),
-          service.getByAuthor(prFilters, 20),
-          service.getCommentsByAuthor(prFilters, 20),
-          service.getFirstCommentTime(prFilters, 20),
-          service.getThroughTime(prFilters),
+          service.getSummary(changeRequestFilters),
+          service.getReviewTime(changeRequestFilters, 20),
+          service.getOpenTimeBy(changeRequestFilters),
+          service.getByAuthor(changeRequestFilters, 20),
+          service.getCommentsByAuthor(changeRequestFilters, 20),
+          service.getFirstCommentTime(changeRequestFilters, 20),
+          service.getThroughTime(changeRequestFilters),
         ]);
 
         const throughput = [throughputRaw]
@@ -552,22 +554,24 @@ export class McpMetricsReader {
             ? wrapped.result
             : wrapped) as T;
 
-        const dashboardData: PRDashboardData = {
+        const dashboardData: ChangeRequestDashboardData = {
           summary: summary
-            ? (unwrap(summary as { result: unknown } | unknown) as PRDashboardData['summary'])
+            ? (unwrap(
+                summary as { result: unknown } | unknown
+              ) as ChangeRequestDashboardData['summary'])
             : null,
           reviewTime: Array.isArray(unwrap(reviewTime))
-            ? (unwrap(reviewTime) as PRDashboardData['reviewTime'])
+            ? (unwrap(reviewTime) as ChangeRequestDashboardData['reviewTime'])
             : [],
           openTime: Array.isArray(openTime) ? openTime : [],
           byAuthor: Array.isArray(unwrap(byAuthor))
-            ? (unwrap(byAuthor) as PRDashboardData['byAuthor'])
+            ? (unwrap(byAuthor) as ChangeRequestDashboardData['byAuthor'])
             : [],
           commentsByAuthor: Array.isArray(unwrap(commentsByAuthor))
-            ? (unwrap(commentsByAuthor) as PRDashboardData['commentsByAuthor'])
+            ? (unwrap(commentsByAuthor) as ChangeRequestDashboardData['commentsByAuthor'])
             : [],
           firstCommentTime: Array.isArray(unwrap(firstCommentTime))
-            ? (unwrap(firstCommentTime) as PRDashboardData['firstCommentTime'])
+            ? (unwrap(firstCommentTime) as ChangeRequestDashboardData['firstCommentTime'])
             : [],
           throughput,
         };
@@ -874,14 +878,14 @@ export class McpMetricsReader {
     };
   }
 
-  async listPRFilterOptions(): Promise<unknown> {
+  async listChangeRequestFilterOptions(): Promise<unknown> {
     return traceOperation(
-      'listPRFilterOptions',
+      'listChangeRequestFilterOptions',
       { project: this.configuration.githubRepository },
       async () => {
-        const filtersRepository = PullRequestFactory.createFilters(
+        const filtersRepository = ChangeRequestFactory.createFilters(
           this.configuration,
-          createLogger(this.configuration, 'PullRequestFiltersRepository')
+          createLogger(this.configuration, 'ChangeRequestFiltersRepository')
         );
         return filtersRepository.loadOptions();
       }

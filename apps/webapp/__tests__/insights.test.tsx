@@ -2,7 +2,7 @@ import React from "react";
 import { render, renderHook, screen } from "@testing-library/react";
 import InsightsSection from "@/app/dashboard/insights/page";
 import { FiltersProvider, useFilters } from "@/components/filters/FiltersContext";
-import { pipelineAPI, pullRequestAPI, sourceCodeAPI } from "@/server/api";
+import { pipelineAPI, changeRequestAPI, sourceCodeAPI } from "@/server/api";
 
 jest.mock('@/server/api', () => ({
   sourceCodeAPI: {
@@ -13,7 +13,7 @@ jest.mock('@/server/api', () => ({
     deploymentFrequency: jest.fn(),
     jobsSummary: jest.fn(),
   },
-  pullRequestAPI: {
+  changeRequestAPI: {
     summary: jest.fn(),
     averageReviewTime: jest.fn(),
   },
@@ -25,7 +25,7 @@ jest.mock('@/components/charts/DeploymentFrequency', () => ({
 
 const mockSourceCodeAPI = sourceCodeAPI as jest.Mocked<typeof sourceCodeAPI>;
 const mockPipelineAPI = pipelineAPI as jest.Mocked<typeof pipelineAPI>;
-const mockPullRequestAPI = pullRequestAPI as jest.Mocked<typeof pullRequestAPI>;
+const mockPullRequestAPI = changeRequestAPI as jest.Mocked<typeof changeRequestAPI>;
 
 describe('Insights context', () => {
   beforeEach(() => {
@@ -54,12 +54,12 @@ describe('Insights context', () => {
     mockPipelineAPI.jobsSummary.mockResolvedValue({ result: [] } as never);
     mockPullRequestAPI.summary.mockResolvedValue({
       result: {
-        total_prs: 0,
-        merged_prs: 0,
-        closed_prs: 0,
-        open_prs: 0,
-        first_pr: null,
-        last_pr: null,
+        total_change_requests: 0,
+        merged_change_requests: 0,
+        closed_change_requests: 0,
+        open_change_requests: 0,
+        first_change_request: null,
+        last_change_request: null,
       },
     } as never);
     mockPullRequestAPI.averageReviewTime.mockResolvedValue({ result: [] } as never);
@@ -107,12 +107,12 @@ describe('Insights context', () => {
     } as never);
     mockPullRequestAPI.summary.mockResolvedValue({
       result: {
-        total_prs: 3,
-        merged_prs: 2,
-        closed_prs: 0,
-        open_prs: 1,
-        first_pr: null,
-        last_pr: null,
+        total_change_requests: 3,
+        merged_change_requests: 2,
+        closed_change_requests: 0,
+        open_change_requests: 1,
+        first_change_request: null,
+        last_change_request: null,
       },
     } as never);
 
@@ -123,20 +123,20 @@ describe('Insights context', () => {
     expect(screen.getByText('Reduce Pipeline Reruns')).toBeInTheDocument();
     expect(screen.getByText('Optimize Job Duration')).toBeInTheDocument();
     expect(screen.getByText('Speed Up Code Reviews')).toBeInTheDocument();
-    expect(screen.getByText('Review Open Pull Requests')).toBeInTheDocument();
+    expect(screen.getByText('Review Open Change Requests')).toBeInTheDocument();
   });
 
-  it('renders pull request data frame dates from summary-created fields', async () => {
+  it('renders change request data frame dates from summary-created fields', async () => {
     mockPullRequestAPI.summary.mockResolvedValue({
       result: {
-        total_prs: 2,
-        merged_prs: 1,
-        closed_prs: 1,
-        open_prs: 0,
-        first_pr: {
+        total_change_requests: 2,
+        merged_change_requests: 1,
+        closed_change_requests: 1,
+        open_change_requests: 0,
+        first_change_request: {
           created: '2026-01-02T00:00:00Z',
         },
-        last_pr: {
+        last_change_request: {
           created: '2026-01-05T00:00:00Z',
         },
       },

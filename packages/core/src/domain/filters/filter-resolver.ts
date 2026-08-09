@@ -94,14 +94,14 @@ export class FilterResolver {
         'weekends',
         'outlierMode',
       ],
-      'pull-requests': [
+      'change-requests': [
         'startDate',
         'endDate',
         'authorSelect',
         'excludeAuthorSelect',
         'excludeCommenterSelect',
         'labelSelector',
-        'pullRequestStatus',
+        'changeRequestStatus',
         'aggregateBy',
         'rawFilters',
         'weekends',

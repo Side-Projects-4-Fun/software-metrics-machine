@@ -1,10 +1,10 @@
 import type { SavedFilterEntry } from '@/components/filters/saved-filters-store';
 
-export type EvaluatableSection = 'pipelines' | 'pull-requests' | 'source-code' | 'architecture' | 'sonarqube';
+export type EvaluatableSection = 'pipelines' | 'change-requests' | 'source-code' | 'architecture' | 'sonarqube';
 
 export const EVALUATABLE_SECTIONS: EvaluatableSection[] = [
   'pipelines',
-  'pull-requests',
+  'change-requests',
   'source-code',
   'architecture',
   'sonarqube',
@@ -12,7 +12,7 @@ export const EVALUATABLE_SECTIONS: EvaluatableSection[] = [
 
 export const EVALUATABLE_SECTION_LABELS: Record<EvaluatableSection, string> = {
   pipelines: 'Pipelines',
-  'pull-requests': 'Pull Requests',
+  'change-requests': 'Change Requests',
   'source-code': 'Source Code',
   architecture: 'Architecture',
   sonarqube: 'SonarQube',

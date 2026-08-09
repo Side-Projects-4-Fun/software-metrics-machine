@@ -56,7 +56,7 @@ function buildEvaluationInput(options: {
   period?: 'day' | 'week' | 'month';
   weekends?: 'include' | 'exclude' | 'weekends_only';
   outlierMode?: 'include' | 'flag' | 'exclude';
-  prLabels?: string;
+  changeRequestLabels?: string;
   compareStartDate?: string;
   compareEndDate?: string;
 }): EngineeringHealthEvaluationInput {
@@ -68,7 +68,7 @@ function buildEvaluationInput(options: {
     current: {
       startDate: options.startDate,
       endDate: options.endDate,
-      prLabels: parseList(options.prLabels),
+      changeRequestLabels: parseList(options.changeRequestLabels),
       rawFilters: options.rawFilters,
       period: options.period,
       weekends: options.weekends,
@@ -78,7 +78,7 @@ function buildEvaluationInput(options: {
       ? {
           startDate: options.compareStartDate,
           endDate: options.compareEndDate,
-          prLabels: parseList(options.prLabels),
+          changeRequestLabels: parseList(options.changeRequestLabels),
           rawFilters: options.rawFilters,
           period: options.period,
           weekends: options.weekends,
@@ -103,7 +103,10 @@ export function createEngineeringHealthCommands(program: SmmCommand): void {
     .option('--end-date <date>', 'Current window end date (YYYY-MM-DD)')
     .option('--compare-start-date <date>', 'Previous window start date (YYYY-MM-DD)')
     .option('--compare-end-date <date>', 'Previous window end date (YYYY-MM-DD)')
-    .option('--pr-labels <labels>', 'Comma-separated PR labels filter (PR metrics only)')
+    .option(
+      '--change-request-labels <labels>',
+      'Comma-separated change request labels filter (change request metrics only)'
+    )
     .option('--raw-filters <filters>', 'Raw provider filters string')
     .option('--period <period>', 'Time period (day|week|month)', 'week')
     .option('--weekends <mode>', 'Weekend handling: include|exclude|weekends_only', 'include')

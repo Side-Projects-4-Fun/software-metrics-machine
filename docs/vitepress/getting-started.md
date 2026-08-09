@@ -152,7 +152,7 @@ Options:
   --debug        Enable debug logging
 
 Commands:
-  prs            Pull request operations
+  change-requests  Change request operations
   pipelines      Pipeline/workflow operations
   code           Code analysis operations
   jira           Jira integration operations

@@ -95,14 +95,14 @@ describe('Report Creation Flow', () => {
     const prFilter = new SavedFilterBuilder()
       .withId('f-pr')
       .withName('PR Reviews')
-      .withSection('pull-requests')
+      .withSection('change-requests')
       .build();
 
     mockFetchDoc.mockResolvedValue({ version: 1, filters: [pipelinesFilter, prFilter], reports: [] });
     mockResolveReports.mockResolvedValue([]);
     mockGetSavedFiltersBySection.mockImplementation((section: string) => {
       if (section === 'pipelines') {return Promise.resolve([pipelinesFilter]);}
-      if (section === 'pull-requests') {return Promise.resolve([prFilter]);}
+      if (section === 'change-requests') {return Promise.resolve([prFilter]);}
       return Promise.resolve([]);
     });
 
@@ -111,7 +111,7 @@ describe('Report Creation Flow', () => {
       .withName('Full Review')
       .withSections([
         { section: 'pipelines', savedFilterId: 'f-pipelines' },
-        { section: 'pull-requests', savedFilterId: 'f-pr' },
+        { section: 'change-requests', savedFilterId: 'f-pr' },
       ])
       .build();
 
@@ -135,7 +135,7 @@ describe('Report Creation Flow', () => {
     await userEvent.type(pipelinesSelect, 'CI Main');
     await userEvent.click(await screen.findByRole('option', { name: 'CI Main' }));
 
-    const prSelect = screen.getByLabelText('Pull Requests');
+    const prSelect = screen.getByLabelText('Change Requests');
     await userEvent.click(prSelect);
     await userEvent.type(prSelect, 'PR Reviews');
     await userEvent.click(await screen.findByRole('option', { name: 'PR Reviews' }));
@@ -147,7 +147,7 @@ describe('Report Creation Flow', () => {
         'Full Review',
         expect.arrayContaining([
           { section: 'pipelines', savedFilterId: 'f-pipelines' },
-          { section: 'pull-requests', savedFilterId: 'f-pr' },
+          { section: 'change-requests', savedFilterId: 'f-pr' },
         ]),
         expect.any(String),
         undefined,

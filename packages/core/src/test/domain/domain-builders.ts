@@ -3,9 +3,9 @@ import type {
   PipelineJob,
   PipelineRun,
   PipelineStep,
-  PRComment,
-  PRDetails,
-  PRLabel,
+  ChangeRequestComment,
+  ChangeRequestDetails,
+  ChangeRequestLabel,
 } from '../../index';
 
 /**
@@ -66,13 +66,13 @@ export class CommitBuilder {
 }
 
 /**
- * Builder for creating mock PullRequest objects
+ * Builder for creating mock change request objects
  */
-export class PullRequestBuilder {
-  private pr: PRDetails = {
+export class ChangeRequestBuilder {
+  private changeRequest: ChangeRequestDetails = {
     id: 1,
     number: 1,
-    title: 'Test Pull Request',
+    title: 'Test Change Request',
     author: { login: 'Test Author', id: 1 },
     url: 'https://github.com/example/pr/1',
     createdAt: new Date().toISOString(),
@@ -83,74 +83,74 @@ export class PullRequestBuilder {
     totalComments: 0,
   };
 
-  withId(id: number | undefined): PullRequestBuilder {
-    this.pr.id = id as number;
+  withId(id: number | undefined): ChangeRequestBuilder {
+    this.changeRequest.id = id as number;
     return this;
   }
 
-  withNumber(number: number): PullRequestBuilder {
-    this.pr.number = number;
+  withNumber(number: number): ChangeRequestBuilder {
+    this.changeRequest.number = number;
     return this;
   }
 
-  withTitle(title: string | undefined): PullRequestBuilder {
-    this.pr.title = title as string;
+  withTitle(title: string | undefined): ChangeRequestBuilder {
+    this.changeRequest.title = title as string;
     return this;
   }
 
-  withAuthor(author: string, id: number = 1): PullRequestBuilder {
-    this.pr.author = { login: author, id };
+  withAuthor(author: string, id: number = 1): ChangeRequestBuilder {
+    this.changeRequest.author = { login: author, id };
     return this;
   }
 
-  withoutAuthor(): PullRequestBuilder {
-    this.pr.author = { login: 'builder-1', id: 1 };
+  withoutAuthor(): ChangeRequestBuilder {
+    this.changeRequest.author = { login: 'builder-1', id: 1 };
     return this;
   }
 
-  withState(state: 'open' | 'closed' | 'merged' | 'draft'): PullRequestBuilder {
-    this.pr.state = state;
+  withState(state: 'open' | 'closed' | 'merged' | 'draft'): ChangeRequestBuilder {
+    this.changeRequest.state = state;
     return this;
   }
 
-  withCreatedAt(createdAt: string): PullRequestBuilder {
-    this.pr.createdAt = createdAt;
+  withCreatedAt(createdAt: string): ChangeRequestBuilder {
+    this.changeRequest.createdAt = createdAt;
     return this;
   }
 
-  withUpdatedAt(updatedAt: string): PullRequestBuilder {
-    this.pr.updatedAt = updatedAt;
+  withUpdatedAt(updatedAt: string): ChangeRequestBuilder {
+    this.changeRequest.updatedAt = updatedAt;
     return this;
   }
 
-  withMergedAt(mergedAt: string): PullRequestBuilder {
-    this.pr.mergedAt = mergedAt;
-    this.pr.state = 'merged';
+  withMergedAt(mergedAt: string): ChangeRequestBuilder {
+    this.changeRequest.mergedAt = mergedAt;
+    this.changeRequest.state = 'merged';
     return this;
   }
 
-  withClosedAt(closedAt: string): PullRequestBuilder {
-    this.pr.closedAt = closedAt;
-    this.pr.state = 'closed';
+  withClosedAt(closedAt: string): ChangeRequestBuilder {
+    this.changeRequest.closedAt = closedAt;
+    this.changeRequest.state = 'closed';
     return this;
   }
 
-  withComments(comments: number | PRComment[]): PullRequestBuilder {
+  withComments(comments: number | ChangeRequestComment[]): ChangeRequestBuilder {
     if (typeof comments === 'number') {
-      this.pr.totalComments = comments;
+      this.changeRequest.totalComments = comments;
       return this;
     }
 
-    this.pr.totalComments = comments.length;
-    this.pr.comments = comments;
+    this.changeRequest.totalComments = comments.length;
+    this.changeRequest.comments = comments;
     return this;
   }
 
-  withCommentDetails(comments: Array<Partial<PRComment>>): PullRequestBuilder {
-    this.pr.comments = comments.map((comment, index) => ({
+  withCommentDetails(comments: Array<Partial<ChangeRequestComment>>): ChangeRequestBuilder {
+    this.changeRequest.comments = comments.map((comment, index) => ({
       url: comment.url ?? `https://example.test/comments/${index + 1}`,
       body: comment.body ?? '',
-      pull_request_review_id: comment.pull_request_review_id ?? 0,
+      change_request_review_id: comment.change_request_review_id ?? 0,
       id: comment.id ?? index + 1,
       createdAt: comment.createdAt ?? new Date().toISOString(),
       author: comment.author ?? { login: `user-${index + 1}`, id: index + 1 },
@@ -167,22 +167,24 @@ export class PullRequestBuilder {
         eyes: 0,
       },
     }));
-    this.pr.totalComments = this.pr.comments.length;
+    this.changeRequest.totalComments = this.changeRequest.comments.length;
     return this;
   }
 
-  withLabels(labels: Array<Partial<PRLabel>> | undefined): PullRequestBuilder {
-    this.pr.labels = (labels?.map((label) => ({ name: label.name ?? '' })) ?? []) as PRLabel[];
+  withLabels(labels: Array<Partial<ChangeRequestLabel>> | undefined): ChangeRequestBuilder {
+    this.changeRequest.labels = (labels?.map((label) => ({
+      name: label.name ?? '',
+    })) ?? []) as ChangeRequestLabel[];
     return this;
   }
 
-  withUrl(url: string | undefined): PullRequestBuilder {
-    this.pr.url = url as string;
+  withUrl(url: string | undefined): ChangeRequestBuilder {
+    this.changeRequest.url = url as string;
     return this;
   }
 
-  build(): PRDetails {
-    return { ...this.pr };
+  build(): ChangeRequestDetails {
+    return { ...this.changeRequest };
   }
 }
 
@@ -397,18 +399,18 @@ export class TestDataFactory {
     return commits;
   }
 
-  static createPullRequests(count: number): PRDetails[] {
-    const prs: PRDetails[] = [];
+  static createChangeRequests(count: number): ChangeRequestDetails[] {
+    const changeRequests: ChangeRequestDetails[] = [];
     for (let i = 0; i < count; i++) {
-      prs.push(
-        new PullRequestBuilder()
+      changeRequests.push(
+        new ChangeRequestBuilder()
           .withNumber(i + 1)
           .withAuthor(`author${i % 3}`)
-          .withTitle(`PR: Feature ${i}`)
+          .withTitle(`Change request: Feature ${i}`)
           .build()
       );
     }
-    return prs;
+    return changeRequests;
   }
 
   static createPipelineRuns(count: number): PipelineRun[] {

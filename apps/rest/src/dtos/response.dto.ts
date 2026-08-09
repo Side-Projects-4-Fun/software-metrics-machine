@@ -4,12 +4,12 @@
  *
  * Filter types are imported from @smmachine/core to keep a single
  * source of truth shared across CLI, REST API, and domain logic.
- * Domain types (PRDetails, PRMetrics, PipelineRun, etc.) are also
+ * Domain types (ChangeRequestDetails, ChangeRequestMetrics, PipelineRun, etc.) are also
  * imported directly for use as response shapes.
  */
 
 import type {
-  PRDetails,
+  ChangeRequestDetails,
   PipelineFilterOptions,
   PipelineMetrics,
   JobMetrics,
@@ -18,7 +18,7 @@ import type {
   SonarqubeComponentMeasure,
   BigOFileAnalysis as CoreBigOFileAnalysis,
   BigOFileSummary as CoreBigOFileSummary,
-  PRAverageOutlier,
+  ChangeRequestAverageOutlier,
   PipelineAverageOutlier,
 } from '@smmachine/core';
 
@@ -84,78 +84,78 @@ export interface ConfigurationResponse {
 }
 
 // ──────────────────────────────────────────
-// Pull Request endpoints
+// Change Request endpoints
 // ──────────────────────────────────────────
 
-export interface PRSummaryResponse {
+export interface ChangeRequestSummaryResponse {
   result: {
-    total_prs: number;
-    merged_prs: number;
-    closed_prs: number;
-    open_prs: number;
-    avg_comments_per_pr: number;
+    total_change_requests: number;
+    merged_change_requests: number;
+    closed_change_requests: number;
+    open_change_requests: number;
+    avg_comments_per_change_request: number;
     unique_authors: number;
     unique_labels: number;
-    labels: Array<{ label: string; prs: number }>;
-    first_pr: PRDetails | null;
-    last_pr: PRDetails | null;
+    labels: Array<{ label: string; change_requests: number }>;
+    first_change_request: ChangeRequestDetails | null;
+    last_change_request: ChangeRequestDetails | null;
     top_themes: Array<{ text: string; value: number }>;
-    most_commented_prs: Array<{
-      pull_request_id: number;
-      pull_request_title: string;
-      pull_request_url: string;
+    most_commented_change_requests: Array<{
+      change_request_id: number;
+      change_request_title: string;
+      change_request_url: string;
       comments_count: number;
     }>;
   };
 }
 
-export interface PRThroughTimeResponse {
+export interface ChangeRequestThroughTimeResponse {
   result: Array<{ date: string; kind: string; count: number }>;
 }
 
-export interface PRByAuthorResponse {
+export interface ChangeRequestByAuthorResponse {
   result: Array<{ author: string; count: number }>;
 }
 
-export interface PRAverageReviewTimeResponse {
+export interface ChangeRequestAverageReviewTimeResponse {
   result: Array<{
     author: string;
     value: number;
     value_formatted: string;
     method: string;
-    outliers?: PRAverageOutlier[];
+    outliers?: ChangeRequestAverageOutlier[];
   }>;
 }
 
-export type PRAverageOpenByResponse = Array<{
+export type ChangeRequestAverageOpenByResponse = Array<{
   period: string;
   value: number;
   value_formatted: string;
   method: string;
-  outliers?: PRAverageOutlier[];
+  outliers?: ChangeRequestAverageOutlier[];
 }>;
 
-export interface PRAverageCommentsResponse {
+export interface ChangeRequestAverageCommentsResponse {
   avg_comments: number;
-  outliers?: PRAverageOutlier[];
+  outliers?: ChangeRequestAverageOutlier[];
 }
 
-export interface PRCommentsByAuthorResponse {
+export interface ChangeRequestCommentsByAuthorResponse {
   result: Array<{ author: string; count: number }>;
 }
 
-export interface PRFirstCommentTimeResponse {
+export interface ChangeRequestFirstCommentTimeResponse {
   result: Array<{
     author: string;
     value: number;
     value_formatted: string;
     method: string;
-    prs_with_comments: number;
-    outliers?: PRAverageOutlier[];
+    change_requests_with_comments: number;
+    outliers?: ChangeRequestAverageOutlier[];
   }>;
 }
 
-export type PRFilterOptionsResponse = {
+export type ChangeRequestFilterOptionsResponse = {
   authors: string[];
   labels: string[];
   commenters: string[];
@@ -360,7 +360,7 @@ export interface PipelineEvaluationResponse {
   };
 }
 
-export interface PREvaluationResponse {
+export interface ChangeRequestEvaluationResponse {
   generatedAt: string;
   signals: Array<{
     id: string;
@@ -371,10 +371,10 @@ export interface PREvaluationResponse {
     metrics: Array<{ label: string; value: string }>;
   }>;
   summary: {
-    totalPRs: number;
-    mergedPRs: number;
-    openPRs: number;
-    avgCommentsPerPR: number;
+    totalChangeRequests: number;
+    mergedChangeRequests: number;
+    openChangeRequests: number;
+    avgCommentsPerChangeRequest: number;
     reviewHours: number;
     reviewHours_formatted: string;
     openDays: number;
@@ -508,18 +508,18 @@ export interface MetricsIssueResponse {
   }>;
 }
 
-export interface MetricsPRResponse {
+export interface MetricsChangeRequestsResponse {
   openDays: number;
   openDays_formatted: string;
-  totalPRs: number;
-  mergedPRs: number;
-  closedPRs: number;
-  openPRs: number;
+  totalChangeRequests: number;
+  mergedChangeRequests: number;
+  closedChangeRequests: number;
+  openChangeRequests: number;
   comments: number;
-  most_commented_prs: Array<{
-    pull_request_id: number;
-    pull_request_title: string;
-    pull_request_url: string;
+  most_commented_change_requests: Array<{
+    change_request_id: number;
+    change_request_title: string;
+    change_request_url: string;
     comments_count: number;
   }>;
   leadTime: number;
@@ -550,7 +550,7 @@ export type MetricsQualityResponse = SonarqubeComponentMeasure | null;
 
 export interface MetricsFullReportResponse {
   timestamp: string;
-  pullRequests: MetricsPRResponse;
+  changeRequests: MetricsChangeRequestsResponse;
   deployment: MetricsDeploymentResponse;
   code: MetricsCodeResponse;
   issues: MetricsIssueResponse;

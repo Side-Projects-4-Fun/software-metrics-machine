@@ -9,13 +9,13 @@ import {
   IssuesRepository,
   PairingIndexService,
   PipelinesService,
-  PRsService,
+  ChangeRequestsService,
   SonarQubeService,
 } from '@smmachine/core';
 import { vi } from 'vitest';
 
 export interface MockedMetricsServices {
-  prsService: {
+  changeRequestsService: {
     getMetrics: ReturnType<typeof vi.fn>;
   };
   pipelinesService: {
@@ -43,15 +43,15 @@ export async function createMetricsTestApp(): Promise<{
   services: MockedMetricsServices;
 }> {
   const services: MockedMetricsServices = {
-    prsService: {
+    changeRequestsService: {
       getMetrics: vi.fn().mockResolvedValue({
         openDays: 3.5,
-        totalPRs: 42,
-        mergedPRs: 30,
-        closedPRs: 8,
-        openPRs: 4,
+        totalChangeRequests: 42,
+        mergedChangeRequests: 30,
+        closedChangeRequests: 8,
+        openChangeRequests: 4,
         comments: 3.7,
-        most_commented_prs: [],
+        most_commented_change_requests: [],
         leadTime: 2.5,
         method: 'average',
         commentSummary: [],
@@ -100,8 +100,8 @@ export async function createMetricsTestApp(): Promise<{
     controllers: [MetricsController],
     providers: [
       {
-        provide: PRsService,
-        useValue: services.prsService,
+        provide: ChangeRequestsService,
+        useValue: services.changeRequestsService,
       },
       {
         provide: PipelinesService,
