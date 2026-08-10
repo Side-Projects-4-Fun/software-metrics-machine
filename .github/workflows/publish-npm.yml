@@ -48,7 +48,7 @@ jobs:
       - name: prepare
         run: |
           pnpm install --frozen-lockfile --ignore-scripts
-          pnpm run prepack
+          npm pack --dry-run
 
       - name: Publish to npm
         env:
