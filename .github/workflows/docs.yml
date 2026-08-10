@@ -35,7 +35,7 @@ jobs:
         working-directory: ./docs/vitepress
     steps:
       - name: Checkout
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@v7
 
       - name: Set Environment Variables
         uses: tw3lveparsecs/github-actions-setvars@23da06e2c4d5804d2082ecf4d79b83a2338fb419 # v0.2
