@@ -643,11 +643,20 @@ function createIndexesForRenamedTable(db: DatabaseSync, tableName: string): void
   }
 
   if (tableName === 'change_request_comments') {
+    // When this function is called from migration 004 (renameTableIfExists),
+    // the table was just renamed from pull_request_comments and still has the
+    // original column name pull_request_number. Migration 005 will rename that
+    // column to change_request_number and recreate this index. On a fresh
+    // database, migration 001 already created the column as change_request_number
+    // and this index with IF NOT EXISTS is a no-op.
+    const numberColumn = columnExists(db, 'change_request_comments', 'change_request_number')
+      ? 'change_request_number'
+      : 'pull_request_number';
     db.exec(`
       CREATE INDEX IF NOT EXISTS idx_change_request_comments_namespace_position
         ON change_request_comments(namespace, position);
       CREATE INDEX IF NOT EXISTS idx_change_request_comments_change_request_number
-        ON change_request_comments(namespace, change_request_number);
+        ON change_request_comments(namespace, ${numberColumn});
       CREATE INDEX IF NOT EXISTS idx_change_request_comments_author_login
         ON change_request_comments(namespace, author_login);
       CREATE INDEX IF NOT EXISTS idx_change_request_comments_created_at

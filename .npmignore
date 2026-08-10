@@ -1,2 +1,15 @@
-# Exclude Next.js dev artifacts from npm package
+# Exclude Next.js build output that is not needed at runtime.
+# Keep .next/server, .next/static, and the manifest JSON files (used by `next start`).
+# .next/cache is the webpack/turbopack build cache (~200MB): regenerated on every
+# `next build` and never read by `next start`, so it must not ship in the package.
+apps/webapp/.next/cache/
 apps/webapp/.next/dev/
+apps/webapp/.next/trace
+apps/webapp/.next/trace-build
+apps/webapp/.next/diagnostics
+apps/webapp/.next/turbopack
+
+# Exclude source maps from the published package (not needed at runtime).
+**/*.map
+
+node_modules

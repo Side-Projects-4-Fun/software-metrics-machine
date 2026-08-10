@@ -15,7 +15,11 @@
     "apps/cli/fetch-codemaat.sh",
     "apps/cli/tools",
     "apps/mcp/dist",
-    "apps/webapp/.next",
+    "apps/webapp/.next/BUILD_ID",
+    "apps/webapp/.next/*.json",
+    "apps/webapp/.next/*.js",
+    "apps/webapp/.next/server",
+    "apps/webapp/.next/static",
     "apps/webapp/public",
     "README.md",
     "LICENSE"
