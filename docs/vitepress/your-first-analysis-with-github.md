@@ -35,17 +35,31 @@ Once done, note the path where you cloned the repository, as you will need it.
 
 ## SMM Configuration file
 
-Now, you need to set up the configuration file to point to the repository you just cloned and provide the necessary
-GitHub token. If you haven't generated a GitHub token yet, follow the steps in the [GitHub setup guide](./github.md).
+Now, set up the configuration to point to the repository you just cloned and provide the necessary GitHub token. If you
+haven't generated a GitHub token yet, follow the steps in the [GitHub setup guide](./github.md).
 
-Define where to store the data through the environment variable `SMM_STORE_DATA_AT`, for example:
+The easiest way is the interactive wizard, which asks for the Git provider, repository, local clone path, branch, and
+token, then writes `smm_config.json` for you:
+
+```bash
+smm project configure
+```
+
+If no data directory is available yet (neither `SMM_STORE_DATA_AT` nor a saved default), the wizard asks for a data
+directory, creates it, and saves it as the default in the user settings file (`$XDG_CONFIG_HOME/smm/config.json`,
+falling back to `~/.config/smm/config.json`), so later commands reuse it without requiring the env var.
+
+Alternatively, set the data directory and create the configuration file by hand. Define where to store the data through
+the environment variable `SMM_STORE_DATA_AT`, for example:
 
 ```bash
 export SMM_STORE_DATA_AT=/path/to/data/folder
 ```
 
-Next in the same folder where you set the `SMM_STORE_DATA_AT` variable, create a file named `smm_config.json` with the
-following content:
+> [!IMPORTANT]
+> Use a different folder than the cloned repository to store the data, to avoid any accidental deletion of data changes.
+
+Then in that folder, create a file named `smm_config.json` with the following content:
 
 ```json
 {
@@ -60,9 +74,6 @@ following content:
   ]
 }
 ```
-
-> [!IMPORTANT]
-> Use a different folder than the cloned repository to store the data, to avoid any accidental deletion of data changes.
 
 Replace `your_github_token` with the token you generated, and `/path/to/cloned/vue` with the path where you cloned the
 repository. Next, set the `main_branch` to the main branch of the repository, which is `main` for the Vue.js repository

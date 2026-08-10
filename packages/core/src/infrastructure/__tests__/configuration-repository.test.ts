@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Logger } from '@smmachine/utils';
@@ -465,10 +465,26 @@ describe('ConfigurationRepository', () => {
   });
 
   describe('missing SMM_STORE_DATA_AT', () => {
-    it('should throw error', () => {
-      expect(() => createConfigurationRepository({}, 'org/repo')).toThrow(
+    it('should throw error when neither the env var nor user settings provide a data dir', () => {
+      const homeDir = mkdtempSync(join(tmpdir(), 'smm-config-repo-nohome-'));
+      expect(() => createConfigurationRepository({ HOME: homeDir }, 'org/repo')).toThrow(
         'SMM_STORE_DATA_AT is required'
       );
+    });
+
+    it('should resolve the data directory from user settings when the env var is missing', () => {
+      const homeDir = mkdtempSync(join(tmpdir(), 'smm-config-repo-settings-'));
+      const settingsDir = join(homeDir, '.config', 'smm');
+      mkdirSync(settingsDir, { recursive: true });
+      writeFileSync(
+        join(settingsDir, 'config.json'),
+        JSON.stringify({ store_data_at: '/data/from-settings' }),
+        'utf-8'
+      );
+
+      const repo = createConfigurationRepository({ HOME: homeDir }, 'org/repo');
+
+      expect(repo.getActiveConfiguration().storeData).toBe('/data/from-settings');
     });
   });
 

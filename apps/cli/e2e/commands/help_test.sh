@@ -15,6 +15,7 @@ function test_command_help_pages_render_successfully() {
     "health-check"
     "mcp"
     "architecture"
+    "project"
   )
 
   for command in "${commands[@]}"; do

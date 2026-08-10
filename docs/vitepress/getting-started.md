@@ -39,7 +39,7 @@ smm
 
 ## Define where to store the data
 
-This project uses a folder to store the data fetched from the different providers, set the env variable `SMM_STORE_DATA_AT`
+This project uses a folder to store the data fetched from the different providers. Set the env variable `SMM_STORE_DATA_AT`
 to point to the desired location. Use absolute paths.
 
 ```bash
@@ -47,12 +47,28 @@ export SMM_STORE_DATA_AT=/path/to/data/folder
 ```
 
 Ensure the folder exists and use a different folder than the cloned repository to avoid any accidental deletion or data
-changes. For example:
+changes.
+
+The env variable is optional if you have run `smm project configure` before: the wizard saves the data directory as
+the default in the user settings file (`$XDG_CONFIG_HOME/smm/config.json`, falling back to
+`~/.config/smm/config.json`), so later commands reuse it without requiring `SMM_STORE_DATA_AT`.
 
 ## Create the configuration file
 
 The configuration file is the central point to configure the project and give it default values, it uses JSON format.
-In the folder pointed to store the data, create a configuration file named `smm_config.json` with the following content:
+The easiest way to create it is the interactive wizard. Run the following command:
+
+```bash
+smm project configure
+```
+
+The wizard asks for the git provider, repository, branch, tokens, and optional integrations, then generates
+`smm_config.json` for you. If `SMM_STORE_DATA_AT` is not set and no default data directory is saved yet, the wizard
+asks for the data directory, creates it, and saves it as the default so you do not need to export `SMM_STORE_DATA_AT`
+again.
+
+Alternatively, in the folder pointed to store the data, create a configuration file named `smm_config.json` with the
+following content:
 
 ```json
 {

@@ -16,7 +16,9 @@ SMM supports SonarQube in three interfaces:
 
 ## Configuration
 
-Set `SMM_STORE_DATA_AT` to the folder that contains your `smm_config.json` file.
+The SonarQube integration reads `sonar_url`, `sonar_token`, and `sonar_project` from your `smm_config.json`, which lives
+in the resolved data directory. Set `SMM_STORE_DATA_AT` to that folder, or rely on the default saved by
+`smm project configure` (`$XDG_CONFIG_HOME/smm/config.json`, falling back to `~/.config/smm/config.json`).
 
 ```bash
 export SMM_STORE_DATA_AT=/path/to/data

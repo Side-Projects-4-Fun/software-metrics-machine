@@ -67,19 +67,26 @@ Usage: smm [options] [command]
 Software Metrics Machine - High-performing team metrics
 
 Options:
-  -V, --version  output the version number
-  --debug        Enable debug logging
-  -h, --help     display help for command
+  -V, --version           output the version number
+  --debug                 Enable debug logging
+  --project <name>        Select active project by name (github_repository)
+  -h, --help              display help for command
 
 Commands:
-  prs            Pull request operations
-  pipelines      Pipeline/workflow operations
-  code           Code analysis operations
-  jira           Jira integration operations
-  sonarqube      SonarQube integration operations
-  dashboard      Dashboard operations
-  tools          Utility tools
-  help           Show help information
+  change-requests         Change request operations
+  pipelines               Pipeline/workflow operations
+  code                    Code analysis operations
+  jira                    Jira integration operations
+  sonarqube               SonarQube integration operations
+  dashboard               Dashboard operations
+  tools                   Utility tools
+  health-check            Analyze local cache data quality
+  mcp                     Model Context Protocol operations
+  architecture            Architecture analysis and visualization
+  engineering-health      Engineering health metrics
+  filters                 Manage saved filters
+  project                 Configure and manage projects
+  help                    Show help information
 ```
 
 The official documentation is hosted at [github pages](https://side-projects-4-fun.github.io/software-metrics-machine/getting-started.html).

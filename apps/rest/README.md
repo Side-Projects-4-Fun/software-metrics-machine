@@ -43,11 +43,14 @@ When started through the CLI bundled mode, the REST API runs on port `3001` by d
 
 ## Configuration
 
-The REST API does not use per-variable env vars for credentials. It reads everything from `smm_config.json` located at the path given by `SMM_STORE_DATA_AT`.
+The REST API does not use per-variable env vars for credentials. It reads everything from `smm_config.json` in the
+resolved data directory. The data directory comes from `SMM_STORE_DATA_AT`, or from the `store_data_at` value saved in
+the user settings file (`$XDG_CONFIG_HOME/smm/config.json`, falling back to `~/.config/smm/config.json`) when the env
+var is unset. The environment variable always wins over the saved default.
 
 | Variable | Required | Description |
 |---|---|---|
-| `SMM_STORE_DATA_AT` | yes | Path to the data directory containing `smm_config.json` |
+| `SMM_STORE_DATA_AT` | no | Path to the data directory containing `smm_config.json` (optional when a default is saved via `smm project configure`) |
 | `PORT` | no | Port to listen on (default: 8000) |
 | `NODE_ENV` | no | `development` or `production` |
 

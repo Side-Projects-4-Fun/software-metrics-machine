@@ -29,7 +29,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "commander": "catalog:"
+    "commander": "catalog:",
+    "inquirer": "catalog:"
   },
   "devDependencies": {
     "@smmachine/core": "workspace:*",

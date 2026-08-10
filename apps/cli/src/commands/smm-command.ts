@@ -1,7 +1,12 @@
 import { Command } from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
-import { applySqliteMigrations, openSqliteConnection, RepositoryFactory } from '@smmachine/core';
+import {
+  applySqliteMigrations,
+  openSqliteConnection,
+  RepositoryFactory,
+  resolveStoreDataAt,
+} from '@smmachine/core';
 import type { Configuration } from '@smmachine/core/infrastructure/configuration';
 import { ConfigurationRepository } from '@smmachine/core/infrastructure/configuration-repository';
 import { Logger, type LogLevel } from '@smmachine/utils';
@@ -42,7 +47,7 @@ export class SmmCommand extends Command {
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
   private async autoMigrateIfNeeded(): Promise<void> {
-    if (!process.env.SMM_STORE_DATA_AT) {
+    if (!resolveStoreDataAt(process.env)) {
       return;
     }
 

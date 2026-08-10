@@ -10,6 +10,7 @@ import { createMcpCommands } from './commands/mcp';
 import { createArchitectureCommands } from './commands/architecture';
 import { createEngineeringHealthCommands } from './commands/engineering-health';
 import { createFiltersCommands } from './commands/filters';
+import { createProjectCommands } from './commands/project';
 import { getApplicationVersion, Logger } from '@smmachine/utils';
 import { SmmCommand } from './commands/smm-command';
 
@@ -36,6 +37,7 @@ export function commands(): SmmCommand {
   createArchitectureCommands(program);
   createEngineeringHealthCommands(program);
   createFiltersCommands(program);
+  createProjectCommands(program);
 
   // Global help
   program
@@ -62,11 +64,18 @@ export function commands(): SmmCommand {
  *   - smm dashboard     Dashboard server operations
  *   - smm tools         Utility tools (JSON merge, etc.)
  *   - smm mcp           MCP server operations
+ *   - smm project       Configure projects interactively (generates smm_config.json)
  *
  * Configuration:
- *   Set SMM_STORE_DATA_AT environment variable to point to a JSON configuration file:
+ *   Set SMM_STORE_DATA_AT environment variable to point to the data directory
+ *   that holds smm_config.json:
  *
- *   export SMM_STORE_DATA_AT=/path/to/config.json
+ *   export SMM_STORE_DATA_AT=/path/to/data-dir
+ *
+ *   When SMM_STORE_DATA_AT is unset, the data directory is resolved from the
+ *   store_data_at value saved in the user settings file
+ *   ($XDG_CONFIG_HOME/smm/config.json, falling back to ~/.config/smm/config.json).
+ *   Run `smm project configure` once to save a default data directory.
  *
  *   JSON configuration format:
  *   {

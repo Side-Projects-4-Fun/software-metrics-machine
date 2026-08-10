@@ -39,7 +39,11 @@ smm dashboard serve
 
 ## Configuration
 
-`SMM_STORE_DATA_AT` (required) — path to the directory where `smm_config.json` lives and where all fetched data is stored.
+`SMM_STORE_DATA_AT` (optional) — path to the directory where `smm_config.json` lives and where all fetched data is stored.
+When unset, the data directory is resolved from the `store_data_at` value saved in the user settings file
+(`$XDG_CONFIG_HOME/smm/config.json`, falling back to `~/.config/smm/config.json`). The environment variable always wins
+over the saved default. Run `smm project configure` once to save a default data directory and skip the env var in future
+sessions.
 
 ### Interactive project configuration
 
@@ -50,8 +54,9 @@ smm project configure
 ```
 
 The wizard asks for the Git provider, repository, branch, tokens, and optional Jira / SonarQube integrations, then
-writes the file for you. If `SMM_STORE_DATA_AT` is not set, it asks for a data directory, creates it, and prints the
-`export SMM_STORE_DATA_AT=...` command to reuse later. List the configured projects with:
+writes the file for you. If no data directory is available yet (neither `SMM_STORE_DATA_AT` nor a saved default), it
+asks for a data directory, creates it, and saves it as the default in the user settings file so future commands reuse
+it. List the configured projects with:
 
 ```bash
 smm project list
@@ -105,7 +110,8 @@ export BLA_123_SMM_TIMEZONE=UTC   # used for github_repository "bla/123"
 ```
 
 `SMM_STORE_DATA_AT` is the only global configuration environment variable. Generic variables such as
-`GITHUB_TOKEN`, `JIRA_TOKEN`, `SONAR_TOKEN`, `SMM_TIMEZONE`, and `GIT_REPOSITORY_PATH` are not used.
+`GITHUB_TOKEN`, `JIRA_TOKEN`, `SONAR_TOKEN`, `SMM_TIMEZONE`, and `GIT_REPOSITORY_PATH` are not used. When
+`SMM_STORE_DATA_AT` is unset, the data directory is resolved from the `store_data_at` user setting.
 
 ## Global options
 
@@ -736,8 +742,9 @@ Analyze local cache data quality (missing, stale, invalid, coverage gaps).
 Interactively configure projects stored in `smm_config.json`.
 
 #### `smm project configure`
-Create a new project or update an existing one through an interactive wizard. If `SMM_STORE_DATA_AT` is not set, the
-wizard asks for the data directory, creates it, and prints the `export SMM_STORE_DATA_AT=...` command to reuse later.
+Create a new project or update an existing one through an interactive wizard. If no data directory is available yet
+(neither `SMM_STORE_DATA_AT` nor a saved default in the user settings file), the wizard asks for the data directory,
+creates it, and saves it as the default.
 
 The wizard walks through the Git provider (github/gitlab), repository (`owner/repo`), local clone path, main branch,
 provider token, optional Jira and SonarQube integrations, log level, timezone, and store-logs settings. Optional values
@@ -745,7 +752,7 @@ are only written when provided, so updating a project keeps existing settings yo
 
 #### `smm project list`
 List the configured projects from `smm_config.json`. Prints a hint asking you to run `smm project configure` first when
-`SMM_STORE_DATA_AT` is not set or no projects are configured yet.
+no data directory is available or no projects are configured yet.
 
 ---
 

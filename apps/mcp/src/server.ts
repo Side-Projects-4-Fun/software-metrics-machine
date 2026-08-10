@@ -1,5 +1,6 @@
 import { createInterface } from 'node:readline';
 import { getApplicationVersion } from '@smmachine/utils';
+import { resolveStoreDataAt } from '@smmachine/core';
 import type { JsonObject, JsonRpcRequest, JsonRpcResponse, JsonValue } from './mcp-types';
 import { configureMcpLogging, redirectConsoleToStderr, transportLogger } from './mcp-logger';
 import { getPrompt, prompts } from './prompts';
@@ -238,7 +239,7 @@ export async function startMcpServer(options: StartMcpServerOptions = {}): Promi
   configureMcpLogging({ debug: options.debug });
 
   log(`Starting Software Metrics Machine MCP server v${SERVER_INFO.version} over stdio`);
-  log(`Configuration directory: ${process.env.SMM_STORE_DATA_AT || '<not set>'}`);
+  log(`Configuration directory: ${resolveStoreDataAt(process.env) || '<not set>'}`);
   log(`Available tools: ${tools.map((tool) => tool.name).join(', ')}`);
 
   const reader = createInterface({

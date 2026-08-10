@@ -10,6 +10,7 @@ import type {
   StorageType,
 } from './configuration';
 import { Configuration } from './configuration';
+import { resolveStoreDataAt } from './user-settings';
 
 /**
  * Repository interface for accessing project configurations.
@@ -79,6 +80,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
   private activeProjectIndex: number;
   private configPath: string;
   private env: Record<string, string | undefined>;
+  private storeDataAt: string;
 
   constructor(
     env: Record<string, string | undefined> = process.env,
@@ -88,11 +90,13 @@ export class ConfigurationRepository implements IConfigurationRepository {
     const envObj = env === process.env ? { ...env } : env;
     this.env = envObj;
 
-    if (!envObj.SMM_STORE_DATA_AT) {
+    const storeDataAt = resolveStoreDataAt(envObj);
+    if (!storeDataAt) {
       throw new Error('SMM_STORE_DATA_AT is required to load configuration.');
     }
+    this.storeDataAt = storeDataAt;
 
-    this.configPath = path.resolve(`${envObj.SMM_STORE_DATA_AT}/smm_config.json`);
+    this.configPath = path.resolve(`${storeDataAt}/smm_config.json`);
     this.rawConfig = this.loadRawConfig();
     this.projects = this.extractProjects();
 
@@ -137,7 +141,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       this.getString(configData, 'gitlab_token') || this.getProjectEnv(repository, 'GITLAB_TOKEN');
     config.gitlabUrl =
       this.getString(configData, 'gitlab_url') || this.getProjectEnv(repository, 'GITLAB_URL');
-    config.storeData = this.env.SMM_STORE_DATA_AT!;
+    config.storeData = this.storeDataAt;
     config.gitRepositoryLocation =
       this.getString(configData, 'git_repository_location') ||
       this.getProjectEnv(repository, 'GIT_REPOSITORY_PATH') ||

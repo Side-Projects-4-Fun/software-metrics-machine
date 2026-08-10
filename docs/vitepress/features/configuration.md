@@ -6,10 +6,49 @@ outline: deep
 
 Configuration is stored in `smm_config.json` inside the folder referenced by `SMM_STORE_DATA_AT`.
 
-## Required environment variable
+## Data directory resolution
+
+The data directory is resolved in this order:
+
+1. The `SMM_STORE_DATA_AT` environment variable, when set.
+2. The `store_data_at` value saved in the user settings file (`$XDG_CONFIG_HOME/smm/config.json`, falling back to
+   `~/.config/smm/config.json`).
+
+The environment variable always wins over the saved default. When neither is present, SMM asks you to configure a
+project or fails with an error explaining that `SMM_STORE_DATA_AT` is required.
 
 ```bash
 export SMM_STORE_DATA_AT=/absolute/path/to/data-folder
+```
+
+After running `smm project configure` once, the data directory is saved to the user settings file, so you no longer
+need to export `SMM_STORE_DATA_AT` in every shell session. Set the environment variable to temporarily use a different
+data directory.
+
+## Configure a project interactively
+
+The easiest way to create or update `smm_config.json` is the interactive wizard. It asks for your Git provider,
+repository, tokens, and optional integrations, then writes the file for you:
+
+```bash
+smm project configure
+```
+
+If no data directory is available yet (neither `SMM_STORE_DATA_AT` nor a saved default), the wizard asks for a data
+directory, creates it, and saves it as the default in the user settings file so future commands reuse it.
+
+When a configuration file already exists, the wizard lets you create a new project or update an existing one. Optional
+fields such as tokens are only written when you provide a value, so updating a project never wipes settings you left
+untouched.
+
+The wizard covers the core keys in the [Key reference](#key-reference) table. Advanced keys such as
+`deployment_frequency_targets`, `dashboard_start_date`, and `dashboard_end_date` can be added by editing
+`smm_config.json` directly.
+
+List the configured projects with:
+
+```bash
+smm project list
 ```
 
 ## Configuration format
@@ -107,7 +146,9 @@ Supported project-specific environment variable suffixes are:
 - `SMM_STORAGE_TYPE`
 
 The only global environment variable used by configuration loading is `SMM_STORE_DATA_AT`. Generic variables such as
-`GITHUB_TOKEN`, `JIRA_TOKEN`, `SONAR_TOKEN`, `SMM_TIMEZONE`, or `GIT_REPOSITORY_PATH` are not used.
+`GITHUB_TOKEN`, `JIRA_TOKEN`, `SONAR_TOKEN`, `SMM_TIMEZONE`, or `GIT_REPOSITORY_PATH` are not used. When
+`SMM_STORE_DATA_AT` is not set, the data directory is resolved from the `store_data_at` value in the user settings
+file (see [Data directory resolution](#data-directory-resolution)).
 
 Project-specific `GITHUB_TOKEN` takes precedence over project `github_token` and root `github_token`. Other
 project-specific environment variables are used only when the selected project does not set the corresponding

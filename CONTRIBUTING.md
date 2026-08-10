@@ -113,16 +113,20 @@ node dist/index.cjs --help
 
 ### Environment variables
 
-The project uses environment variables for configuration, consumed by the `Configuration` class in `packages/core/src/infrastructure/configuration.ts`. Key variables:
+Configuration is stored in `smm_config.json` inside the resolved data directory. The data directory comes from
+`SMM_STORE_DATA_AT`, or from the `store_data_at` value saved in the user settings file
+(`$XDG_CONFIG_HOME/smm/config.json`, falling back to `~/.config/smm/config.json`) when the env var is unset. Loading is
+handled by the `Configuration` class in `packages/core/src/infrastructure/configuration.ts` together with the resolution
+in `user-settings.ts`. Run `smm project configure` once to save a default data directory.
+
+Most configuration lives in `smm_config.json`; see `docs/vitepress/features/configuration.md` for the full schema and the
+project-specific `<REPO>_` environment variable overrides. The only global environment variable for configuration loading
+is `SMM_STORE_DATA_AT`. Generic variables such as `GITHUB_TOKEN`, `JIRA_TOKEN`, `SMM_TIMEZONE`, or
+`GIT_REPOSITORY_PATH` are not used.
 
 | Variable                 | Required | Description                                      |
 |--------------------------|----------|--------------------------------------------------|
-| `SMM_STORE_DATA_AT`      | Yes      | Path to cache directory for fetched data         |
-| `GIT_PROVIDER`           | Yes      | `github` or `gitlab`                             |
-| `GITHUB_TOKEN`           | For GitHub | GitHub personal access token                     |
-| `GITHUB_REPOSITORY`      | For GitHub | `owner/repo` format                              |
-| `GIT_REPOSITORY_LOCATION`| For local git | Path to local git repository                     |
-| `GITLAB_TOKEN`           | For GitLab | GitLab personal access token                     |
+| `SMM_STORE_DATA_AT`      | No       | Path to the data directory (optional when a default is saved via `smm project configure`) |
 | `SMM_DEV_MODE`           | No       | Set to `true` during CLI dev to use local scripts |
 
 ### Webapp environment
