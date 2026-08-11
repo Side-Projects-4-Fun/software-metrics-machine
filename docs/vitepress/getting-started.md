@@ -39,90 +39,46 @@ smm
 
 ## Define where to store the data
 
-This project uses a folder to store the data fetched from the different providers. Set the env variable `SMM_STORE_DATA_AT`
-to point to the desired location. Use absolute paths.
+SMM stores fetched data and `smm_config.json` in a data directory. You do not have to set this up by hand: the
+`smm project configure` wizard asks for a data directory, creates it, and saves it as the default in the user settings
+file (`$XDG_CONFIG_HOME/smm/config.json`, falling back to `~/.config/smm/config.json`), so later commands reuse it
+without any extra setup.
 
-```bash
-export SMM_STORE_DATA_AT=/path/to/data/folder
-```
+Use the `SMM_STORE_DATA_AT` environment variable only to temporarily override the saved default, for example to point at
+a different data directory for a specific shell. See
+[Data directory resolution](./features/configuration.md#data-directory-resolution) for the full resolution order.
 
-Ensure the folder exists and use a different folder than the cloned repository to avoid any accidental deletion or data
-changes.
+> [!IMPORTANT]
+> Use a different folder than the cloned repository to store the data, to avoid any accidental deletion or data changes.
 
-The env variable is optional if you have run `smm project configure` before: the wizard saves the data directory as
-the default in the user settings file (`$XDG_CONFIG_HOME/smm/config.json`, falling back to
-`~/.config/smm/config.json`), so later commands reuse it without requiring `SMM_STORE_DATA_AT`.
+## Create the project
 
-## Create the configuration file
-
-The configuration file is the central point to configure the project and give it default values, it uses JSON format.
-The easiest way to create it is the interactive wizard. Run the following command:
+The configuration file is the central point to configure the project and give it default values. The easiest way to
+create it is the interactive wizard:
 
 ```bash
 smm project configure
 ```
 
 The wizard asks for the git provider, repository, branch, tokens, and optional integrations, then generates
-`smm_config.json` for you. If `SMM_STORE_DATA_AT` is not set and no default data directory is saved yet, the wizard
-asks for the data directory, creates it, and saves it as the default so you do not need to export `SMM_STORE_DATA_AT`
-again.
+`smm_config.json` for you. It also sets up the data directory when none is available yet.
 
-Alternatively, in the folder pointed to store the data, create a configuration file named `smm_config.json` with the
-following content:
+For **GitLab**, the wizard asks for the GitLab token and instance URL instead. See the [GitLab provider guide](./gitlab.md)
+for full setup instructions.
 
-```json
-{
-  "projects": [
-    {
-      "git_provider": "github",
-      "github_token": "your_github_token",
-      "github_repository": "marabesi/json-tool",
-      "git_repository_location": "/your/local/repo",
-      "timezone": "Europe/Madrid"
-    }
-  ]
-}
-```
+The full list of configuration options, including the manual `smm_config.json` format for advanced setup, is available
+at [Configuration](./features/configuration.md).
 
-This configuration is the central point to configure the project and give it default values. Replace `your_github_token` with
-the token you generated, `/your/local/repo` with the path where you cloned the repository, and `Europe/Madrid` with the
-IANA timezone used by your team. CLI commands use this timezone for date-only filters and time grouping.
+### Checkpoint configuration
 
-For **GitLab**, set `git_provider` to `gitlab` and provide `gitlab_token` instead. See the [GitLab provider guide](./gitlab.md)
-for full setup instructions:
-
-```json
-{
-  "projects": [
-    {
-      "git_provider": "gitlab",
-      "gitlab_token": "glpat-your-gitlab-token",
-      "github_repository": "your-group/your-project",
-      "git_repository_location": "/your/local/repo",
-      "timezone": "Europe/Madrid"
-    }
-  ]
-}
-```
-
-A table with the full configuration options is available at [Configuration options](./features/configuration.md).
-
-### Checkpoint store data
-
-Let's now check the env variables for data storage, run the following command:
+Confirm the project was created by listing the configured projects:
 
 ```bash
-env
+smm project list
 ```
 
-You should see an output something like the following:
-
-```plaintext
-SMM_STORE_DATA_AT=/path/to/data/folder
-```
-
-With this, you are ready to start using Software Metrics Machine and fetch data from your repository with a local
-setup.
+You should see the project you just configured. With this, you are ready to start using Software Metrics Machine and
+fetch data from your repository with a local setup.
 
 ## Ready to go
 

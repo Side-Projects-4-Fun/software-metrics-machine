@@ -38,46 +38,18 @@ Once done, note the path where you cloned the repository, as you will need it.
 Now, set up the configuration to point to the repository you just cloned and provide the necessary GitHub token. If you
 haven't generated a GitHub token yet, follow the steps in the [GitHub setup guide](./github.md).
 
-The easiest way is the interactive wizard, which asks for the Git provider, repository, local clone path, branch, and
-token, then writes `smm_config.json` for you:
+Run the interactive wizard, which asks for the Git provider, repository, local clone path, branch, and token, then
+writes `smm_config.json` for you:
 
 ```bash
 smm project configure
 ```
 
-If no data directory is available yet (neither `SMM_STORE_DATA_AT` nor a saved default), the wizard asks for a data
-directory, creates it, and saves it as the default in the user settings file (`$XDG_CONFIG_HOME/smm/config.json`,
-falling back to `~/.config/smm/config.json`), so later commands reuse it without requiring the env var.
+The wizard also handles the data directory for you: if no data directory is available yet, it asks for one, creates it,
+and saves it as the default so later commands reuse it. See [Project management](./project.md) for the full wizard
+walkthrough.
 
-Alternatively, set the data directory and create the configuration file by hand. Define where to store the data through
-the environment variable `SMM_STORE_DATA_AT`, for example:
-
-```bash
-export SMM_STORE_DATA_AT=/path/to/data/folder
-```
-
-> [!IMPORTANT]
-> Use a different folder than the cloned repository to store the data, to avoid any accidental deletion of data changes.
-
-Then in that folder, create a file named `smm_config.json` with the following content:
-
-```json
-{
-  "projects": [
-    {
-      "git_provider": "github",
-      "github_token": "your_github_token",
-      "github_repository": "vuejs/vue",
-      "git_repository_location": "/path/to/cloned/vue",
-      "main_branch": "main"
-    }
-  ]
-}
-```
-
-Replace `your_github_token` with the token you generated, and `/path/to/cloned/vue` with the path where you cloned the
-repository. Next, set the `main_branch` to the main branch of the repository, which is `main` for the Vue.js repository
-at the time of writing. Next, we will fetch the data from GitHub.
+Next, we will fetch the data from GitHub.
 
 ## Fetching Data
 

@@ -25,6 +25,9 @@ After running `smm project configure` once, the data directory is saved to the u
 need to export `SMM_STORE_DATA_AT` in every shell session. Set the environment variable to temporarily use a different
 data directory.
 
+> [!IMPORTANT]
+> Use a different folder than the cloned repository to store the data, to avoid any accidental deletion or data changes.
+
 ## Configure a project interactively
 
 The easiest way to create or update `smm_config.json` is the interactive wizard:
@@ -38,7 +41,9 @@ you. See [Project management](../project.md) for the full wizard walkthrough and
 
 ## Configuration format
 
-SMM uses a multi-project configuration format. Wrap your project configurations in a `projects` array:
+For advanced setups the wizard does not cover (such as `deployment_frequency_targets`, `dashboard_start_date`, or
+multiple projects at once), create or edit `smm_config.json` by hand. SMM uses a multi-project configuration format.
+Wrap your project configurations in a `projects` array:
 
 ```json
 {
