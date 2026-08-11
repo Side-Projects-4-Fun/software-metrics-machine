@@ -2,11 +2,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import inquirer, { type DistinctQuestion } from 'inquirer';
 import {
+  Configuration,
+  GitCloneService,
   resolveStoreDataAt,
   saveUserSettings,
   type ISmmConfigFile,
   type ISmmProjectConfig,
 } from '@smmachine/core';
+import { Logger } from '@smmachine/utils';
 import type { Screen } from '../screen';
 import type { SmmCommand } from './smm-command';
 
@@ -399,6 +402,74 @@ function writeConfigFile(dataDir: string, config: ISmmConfigFile): string {
   return configPath;
 }
 
+/**
+ * Derives the local clone path for a repository when the user did not provide one.
+ *
+ * The repository is cloned under `{dataDir}/repos/{owner}_{repo}` to keep it next to
+ * the SMM data directory without clobbering any user-provided path.
+ */
+function deriveClonePath(dataDir: string, githubRepository: string): string {
+  const repoSlug = githubRepository.replace('/', '_');
+  return path.join(dataDir, 'repos', repoSlug);
+}
+
+/**
+ * Builds a Configuration from the wizard core answers so the clone service can derive
+ * the provider URL and token before the project is persisted.
+ */
+function buildCloneConfiguration(core: ProjectCoreAnswers, dataDir: string): Configuration {
+  return new Configuration({
+    storeData: dataDir,
+    gitProvider: core.git_provider,
+    githubRepository: core.github_repository,
+    githubToken: core.github_token ? core.github_token.trim() : undefined,
+    gitlabToken: core.gitlab_token ? core.gitlab_token.trim() : undefined,
+    gitlabUrl: core.gitlab_url ? core.gitlab_url.trim() : undefined,
+  });
+}
+
+/**
+ * When the user left `git_repository_location` empty, clones the repository using the
+ * provider and repository gathered during the wizard and returns the resulting path.
+ *
+ * When the user provided a path, it is returned unchanged and no clone is performed.
+ */
+async function cloneRepositoryIfNeeded(
+  core: ProjectCoreAnswers,
+  existing: ISmmProjectConfig | undefined,
+  dataDir: string,
+  screen: Screen
+): Promise<string | undefined> {
+  const providedLocation = core.git_repository_location.trim();
+  if (providedLocation) {
+    return providedLocation;
+  }
+
+  if (existing?.git_repository_location) {
+    return existing.git_repository_location;
+  }
+
+  const targetPath = deriveClonePath(dataDir, core.github_repository);
+  const logger = new Logger('ProjectConfigure', 'INFO');
+  const cloneConfiguration = buildCloneConfiguration(core, dataDir);
+  const cloneService = new GitCloneService(cloneConfiguration, logger);
+
+  screen.printLine('');
+  screen.printLine(
+    `No repository path provided. Cloning ${core.github_repository} into ${targetPath}...`
+  );
+
+  const result = await cloneService.cloneInto(targetPath);
+
+  if (result.cloned) {
+    screen.printLine(`Repository cloned to: ${result.repositoryPath}`);
+  } else {
+    screen.printLine(`Repository already cloned at: ${result.repositoryPath}`);
+  }
+
+  return result.repositoryPath;
+}
+
 async function configureProject(command: SmmCommand): Promise<void> {
   const screen = command.getScreen();
 
@@ -413,6 +484,11 @@ async function configureProject(command: SmmCommand): Promise<void> {
     const core = await askCoreQuestions(existing);
     const integrations = await askIntegrationQuestions(existing);
     const misc = await askMiscQuestions(existing);
+
+    const clonedPath = await cloneRepositoryIfNeeded(core, existing, dataDir, screen);
+    if (clonedPath) {
+      core.git_repository_location = clonedPath;
+    }
 
     const project = buildProjectConfig(core, integrations, misc, existing);
 

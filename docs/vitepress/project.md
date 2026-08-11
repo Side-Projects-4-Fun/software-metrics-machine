@@ -44,6 +44,36 @@ The wizard covers the core keys. Advanced keys such as `deployment_frequency_tar
 `dashboard_end_date` can be added by editing `smm_config.json` directly. See the
 [Configuration key reference](./features/configuration.md#key-reference) for the full schema.
 
+### Cloning the repository automatically
+
+When you leave the local repository path empty, the wizard clones the repository for you using the Git provider and
+`owner/repo` value you just entered. You do not need to type a clone URL — SMM constructs it from the provider:
+
+- GitHub: `https://github.com/{owner}/{repo}.git`
+- GitLab: `{gitlab_url}/{owner}/{repo}.git` (defaults to `https://gitlab.com`)
+
+When a provider token is available, it is embedded in the clone URL so private repositories clone successfully. Tokens
+are never printed.
+
+The repository is cloned under `{data-directory}/repos/{owner}_{repo}`, and that path is saved as
+`git_repository_location` in `smm_config.json`. If the target path already holds a git repository, the clone is skipped
+and the existing path is reused.
+
+```bash
+smm project configure
+# ...
+# Path to the local git repository (optional, for code metrics):
+# (leave empty and press Enter)
+# No repository path provided. Cloning acme/widgets into /data/smm/repos/acme_widgets...
+# Repository cloned to: /data/smm/repos/acme_widgets
+```
+
+If the clone fails (for example, the repository is private and no token was provided, or the repository does not exist),
+the wizard reports the error and exits without writing a `git_repository_location`.
+
+Supported providers for cloning are extensible in the codebase. To add a new provider, register its base URL and token
+resolver in the `GIT_CLONE_PROVIDERS` list — no other clone code needs to change.
+
 ## List configured projects
 
 ```bash

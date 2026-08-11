@@ -7,6 +7,7 @@ import { commands } from '../../src';
 
 const mocks = vi.hoisted(() => ({
   prompt: vi.fn(),
+  cloneInto: vi.fn(),
 }));
 
 vi.mock('inquirer', () => ({
@@ -15,6 +16,16 @@ vi.mock('inquirer', () => ({
     prompt: mocks.prompt,
   },
 }));
+
+vi.mock('@smmachine/core', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    GitCloneService: vi.fn(function (this: unknown) {
+      return { cloneInto: mocks.cloneInto };
+    }),
+  };
+});
 
 function readConfig(tempDir: string): unknown {
   return JSON.parse(readFileSync(join(tempDir, 'smm_config.json'), 'utf-8'));
@@ -50,6 +61,12 @@ describe('cli: Project Commands', () => {
     vi.stubEnv('OWNER_REPO_GIT_REPOSITORY_PATH', '/tmp/repo');
 
     mocks.prompt.mockReset();
+    mocks.cloneInto.mockReset();
+    mocks.cloneInto.mockResolvedValue({
+      repositoryPath: '/tmp/cloned/widgets',
+      cloned: true,
+      cloneUrl: 'https://github.com/acme/widgets.git',
+    });
 
     consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     exitSpy = vi.spyOn(process, 'exit').mockImplementation((code?: number) => {
@@ -99,6 +116,78 @@ describe('cli: Project Commands', () => {
       });
       expect(getOutput()).toContain('acme/widgets');
       expect(getOutput()).toContain('smm_config.json');
+    });
+
+    it('clones the repository and persists the cloned path when git_repository_location is left empty', async () => {
+      mocks.cloneInto.mockResolvedValue({
+        repositoryPath: '/tmp/cloned/widgets',
+        cloned: true,
+        cloneUrl: 'https://github.com/acme/widgets.git',
+      });
+
+      mocks.prompt
+        .mockResolvedValueOnce({
+          git_provider: 'github',
+          github_repository: 'acme/widgets',
+          git_repository_location: '',
+          main_branch: 'main',
+          github_token: 'ghp_123',
+        })
+        .mockResolvedValueOnce({ configure_jira: false, configure_sonarqube: false })
+        .mockResolvedValueOnce({ log_level: 'INFO', timezone: 'UTC', store_logs: false });
+
+      await program.parseAsync(['project', 'configure'], { from: 'user' });
+
+      const config = readConfig(tempDir) as {
+        projects: Array<{ git_repository_location: string }>;
+      };
+      expect(config.projects[0].git_repository_location).toBe('/tmp/cloned/widgets');
+      expect(mocks.cloneInto).toHaveBeenCalledTimes(1);
+      expect(getOutput()).toContain('No repository path provided. Cloning acme/widgets');
+      expect(getOutput()).toContain('Repository cloned to: /tmp/cloned/widgets');
+    });
+
+    it('does not clone when git_repository_location is provided', async () => {
+      mocks.prompt
+        .mockResolvedValueOnce({
+          git_provider: 'github',
+          github_repository: 'acme/widgets',
+          git_repository_location: '/existing/repo',
+          main_branch: 'main',
+          github_token: 'ghp_123',
+        })
+        .mockResolvedValueOnce({ configure_jira: false, configure_sonarqube: false })
+        .mockResolvedValueOnce({ log_level: 'INFO', timezone: 'UTC', store_logs: false });
+
+      await program.parseAsync(['project', 'configure'], { from: 'user' });
+
+      expect(mocks.cloneInto).not.toHaveBeenCalled();
+      const config = readConfig(tempDir) as {
+        projects: Array<{ git_repository_location: string }>;
+      };
+      expect(config.projects[0].git_repository_location).toBe('/existing/repo');
+    });
+
+    it('reports a clear error when the clone fails and exits without writing a location', async () => {
+      mocks.cloneInto.mockRejectedValue(new Error('fatal: repository not found'));
+
+      mocks.prompt
+        .mockResolvedValueOnce({
+          git_provider: 'github',
+          github_repository: 'acme/widgets',
+          git_repository_location: '',
+          main_branch: 'main',
+          github_token: 'ghp_123',
+        })
+        .mockResolvedValueOnce({ configure_jira: false, configure_sonarqube: false })
+        .mockResolvedValueOnce({ log_level: 'INFO', timezone: 'UTC', store_logs: false });
+
+      await expect(program.parseAsync(['project', 'configure'], { from: 'user' })).rejects.toThrow(
+        'process.exit(1)'
+      );
+
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(getOutput()).toContain('fatal: repository not found');
     });
 
     it('prompts for the data directory when SMM_STORE_DATA_AT is not set and saves the default to user settings', async () => {
