@@ -125,6 +125,9 @@ jobs:
           curl -sSL -o install-bashunit.sh https://bashunit.com/install.sh
           bash install-bashunit.sh
 
+      - name: Install expect (for interactive wizard e2e tests)
+        run: sudo apt-get update && sudo apt-get install -y expect
+
       - name: Run CLI bashunit e2e tests
         run: cd apps/cli && pnpm run test:e2e
 

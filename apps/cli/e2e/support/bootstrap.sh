@@ -84,6 +84,23 @@ assert_smm_file_contains() {
   assert_smm_equals "${expected}" "${content}"
 }
 
+assert_smm_file_not_contains() {
+  local file_path="$1"
+  local unexpected="$2"
+  local content=''
+
+  if [[ -f "${file_path}" ]]; then
+    content="$(<"${file_path}")"
+  fi
+
+  if [[ "${content}" != *"${unexpected}"* ]]; then
+    assert_smm_equals "file without ${unexpected}" "file without ${unexpected}"
+    return
+  fi
+
+  assert_smm_equals "file without ${unexpected}" "${content}"
+}
+
 create_smm_e2e_workspace() {
   local workspace
   local tmp_root="${SMM_REPO_ROOT}/tmp/e2e"
@@ -107,6 +124,61 @@ create_smm_e2e_workspace() {
 JSON
 
   printf '%s\n' "${workspace}"
+}
+
+# Runs the interactive `smm project configure` wizard non-interactively using
+# `expect`, simulating a user typing answers. The wizard's prompts are answered
+# to create a new GitHub project for the given repository, leaving the local
+# repository path empty so the wizard clones it.
+#
+# Arguments:
+#   $1 - data directory (set as SMM_STORE_DATA_AT)
+#   $2 - repository in owner/repo format (e.g. octocat/Hello-World)
+# Globals set:
+#   SMM_E2E_OUTPUT, SMM_E2E_STATUS
+#
+# Requires the `expect` binary. Returns status 0 and leaves SMM_E2E_STATUS set
+# to the spawned process exit code.
+run_smm_project_configure_clone() {
+  local data_dir="$1"
+  local repository="$2"
+  local expect_script
+  local tmp_root="${SMM_REPO_ROOT}/tmp/e2e"
+
+  mkdir -p "${tmp_root}"
+  expect_script="$(mktemp "${tmp_root}/wizard-XXXXXX")"
+  cat >"${expect_script}" <<EXPECT
+#!/usr/bin/expect -f
+set timeout 120
+set env(SMM_STORE_DATA_AT) "${data_dir}"
+spawn "${SMM_CLI_BIN}" project configure
+expect "Git provider:"
+send "\r"
+expect "Repository (owner/repo):"
+send "${repository}\r"
+expect "Path to the local git repository"
+send "\r"
+expect "Main branch:"
+send "main\r"
+expect "GitHub personal access token"
+send "\r"
+expect "Configure Jira integration?"
+send "n\r"
+expect "Configure SonarQube integration?"
+send "n\r"
+expect "Log level:"
+send "\r"
+expect "Timezone"
+send "UTC\r"
+expect "Store logs on disk?"
+send "n\r"
+expect eof
+EXPECT
+
+  SMM_E2E_OUTPUT="$(expect "${expect_script}" 2>&1)"
+  SMM_E2E_STATUS=$?
+  rm -f "${expect_script}"
+  return 0
 }
 
 create_gitlab_workspace() {
