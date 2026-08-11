@@ -562,6 +562,165 @@ function listProjects(command: SmmCommand): void {
   }
 }
 
+type DeleteOptions = {
+  provider?: string;
+  repository?: string;
+  yes?: boolean;
+};
+
+type DeleteSelectionAnswers = {
+  selection: string;
+};
+
+type DeleteConfirmAnswers = {
+  confirm: boolean;
+};
+
+/**
+ * Builds the unique identity string for a project entry, in the form
+ * `provider/repository` (e.g. `github/acme/widgets`). This is the key used to
+ * disambiguate projects that share the same repository across providers.
+ */
+function projectIdentity(project: ISmmProjectConfig): string {
+  const provider = project.git_provider || 'unknown';
+  const repository = project.github_repository || '(unnamed)';
+  return `${provider}/${repository}`;
+}
+
+/**
+ * Prompts the user to select which project to delete from the configured list.
+ * Choices are shown as `provider/repository` so two projects sharing the same
+ * repository across different providers remain distinguishable.
+ */
+async function selectProjectToDelete(
+  projects: ISmmProjectConfig[]
+): Promise<{ existing: ISmmProjectConfig | undefined; existingIndex: number }> {
+  if (projects.length === 0) {
+    return { existing: undefined, existingIndex: -1 };
+  }
+
+  const choices = projects.map(projectIdentity);
+
+  const questions: DistinctQuestion<DeleteSelectionAnswers>[] = [
+    {
+      type: 'select',
+      name: 'selection',
+      message: 'Which project would you like to delete?',
+      choices,
+    },
+  ];
+
+  const { selection } = await inquirer.prompt(questions);
+  const existingIndex = projects.findIndex((project) => projectIdentity(project) === selection);
+  return {
+    existing: existingIndex >= 0 ? projects[existingIndex] : undefined,
+    existingIndex,
+  };
+}
+
+async function confirmDeletion(identity: string): Promise<boolean> {
+  const questions: DistinctQuestion<DeleteConfirmAnswers>[] = [
+    {
+      type: 'confirm',
+      name: 'confirm',
+      message: `Delete project "${identity}"? This cannot be undone.`,
+      default: false,
+    },
+  ];
+
+  const { confirm } = await inquirer.prompt(questions);
+  return confirm;
+}
+
+/**
+ * Deletes a project from smm_config.json. Non-interactive mode requires both
+ * `--provider` and `--repository` so two projects sharing the same repository
+ * across different providers cannot collide. Confirmation is required unless
+ * `--yes` is passed. Only the configuration entry is removed; cached data under
+ * the project data directory is left untouched.
+ */
+async function deleteProject(command: SmmCommand, options: DeleteOptions): Promise<void> {
+  const screen = command.getScreen();
+  const configuredDataDir = resolveStoreDataAt(process.env);
+
+  if (!configuredDataDir) {
+    screen.printLine(
+      'SMM_STORE_DATA_AT is not set. Run "smm project configure" to create a project configuration first.'
+    );
+    return;
+  }
+
+  if (options.repository && !options.provider) {
+    screen.printLine('--provider is required when --repository is provided.');
+    process.exit(1);
+  }
+
+  if (options.provider && !options.repository) {
+    screen.printLine('--repository is required when --provider is provided.');
+    process.exit(1);
+  }
+
+  let config: ISmmConfigFile;
+  let projects: ISmmProjectConfig[];
+  try {
+    ({ config, projects } = loadConfigFile(configuredDataDir));
+  } catch (error) {
+    screen.printLine(
+      `Error: ${error instanceof Error ? error.message : 'Failed to delete project'}`
+    );
+    process.exit(1);
+  }
+
+  if (projects.length === 0) {
+    screen.printLine(
+      'No projects configured yet. Run "smm project configure" to add your first project.'
+    );
+    return;
+  }
+
+  let existingIndex: number;
+  let existing: ISmmProjectConfig | undefined;
+
+  if (options.provider && options.repository) {
+    existingIndex = projects.findIndex(
+      (project) =>
+        (project.git_provider || 'unknown') === options.provider &&
+        project.github_repository === options.repository
+    );
+    existing = existingIndex >= 0 ? projects[existingIndex] : undefined;
+
+    if (!existing) {
+      screen.printLine(`No project found for "${options.provider}/${options.repository}".`);
+      process.exit(1);
+    }
+  } else {
+    const selection = await selectProjectToDelete(projects);
+    existing = selection.existing;
+    existingIndex = selection.existingIndex;
+
+    if (!existing || existingIndex === -1) {
+      screen.printLine('No project selected. Deletion cancelled.');
+      return;
+    }
+  }
+
+  const identity = projectIdentity(existing);
+
+  const confirmed = options.yes || (await confirmDeletion(identity));
+  if (!confirmed) {
+    screen.printLine('Deletion cancelled.');
+    return;
+  }
+
+  const nextProjects = projects.filter((_, index) => index !== existingIndex);
+  writeConfigFile(configuredDataDir, { ...config, projects: nextProjects });
+
+  screen.printLine(`Project "${identity}" deleted.`);
+  screen.printLine(
+    'Cached data under the project data directory was left untouched. Remove it manually if you no longer need it.'
+  );
+}
+
 /**
  * Project Command Group
  *
@@ -571,6 +730,7 @@ function listProjects(command: SmmCommand): void {
  * Commands:
  *   smm project configure   Interactively create or update a project
  *   smm project list        List configured projects
+ *   smm project delete      Delete a project from smm_config.json
  */
 export function createProjectCommands(program: SmmCommand): void {
   const projectGroup = program.subcommand('project').description('Configure and manage projects');
@@ -587,5 +747,15 @@ export function createProjectCommands(program: SmmCommand): void {
     .description('List configured projects from smm_config.json')
     .action(async (_options: unknown, command: SmmCommand) => {
       listProjects(command);
+    });
+
+  projectGroup
+    .subcommand('delete')
+    .description('Delete a project from smm_config.json')
+    .option('--provider <name>', 'Git provider of the project to delete (github, gitlab)')
+    .option('--repository <name>', 'Repository (owner/repo) of the project to delete')
+    .option('--yes', 'Skip the confirmation prompt')
+    .action(async (options: DeleteOptions, command: SmmCommand) => {
+      await deleteProject(command, options);
     });
 }

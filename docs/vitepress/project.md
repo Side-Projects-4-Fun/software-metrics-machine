@@ -83,6 +83,38 @@ smm project list
 Lists the projects in `smm_config.json` with their provider. When no data directory is available or no projects are
 configured yet, it prints a hint to run `smm project configure` first.
 
+## Delete a project
+
+```bash
+smm project delete [--provider <github|gitlab>] [--repository owner/repo] [--yes]
+```
+
+Removes a project entry from `smm_config.json`. Non-interactive mode requires both `--provider` and `--repository`
+together, so two projects sharing the same `owner/repo` across different providers cannot collide. A confirmation
+prompt is shown before the entry is removed unless `--yes` is passed.
+
+```bash
+smm project delete --provider github --repository acme/widgets --yes
+```
+
+When `--provider` and `--repository` are omitted, the command lists the configured projects as `provider/repository`
+choices and asks which one to delete:
+
+```bash
+smm project delete
+# ? Which project would you like to delete? github/acme/widgets
+# ? Delete project "github/acme/widgets"? This cannot be undone. (y/N) y
+# Project "github/acme/widgets" deleted.
+# Cached data under the project data directory was left untouched. Remove it manually if you no longer need it.
+```
+
+Passing only one of `--provider` or `--repository` exits with an error asking for the missing flag. Only the
+configuration entry is removed. Cached data under the project data directory (for example the SQLite database or
+cloned repository under `{provider}_{owner}_{repo}`) is left untouched — remove it manually if you no longer need it.
+When the data directory is not available or no projects are configured, the command prints a hint to run
+`smm project configure` first. When no project matches the given provider and repository, the command exits with an
+error.
+
 ## Dashboard project selection
 
 Switching the active project from the dashboard is done in the project drawer, not through this command. Selecting a

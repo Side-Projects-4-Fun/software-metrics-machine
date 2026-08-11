@@ -447,8 +447,226 @@ describe('cli: Project Commands', () => {
     });
   });
 
+  describe('project delete', () => {
+    it('prints a hint when SMM_STORE_DATA_AT is not set', async () => {
+      vi.stubEnv('SMM_STORE_DATA_AT', '');
+
+      await program.parseAsync(['project', 'delete'], { from: 'user' });
+
+      expect(getOutput()).toContain('smm project configure');
+    });
+
+    it('prints a hint when no projects are configured', async () => {
+      await program.parseAsync(['project', 'delete'], { from: 'user' });
+
+      expect(getOutput()).toContain('smm project configure');
+    });
+
+    it('deletes a project by provider and repository non-interactively and writes the config', async () => {
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          projects: [
+            { github_repository: 'acme/one', git_provider: 'github', main_branch: 'main' },
+            { github_repository: 'acme/two', git_provider: 'github', main_branch: 'main' },
+          ],
+        }),
+        'utf-8'
+      );
+
+      await program.parseAsync(
+        ['project', 'delete', '--provider', 'github', '--repository', 'acme/one', '--yes'],
+        { from: 'user' }
+      );
+
+      const config = readConfig(tempDir) as {
+        projects: Array<{ github_repository: string }>;
+      };
+      expect(config.projects).toHaveLength(1);
+      expect(config.projects[0].github_repository).toBe('acme/two');
+      expect(getOutput()).toContain('Project "github/acme/one" deleted.');
+    });
+
+    it('deletes only the matching provider when the same repository exists for two providers', async () => {
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          projects: [
+            { github_repository: 'acme/widgets', git_provider: 'github', main_branch: 'main' },
+            { github_repository: 'acme/widgets', git_provider: 'gitlab', main_branch: 'main' },
+          ],
+        }),
+        'utf-8'
+      );
+
+      await program.parseAsync(
+        ['project', 'delete', '--provider', 'gitlab', '--repository', 'acme/widgets', '--yes'],
+        { from: 'user' }
+      );
+
+      const config = readConfig(tempDir) as {
+        projects: Array<{ github_repository: string; git_provider: string }>;
+      };
+      expect(config.projects).toHaveLength(1);
+      expect(config.projects[0].git_provider).toBe('github');
+      expect(config.projects[0].github_repository).toBe('acme/widgets');
+      expect(getOutput()).toContain('Project "gitlab/acme/widgets" deleted.');
+    });
+
+    it('reports an error when --repository is provided without --provider', async () => {
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          projects: [
+            { github_repository: 'acme/one', git_provider: 'github', main_branch: 'main' },
+          ],
+        }),
+        'utf-8'
+      );
+
+      await expect(
+        program.parseAsync(['project', 'delete', '--repository', 'acme/one', '--yes'], {
+          from: 'user',
+        })
+      ).rejects.toThrow('process.exit(1)');
+
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(getOutput()).toContain('--provider is required when --repository is provided');
+    });
+
+    it('reports an error when --provider is provided without --repository', async () => {
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          projects: [
+            { github_repository: 'acme/one', git_provider: 'github', main_branch: 'main' },
+          ],
+        }),
+        'utf-8'
+      );
+
+      await expect(
+        program.parseAsync(['project', 'delete', '--provider', 'github', '--yes'], {
+          from: 'user',
+        })
+      ).rejects.toThrow('process.exit(1)');
+
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(getOutput()).toContain('--repository is required when --provider is provided');
+    });
+
+    it('deletes a project interactively after confirmation', async () => {
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          projects: [
+            { github_repository: 'acme/one', git_provider: 'github', main_branch: 'main' },
+          ],
+        }),
+        'utf-8'
+      );
+
+      mocks.prompt
+        .mockResolvedValueOnce({ selection: 'github/acme/one' })
+        .mockResolvedValueOnce({ confirm: true });
+
+      await program.parseAsync(['project', 'delete'], { from: 'user' });
+
+      const config = readConfig(tempDir) as {
+        projects: Array<{ github_repository: string }>;
+      };
+      expect(config.projects).toHaveLength(0);
+      expect(getOutput()).toContain('Project "github/acme/one" deleted.');
+    });
+
+    it('aborts without deleting when confirmation is declined', async () => {
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          projects: [
+            { github_repository: 'acme/one', git_provider: 'github', main_branch: 'main' },
+          ],
+        }),
+        'utf-8'
+      );
+
+      mocks.prompt
+        .mockResolvedValueOnce({ selection: 'github/acme/one' })
+        .mockResolvedValueOnce({ confirm: false });
+
+      await program.parseAsync(['project', 'delete'], { from: 'user' });
+
+      const config = readConfig(tempDir) as {
+        projects: Array<{ github_repository: string }>;
+      };
+      expect(config.projects).toHaveLength(1);
+      expect(getOutput()).toContain('Deletion cancelled.');
+    });
+
+    it('reports an error when no project matches the provider and repository', async () => {
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          projects: [
+            { github_repository: 'acme/one', git_provider: 'github', main_branch: 'main' },
+          ],
+        }),
+        'utf-8'
+      );
+
+      await expect(
+        program.parseAsync(
+          ['project', 'delete', '--provider', 'gitlab', '--repository', 'acme/one', '--yes'],
+          { from: 'user' }
+        )
+      ).rejects.toThrow('process.exit(1)');
+
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(getOutput()).toContain('No project found for "gitlab/acme/one"');
+    });
+
+    it('requires --yes or confirmation when --provider and --repository are provided without --yes', async () => {
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({
+          projects: [
+            { github_repository: 'acme/one', git_provider: 'github', main_branch: 'main' },
+          ],
+        }),
+        'utf-8'
+      );
+
+      mocks.prompt.mockResolvedValueOnce({ confirm: true });
+
+      await program.parseAsync(
+        ['project', 'delete', '--provider', 'github', '--repository', 'acme/one'],
+        { from: 'user' }
+      );
+
+      const config = readConfig(tempDir) as {
+        projects: Array<{ github_repository: string }>;
+      };
+      expect(config.projects).toHaveLength(0);
+      expect(getOutput()).toContain('Project "github/acme/one" deleted.');
+    });
+
+    it('reports an error when smm_config.json is not valid JSON', async () => {
+      writeFileSync(join(tempDir, 'smm_config.json'), '{invalid', 'utf-8');
+
+      await expect(
+        program.parseAsync(
+          ['project', 'delete', '--provider', 'github', '--repository', 'acme/one', '--yes'],
+          { from: 'user' }
+        )
+      ).rejects.toThrow('process.exit(1)');
+
+      expect(exitSpy).toHaveBeenCalledWith(1);
+      expect(getOutput()).toContain('not valid JSON');
+    });
+  });
+
   describe('project --help', () => {
-    it('renders the configure and list subcommands', async () => {
+    it('renders the configure, list, and delete subcommands', async () => {
       const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
       await expect(program.parseAsync(['project', '--help'], { from: 'user' })).rejects.toThrow(
@@ -458,6 +676,7 @@ describe('cli: Project Commands', () => {
       const helpOutput = stdoutSpy.mock.calls.flat().join('');
       expect(helpOutput).toContain('configure');
       expect(helpOutput).toContain('list');
+      expect(helpOutput).toContain('delete');
 
       stdoutSpy.mockRestore();
     });

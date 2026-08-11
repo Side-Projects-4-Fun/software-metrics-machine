@@ -119,6 +119,7 @@ function test_project_delete_help_renders_successfully() {
   assert_smm_output_contains "Usage:"
   assert_smm_output_contains "delete"
   assert_smm_output_contains "--repository"
+  assert_smm_output_contains "--provider"
   assert_smm_output_contains "--yes"
   assert_smm_success
 }
@@ -131,27 +132,41 @@ function test_project_delete_removes_project_non_interactively() {
   config_file="${workspace}/smm_config.json"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm project delete --repository acme/widgets --yes
+  run_smm project delete --provider github --repository acme/widgets --yes
 
   unset SMM_STORE_DATA_AT
 
-  assert_smm_output_contains "Project \"acme/widgets\" deleted."
+  assert_smm_output_contains "Project \"github/acme/widgets\" deleted."
   assert_smm_file_contains "${config_file}" "projects"
   assert_smm_file_not_contains "${config_file}" "acme/widgets"
   assert_smm_success
 }
 
-function test_project_delete_reports_missing_repository() {
+function test_project_delete_reports_missing_project() {
   local workspace
 
   workspace="$(create_smm_e2e_workspace)"
   export SMM_STORE_DATA_AT="${workspace}"
 
-  run_smm project delete --repository acme/missing --yes
+  run_smm project delete --provider gitlab --repository acme/widgets --yes
 
   unset SMM_STORE_DATA_AT
 
-  assert_smm_output_contains "No project found for repository \"acme/missing\""
+  assert_smm_output_contains "No project found for \"gitlab/acme/widgets\""
+  assert_smm_failure
+}
+
+function test_project_delete_requires_provider_with_repository() {
+  local workspace
+
+  workspace="$(create_smm_e2e_workspace)"
+  export SMM_STORE_DATA_AT="${workspace}"
+
+  run_smm project delete --repository acme/widgets --yes
+
+  unset SMM_STORE_DATA_AT
+
+  assert_smm_output_contains "--provider is required when --repository is provided"
   assert_smm_failure
 }
 
