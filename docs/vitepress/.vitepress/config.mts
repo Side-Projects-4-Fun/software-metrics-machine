@@ -80,6 +80,7 @@ export default withMermaid(
           text: 'SMM',
           items: [
             { text: 'Features', link: '/features', items: [
+              { text: 'Project management', link: '/project' },
               { text: 'Engineering Health', link: '/features/engineering-health' },
               { text: 'Dashboard', link: '/features/dashboard' },
               { text: 'Insights', link: '/features/insights' },

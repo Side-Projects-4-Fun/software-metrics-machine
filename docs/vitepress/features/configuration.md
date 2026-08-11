@@ -27,29 +27,14 @@ data directory.
 
 ## Configure a project interactively
 
-The easiest way to create or update `smm_config.json` is the interactive wizard. It asks for your Git provider,
-repository, tokens, and optional integrations, then writes the file for you:
+The easiest way to create or update `smm_config.json` is the interactive wizard:
 
 ```bash
 smm project configure
 ```
 
-If no data directory is available yet (neither `SMM_STORE_DATA_AT` nor a saved default), the wizard asks for a data
-directory, creates it, and saves it as the default in the user settings file so future commands reuse it.
-
-When a configuration file already exists, the wizard lets you create a new project or update an existing one. Optional
-fields such as tokens are only written when you provide a value, so updating a project never wipes settings you left
-untouched.
-
-The wizard covers the core keys in the [Key reference](#key-reference) table. Advanced keys such as
-`deployment_frequency_targets`, `dashboard_start_date`, and `dashboard_end_date` can be added by editing
-`smm_config.json` directly.
-
-List the configured projects with:
-
-```bash
-smm project list
-```
+The wizard covers the core keys in the [Key reference](#key-reference) table and handles the data directory setup for
+you. See [Project management](../project.md) for the full wizard walkthrough and `smm project list`.
 
 ## Configuration format
 
