@@ -130,20 +130,20 @@ export function createEngineeringHealthCommands(program: SmmCommand): void {
           return;
         }
 
-        screen.printLine('\n=== Engineering Health ===\n');
-        screen.printLine(`Generated at: ${result.generatedAt}`);
-        screen.printLine(`Evaluations: ${result.evaluations.length}`);
+        screen.heading('Engineering Health');
+        screen.keyValue('Generated at', result.generatedAt);
+        screen.keyValue('Evaluations', result.evaluations.length);
 
         result.evaluations.forEach((evaluation) => {
           screen.printLine('');
-          screen.printLine(`Metric: ${evaluation.id} (${evaluation.category})`);
+          screen.section(`Metric: ${evaluation.id} (${evaluation.category})`);
           if (evaluation.scope?.type === 'deployment-target') {
-            screen.printLine(`Deployment target: ${evaluation.scope.label}`);
+            screen.keyValue('Deployment target', evaluation.scope.label);
           }
-          screen.printLine(`Value: ${evaluation.summary.valueLabel}`);
-          screen.printLine(`Trend: ${evaluation.comparison.summary}`);
-          screen.printLine(`Target: ${evaluation.target.description}`);
-          screen.printLine(`Recommendation: ${evaluation.recommendation.summary}`);
+          screen.keyValue('Value', evaluation.summary.valueLabel);
+          screen.keyValue('Trend', evaluation.comparison.summary);
+          screen.keyValue('Target', evaluation.target.description);
+          screen.keyValue('Recommendation', evaluation.recommendation.summary);
         });
       } catch (error) {
         logger.error('Failed to evaluate engineering health', error);

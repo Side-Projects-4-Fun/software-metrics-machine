@@ -28,4 +28,23 @@ describe('Screen', () => {
       new Chalk({ level: 1 }).bold.cyan('=== Pipeline Summary ===')
     );
   });
+
+  it('renders semantic key-value output for interactive terminals', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const screen = new Screen();
+    const chalk = new Chalk({ level: 1 });
+    Object.defineProperty(screen, 'chalk', { value: chalk });
+
+    screen.keyValue('Total runs', 42);
+
+    expect(logSpy).toHaveBeenCalledWith(`${chalk.bold('Total runs')}: 42`);
+  });
+
+  it('renders success messages', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    new Screen().success('Data fetched');
+
+    expect(logSpy).toHaveBeenCalledWith('✅ Data fetched');
+  });
 });

@@ -50,39 +50,40 @@ export function createHealthCheckCommand(program: SmmCommand): void {
 }
 
 function printTextReport(report: HealthReport, maxGapDays: number, screen: Screen): void {
-  screen.printLine('🩺 Data Health Check');
-  screen.printLine(`Generated at: ${report.generatedAt}`);
-  screen.printLine(`Base directory: ${report.baseDirectory}`);
+  screen.heading('Data Health Check');
+  screen.keyValue('Generated at', report.generatedAt);
+  screen.keyValue('Base directory', report.baseDirectory);
   screen.printLine('');
 
-  screen.printLine('Summary');
-  screen.printLine(`  Total datasets: ${report.summary.totalDatasets}`);
-  screen.printLine(`  Healthy: ${report.summary.healthyDatasets}`);
-  screen.printLine(`  Warnings: ${report.summary.warningDatasets}`);
-  screen.printLine(`  Errors: ${report.summary.errorDatasets}`);
+  screen.section('Summary');
+  screen.keyValue('  Total datasets', report.summary.totalDatasets);
+  screen.keyValue('  Healthy', report.summary.healthyDatasets);
+  screen.keyValue('  Warnings', report.summary.warningDatasets);
+  screen.keyValue('  Errors', report.summary.errorDatasets);
   screen.printLine('');
 
   for (const dataset of report.datasets) {
     const level = HealthCheckService.getDatasetLevel(dataset);
     const icon = level === 'healthy' ? '✅' : level === 'warning' ? '⚠️' : '❌';
 
-    screen.printLine(`${icon} ${dataset.id}`);
-    screen.printLine(`  Source: ${dataset.source}`);
-    screen.printLine(`  Exists: ${dataset.exists ? 'yes' : 'no'}`);
-    screen.printLine(`  Items: ${dataset.itemCount}`);
+    screen.section(`${icon} ${dataset.id}`);
+    screen.keyValue('  Source', dataset.source);
+    screen.keyValue('  Exists', dataset.exists ? 'yes' : 'no');
+    screen.keyValue('  Items', dataset.itemCount);
 
     if (dataset.lastFetchedAt) {
-      screen.printLine(
-        `  Last fetched: ${dataset.lastFetchedAt} (${dataset.staleDays} day(s) ago)`
+      screen.keyValue(
+        '  Last fetched',
+        `${dataset.lastFetchedAt} (${dataset.staleDays} day(s) ago)`
       );
     }
 
     if (dataset.coverageStart && dataset.coverageEnd) {
-      screen.printLine(`  Coverage: ${dataset.coverageStart} .. ${dataset.coverageEnd}`);
+      screen.keyValue('  Coverage', `${dataset.coverageStart} .. ${dataset.coverageEnd}`);
     }
 
     if (dataset.invalidDateCount > 0) {
-      screen.printLine(`  Invalid date records: ${dataset.invalidDateCount}`);
+      screen.keyValue('  Invalid date records', dataset.invalidDateCount);
     }
 
     const missingEntries = (

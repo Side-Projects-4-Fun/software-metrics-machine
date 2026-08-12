@@ -462,9 +462,9 @@ async function cloneRepositoryIfNeeded(
   const result = await cloneService.cloneInto(targetPath);
 
   if (result.cloned) {
-    screen.printLine(`Repository cloned to: ${result.repositoryPath}`);
+    screen.success(`Repository cloned to: ${result.repositoryPath}`);
   } else {
-    screen.printLine(`Repository already cloned at: ${result.repositoryPath}`);
+    screen.warning(`Repository already cloned at: ${result.repositoryPath}`);
   }
 
   return result.repositoryPath;
@@ -474,7 +474,7 @@ async function configureProject(command: SmmCommand): Promise<void> {
   const screen = command.getScreen();
 
   try {
-    screen.printLine('\nSMM project configuration wizard');
+    screen.heading('Project Configuration');
     screen.printLine('Answer the prompts below. Leave optional fields empty to skip them.');
 
     const { dataDir, prompted } = await resolveStoreDataDir(screen);
@@ -504,12 +504,12 @@ async function configureProject(command: SmmCommand): Promise<void> {
     const settingsPath = saveUserSettings(process.env, { store_data_at: dataDir });
 
     screen.printLine('');
-    screen.printLine(`Project "${project.github_repository}" configured.`);
-    screen.printLine(`Configuration written to: ${configPath}`);
+    screen.success(`Project "${project.github_repository}" configured.`);
+    screen.keyValue('Configuration written to', configPath);
 
     if (prompted) {
       screen.printLine('');
-      screen.printLine('Default data directory saved to user settings:');
+      screen.section('Default data directory saved to user settings:');
       screen.printLine(`  ${settingsPath}`);
       screen.printLine('Set SMM_STORE_DATA_AT to override this default.');
     }
@@ -517,9 +517,7 @@ async function configureProject(command: SmmCommand): Promise<void> {
     screen.printLine('');
     screen.printLine('Run "smm --help" to see the available commands for this project.');
   } catch (error) {
-    screen.printLine(
-      `Error: ${error instanceof Error ? error.message : 'Failed to configure project'}`
-    );
+    screen.error(error instanceof Error ? error.message : 'Failed to configure project');
     process.exit(1);
   }
 }
@@ -553,7 +551,7 @@ function listProjects(command: SmmCommand): void {
   }
 
   screen.printLine('');
-  screen.printLine('Configured projects:');
+  screen.section('Configured projects:');
   for (let i = 0; i < projects.length; i += 1) {
     const project = projects[i];
     screen.printLine(

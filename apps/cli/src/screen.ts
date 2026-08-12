@@ -9,6 +9,30 @@ export class Screen {
     console.log(this.format(message));
   }
 
+  heading(title: string): void {
+    this.printLine(`\n=== ${title} ===\n`);
+  }
+
+  section(title: string): void {
+    this.printLine(this.chalk.bold(title));
+  }
+
+  keyValue(label: string, value: string | number): void {
+    this.printLine(`${label}: ${value}`);
+  }
+
+  success(message: string): void {
+    this.printLine(`✅ ${message}`);
+  }
+
+  warning(message: string): void {
+    this.printLine(`⚠️  ${message}`);
+  }
+
+  error(message: string): void {
+    this.printLine(`❌ ${message}`);
+  }
+
   private format(message: string): string {
     if (!message || this.isJson(message)) return message;
 

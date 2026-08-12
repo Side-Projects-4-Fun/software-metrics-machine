@@ -301,12 +301,12 @@ export function createPipelinesCommands(program: SmmCommand): void {
         if (options.output === 'json') {
           screen.printLine(JSON.stringify(summary, null, 2));
         } else {
-          screen.printLine('\n=== Pipeline Summary ===\n');
-          screen.printLine(`Total Runs: ${summary.total_runs}`);
-          screen.printLine(`Successful Runs: ${summary.successful_runs}`);
-          screen.printLine(`Failed Runs: ${summary.failed_runs}`);
-          screen.printLine(`Success Rate: ${(summary.success_rate * 100).toFixed(1)}%`);
-          screen.printLine(`Average Duration: ${formatDuration(summary.value, 'minutes')}`);
+          screen.heading('Pipeline Summary');
+          screen.keyValue('Total Runs', summary.total_runs);
+          screen.keyValue('Successful Runs', summary.successful_runs);
+          screen.keyValue('Failed Runs', summary.failed_runs);
+          screen.keyValue('Success Rate', `${(summary.success_rate * 100).toFixed(1)}%`);
+          screen.keyValue('Average Duration', formatDuration(summary.value, 'minutes'));
         }
       } catch (error) {
         logger.error('Failed to generate pipeline summary', error);
@@ -344,9 +344,9 @@ export function createPipelinesCommands(program: SmmCommand): void {
             )
           );
         } else {
-          screen.printLine('\n=== Pipelines by Status ===\n');
-          screen.printLine(`✅ Successful: ${summary.successful_runs}`);
-          screen.printLine(`❌ Failed: ${summary.failed_runs}`);
+          screen.heading('Pipelines by Status');
+          screen.success(`Successful: ${summary.successful_runs}`);
+          screen.error(`Failed: ${summary.failed_runs}`);
           screen.printLine(`📊 Total: ${summary.total_runs}`);
         }
       } catch (error) {
