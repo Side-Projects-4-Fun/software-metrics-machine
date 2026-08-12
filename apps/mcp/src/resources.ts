@@ -64,6 +64,18 @@ export function listResourceTemplates(): McpResourceTemplateDefinition[] {
       mimeType: 'application/json',
     },
     {
+      uriTemplate: 'smm://project/{project}/architecture/summary',
+      name: 'Project architecture summary',
+      description: 'Architecture snapshot metadata for the latest snapshot of a project.',
+      mimeType: 'application/json',
+    },
+    {
+      uriTemplate: 'smm://project/{project}/pipeline-dashboard',
+      name: 'Project pipeline dashboard',
+      description: 'Full pipeline dashboard for a project.',
+      mimeType: 'application/json',
+    },
+    {
       uriTemplate: 'smm://project/{project}/evaluation/change-requests',
       name: 'Project change request evaluation',
       description: 'Change request health evaluation for a project.',
@@ -103,6 +115,36 @@ export function listResourceTemplates(): McpResourceTemplateDefinition[] {
       uriTemplate: 'smm://project/{project}/health-check',
       name: 'Project health check',
       description: 'Dataset health report for a project.',
+      mimeType: 'application/json',
+    },
+    {
+      uriTemplate: 'smm://project/{project}/saved-filters',
+      name: 'Project saved filters',
+      description: 'Saved filters and reports for a project.',
+      mimeType: 'application/json',
+    },
+    {
+      uriTemplate: 'smm://project/{project}/sonarqube/measurements',
+      name: 'Project SonarQube measurements',
+      description: 'Latest SonarQube measurements for a project.',
+      mimeType: 'application/json',
+    },
+    {
+      uriTemplate: 'smm://project/{project}/sonarqube/measurements/history',
+      name: 'Project SonarQube measurements history',
+      description: 'Timestamped SonarQube measurement entries for a project.',
+      mimeType: 'application/json',
+    },
+    {
+      uriTemplate: 'smm://project/{project}/sonarqube/component-tree',
+      name: 'Project SonarQube component tree',
+      description: 'SonarQube component tree with metrics for a project.',
+      mimeType: 'application/json',
+    },
+    {
+      uriTemplate: 'smm://project/{project}/sonarqube/component-tree/history',
+      name: 'Project SonarQube component tree history',
+      description: 'Timestamped SonarQube component tree entries for a project.',
       mimeType: 'application/json',
     },
   ];
@@ -199,6 +241,48 @@ export function listResources(): McpResourceDefinition[] {
         description: 'Dataset health report for the project.',
         mimeType: 'application/json',
       },
+      {
+        uri: `smm://project/${encodeProject(project)}/architecture/summary`,
+        name: `${project} architecture summary`,
+        description: 'Architecture snapshot metadata for the latest snapshot.',
+        mimeType: 'application/json',
+      },
+      {
+        uri: `smm://project/${encodeProject(project)}/pipeline-dashboard`,
+        name: `${project} pipeline dashboard`,
+        description: 'Full pipeline dashboard for the project.',
+        mimeType: 'application/json',
+      },
+      {
+        uri: `smm://project/${encodeProject(project)}/saved-filters`,
+        name: `${project} saved filters`,
+        description: 'Saved filters and reports for the project.',
+        mimeType: 'application/json',
+      },
+      {
+        uri: `smm://project/${encodeProject(project)}/sonarqube/measurements`,
+        name: `${project} SonarQube measurements`,
+        description: 'Latest SonarQube measurements for the project.',
+        mimeType: 'application/json',
+      },
+      {
+        uri: `smm://project/${encodeProject(project)}/sonarqube/measurements/history`,
+        name: `${project} SonarQube measurements history`,
+        description: 'Timestamped SonarQube measurement entries for the project.',
+        mimeType: 'application/json',
+      },
+      {
+        uri: `smm://project/${encodeProject(project)}/sonarqube/component-tree`,
+        name: `${project} SonarQube component tree`,
+        description: 'SonarQube component tree with metrics for the project.',
+        mimeType: 'application/json',
+      },
+      {
+        uri: `smm://project/${encodeProject(project)}/sonarqube/component-tree/history`,
+        name: `${project} SonarQube component tree history`,
+        description: 'Timestamped SonarQube component tree entries for the project.',
+        mimeType: 'application/json',
+      },
     ]),
   ];
 }
@@ -231,7 +315,7 @@ export async function readResource(uri: string): Promise<ResourceReadResult> {
   }
 
   const match = uri.match(
-    /^smm:\/\/project\/([^/]+)\/(configuration|report|engineering-health|dora|architecture\/snapshots|evaluation\/(change-requests|pipelines|code|quality|architecture)|big-o|health-check)$/
+    /^smm:\/\/project\/([^/]+)\/(configuration|report|engineering-health|dora|architecture\/snapshots|architecture\/summary|evaluation\/(change-requests|pipelines|code|quality|architecture)|big-o|health-check|pipeline-dashboard|saved-filters|sonarqube\/(measurements|measurements\/history|component-tree|component-tree\/history))$/
   );
   if (!match) {
     resourceLogger.warn(`Unknown MCP resource requested: ${uri}`);
@@ -322,6 +406,57 @@ export async function readResource(uri: string): Promise<ResourceReadResult> {
 
   if (resourceType === 'health-check') {
     const result = jsonResource(uri, (await reader.healthCheck()) as JsonValue);
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
+  }
+
+  if (resourceType === 'architecture/summary') {
+    const result = jsonResource(uri, (await reader.getArchitectureSummary()) as JsonValue);
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
+  }
+
+  if (resourceType === 'pipeline-dashboard') {
+    const result = jsonResource(
+      uri,
+      (await reader.getPipelineDashboard({ project: projectName })) as JsonValue
+    );
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
+  }
+
+  if (resourceType === 'saved-filters') {
+    const result = jsonResource(uri, (await reader.listSavedFilters()) as JsonValue);
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
+  }
+
+  if (resourceType === 'sonarqube/measurements') {
+    const result = jsonResource(uri, (await reader.getSonarqubeMeasurements()) as JsonValue);
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
+  }
+
+  if (resourceType === 'sonarqube/measurements/history') {
+    const result = jsonResource(uri, (await reader.getSonarqubeMeasurementsHistory()) as JsonValue);
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
+  }
+
+  if (resourceType === 'sonarqube/component-tree') {
+    const result = jsonResource(
+      uri,
+      (await reader.getSonarqubeComponentTree({ project: projectName })) as JsonValue
+    );
+    resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
+    return result;
+  }
+
+  if (resourceType === 'sonarqube/component-tree/history') {
+    const result = jsonResource(
+      uri,
+      (await reader.getSonarqubeComponentTreeHistory({ project: projectName })) as JsonValue
+    );
     resourceLogger.debug(`Read resource ${uri} in ${Date.now() - resourceStartedAt}ms`);
     return result;
   }

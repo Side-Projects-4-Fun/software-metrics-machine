@@ -6,6 +6,7 @@ import {
   CodeEvaluationService,
   createEngineeringHealthOrchestrator,
   DeploymentFrequencyService,
+  FileSystemSavedFiltersAdapter,
   HealthCheckService,
   IssuesRepository,
   JiraIssuesClient,
@@ -17,6 +18,7 @@ import {
   ChangeRequestEvaluationService,
   ChangeRequestsService,
   ChangeRequestFactory,
+  SavedFiltersStore,
   SonarqubeEvaluationService,
   SonarqubeFactory,
   SonarQubeService,
@@ -37,13 +39,19 @@ import {
   ConfigurationRepository,
   CodemaatFactory,
   parseMetricCleaningOptions,
+  type MetricCleaningOptions,
 } from '@smmachine/core';
 import { getApplicationVersion, Logger, type LogLevel } from '@smmachine/utils';
 import { operationLogger } from './mcp-logger';
 import type {
   ArchitectureViewArguments,
+  ChangeRequestMetricsArguments,
+  CodeEntityArguments,
+  CodeHistoryArguments,
   DoraMetricsArguments,
   EngineeringHealthArguments,
+  PipelineDashboardArguments,
+  SonarqubeComponentTreeArguments,
 } from './validation';
 import { parseCsvList } from './validation';
 
@@ -95,6 +103,81 @@ function createLogger(configuration: Configuration, name: string): Logger {
     filePath: configuration.getLogPath(),
     storeLogs: configuration.storeLogs,
   });
+}
+
+function buildChangeRequestFiltersFromArgs(
+  args: ChangeRequestMetricsArguments
+): ChangeRequestFilters {
+  const cleaning: MetricCleaningOptions = parseMetricCleaningOptions({
+    weekends: args.weekends,
+    outlierMode: args.outlierMode,
+  });
+
+  return {
+    startDate: args.startDate,
+    endDate: args.endDate,
+    authors: args.authors,
+    excludeAuthors: args.excludeAuthors,
+    excludeCommenters: args.excludeCommenters,
+    labels: args.labels,
+    state: args.status as ChangeRequestFilters['state'],
+    cleaning,
+  };
+}
+
+function buildPipelineFiltersFromArgs(args: PipelineDashboardArguments): PipelineFilters {
+  const cleaning: MetricCleaningOptions = parseMetricCleaningOptions({
+    weekends: args.weekends,
+    outlierMode: args.outlierMode,
+  });
+
+  return {
+    startDate: args.startDate,
+    endDate: args.endDate,
+    workflowPath: args.workflowPath,
+    status: args.status,
+    conclusion: args.conclusion,
+    targetBranch: args.branch,
+    jobName: args.jobName,
+    jobConclusion: args.jobConclusion,
+    event: args.event,
+    method: args.method,
+    cleaning,
+  };
+}
+
+function buildCodeEntityFilterOptions(args: CodeEntityArguments): CodeMaatEntityFilterOptions {
+  return {
+    ignorePatterns: args.ignorePatterns,
+    includePatterns: args.includePatterns,
+    top: args.top,
+    authors: args.authors,
+  };
+}
+
+function buildCodeChurnOptions(args: CodeHistoryArguments): CodeMaatChurnOptions {
+  return {
+    startDate: args.startDate,
+    endDate: args.endDate,
+  };
+}
+
+function buildSonarqubeComponentTreeOptions(args: SonarqubeComponentTreeArguments): {
+  component?: string;
+  depth?: number;
+  metrics?: string[];
+  ignore_files?: string;
+  include_files?: string;
+  remove_folders?: boolean;
+} {
+  return {
+    component: args.component,
+    depth: args.depth,
+    metrics: args.metrics ? parseCsvList(args.metrics, 'metrics') : undefined,
+    ignore_files: args.ignoreFiles,
+    include_files: args.includeFiles,
+    remove_folders: args.removeFolders,
+  };
 }
 
 export class McpMetricsReader {
@@ -920,6 +1003,566 @@ export class McpMetricsReader {
       }
     );
   }
+
+  async getChangeRequestSummary(args: ChangeRequestMetricsArguments): Promise<unknown> {
+    return traceOperation(
+      'getChangeRequestSummary',
+      {
+        project: this.configuration.githubRepository,
+        startDate: args.startDate,
+        endDate: args.endDate,
+        status: args.status,
+      },
+      async () => {
+        const service = this.createChangeRequestsService();
+        return service.getSummary(buildChangeRequestFiltersFromArgs(args));
+      }
+    );
+  }
+
+  async getChangeRequestThroughTime(args: ChangeRequestMetricsArguments): Promise<unknown> {
+    return traceOperation(
+      'getChangeRequestThroughTime',
+      {
+        project: this.configuration.githubRepository,
+        startDate: args.startDate,
+        endDate: args.endDate,
+        aggregateBy: args.aggregateBy,
+      },
+      async () => {
+        const service = this.createChangeRequestsService();
+        return service.getThroughTime(buildChangeRequestFiltersFromArgs(args), args.aggregateBy);
+      }
+    );
+  }
+
+  async getChangeRequestByAuthor(args: ChangeRequestMetricsArguments): Promise<unknown> {
+    return traceOperation(
+      'getChangeRequestByAuthor',
+      {
+        project: this.configuration.githubRepository,
+        startDate: args.startDate,
+        endDate: args.endDate,
+        top: args.top,
+      },
+      async () => {
+        const service = this.createChangeRequestsService();
+        return service.getByAuthor(buildChangeRequestFiltersFromArgs(args), args.top ?? 10);
+      }
+    );
+  }
+
+  async getChangeRequestReviewTime(args: ChangeRequestMetricsArguments): Promise<unknown> {
+    return traceOperation(
+      'getChangeRequestReviewTime',
+      {
+        project: this.configuration.githubRepository,
+        startDate: args.startDate,
+        endDate: args.endDate,
+        method: args.method,
+        top: args.top,
+      },
+      async () => {
+        const service = this.createChangeRequestsService();
+        return service.getReviewTime(
+          buildChangeRequestFiltersFromArgs(args),
+          args.top ?? 10,
+          args.method ?? 'average'
+        );
+      }
+    );
+  }
+
+  async getChangeRequestOpenTime(args: ChangeRequestMetricsArguments): Promise<unknown> {
+    return traceOperation(
+      'getChangeRequestOpenTime',
+      {
+        project: this.configuration.githubRepository,
+        startDate: args.startDate,
+        endDate: args.endDate,
+        aggregateBy: args.aggregateBy,
+        method: args.method,
+      },
+      async () => {
+        const service = this.createChangeRequestsService();
+        return service.getOpenTimeBy(
+          buildChangeRequestFiltersFromArgs(args),
+          args.aggregateBy,
+          args.method ?? 'average'
+        );
+      }
+    );
+  }
+
+  async getChangeRequestComments(args: ChangeRequestMetricsArguments): Promise<unknown> {
+    return traceOperation(
+      'getChangeRequestComments',
+      {
+        project: this.configuration.githubRepository,
+        startDate: args.startDate,
+        endDate: args.endDate,
+        method: args.method,
+      },
+      async () => {
+        const service = this.createChangeRequestsService();
+        return service.getMetrics(
+          buildChangeRequestFiltersFromArgs(args),
+          args.method ?? 'average'
+        );
+      }
+    );
+  }
+
+  async getChangeRequestCommentsByAuthor(args: ChangeRequestMetricsArguments): Promise<unknown> {
+    return traceOperation(
+      'getChangeRequestCommentsByAuthor',
+      {
+        project: this.configuration.githubRepository,
+        startDate: args.startDate,
+        endDate: args.endDate,
+        top: args.top,
+      },
+      async () => {
+        const service = this.createChangeRequestsService();
+        return service.getCommentsByAuthor(buildChangeRequestFiltersFromArgs(args), args.top ?? 10);
+      }
+    );
+  }
+
+  async getChangeRequestFirstCommentTime(args: ChangeRequestMetricsArguments): Promise<unknown> {
+    return traceOperation(
+      'getChangeRequestFirstCommentTime',
+      {
+        project: this.configuration.githubRepository,
+        startDate: args.startDate,
+        endDate: args.endDate,
+        method: args.method,
+        top: args.top,
+      },
+      async () => {
+        const service = this.createChangeRequestsService();
+        return service.getFirstCommentTime(
+          buildChangeRequestFiltersFromArgs(args),
+          args.top ?? 10,
+          args.method ?? 'average'
+        );
+      }
+    );
+  }
+
+  async getPipelineDashboard(args: PipelineDashboardArguments): Promise<unknown> {
+    return traceOperation(
+      'getPipelineDashboard',
+      {
+        project: this.configuration.githubRepository,
+        startDate: args.startDate,
+        endDate: args.endDate,
+        workflowPath: args.workflowPath,
+        branch: args.branch,
+        method: args.method,
+      },
+      async () => {
+        const pipelineArtifacts = PipelineFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'PipelineDashboardRepository'),
+          this.timeZoneProvider
+        );
+        const pipelineImpl = new PipelineImplementation(
+          pipelineArtifacts.pipelineRepository,
+          this.configuration.getDeploymentFrequencyTargets(),
+          createLogger(this.configuration, 'PipelineDashboardImplementation'),
+          this.timeZoneProvider
+        );
+        return pipelineImpl.dashboard(buildPipelineFiltersFromArgs(args));
+      }
+    );
+  }
+
+  async getCodePairingIndex(args: CodeHistoryArguments): Promise<unknown> {
+    return traceOperation(
+      'getCodePairingIndex',
+      {
+        project: this.configuration.githubRepository,
+        startDate: args.startDate,
+        endDate: args.endDate,
+      },
+      async () => {
+        const pairingService = PairingFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'PairingService'),
+          this.timeZoneProvider
+        );
+        return pairingService.getPairingIndex({
+          startDate: args.startDate,
+          endDate: args.endDate,
+        });
+      }
+    );
+  }
+
+  async getCodeChurn(args: CodeHistoryArguments): Promise<unknown> {
+    return traceOperation(
+      'getCodeChurn',
+      {
+        project: this.configuration.githubRepository,
+        startDate: args.startDate,
+        endDate: args.endDate,
+      },
+      async () => {
+        const codeRepository = CodemaatFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'CodeMetricsRepository')
+        );
+        return codeRepository.getCodeChurn(buildCodeChurnOptions(args));
+      }
+    );
+  }
+
+  async getCodeChurnHistory(args: CodeHistoryArguments): Promise<unknown> {
+    return traceOperation(
+      'getCodeChurnHistory',
+      {
+        project: this.configuration.githubRepository,
+        startDate: args.startDate,
+        endDate: args.endDate,
+      },
+      async () => {
+        const codeRepository = CodemaatFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'CodeMetricsRepository')
+        );
+        return codeRepository.getCodeChurnHistory(buildCodeChurnOptions(args));
+      }
+    );
+  }
+
+  async getCodeCoupling(args: CodeEntityArguments): Promise<unknown> {
+    return traceOperation(
+      'getCodeCoupling',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const codeRepository = CodemaatFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'CodeMetricsRepository')
+        );
+        return codeRepository.getFileCoupling({
+          ...buildCodeEntityFilterOptions(args),
+          sortBy: 'degree',
+        });
+      }
+    );
+  }
+
+  async getCodeCouplingHistory(args: CodeEntityArguments): Promise<unknown> {
+    return traceOperation(
+      'getCodeCouplingHistory',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const codeRepository = CodemaatFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'CodeMetricsRepository')
+        );
+        return codeRepository.getFileCouplingHistory({
+          ...buildCodeEntityFilterOptions(args),
+          sortBy: 'degree',
+        });
+      }
+    );
+  }
+
+  async getCodeLayeredCoupling(args: CodeEntityArguments): Promise<unknown> {
+    return traceOperation(
+      'getCodeLayeredCoupling',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const codeRepository = CodemaatFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'CodeMetricsRepository')
+        );
+        return codeRepository.getLayeredCoupling({
+          ...buildCodeEntityFilterOptions(args),
+          sortBy: 'degree',
+        });
+      }
+    );
+  }
+
+  async getCodeLayeredCouplingHistory(args: CodeEntityArguments): Promise<unknown> {
+    return traceOperation(
+      'getCodeLayeredCouplingHistory',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const codeRepository = CodemaatFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'CodeMetricsRepository')
+        );
+        return codeRepository.getLayeredCouplingHistory({
+          ...buildCodeEntityFilterOptions(args),
+          sortBy: 'degree',
+        });
+      }
+    );
+  }
+
+  async getCodeEntityChurn(args: CodeEntityArguments): Promise<unknown> {
+    return traceOperation(
+      'getCodeEntityChurn',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const codeRepository = CodemaatFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'CodeMetricsRepository')
+        );
+        return codeRepository.getEntityChurn(buildCodeEntityFilterOptions(args));
+      }
+    );
+  }
+
+  async getCodeEntityChurnHistory(args: CodeEntityArguments): Promise<unknown> {
+    return traceOperation(
+      'getCodeEntityChurnHistory',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const codeRepository = CodemaatFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'CodeMetricsRepository')
+        );
+        return codeRepository.getEntityChurnHistory(buildCodeEntityFilterOptions(args));
+      }
+    );
+  }
+
+  async getCodeEntityEffort(args: CodeEntityArguments): Promise<unknown> {
+    return traceOperation(
+      'getCodeEntityEffort',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const codeRepository = CodemaatFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'CodeMetricsRepository')
+        );
+        return codeRepository.getEntityEffort(buildCodeEntityFilterOptions(args));
+      }
+    );
+  }
+
+  async getCodeEntityEffortHistory(args: CodeEntityArguments): Promise<unknown> {
+    return traceOperation(
+      'getCodeEntityEffortHistory',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const codeRepository = CodemaatFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'CodeMetricsRepository')
+        );
+        return codeRepository.getEntityEffortHistory(buildCodeEntityFilterOptions(args));
+      }
+    );
+  }
+
+  async getCodeEntityOwnership(args: CodeEntityArguments): Promise<unknown> {
+    return traceOperation(
+      'getCodeEntityOwnership',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const codeRepository = CodemaatFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'CodeMetricsRepository')
+        );
+        return codeRepository.getEntityOwnership(buildCodeEntityFilterOptions(args));
+      }
+    );
+  }
+
+  async getCodeEntityOwnershipHistory(args: CodeEntityArguments): Promise<unknown> {
+    return traceOperation(
+      'getCodeEntityOwnershipHistory',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const codeRepository = CodemaatFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'CodeMetricsRepository')
+        );
+        return codeRepository.getEntityOwnershipHistory(buildCodeEntityFilterOptions(args));
+      }
+    );
+  }
+
+  async getSonarqubeComponentTree(args: SonarqubeComponentTreeArguments): Promise<unknown> {
+    return traceOperation(
+      'getSonarqubeComponentTree',
+      { project: this.configuration.githubRepository, component: args.component },
+      async () => {
+        const repository = SonarqubeFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'SonarqubeRepository')
+        );
+        return repository.loadComponentTree(buildSonarqubeComponentTreeOptions(args));
+      }
+    );
+  }
+
+  async getSonarqubeComponentTreeHistory(args: SonarqubeComponentTreeArguments): Promise<unknown> {
+    return traceOperation(
+      'getSonarqubeComponentTreeHistory',
+      { project: this.configuration.githubRepository, component: args.component },
+      async () => {
+        const repository = SonarqubeFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'SonarqubeRepository')
+        );
+        return repository.loadAllComponentTreeEntries(buildSonarqubeComponentTreeOptions(args));
+      }
+    );
+  }
+
+  async getSonarqubeMeasurements(): Promise<unknown> {
+    return traceOperation(
+      'getSonarqubeMeasurements',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const repository = SonarqubeFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'SonarqubeRepository')
+        );
+        return repository.loadMeasurements();
+      }
+    );
+  }
+
+  async getSonarqubeMeasurementsHistory(): Promise<unknown> {
+    return traceOperation(
+      'getSonarqubeMeasurementsHistory',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const repository = SonarqubeFactory.create(
+          this.configuration,
+          createLogger(this.configuration, 'SonarqubeRepository')
+        );
+        return repository.loadAllMeasurementEntries();
+      }
+    );
+  }
+
+  async getArchitectureSummary(snapshotId?: string): Promise<unknown> {
+    return traceOperation(
+      'getArchitectureSummary',
+      { project: this.configuration.githubRepository, snapshotId },
+      async () => {
+        const service = new ArchitectureService(
+          this.configuration,
+          createLogger(this.configuration, 'ArchitectureService')
+        );
+        const snapshot = await service.getSnapshot(snapshotId);
+        if (!snapshot) {
+          return null;
+        }
+
+        return {
+          snapshotId: snapshot.snapshotId,
+          generatedAt: snapshot.generatedAt,
+          project: snapshot.project,
+          branch: snapshot.branch,
+          commitCount: snapshot.commitCount,
+          views: snapshot.views.map((view) => ({
+            level: view.level,
+            title: view.title,
+            nodes: view.nodes.length,
+            edges: view.edges.length,
+          })),
+        };
+      }
+    );
+  }
+
+  async exportArchitectureView(args: ArchitectureViewArguments): Promise<unknown> {
+    return traceOperation(
+      'exportArchitectureView',
+      {
+        project: this.configuration.githubRepository,
+        level: args.level,
+        snapshotId: args.snapshotId,
+      },
+      async () => {
+        const service = new ArchitectureService(
+          this.configuration,
+          createLogger(this.configuration, 'ArchitectureService')
+        );
+        const level = (args.level || 'container') as ArchitectureViewLevel;
+        const view = await service.getView(level, args.snapshotId, {
+          ignorePatterns: args.ignorePatterns,
+          includePatterns: args.includePatterns,
+        });
+        if (!view) {
+          return null;
+        }
+        return {
+          view,
+          mermaid: viewToMermaid(view),
+        };
+      }
+    );
+  }
+
+  async listSavedFilters(): Promise<unknown> {
+    return traceOperation(
+      'listSavedFilters',
+      { project: this.configuration.githubRepository },
+      async () => {
+        const baseDir = this.configuration.getBaseDirectory();
+        const adapter = new FileSystemSavedFiltersAdapter(baseDir);
+        const store = new SavedFiltersStore(adapter);
+        const [filters, reports] = await Promise.all([store.getAll(), store.getReports()]);
+        return {
+          version: 1,
+          filters,
+          reports,
+        };
+      }
+    );
+  }
+
+  private createChangeRequestsService(): ChangeRequestsService {
+    const repository = ChangeRequestFactory.create(
+      this.configuration,
+      createLogger(this.configuration, 'ChangeRequestsRepository'),
+      this.timeZoneProvider
+    );
+    return new ChangeRequestsService(
+      repository,
+      this.timeZoneProvider,
+      createLogger(this.configuration, 'ChangeRequestsService')
+    );
+  }
+}
+
+export function viewToMermaid(view: {
+  nodes: Array<{ id: string; name: string; technology?: string }>;
+  edges: Array<{
+    source: string;
+    target: string;
+    description?: string;
+    kind?: string;
+  }>;
+}): string {
+  const lines: string[] = ['flowchart LR'];
+
+  for (const node of view.nodes) {
+    const label = `${node.name}${node.technology ? `\\n${node.technology}` : ''}`;
+    lines.push(`  ${sanitizeMermaidId(node.id)}["${label}"]`);
+  }
+
+  for (const edge of view.edges) {
+    lines.push(
+      `  ${sanitizeMermaidId(edge.source)} -->|${edge.description || edge.kind || ''}| ${sanitizeMermaidId(edge.target)}`
+    );
+  }
+
+  return lines.join('\n');
+}
+
+function sanitizeMermaidId(value: string): string {
+  return value.replace(/[^a-zA-Z0-9_]/g, '_');
 }
 
 export function createMcpMetricsReader(options: MetricsReaderOptions = {}): McpMetricsReader {

@@ -182,6 +182,35 @@ The MCP server exposes these tools:
 | `smm_list_change_request_filter_options` | Lists available change request filter values (authors, labels, commenters). |
 | `smm_list_pipeline_filter_options` | Lists available pipeline filter values (workflows, statuses, conclusions, branches, events, jobs). |
 | `smm_list_code_authors` | Lists all code authors available in the CodeMaat data. |
+| `smm_get_change_request_summary` | Detailed change request summary (totals, labels, top commenter, themes, first/last/most-commented, time to first comment). |
+| `smm_get_change_request_through_time` | Change requests opened and closed through time, aggregated by day/week/month. |
+| `smm_get_change_request_by_author` | Change request counts grouped by author, with optional top-N limit. |
+| `smm_get_change_request_review_time` | Review time (days) by author with selectable statistical method and outlier handling. |
+| `smm_get_change_request_open_time` | Open time (days) aggregated by day/week/month with selectable statistical method. |
+| `smm_get_change_request_comments` | Comments per change request (overall or by-period when `aggregateBy` is set). |
+| `smm_get_change_request_comments_by_author` | Comment counts grouped by author, with optional top-N limit. |
+| `smm_get_change_request_first_comment_time` | Time to first comment (hours) by author with selectable statistical method. |
+| `smm_get_pipeline_dashboard` | Full pipeline dashboard (summary, runs duration, runs by, jobs time, jobs summary, job steps time, jobs duration by workflow). |
+| `smm_get_code_pairing_index` | Detailed pairing index (percentage, total/paired commits, top pairs, latest paired commits). |
+| `smm_get_code_churn` | Code churn metrics (added/deleted/commits per period). |
+| `smm_get_code_churn_history` | Timestamped code churn history entries. |
+| `smm_get_code_coupling` | File coupling relationships with optional pattern/top filters. |
+| `smm_get_code_coupling_history` | Timestamped file coupling history entries. |
+| `smm_get_code_layered_coupling` | Layered file coupling relationships with optional pattern/top filters. |
+| `smm_get_code_layered_coupling_history` | Timestamped layered file coupling history entries. |
+| `smm_get_code_entity_churn` | Entity-level churn metrics with optional pattern/top filters. |
+| `smm_get_code_entity_churn_history` | Timestamped entity-level churn history entries. |
+| `smm_get_code_entity_effort` | Entity-level effort metrics with optional pattern/top filters. |
+| `smm_get_code_entity_effort_history` | Timestamped entity-level effort history entries. |
+| `smm_get_code_entity_ownership` | Entity ownership by developers with optional pattern/authors/top filters. |
+| `smm_get_code_entity_ownership_history` | Timestamped entity ownership history entries. |
+| `smm_get_sonarqube_component_tree` | SonarQube component tree with metrics, optional component/depth/metrics/pattern filters. |
+| `smm_get_sonarqube_component_tree_history` | Timestamped SonarQube component tree history entries. |
+| `smm_get_sonarqube_measurements` | All SonarQube measurements (latest snapshot). |
+| `smm_get_sonarqube_measurements_history` | Timestamped SonarQube measurement history entries. |
+| `smm_get_architecture_summary` | Architecture snapshot metadata (snapshot id, generated at, branch, commit count, view counts) for the latest or a specific snapshot. |
+| `smm_export_architecture_view` | Exports an architecture view (context, container, component, code) as JSON plus a Mermaid diagram string. |
+| `smm_list_saved_filters` | Lists saved filters and reports (read-only) including filter id, name, section, repository, and createdAt. |
 
 ### Shared metric filters
 
@@ -210,6 +239,116 @@ repository.
   "ignorePatterns": "**/*.spec.ts"
 }
 ```
+
+### Change request detailed filters
+
+`smm_get_change_request_summary`, `smm_get_change_request_through_time`, `smm_get_change_request_by_author`,
+`smm_get_change_request_review_time`, `smm_get_change_request_open_time`, `smm_get_change_request_comments`,
+`smm_get_change_request_comments_by_author`, and `smm_get_change_request_first_comment_time` accept:
+
+```json
+{
+  "project": "owner/repo",
+  "startDate": "2026-07-01",
+  "endDate": "2026-07-31",
+  "timezone": "Europe/Madrid",
+  "authors": "alice,bob",
+  "excludeAuthors": "carol",
+  "excludeCommenters": "dave",
+  "labels": "bug,urgent",
+  "status": "open",
+  "aggregateBy": "week",
+  "top": 10,
+  "method": "median",
+  "weekends": "exclude",
+  "outlierMode": "flag"
+}
+```
+
+`method` is one of `average`, `median`, `p75`, `p90`, `p95`, `min`, `max` (defaults to `average`).
+`aggregateBy` is one of `day`, `week`, `month` (used by through-time and open-time).
+`status` is the change request state (`open`, `closed`, `merged`, `draft`).
+`top` limits the number of authors/rows returned (defaults to `10`).
+
+### Pipeline dashboard filters
+
+`smm_get_pipeline_dashboard` accepts:
+
+```json
+{
+  "project": "owner/repo",
+  "startDate": "2026-07-01",
+  "endDate": "2026-07-31",
+  "timezone": "Europe/Madrid",
+  "workflowPath": ".github/workflows/ci.yml",
+  "status": "completed",
+  "conclusion": "success",
+  "branch": "main",
+  "jobName": "build",
+  "jobConclusion": "success",
+  "event": "push",
+  "method": "p95",
+  "weekends": "exclude",
+  "outlierMode": "flag"
+}
+```
+
+### Code entity filters
+
+`smm_get_code_coupling`, `smm_get_code_layered_coupling`, `smm_get_code_entity_churn`,
+`smm_get_code_entity_effort`, and `smm_get_code_entity_ownership` (plus their `*_history` variants) accept:
+
+```json
+{
+  "project": "owner/repo",
+  "timezone": "Europe/Madrid",
+  "ignorePatterns": "**/*.spec.ts",
+  "includePatterns": "src/**",
+  "top": 15,
+  "authors": "alice"
+}
+```
+
+### Code history filters
+
+`smm_get_code_pairing_index`, `smm_get_code_churn`, and `smm_get_code_churn_history` accept:
+
+```json
+{
+  "project": "owner/repo",
+  "timezone": "Europe/Madrid",
+  "startDate": "2026-01-01",
+  "endDate": "2026-07-31"
+}
+```
+
+### SonarQube component tree filters
+
+`smm_get_sonarqube_component_tree` and `smm_get_sonarqube_component_tree_history` accept:
+
+```json
+{
+  "project": "owner/repo",
+  "component": "acme:widgets",
+  "depth": -1,
+  "metrics": "complexity,coverage",
+  "ignoreFiles": "*.spec.ts",
+  "includeFiles": "src/**",
+  "removeFolders": true
+}
+```
+
+`smm_get_sonarqube_measurements` and `smm_get_sonarqube_measurements_history` accept only `project`.
+
+### Architecture summary and export
+
+`smm_get_architecture_summary` and `smm_export_architecture_view` accept the same filters as
+`smm_get_architecture_view` (project, level, snapshotId, includePatterns, ignorePatterns). The export tool
+returns both the JSON view and a Mermaid `flowchart LR` diagram string.
+
+### Saved filters
+
+`smm_list_saved_filters` accepts only `project` and returns saved filters and reports for that project.
 
 ### Issue metrics filters
 
@@ -348,6 +487,13 @@ The MCP server exposes these static resources:
 | `smm://project/{name}/evaluation/architecture` | Architecture health evaluation for the project. |
 | `smm://project/{name}/big-o` | Big-O complexity classification for source files. |
 | `smm://project/{name}/health-check` | Dataset health report for the project. |
+| `smm://project/{name}/architecture/summary` | Architecture snapshot metadata for the latest snapshot. |
+| `smm://project/{name}/pipeline-dashboard` | Full pipeline dashboard for the project. |
+| `smm://project/{name}/saved-filters` | Saved filters and reports for the project. |
+| `smm://project/{name}/sonarqube/measurements` | Latest SonarQube measurements for the project. |
+| `smm://project/{name}/sonarqube/measurements/history` | Timestamped SonarQube measurement entries for the project. |
+| `smm://project/{name}/sonarqube/component-tree` | SonarQube component tree with metrics for the project. |
+| `smm://project/{name}/sonarqube/component-tree/history` | Timestamped SonarQube component tree entries for the project. |
 
 The server also advertises these resource templates through `resources/templates/list`:
 
@@ -363,6 +509,13 @@ The server also advertises these resource templates through `resources/templates
 | `smm://project/{project}/evaluation/architecture` | Architecture health evaluation for a project. |
 | `smm://project/{project}/big-o` | Big-O complexity classification for a project. |
 | `smm://project/{project}/health-check` | Dataset health report for a project. |
+| `smm://project/{project}/architecture/summary` | Architecture snapshot metadata for a project. |
+| `smm://project/{project}/pipeline-dashboard` | Full pipeline dashboard for a project. |
+| `smm://project/{project}/saved-filters` | Saved filters and reports for a project. |
+| `smm://project/{project}/sonarqube/measurements` | Latest SonarQube measurements for a project. |
+| `smm://project/{project}/sonarqube/measurements/history` | Timestamped SonarQube measurement entries for a project. |
+| `smm://project/{project}/sonarqube/component-tree` | SonarQube component tree with metrics for a project. |
+| `smm://project/{project}/sonarqube/component-tree/history` | Timestamped SonarQube component tree entries for a project. |
 
 Configuration resources redact token-like fields before returning data to the MCP client.
 

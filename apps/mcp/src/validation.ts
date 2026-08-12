@@ -7,6 +7,41 @@ export type MetricsToolArguments = {
   timezone?: string;
 };
 
+export type ChangeRequestMetricsArguments = MetricsToolArguments & {
+  authors?: string;
+  excludeAuthors?: string;
+  excludeCommenters?: string;
+  labels?: string;
+  status?: string;
+  aggregateBy?: 'day' | 'week' | 'month';
+  top?: number;
+  method?: 'average' | 'median' | 'p75' | 'p90' | 'p95' | 'min' | 'max';
+  weekends?: 'include' | 'exclude' | 'weekends_only';
+  outlierMode?: 'include' | 'flag' | 'exclude';
+};
+
+export type PipelineDashboardArguments = MetricsToolArguments & {
+  workflowPath?: string;
+  status?: string;
+  conclusion?: string;
+  branch?: string;
+  jobName?: string;
+  jobConclusion?: string;
+  event?: string;
+  method?: 'average' | 'median' | 'p75' | 'p90' | 'p95' | 'min' | 'max';
+  weekends?: 'include' | 'exclude' | 'weekends_only';
+  outlierMode?: 'include' | 'flag' | 'exclude';
+};
+
+export type CodeEntityArguments = MetricsToolArguments & {
+  ignorePatterns?: string;
+  includePatterns?: string;
+  top?: number;
+  authors?: string;
+};
+
+export type CodeHistoryArguments = MetricsToolArguments;
+
 export type EngineeringHealthArguments = {
   project?: string;
   timezone?: string;
@@ -86,6 +121,46 @@ export function readString(value: unknown, fieldName: string): string | undefine
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function readNumber(value: unknown, fieldName: string): number | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : undefined;
+  }
+
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  // Non-numeric inputs (e.g. "ten", "all") are ignored rather than rejected so
+  // the caller can fall back to the service default.
+  void fieldName;
+  return undefined;
+}
+
+function readBoolean(value: unknown, fieldName: string): boolean | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'true') return true;
+    if (normalized === 'false') return false;
+  }
+
+  throw new Error(`${fieldName} must be a boolean`);
 }
 
 function readEnum<T extends string>(
@@ -221,6 +296,117 @@ export function parseDoraMetricsArguments(argumentsValue: unknown): DoraMetricsA
     event: readString(args.event, 'event'),
     weekends: readEnum(args.weekends, 'weekends', ['include', 'exclude', 'weekends_only'] as const),
     outlierMode: readEnum(args.outlierMode, 'outlierMode', ['include', 'flag', 'exclude'] as const),
+  };
+}
+
+export const METRIC_METHOD_VALUES = [
+  'average',
+  'median',
+  'p75',
+  'p90',
+  'p95',
+  'min',
+  'max',
+] as const;
+
+export type MetricMethodValue = (typeof METRIC_METHOD_VALUES)[number];
+
+export function parseChangeRequestMetricsArguments(
+  argumentsValue: unknown
+): ChangeRequestMetricsArguments {
+  const args = readObject(argumentsValue);
+  if (!args) {
+    return {};
+  }
+
+  return {
+    ...parseMetricsToolArguments(args),
+    authors: readString(args.authors, 'authors'),
+    excludeAuthors: readString(args.excludeAuthors, 'excludeAuthors'),
+    excludeCommenters: readString(args.excludeCommenters, 'excludeCommenters'),
+    labels: readString(args.labels, 'labels'),
+    status: readString(args.status, 'status'),
+    aggregateBy: readEnum(args.aggregateBy, 'aggregateBy', ['day', 'week', 'month'] as const),
+    top: readNumber(args.top, 'top'),
+    method: readEnum(args.method, 'method', METRIC_METHOD_VALUES),
+    weekends: readEnum(args.weekends, 'weekends', ['include', 'exclude', 'weekends_only'] as const),
+    outlierMode: readEnum(args.outlierMode, 'outlierMode', ['include', 'flag', 'exclude'] as const),
+  };
+}
+
+export function parsePipelineDashboardArguments(
+  argumentsValue: unknown
+): PipelineDashboardArguments {
+  const args = readObject(argumentsValue);
+  if (!args) {
+    return {};
+  }
+
+  return {
+    ...parseMetricsToolArguments(args),
+    workflowPath: readString(args.workflowPath, 'workflowPath'),
+    status: readString(args.status, 'status'),
+    conclusion: readString(args.conclusion, 'conclusion'),
+    branch: readString(args.branch, 'branch'),
+    jobName: readString(args.jobName, 'jobName'),
+    jobConclusion: readString(args.jobConclusion, 'jobConclusion'),
+    event: readString(args.event, 'event'),
+    method: readEnum(args.method, 'method', METRIC_METHOD_VALUES),
+    weekends: readEnum(args.weekends, 'weekends', ['include', 'exclude', 'weekends_only'] as const),
+    outlierMode: readEnum(args.outlierMode, 'outlierMode', ['include', 'flag', 'exclude'] as const),
+  };
+}
+
+export function parseCodeEntityArguments(argumentsValue: unknown): CodeEntityArguments {
+  const args = readObject(argumentsValue);
+  if (!args) {
+    return {};
+  }
+
+  return {
+    ...parseMetricsToolArguments(args),
+    ignorePatterns: readString(args.ignorePatterns, 'ignorePatterns'),
+    includePatterns: readString(args.includePatterns, 'includePatterns'),
+    top: readNumber(args.top, 'top'),
+    authors: readString(args.authors, 'authors'),
+  };
+}
+
+export function parseCodeHistoryArguments(argumentsValue: unknown): CodeHistoryArguments {
+  const args = readObject(argumentsValue);
+  if (!args) {
+    return {};
+  }
+
+  return parseMetricsToolArguments(args);
+}
+
+export type SonarqubeComponentTreeArguments = {
+  project?: string;
+  component?: string;
+  depth?: number;
+  metrics?: string;
+  ignoreFiles?: string;
+  includeFiles?: string;
+  removeFolders?: boolean;
+};
+
+export function parseSonarqubeComponentTreeArguments(
+  argumentsValue: unknown
+): SonarqubeComponentTreeArguments {
+  const args = readObject(argumentsValue);
+  if (!args) {
+    return {};
+  }
+
+  return {
+    project: readString(args.project, 'project'),
+    component: readString(args.component, 'component'),
+    depth: readNumber(args.depth, 'depth'),
+    metrics: readString(args.metrics, 'metrics'),
+    ignoreFiles: readString(args.ignoreFiles, 'ignoreFiles'),
+    includeFiles: readString(args.includeFiles, 'includeFiles'),
+    removeFolders: readBoolean(args.removeFolders, 'removeFolders'),
   };
 }
 
@@ -601,6 +787,243 @@ export function buildEvaluationInputSchema(description: string): JsonObject {
       timezone: {
         type: 'string',
         description: 'Optional IANA timezone used for date boundaries.',
+      },
+    },
+  };
+}
+
+export function buildChangeRequestMetricsInputSchema(description: string): JsonObject {
+  return {
+    type: 'object',
+    description,
+    additionalProperties: false,
+    properties: {
+      project: {
+        type: 'string',
+        description: 'Optional github_repository project name from smm_config.json.',
+      },
+      startDate: {
+        type: 'string',
+        description: 'Optional ISO 8601 start date.',
+      },
+      endDate: {
+        type: 'string',
+        description: 'Optional ISO 8601 end date.',
+      },
+      timezone: {
+        type: 'string',
+        description: 'Optional IANA timezone used for date boundaries.',
+      },
+      authors: {
+        type: 'string',
+        description: 'Optional comma-separated change request authors to include.',
+      },
+      excludeAuthors: {
+        type: 'string',
+        description: 'Optional comma-separated change request authors to exclude.',
+      },
+      excludeCommenters: {
+        type: 'string',
+        description: 'Optional comma-separated change request commenters to exclude.',
+      },
+      labels: {
+        type: 'string',
+        description: 'Optional comma-separated change request labels to filter by.',
+      },
+      status: {
+        type: 'string',
+        description: 'Optional change request state filter (open, closed, merged, draft).',
+      },
+      aggregateBy: {
+        type: 'string',
+        enum: ['day', 'week', 'month'],
+        description: 'Optional aggregation period for through-time / open-time metrics.',
+      },
+      top: {
+        type: 'number',
+        description: 'Optional maximum number of authors/rows to return. Defaults to 10.',
+      },
+      method: {
+        type: 'string',
+        enum: [...METRIC_METHOD_VALUES],
+        description: 'Optional statistical method for review/open/comments metrics.',
+      },
+      weekends: {
+        type: 'string',
+        enum: ['include', 'exclude', 'weekends_only'],
+        description: 'Optional weekend handling mode.',
+      },
+      outlierMode: {
+        type: 'string',
+        enum: ['include', 'flag', 'exclude'],
+        description: 'Optional outlier handling mode.',
+      },
+    },
+  };
+}
+
+export function buildPipelineDashboardInputSchema(description: string): JsonObject {
+  return {
+    type: 'object',
+    description,
+    additionalProperties: false,
+    properties: {
+      project: {
+        type: 'string',
+        description: 'Optional github_repository project name from smm_config.json.',
+      },
+      startDate: {
+        type: 'string',
+        description: 'Optional ISO 8601 start date.',
+      },
+      endDate: {
+        type: 'string',
+        description: 'Optional ISO 8601 end date.',
+      },
+      timezone: {
+        type: 'string',
+        description: 'Optional IANA timezone used for date boundaries.',
+      },
+      workflowPath: {
+        type: 'string',
+        description: 'Optional workflow file path filter (e.g. .github/workflows/ci.yml).',
+      },
+      status: {
+        type: 'string',
+        description: 'Optional pipeline run status filter (e.g. completed, in_progress).',
+      },
+      conclusion: {
+        type: 'string',
+        description: 'Optional pipeline run conclusion filter (e.g. success, failure).',
+      },
+      branch: {
+        type: 'string',
+        description: 'Optional target branch filter (e.g. main).',
+      },
+      jobName: {
+        type: 'string',
+        description: 'Optional job name filter.',
+      },
+      jobConclusion: {
+        type: 'string',
+        description: 'Optional job conclusion filter (e.g. success, failure).',
+      },
+      event: {
+        type: 'string',
+        description: 'Optional event trigger filter (e.g. push, pull_request).',
+      },
+      method: {
+        type: 'string',
+        enum: [...METRIC_METHOD_VALUES],
+        description: 'Optional statistical method for duration metrics.',
+      },
+      weekends: {
+        type: 'string',
+        enum: ['include', 'exclude', 'weekends_only'],
+        description: 'Optional weekend handling mode.',
+      },
+      outlierMode: {
+        type: 'string',
+        enum: ['include', 'flag', 'exclude'],
+        description: 'Optional outlier handling mode.',
+      },
+    },
+  };
+}
+
+export function buildCodeEntityInputSchema(description: string): JsonObject {
+  return {
+    type: 'object',
+    description,
+    additionalProperties: false,
+    properties: {
+      project: {
+        type: 'string',
+        description: 'Optional github_repository project name from smm_config.json.',
+      },
+      timezone: {
+        type: 'string',
+        description: 'Optional IANA timezone used for date boundaries.',
+      },
+      ignorePatterns: {
+        type: 'string',
+        description: 'Optional comma or newline separated file patterns to ignore.',
+      },
+      includePatterns: {
+        type: 'string',
+        description: 'Optional comma or newline separated file patterns to include.',
+      },
+      top: {
+        type: 'number',
+        description: 'Optional maximum number of entities to return.',
+      },
+      authors: {
+        type: 'string',
+        description: 'Optional comma-separated authors filter (entity ownership only).',
+      },
+    },
+  };
+}
+
+export function buildCodeHistoryInputSchema(description: string): JsonObject {
+  return {
+    type: 'object',
+    description,
+    additionalProperties: false,
+    properties: {
+      project: {
+        type: 'string',
+        description: 'Optional github_repository project name from smm_config.json.',
+      },
+      timezone: {
+        type: 'string',
+        description: 'Optional IANA timezone used for date boundaries.',
+      },
+      startDate: {
+        type: 'string',
+        description: 'Optional ISO 8601 start date.',
+      },
+      endDate: {
+        type: 'string',
+        description: 'Optional ISO 8601 end date.',
+      },
+    },
+  };
+}
+
+export function buildSonarqubeComponentTreeInputSchema(description: string): JsonObject {
+  return {
+    type: 'object',
+    description,
+    additionalProperties: false,
+    properties: {
+      project: {
+        type: 'string',
+        description: 'Optional github_repository project name from smm_config.json.',
+      },
+      component: {
+        type: 'string',
+        description: 'Optional SonarQube component key (defaults to configured project).',
+      },
+      depth: {
+        type: 'number',
+        description: 'Optional depth of tree traversal (-1 for all depths).',
+      },
+      metrics: {
+        type: 'string',
+        description: 'Optional comma-separated SonarQube metrics (e.g. complexity,coverage).',
+      },
+      ignoreFiles: {
+        type: 'string',
+        description: 'Optional comma-separated file/component ignore patterns (glob).',
+      },
+      includeFiles: {
+        type: 'string',
+        description: 'Optional comma-separated file/component include patterns (glob).',
+      },
+      removeFolders: {
+        type: 'boolean',
+        description: 'Optional. Remove directory components (type=DIR) from results.',
       },
     },
   };

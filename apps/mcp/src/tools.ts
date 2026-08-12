@@ -8,6 +8,9 @@ import {
   buildArchitectureViewInputSchema,
   buildBigOAnalyzeInputSchema,
   buildBigOListInputSchema,
+  buildChangeRequestMetricsInputSchema,
+  buildCodeEntityInputSchema,
+  buildCodeHistoryInputSchema,
   buildCodeMetricsInputSchema,
   buildDoraMetricsInputSchema,
   buildEngineeringHealthInputSchema,
@@ -15,16 +18,23 @@ import {
   buildHealthCheckInputSchema,
   buildIssueMetricsInputSchema,
   buildMetricsInputSchema,
+  buildPipelineDashboardInputSchema,
+  buildSonarqubeComponentTreeInputSchema,
   listEngineeringHealthMetricCatalog,
   parseArchitectureViewArguments,
   parseBigOAnalyzeArguments,
   parseBigOFileArguments,
+  parseChangeRequestMetricsArguments,
+  parseCodeEntityArguments,
+  parseCodeHistoryArguments,
   parseCodeMetricsArguments,
   parseDoraMetricsArguments,
   parseEngineeringHealthArguments,
   parseHealthCheckArguments,
   parseIssueMetricsArguments,
   parseMetricsToolArguments,
+  parsePipelineDashboardArguments,
+  parseSonarqubeComponentTreeArguments,
 } from './validation';
 
 type ToolHandler = (argumentsValue: unknown) => Promise<McpToolResult>;
@@ -452,6 +462,378 @@ export const tools: RegisteredTool[] = [
     async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const { reader } = getReader(argumentsValue);
       return asToolResult(await reader.listCodeAuthors());
+    },
+  },
+  {
+    name: 'smm_get_change_request_summary',
+    description:
+      'Get a detailed change request summary (total, merged, closed, labels, top commenter, themes, first/last/most-commented, time to first comment).',
+    inputSchema: buildChangeRequestMetricsInputSchema('Change request summary filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseChangeRequestMetricsArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getChangeRequestSummary(parsed));
+    },
+  },
+  {
+    name: 'smm_get_change_request_through_time',
+    description:
+      'Get change requests opened and closed through time, optionally aggregated by day, week, or month.',
+    inputSchema: buildChangeRequestMetricsInputSchema('Change request through-time filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseChangeRequestMetricsArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getChangeRequestThroughTime(parsed));
+    },
+  },
+  {
+    name: 'smm_get_change_request_by_author',
+    description:
+      'Get change request counts grouped by author, with optional top-N limit and label/author filters.',
+    inputSchema: buildChangeRequestMetricsInputSchema('Change request by-author filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseChangeRequestMetricsArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getChangeRequestByAuthor(parsed));
+    },
+  },
+  {
+    name: 'smm_get_change_request_review_time',
+    description:
+      'Get change request review time (days) by author with selectable statistical method and outlier handling.',
+    inputSchema: buildChangeRequestMetricsInputSchema('Change request review-time filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseChangeRequestMetricsArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getChangeRequestReviewTime(parsed));
+    },
+  },
+  {
+    name: 'smm_get_change_request_open_time',
+    description:
+      'Get change request open time (days) aggregated by day/week/month with selectable statistical method.',
+    inputSchema: buildChangeRequestMetricsInputSchema('Change request open-time filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseChangeRequestMetricsArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getChangeRequestOpenTime(parsed));
+    },
+  },
+  {
+    name: 'smm_get_change_request_comments',
+    description:
+      'Get comments per change request with selectable statistical method (overall or by-period when aggregateBy is set).',
+    inputSchema: buildChangeRequestMetricsInputSchema('Change request comments filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseChangeRequestMetricsArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getChangeRequestComments(parsed));
+    },
+  },
+  {
+    name: 'smm_get_change_request_comments_by_author',
+    description: 'Get change request comment counts grouped by author, with optional top-N limit.',
+    inputSchema: buildChangeRequestMetricsInputSchema('Change request comments-by-author filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseChangeRequestMetricsArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getChangeRequestCommentsByAuthor(parsed));
+    },
+  },
+  {
+    name: 'smm_get_change_request_first_comment_time',
+    description:
+      'Get time to first comment (hours) by author with selectable statistical method and top-N limit.',
+    inputSchema: buildChangeRequestMetricsInputSchema('Change request first-comment-time filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseChangeRequestMetricsArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getChangeRequestFirstCommentTime(parsed));
+    },
+  },
+  {
+    name: 'smm_get_pipeline_dashboard',
+    description:
+      'Get the full pipeline dashboard (summary, runs_duration, runs_by, jobs_time, jobs_summary, job_steps_time, jobs_duration_by_workflow) with rich filtering.',
+    inputSchema: buildPipelineDashboardInputSchema('Pipeline dashboard filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parsePipelineDashboardArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getPipelineDashboard(parsed));
+    },
+  },
+  {
+    name: 'smm_get_code_pairing_index',
+    description:
+      'Get detailed pairing index (percentage, total/paired commits, top pairs, latest paired commits) for a configured SMM project.',
+    inputSchema: buildCodeHistoryInputSchema('Code pairing index filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseCodeHistoryArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getCodePairingIndex(parsed));
+    },
+  },
+  {
+    name: 'smm_get_code_churn',
+    description: 'Get code churn metrics (added/deleted/commits per period).',
+    inputSchema: buildCodeHistoryInputSchema('Code churn filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseCodeHistoryArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getCodeChurn(parsed));
+    },
+  },
+  {
+    name: 'smm_get_code_churn_history',
+    description: 'Get timestamped code churn history entries.',
+    inputSchema: buildCodeHistoryInputSchema('Code churn history filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseCodeHistoryArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getCodeChurnHistory(parsed));
+    },
+  },
+  {
+    name: 'smm_get_code_coupling',
+    description: 'Get file coupling relationships with optional pattern/top filters.',
+    inputSchema: buildCodeEntityInputSchema('Code coupling filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseCodeEntityArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getCodeCoupling(parsed));
+    },
+  },
+  {
+    name: 'smm_get_code_coupling_history',
+    description: 'Get timestamped file coupling history entries.',
+    inputSchema: buildCodeEntityInputSchema('Code coupling history filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseCodeEntityArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getCodeCouplingHistory(parsed));
+    },
+  },
+  {
+    name: 'smm_get_code_layered_coupling',
+    description: 'Get layered file coupling relationships with optional pattern/top filters.',
+    inputSchema: buildCodeEntityInputSchema('Code layered coupling filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseCodeEntityArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getCodeLayeredCoupling(parsed));
+    },
+  },
+  {
+    name: 'smm_get_code_layered_coupling_history',
+    description: 'Get timestamped layered file coupling history entries.',
+    inputSchema: buildCodeEntityInputSchema('Code layered coupling history filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseCodeEntityArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getCodeLayeredCouplingHistory(parsed));
+    },
+  },
+  {
+    name: 'smm_get_code_entity_churn',
+    description: 'Get entity-level churn metrics with optional pattern/top filters.',
+    inputSchema: buildCodeEntityInputSchema('Code entity churn filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseCodeEntityArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getCodeEntityChurn(parsed));
+    },
+  },
+  {
+    name: 'smm_get_code_entity_churn_history',
+    description: 'Get timestamped entity-level churn history entries.',
+    inputSchema: buildCodeEntityInputSchema('Code entity churn history filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseCodeEntityArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getCodeEntityChurnHistory(parsed));
+    },
+  },
+  {
+    name: 'smm_get_code_entity_effort',
+    description: 'Get entity-level effort metrics with optional pattern/top filters.',
+    inputSchema: buildCodeEntityInputSchema('Code entity effort filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseCodeEntityArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getCodeEntityEffort(parsed));
+    },
+  },
+  {
+    name: 'smm_get_code_entity_effort_history',
+    description: 'Get timestamped entity-level effort history entries.',
+    inputSchema: buildCodeEntityInputSchema('Code entity effort history filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseCodeEntityArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getCodeEntityEffortHistory(parsed));
+    },
+  },
+  {
+    name: 'smm_get_code_entity_ownership',
+    description: 'Get entity ownership by developers with optional pattern/authors/top filters.',
+    inputSchema: buildCodeEntityInputSchema('Code entity ownership filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseCodeEntityArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getCodeEntityOwnership(parsed));
+    },
+  },
+  {
+    name: 'smm_get_code_entity_ownership_history',
+    description: 'Get timestamped entity ownership history entries.',
+    inputSchema: buildCodeEntityInputSchema('Code entity ownership history filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseCodeEntityArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getCodeEntityOwnershipHistory(parsed));
+    },
+  },
+  {
+    name: 'smm_get_sonarqube_component_tree',
+    description:
+      'Get the SonarQube component tree with metrics, optional component/depth/metrics/pattern filters.',
+    inputSchema: buildSonarqubeComponentTreeInputSchema('SonarQube component tree filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseSonarqubeComponentTreeArguments(argumentsValue);
+      const reader = createMcpMetricsReader({ project: parsed.project });
+      return asToolResult(await reader.getSonarqubeComponentTree(parsed));
+    },
+  },
+  {
+    name: 'smm_get_sonarqube_component_tree_history',
+    description: 'Get timestamped SonarQube component tree history entries.',
+    inputSchema: buildSonarqubeComponentTreeInputSchema(
+      'SonarQube component tree history filters.'
+    ),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseSonarqubeComponentTreeArguments(argumentsValue);
+      const reader = createMcpMetricsReader({ project: parsed.project });
+      return asToolResult(await reader.getSonarqubeComponentTreeHistory(parsed));
+    },
+  },
+  {
+    name: 'smm_get_sonarqube_measurements',
+    description: 'Get all SonarQube measurements (latest snapshot) for a configured SMM project.',
+    inputSchema: buildMetricsInputSchema('SonarQube measurements lookup.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const args = parseMetricsToolArguments(argumentsValue);
+      const reader = createMcpMetricsReader({ project: args.project });
+      return asToolResult(await reader.getSonarqubeMeasurements());
+    },
+  },
+  {
+    name: 'smm_get_sonarqube_measurements_history',
+    description:
+      'Get timestamped SonarQube measurement history entries for a configured SMM project.',
+    inputSchema: buildMetricsInputSchema('SonarQube measurements history lookup.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const args = parseMetricsToolArguments(argumentsValue);
+      const reader = createMcpMetricsReader({ project: args.project });
+      return asToolResult(await reader.getSonarqubeMeasurementsHistory());
+    },
+  },
+  {
+    name: 'smm_get_architecture_summary',
+    description:
+      'Get architecture snapshot metadata (snapshot id, generated at, branch, commit count, view counts) for the latest or a specific snapshot.',
+    inputSchema: buildArchitectureViewInputSchema(),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseArchitectureViewArguments(argumentsValue);
+      const reader = createMcpMetricsReader({ project: parsed.project });
+      return asToolResult(await reader.getArchitectureSummary(parsed.snapshotId));
+    },
+  },
+  {
+    name: 'smm_export_architecture_view',
+    description:
+      'Export an architecture view (context, container, component, code) as JSON plus a Mermaid diagram string.',
+    inputSchema: buildArchitectureViewInputSchema(),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseArchitectureViewArguments(argumentsValue);
+      const reader = createMcpMetricsReader({ project: parsed.project });
+      return asToolResult(await reader.exportArchitectureView(parsed));
+    },
+  },
+  {
+    name: 'smm_list_saved_filters',
+    description:
+      'List saved filters and reports (read-only) for a configured SMM project, including filter id, name, section, repository, and createdAt.',
+    inputSchema: buildMetricsInputSchema('Saved filters lookup.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const args = parseMetricsToolArguments(argumentsValue);
+      const reader = createMcpMetricsReader({ project: args.project });
+      return asToolResult(await reader.listSavedFilters());
     },
   },
 ];
