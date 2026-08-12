@@ -106,7 +106,7 @@ function test_project_configure_clones_repository_when_path_left_empty() {
 
   assert_smm_success
   assert_smm_output_contains "No repository path provided. Cloning octocat/Hello-World"
-  assert_smm_output_contains "Repository cloned to:"
+  assert_smm_output_contains "Repository cloned to"
   assert_smm_file_exists "${config_file}"
   assert_smm_file_contains "${config_file}" "octocat/Hello-World"
   assert_smm_file_contains "${config_file}" "${repo_dir}"
