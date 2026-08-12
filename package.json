@@ -109,7 +109,6 @@
     "@vitest/coverage-v8": "catalog:",
     "axios": "catalog:",
     "babel-plugin-react-compiler": "catalog:",
-    "chalk": "catalog:",
     "concurrently": "catalog:",
     "dependency-cruiser": "catalog:",
     "eslint": "catalog:",

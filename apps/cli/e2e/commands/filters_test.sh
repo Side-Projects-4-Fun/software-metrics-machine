@@ -203,6 +203,21 @@ function test_filters_save_with_all_change_requests_options() {
   unset SMM_STORE_DATA_AT
 }
 
+function test_filters_save_rejects_invalid_section() {
+  local workspace
+
+  workspace="$(create_smm_e2e_workspace)"
+  export SMM_STORE_DATA_AT="${workspace}"
+
+  run_smm filters save bad-section --section invalid-section --start-date 2026-01-01
+
+  unset SMM_STORE_DATA_AT
+
+  assert_smm_failure
+  assert_smm_output_contains "Invalid section"
+  assert_smm_output_contains "invalid-section"
+}
+
 function test_filters_list_empty_renders_message() {
   local workspace
 

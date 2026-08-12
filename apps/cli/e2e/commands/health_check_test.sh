@@ -53,6 +53,21 @@ function test_health_check_provider_github_filters_datasets() {
   assert_smm_success
 }
 
+function test_health_check_rejects_invalid_max_gap_days() {
+  local workspace
+
+  workspace="$(create_smm_e2e_workspace)"
+  export SMM_STORE_DATA_AT="${workspace}"
+
+  run_smm health-check --max-gap-days 0
+
+  unset SMM_STORE_DATA_AT
+
+  assert_smm_failure
+  assert_smm_output_contains "max-gap-days"
+  assert_smm_output_contains "positive integer"
+}
+
 function test_health_check_filters_save_and_delete_for_pipelines_section() {
   local workspace
 

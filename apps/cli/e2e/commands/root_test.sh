@@ -17,3 +17,10 @@ function test_root_version_prints_without_error() {
   assert_smm_output_not_contains "error"
   assert_smm_success
 }
+
+function test_root_unknown_command_exits_non_zero() {
+  run_smm not-a-real-command
+
+  assert_smm_failure
+  assert_smm_output_contains "unknown command"
+}

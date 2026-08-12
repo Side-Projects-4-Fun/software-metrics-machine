@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "commander": "catalog:",
-    "inquirer": "catalog:"
+    "inquirer": "catalog:",
+    "chalk": "catalog:"
   },
   "devDependencies": {
     "@smmachine/core": "workspace:*",
