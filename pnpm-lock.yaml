@@ -20,28 +20,28 @@ catalogs:
       version: 11.14.1
     '@fontsource/roboto':
       specifier: ^5.3.0
-      version: 5.3.0
+      version: 5.2.10
     '@mui/icons-material':
       specifier: ^9.3.1
-      version: 9.3.1
+      version: 9.2.0
     '@mui/material':
       specifier: ^9.3.1
-      version: 9.3.1
+      version: 9.2.0
     '@mui/material-nextjs':
       specifier: ^9.3.0
-      version: 9.3.0
+      version: 9.1.1
     '@mui/x-date-pickers':
       specifier: ^9.11.0
-      version: 9.11.0
+      version: 9.10.1
     '@nestjs/common':
       specifier: ^11.1.29
-      version: 11.1.29
+      version: 11.1.28
     '@nestjs/core':
       specifier: ^11.1.29
-      version: 11.1.29
+      version: 11.1.28
     '@nestjs/platform-express':
       specifier: ^11.1.29
-      version: 11.1.29
+      version: 11.1.28
     '@nestjs/swagger':
       specifier: ^11.4.6
       version: 11.4.6
@@ -80,7 +80,7 @@ catalogs:
       version: 30.0.0
     '@types/node':
       specifier: ^26.2.0
-      version: 26.2.0
+      version: 26.1.1
     '@types/react':
       specifier: ^19.2.18
       version: 19.2.18
@@ -92,10 +92,10 @@ catalogs:
       version: 7.2.1
     '@typescript-eslint/eslint-plugin':
       specifier: ^8.67.0
-      version: 8.67.0
+      version: 8.60.1
     '@typescript-eslint/parser':
       specifier: ^8.67.0
-      version: 8.67.0
+      version: 8.60.1
     '@vitest/coverage-v8':
       specifier: ^4.1.10
       version: 4.1.10
@@ -182,7 +182,7 @@ catalogs:
       version: 19.2.8
     recharts:
       specifier: ^3.10.1
-      version: 3.10.1
+      version: 3.8.1
     reflect-metadata:
       specifier: ^0.2.2
       version: 0.2.2
@@ -215,7 +215,7 @@ catalogs:
       version: 8.5.1
     tsx:
       specifier: ^4.23.12
-      version: 4.23.12
+      version: 4.22.4
     turbo:
       specifier: ^2.10.9
       version: 2.10.9
@@ -224,7 +224,7 @@ catalogs:
       version: 6.0.3
     vitest:
       specifier: ^4.1.10
-      version: 4.1.10
+      version: 4.1.8
 
 importers:
 
@@ -4604,8 +4604,8 @@ packages:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
     engines: {node: '>=8'}
 
-  ansi-regex@6.2.2:
-    resolution: {integrity: sha512-Bq3SmSpyFHaWjPk8If9yc6svM8c56dB5BAtW4Qbw5jHTwwXXcTLoRMkpDJp6VL0XzlWaCHTXrkFURMYmD0sLqg==}
+  ansi-regex@6.3.0:
+    resolution: {integrity: sha512-WpDfL7NO6j7tH88IDBNVdUJxDh9nmCteAVW9dsep846XdwF4naCBK+/tGLX3KJgcpgMRXCFlTM2hKGoK9FsdrQ==}
     engines: {node: '>=12'}
 
   ansi-styles@4.3.0:
@@ -12328,7 +12328,7 @@ snapshots:
       obug: 2.1.4
       std-env: 4.2.0
       tinyrainbow: 3.1.1
-      vitest: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@26.1.0)(msw@2.15.0(@types/node@26.1.1)(typescript@6.0.3))(vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.3)(@types/node@26.1.1)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.50.0)(tsx@4.23.12))
+      vitest: 4.1.10(@types/node@26.2.0)(@vitest/coverage-v8@4.1.10)(jsdom@26.1.0)(msw@2.15.0(@types/node@26.2.0)(typescript@6.0.3))(vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.3)(@types/node@26.2.0)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.50.0)(tsx@4.23.12))
 
   '@vitest/coverage-v8@4.1.8(vitest@4.1.8)':
     dependencies:
@@ -12342,7 +12342,7 @@ snapshots:
       obug: 2.1.4
       std-env: 4.2.0
       tinyrainbow: 3.1.1
-      vitest: 4.1.8(@types/node@26.1.1)(@vitest/coverage-v8@4.1.8)(jsdom@26.1.0)(msw@2.15.0(@types/node@26.1.1)(typescript@6.0.3))(vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.3)(@types/node@26.1.1)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.50.0)(tsx@4.22.4))
+      vitest: 4.1.8(@types/node@26.1.1)(@vitest/coverage-v8@4.1.8)(jsdom@26.1.0)(msw@2.15.0(@types/node@26.1.1)(typescript@6.0.3))(vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.3)(@types/node@26.1.1)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.50.0)(tsx@4.23.12))
     optional: true
 
   '@vitest/coverage-v8@4.1.9(vitest@4.1.9)':
@@ -12395,6 +12395,7 @@ snapshots:
     optionalDependencies:
       msw: 2.15.0(@types/node@26.1.1)(typescript@6.0.3)
       vite: 8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.3)(@types/node@26.1.1)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.50.0)(tsx@4.23.12)
+    optional: true
 
   '@vitest/mocker@4.1.10(msw@2.15.0(@types/node@26.2.0)(typescript@6.0.3))(vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.3)(@types/node@26.2.0)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.50.0)(tsx@4.23.12))':
     dependencies:
@@ -12652,7 +12653,7 @@ snapshots:
 
   ansi-regex@5.0.1: {}
 
-  ansi-regex@6.2.2: {}
+  ansi-regex@6.3.0: {}
 
   ansi-styles@4.3.0:
     dependencies:
@@ -16707,7 +16708,7 @@ snapshots:
 
   strip-ansi@7.2.0:
     dependencies:
-      ansi-regex: 6.2.2
+      ansi-regex: 6.3.0
 
   strip-bom@3.0.0: {}
 
@@ -17317,6 +17318,7 @@ snapshots:
       jsdom: 26.1.0
     transitivePeerDependencies:
       - msw
+    optional: true
 
   vitest@4.1.10(@types/node@26.2.0)(@vitest/coverage-v8@4.1.10)(jsdom@26.1.0)(msw@2.15.0(@types/node@26.2.0)(typescript@6.0.3))(vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.11.3)(@types/node@26.2.0)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.50.0)(tsx@4.23.12)):
     dependencies:
