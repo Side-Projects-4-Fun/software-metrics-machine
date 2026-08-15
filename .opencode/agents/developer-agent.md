@@ -15,17 +15,11 @@ aggregates software metrics from Git providers, CI/CD pipelines, Jira, and Sonar
 the codebase, implementing new features, fixing bugs, maintaining code quality, and performing ongoing repository
 maintenance tasks.
 
-## Project Overview
+## Project Facts
 
-**Software Metrics Machine** is a data-driven tool for measuring team performance, providing metrics across:
-
-- **Pull Request** (`smm prs *`) — PR volume, review times, merge patterns, comments
-- **Pipeline** (`smm pipelines *`) — success rates, execution times, DORA deployment frequency
-- **Code** (`smm code *`) — code churn, coupling, entity ownership, pairing index
-- **Issue** (`smm jira *`) — Jira issue metrics
-- **Quality** (`smm sonarqube *`) — SonarQube quality measures
-- **Dashboard** (`smm dashboard serve`) — bundled REST API + Next.js webapp
-- **MCP server** (`smm mcp server start`, `smm-mcp`) — read-only stdio interface for agent clients
+Project overview, technology stack, project structure, architecture patterns, module system, and the critical
+DO/NEVER rules are maintained once in `AGENTS.md` at the repo root (shared with GitHub Copilot). Read it first —
+this file only adds OpenCode-specific delegation and workflow detail on top of it.
 
 ## Key Responsibilities
 
@@ -86,10 +80,10 @@ delegate to the skill using `SKILL.md` instructions and conventions:
 
 | Skill | Location | When to use |
 |-------|----------|-------------|
-| **TDD** | `.opencode/skills/tdd/SKILL.md` | Writing/running Vitest or Jest tests, builder pattern, coverage, Red-Green-Refactor cycle. Delegate all test authoring here. |
-| **Lint** | `.opencode/skills/lint/SKILL.md` | ESLint flat config, Prettier formatting, typecheck (`tsc --noEmit`), lint-staged, resolving lint warnings/errors. Delegate all lint/format/typecheck tasks. |
-| **CLI Acceptance Tests** | `.opencode/skills/cli-acceptance-tests/SKILL.md` | bashunit e2e tests under `apps/cli/e2e`, MSW-backed GitHub flows, cached fixture workspaces. Delegate CLI acceptance test authoring and debugging. |
-| **Update VitePress Docs** | `.opencode/skills/update-vitepress-docs/SKILL.md` | Creating/updating docs under `docs/vitepress`, CLI/dashboard parity, screenshots, sidebar config. Delegate all doc changes here. |
+| **TDD** | `.agents/skills/tdd/SKILL.md` | Writing/running Vitest or Jest tests, builder pattern, coverage, Red-Green-Refactor cycle. Delegate all test authoring here. |
+| **Lint** | `.agents/skills/lint/SKILL.md` | ESLint flat config, Prettier formatting, typecheck (`tsc --noEmit`), lint-staged, resolving lint warnings/errors. Delegate all lint/format/typecheck tasks. |
+| **CLI Acceptance Tests** | `.agents/skills/cli-acceptance-tests/SKILL.md` | bashunit e2e tests under `apps/cli/e2e`, MSW-backed GitHub flows, cached fixture workspaces. Delegate CLI acceptance test authoring and debugging. |
+| **Update VitePress Docs** | `.agents/skills/update-vitepress-docs/SKILL.md` | Creating/updating docs under `docs/vitepress`, CLI/dashboard parity, screenshots, sidebar config. Delegate all doc changes here. |
 
 **When NOT to delegate to a skill:** general architecture discussions, provider implementation, service/repository
 pattern design, dependency resolution, build pipeline fixes, and configuration management. These remain in the
@@ -112,188 +106,9 @@ architecture, and one-off analysis.
 | `/test-file <path>` | Runs all tests in a single file, picking Vitest or Jest based on workspace. |
 | `/e2e` | Runs the CLI acceptance suite (`pnpm run test:cli:acceptance`). |
 
-## Technology Stack
-
-### Runtime
-- **Node.js**: `>=25.2.1` (see `.nvmrc`)
-- **Package Manager**: pnpm `>=10.0.0` (exact `10.34.1`)
-- **Monorepo**: pnpm workspaces + Turborepo
-
-### Languages & Frameworks
-- **Language**: TypeScript 6.x (strict mode)
-- **CLI**: Commander.js 14.x
-- **REST API**: NestJS 10.x (Express platform, Swagger docs)
-- **Webapp**: Next.js 16.x, React 19.x, MUI 7.x, Recharts, Tailwind CSS 4
-- **Docs**: VitePress
-
-### Testing
-- **Vitest** 4.x — for `apps/cli`, `apps/rest`, `packages/core`, `packages/utils`
-- **Jest** 30.x — for `apps/webapp` (via `next/jest`); global mocks in `jest.setup.ts`, `clearMocks: true`
-- **Testing Library** — React component tests; `userEvent` preferred over `fireEvent`
-- **Webapp test infrastructure** — builders in `__tests__/builders/builders.ts`, shared providers in `__tests__/utils/test-providers.tsx`, console suppression in `__tests__/utils/suppress-console.ts`
-
-### Code Quality
-- **ESLint** 9.x (flat config `eslint.config.mjs`) + Prettier
-- **lint-staged** — auto-fix on commit
-
-## Project Structure
-
-```
-├── apps/
-│   ├── cli/              # CLI application (@smmachine/cli, CommonJS)
-│   ├── mcp/              # MCP stdio server (@smmachine/mcp, CommonJS)
-│   ├── rest/             # REST API (@smmachine/rest, NestJS)
-│   └── webapp/           # Next.js dashboard (@smmachine/webapp)
-├── packages/
-│   ├── core/             # Domain logic, providers, aggregates (@smmachine/core)
-│   └── utils/            # Shared utilities — logger, JSON, date helpers
-├── docs/
-│   ├── vitepress/        # VitePress documentation site
-│   ├── architecture/     # Architecture docs
-│   └── adrs/             # Architecture Decision Records
-├── docker-compose.yml    # SonarQube + API + webapp
-└── tsup.config.ts        # CLI bundler
-```
-
-### Package responsibilities
-
-- **`packages/utils`** — Logger (`@smmachine/utils`), JSON helpers, date formatting. Zero workspace deps.
-- **`packages/core`** — Domain types (`pr-types.ts`), services (`PRsService`, etc.), providers (GitHub, GitLab, CodeMaat, SonarQube, Jira), infrastructure (`Configuration`, file-system cache). Depends on `@smmachine/utils`. The logic to calculate metrics lives here, as do the provider clients and repositories.
-- **`apps/cli`** — Commander.js CLI. Thin layer: parses options, calls services. Depends on `@smmachine/core`.
-- **`apps/rest`** — NestJS REST API. Controllers call core services. Depends on `@smmachine/core`.
-- **`apps/mcp`** — Local MCP stdio server. Registers read-only tools/resources and wires existing core services directly for agent clients. Depends on `@smmachine/core`.
-- **`apps/webapp`** — Next.js 16 App Router. Fetches from REST API. MUI components + Recharts.
-
-## Architecture
-
-### Dependency graph
-
-```
-@packages/utils  (no workspace deps)
-       ↓
-@packages/core   (depends on @packages/utils)
-       ↓
-apps/cli  ────── apps/rest ────── apps/webapp
-       └─────── apps/mcp
-```
-
-### Key patterns
-
-#### Data Mutability Boundary (Critical)
-Software Metrics Machine follows a strict write boundary across apps:
-
-- **CLI is the only write-capable app** for project data under `SMM_STORE_DATA_AT`.
-- **REST API is read-only** and must only serve already-generated data.
-- **Webapp is read-only** and must only consume REST API responses.
-- **MCP server is read-only** and must not mutate local data/configuration.
-
-For new features (including architecture generation), generation and persistence happen in CLI commands. REST and webapp must never generate snapshots, write files, or mutate caches.
-
-#### Service Pattern
-Services in `packages/core/src/domain/` contain business logic, accept typed filter objects, return domain types. No I/O.
-
-```typescript
-class PRsService {
-  constructor(private prRepository: IReadPullRequestsRepository) {}
-  async getMetrics(filters?: PRFilters): Promise<PRMetrics> { ... }
-  async getThroughTime(filters?: PRFilters, aggregateBy?: string): Promise<...> { ... }
-}
-```
-
-#### Repository Pattern
-Repositories handle data access — reading from local file cache or fetching from external APIs.
-
-- `PullRequestsRepository` — reads `prs.json` + `pr-comments.json` from `SMM_STORE_DATA_AT`
-- `GitHubPullRequestsFetchRepository` — fetches from GitHub API, caches results. The distinction between "fetch" and "read" repositories allows us to separate concerns: fetch repositories handle API calls and caching, while read repositories provide a consistent interface for services to access data regardless of source. In addition to that, fetch are used by the CLI only, while read repositories are used by both CLI and REST API, which allows us to avoid unnecessary API calls when the data is already cached.
-- `PullRequestFactory` — wires config to create repository instances
-
-#### CLI Command Pattern
-Commands in `apps/cli/src/commands/` are thin Commander.js definitions. They parse options into typed filters, call service methods, and format output.
-
-```typescript
-prsGroup
-  .command('summary')
-  .option('--start-date <date>')
-  .action(async (options) => {
-    const service = createPRService();
-    const filters = buildPRFilters(options);
-    const summary = await service.getMetrics(filters);
-    // format and print output
-  });
-```
-
-#### MCP Server Pattern
-The MCP server in `apps/mcp` is a thin stdio adapter. It registers read-only tools/resources, validates simple inputs, redacts token-like configuration fields, and calls existing core services directly through `McpMetricsReader`.
-
-Do not introduce or restore a `MetricsOrchestrator` abstraction. If an MCP operation needs multiple metrics, compose the existing services inside `apps/mcp/src/metrics-reader.ts`.
-
-#### Configuration Pattern
-All config comes from environment variables consumed by `Configuration` class (`packages/core/src/infrastructure/configuration.ts`).
-
-### Module architecture
-
-| Package | Module system | Notes |
-|---------|--------------|-------|
-| `packages/core` | CommonJS | Compiled by `tsc` to `dist/` |
-| `packages/utils` | CommonJS | Compiled by `tsc` to `dist/` |
-| `apps/cli` | CommonJS | Bundled by `tsup` to `dist/index.cjs` |
-| `apps/mcp` | CommonJS | Bundled by `tsup` to `dist/index.cjs`; root launcher also emits `dist/mcp.cjs` |
-| `apps/rest` | CommonJS | Run via `ts-node` |
-| `apps/webapp` | ESM | Next.js |
-
-## Critical Rules
-
-### ✅ DO
-- When searching files (glob, grep, find), always exclude generated/artifacts/cache directories: `dist/`, `build/`, `.next/`, `node_modules/`, `coverage/`, `__snapshots__/`, `.turbo/`, `*.tsbuildinfo`
-- Keep `packages/core` and `packages/utils` as CommonJS (no `"type": "module"`)
-- Build `packages/utils` before `packages/core`, and both before any app
-- Use `pnpm --filter <name>` for targeted commands
-- Use the pnpm catalog (`pnpm-workspace.yaml`) for dependency versions
-- Use `SMM_DEV_MODE=true` for CLI dev to use local script paths
-- Prefix unused vars with `_` in ESLint — but if the webapp's `eslint-config-next` doesn't honor `argsIgnorePattern`, use `void paramName;` in the function body instead.
-- Prefer `async/await` over `.then()` for better readability
-- Write tests for new features and bug fixes. Follow the princciples of Test-Driven Development and keep the human in the loop by asking the agent to generate test cases and expected outputs before writing code.
-- Update documentation for any new features or changes
-- Run the mandatory build verification after any change (build + test + lint)
-- Keep MCP tools read-only unless a human explicitly approves a write-capable design
-- Redact tokens and credential-like fields from MCP resources
-- Keep REST endpoints and webapp flows read-only over persisted analysis data
-- Implement all data generation/persistence flows through CLI commands
-- **All functions require explicit return types.** When the return type mirrors a service method's return type, derive it from the service: `Awaited<ReturnType<PipelinesService['getMetrics']>>`. Use this approach rather than `unknown`, `any`, or making the return type `void`.
-- **Prevent ESLint regressions.** After any code change, run `pnpm lint` to confirm zero errors and zero warnings. Never introduce new lint violations.
-- Use always the `tmp` folder from the repository, avoid using /tmp or other system temp folders for temporary files
-- **Webapp tests: use builders** (`apps/webapp/__tests__/builders/builders.ts` and one-per-file `apps/webapp/__tests__/builders/api-response/*.builder.ts`) for all test data — `DashboardConfigurationBuilder`, `SavedFilterBuilder`, `ReportEntryBuilder`, `DashboardFiltersBuilder`, and API response builders. Never inline config objects or ad-hoc `makeX()` helpers.
-- **Webapp tests: use `renderWithProviders()`** (`apps/webapp/__tests__/utils/test-providers.tsx`) to mount all required providers. Never manually wrap components with individual providers.
-- **Webapp tests: use `userEvent`** over `fireEvent` for all user interactions. Set per-test timeouts (`}, 15000)`) for tests with multiple `userEvent.type()` calls to avoid jsdom flaky timeouts.
-- **Webapp tests: prioritize user flow tests** in `apps/webapp/__tests__/dashboard-pages/` over granular component tests — they give confidence to refactor without breaking tests.
-- **Renaming is a feature, not a blocker.** SMM is not deployed in production and has no external API consumers to coordinate with. When a name (REST endpoint path, CLI command, DTO type, JSON field) is misleading or inconsistent, rename it atomically across all layers (controllers, DTOs, webapp, tests, docs) in a single change. Do NOT ship deprecated aliases, compatibility shims, or dual-path forwarding. Record the rename as an addendum on the relevant ADR so the decision history stays intact. The only coordination needed is the build/test/lint gate.
-- **Regressions are fixed test-first.** When a runtime error or bug is reported, write a test that reproduces the exact failure BEFORE applying the fix. Verify the test fails with the broken code (Red), then apply the fix and verify the test passes (Green). This ensures the regression is permanently guarded. The test must use realistic data that matches the actual API contract — not mocked data that accidentally matches the wrong field names. For field-name mismatches between REST DTOs and webapp components, render the component with data shaped exactly like the API response and assert the rendered output; a field name mismatch will throw at runtime (e.g. `undefined.toFixed()`) and fail the test.
-- **Batch renames require a contract check.** When renaming fields or types across multiple layers with bulk find-and-replace, always verify that shorter replacements did not corrupt longer variable names (e.g. replacing `avgComments` before `avgCommentsPerChangeRequest` turns the latter into `commentsDataPerChangeRequest`). After any batch rename, run the full build + test + lint gate AND manually verify the runtime by starting the dev server and loading the affected page. Tests that mock data with the wrong field names will pass even when the component reads a different field — the mock and the component must both match the real API contract.
-- **One builder class per file, no comment banners.** Webapp API response builders live under `apps/webapp/__tests__/builders/api-response/` as `<name>.builder.ts` files (e.g. `pipeline-dashboard.builder.ts`). Each file contains exactly ONE builder class. Do NOT bundle multiple builders into a single file with `// ─────` section-separator comments, and do NOT add section banners inside builder files — the file name already identifies the builder. If a file starts needing section banners to be navigable, split it into separate builder files instead. Derive each builder's response type from the API client with `Awaited<ReturnType<typeof import('@/server/api/<client>').<client>API.<method>>>` so it stays in sync with the API contract. Mock data must match the API client return type exactly: no `{ result: ... }` wrapper (the client returns bare arrays/objects), and all required fields (e.g. `value_formatted`, `delta_formatted`, `current_formatted`, `previous_formatted`, `deploymentTarget`) must be present. If an evaluation endpoint can return `null`, model that in the API client return type (`T | null`) rather than casting in the test. Never create ad-hoc inline mock objects that duplicate a builder's defaults.
-
-### ❌ NEVER DO
-- **Use comments instead of tests.** Reinforce behavior through tests; if a test cannot express the invariant, re-evaluate the situation and find a better solution that avoids the comment. Comments that merely describe what code does or reference a test that already enforces it are duplicated and rot — prefer runtime assertions that fail CI over documentation that is never read.
-- Add `"type": "module"` to `packages/core` or `packages/utils`
-- Import from `src/` paths directly — always use the package name (`@smmachine/core`)
-- Change module system of existing packages without discussion
-- Commit secrets, tokens, or `.env` files
-- Add runtime dependencies without using the pnpm catalog
-- Read dist/ files directly they are for distribution only, not for internal imports. Always import from `src/` and let the build handle the rest.
-- Add or restore `MetricsOrchestrator`; MCP, REST, and CLI should compose existing core services directly
-- Add MCP fetch/write tools that mutate local data or configuration without an explicit architecture discussion
-- Add write paths in REST controllers (no generation, no snapshot persistence, no cache mutation side effects)
-- Add write paths in webapp server/client code (no filesystem writes, no generation jobs)
-- **Disable or weaken ESLint rules.** Never add `eslint-disable`, `eslint-disable-next-line`, or ESLint directive comments. Never modify `.eslint.config.mjs` to weaken rules (e.g. changing `warn` to `off`, adding `argsIgnorePattern` to bypass `no-unused-vars`, or turning off `explicit-function-return-type`).
-- **Use `unknown` as a return type.** When the return type of a controller method is known from the service it calls, derive it properly — use `Awaited<ReturnType<PipelinesService['getMetrics']>>` or import the actual type. `unknown` is only acceptable when the value truly has no known shape (e.g. error payloads).
-- **Leave lint regressions unfixed.** If your changes introduce new lint warnings or errors, fix them before submitting. Run `pnpm lint` after every change to verify.
-- use filters, maps, for loops or other dynamic code in test code. Test code must be self explanatory and explicit, with all inputs and expected outputs clearly defined.
-- use `as unknown` or such type of casting only when explicitly required.
-- **Webapp tests: never inline test data.** Do NOT create inline config/report/filter objects, API mock payloads, or ad-hoc `makeX()` helper functions. Use the builders in `apps/webapp/__tests__/builders/builders.ts` and `apps/webapp/__tests__/builders/api-response/*.builder.ts`.
-- **Webapp tests: never manually wrap with individual providers.** Use `renderWithProviders()` from `apps/webapp/__tests__/utils/test-providers.tsx` instead.
-- **Webapp tests: never re-declare `next/navigation` or `next/headers` mocks.** They are provided globally by `jest.setup.ts`. Use `jest.requireMock()` to customize.
-- **Webapp tests: never call `jest.clearAllMocks()` or `mockFn.mockClear()` manually.** The Jest config `clearMocks: true` handles this automatically.
-- **Webapp tests: never use meaningless assertions** like `expect(container).toBeInTheDocument()` or `expect(document.body).toBeInTheDocument()`. Assert actual rendered content or element state.
-- **Webapp tests: never use `as never` or `as unknown`** to bypass TypeScript when mocking API return values. Match the actual type shape or add a typed builder.
+Technology stack, project structure, architecture, and the Critical Rules (DO/NEVER) are documented once in
+`AGENTS.md` at the repo root — read it before making changes. This file only adds OpenCode-specific delegation and
+workflow detail on top of it.
 
 ## Development Workflows
 
