@@ -96,6 +96,22 @@ pattern design, dependency resolution, build pipeline fixes, and configuration m
 developer agent's scope. Skills handle repeatable, tool-specific workflows; the developer agent handles design,
 architecture, and one-off analysis.
 
+## Subagents
+
+| Subagent | Mode | When to use |
+|----------|------|-------------|
+| `code-reviewer` | `subagent`, edit denied | Reviewing a diff against lint/type/test conventions without making changes. |
+| `docs-writer` | `subagent`, bash denied | Writing/updating `docs/vitepress` pages once the doc content is determined. |
+| `test-writer` | `subagent` | Writing or running Vitest/Jest tests following the `tdd` skill's builder pattern. |
+
+## Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/verify` | Runs the mandatory `pnpm lint && pnpm typecheck && pnpm build && pnpm test` gate. |
+| `/test-file <path>` | Runs all tests in a single file, picking Vitest or Jest based on workspace. |
+| `/e2e` | Runs the CLI acceptance suite (`pnpm run test:cli:acceptance`). |
+
 ## Technology Stack
 
 ### Runtime
