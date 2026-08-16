@@ -4,32 +4,50 @@ outline: deep
 
 # Getting started
 
-This section provides the required configuration to get started with Software Metrics Machine.
+This guide takes you from an empty machine to a local dashboard with your first repository data. For a complete
+walkthrough using a public repository, see [Your first analysis with GitHub](./your-first-analysis-with-github.md).
 
-## The concepts behind Software Metrics Machine
+## The shortest path to a first result
+
+Use this path when you want to evaluate SMM before configuring every integration:
+
+```bash
+npx @smmachine/launcher
+smm project configure
+smm project list
+smm change-requests fetch --start-date 2025-01-01 --end-date 2025-01-31
+smm dashboard serve
+```
+
+Then open `http://localhost:3000`. A small date range is intentional: it lets you validate credentials, repository
+configuration, and the shape of the results before starting a larger collection job.
+
+> [!TIP]
+> Invite one developer and one tech lead to review the first dashboard together. Look for one delivery bottleneck,
+> one quality signal, and one question the data cannot answer yet.
+
+## How SMM works
 
 The way this project works goes through three main steps:
 
-1. Fetch data from the providers (git, github, gitlab, etc)
-2. Store the data in a structured way (json files)
-3. Analyze and visualize the data
+1. Fetch data from providers such as GitHub, GitLab, Jira, and SonarQube.
+2. Store the collected data in the configured local data directory.
+3. Analyze the data through the CLI, dashboard, or REST API.
 
-## Installing
+## Install SMM
 
 ### Environment requirements
 
 * Node.js 25+
-* Java (for running source code analysis)
+* Java, only if you plan to run source-code analysis with Code Maat
 
 ### Via npm
 
 ```bash
 npx @smmachine/launcher
-
-or
-
-npm i -g @smmachine/launcher
 ```
+
+For a persistent global installation, use `npm i -g @smmachine/launcher` instead.
 
 Once installed, you can run the `smm` command in your terminal:
 
@@ -37,7 +55,7 @@ Once installed, you can run the `smm` command in your terminal:
 smm
 ```
 
-## Define where to store the data
+## Configure local storage
 
 SMM stores fetched data and `smm_config.json` in a data directory. You do not have to set this up by hand: the
 `smm project configure` wizard asks for a data directory, creates it, and saves it as the default in the user settings
@@ -51,7 +69,7 @@ a different data directory for a specific shell. See
 > [!IMPORTANT]
 > Use a different folder than the cloned repository to store the data, to avoid any accidental deletion or data changes.
 
-## Create the project
+## Configure a project
 
 The configuration file is the central point to configure the project and give it default values. The easiest way to
 create it is the interactive wizard:
@@ -77,16 +95,16 @@ Confirm the project was created by listing the configured projects:
 smm project list
 ```
 
-You should see the project you just configured. With this, you are ready to start using Software Metrics Machine and
-fetch data from your repository with a local setup.
+You should see the project you just configured. You are now ready to fetch data from the repository with a local setup.
 
-## Ready to go
+## Continue from the first result
 
-You are now ready to start using Software Metrics Machine and fetch data from your repository. The next step is to
-pick a provider and start fetching data:
+Pick a provider and continue with the workflow that fits your setup:
 
-- [Your first analysis with GitHub](./your-first-analysis-with-github.md)
-- [GitLab provider setup](./gitlab.md)
+* [Your first analysis with GitHub](./your-first-analysis-with-github.md) — fetch change requests, pipelines, and code history.
+* [Keeping your data up to date](./keeping-your-data-up-to-date.md) — plan repeatable refreshes.
+* [GitLab provider setup](./gitlab.md) — connect a GitLab repository.
+* [Features](./features.md) — understand the dashboard and CLI surfaces.
 
 ## Docker setup
 
