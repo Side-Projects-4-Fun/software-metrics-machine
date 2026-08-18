@@ -13,6 +13,7 @@ describe('SonarqubeMeasuresClient', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGet.mockReset();
     vi.mocked(axios.create).mockReturnValue({
       get: mockGet,
     } as any);
@@ -294,6 +295,110 @@ describe('SonarqubeMeasuresClient', () => {
     const measures = await client.fetchHistoricalMeasures();
 
     expect(measures[0].formatter).toBe('NUMBER');
+  });
+
+  it('should paginate through all pages of historical measures', async () => {
+    const historyPage = Array.from({ length: 100 }, (_, i) => ({
+      date: `2024-01-${String(i + 1).padStart(2, '0')}T00:00:00+0000`,
+      value: String(80 + i),
+    }));
+    mockGet
+      .mockResolvedValueOnce({
+        data: {
+          paging: { pageIndex: 1, pageSize: 100, total: 250 },
+          measures: [{ metric: 'coverage', history: historyPage }],
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          paging: { pageIndex: 2, pageSize: 100, total: 250 },
+          measures: [{ metric: 'coverage', history: historyPage }],
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          paging: { pageIndex: 3, pageSize: 100, total: 250 },
+          measures: [{ metric: 'coverage', history: historyPage.slice(0, 50) }],
+        },
+      });
+
+    const measures = await client.fetchHistoricalMeasures({ metrics: ['coverage'] });
+
+    expect(measures).toHaveLength(250);
+    expect(mockGet).toHaveBeenCalledTimes(3);
+    expect(mockGet).toHaveBeenNthCalledWith(1, '/api/measures/search_history', {
+      params: expect.objectContaining({ p: 1, ps: 100 }),
+    });
+    expect(mockGet).toHaveBeenNthCalledWith(2, '/api/measures/search_history', {
+      params: expect.objectContaining({ p: 2, ps: 100 }),
+    });
+    expect(mockGet).toHaveBeenNthCalledWith(3, '/api/measures/search_history', {
+      params: expect.objectContaining({ p: 3, ps: 100 }),
+    });
+  });
+
+  it('should merge history for the same metric across pages', async () => {
+    mockGet
+      .mockResolvedValueOnce({
+        data: {
+          paging: { pageIndex: 1, pageSize: 100, total: 150 },
+          measures: [
+            {
+              metric: 'coverage',
+              history: [{ date: '2024-01-01', value: '80' }],
+            },
+          ],
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          paging: { pageIndex: 2, pageSize: 100, total: 150 },
+          measures: [
+            {
+              metric: 'coverage',
+              history: [{ date: '2024-02-01', value: '85' }],
+            },
+          ],
+        },
+      });
+
+    const measures = await client.fetchHistoricalMeasures({ metrics: ['coverage'] });
+
+    expect(measures).toHaveLength(2);
+    expect(measures[0]).toEqual({
+      key: 'coverage_2024-01-01',
+      name: 'coverage on 2024-01-01',
+      metric: 'coverage',
+      value: '80',
+      formatter: 'PERCENT',
+      timestamp: '2024-01-01',
+    });
+    expect(measures[1]).toEqual({
+      key: 'coverage_2024-02-01',
+      name: 'coverage on 2024-02-01',
+      metric: 'coverage',
+      value: '85',
+      formatter: 'PERCENT',
+      timestamp: '2024-02-01',
+    });
+  });
+
+  it('should stop after a single page when the response has no paging object for historical measures', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        measures: [
+          {
+            metric: 'coverage',
+            history: [{ date: '2024-01-01', value: '80' }],
+          },
+        ],
+      },
+    });
+
+    const measures = await client.fetchHistoricalMeasures({ metrics: ['coverage'] });
+
+    expect(measures).toHaveLength(1);
+    expect(mockGet).toHaveBeenCalledTimes(1);
   });
 
   it('should use default metrics when none are provided for fetchHistoricalMeasures', async () => {
@@ -630,5 +735,81 @@ describe('SonarqubeMeasuresClient', () => {
     const callParams = mockGet.mock.calls[0][1].params;
     expect(callParams).toHaveProperty('depth', -1);
     expect(callParams).not.toHaveProperty('strategy');
+  });
+
+  it('should paginate through all pages when the component tree exceeds the page size', async () => {
+    mockGet
+      .mockResolvedValueOnce({
+        data: {
+          paging: { pageIndex: 1, pageSize: 500, total: 750 },
+          baseComponent: { key: 'project-key', measures: [] },
+          components: Array.from({ length: 500 }, (_, i) => ({
+            key: `file-${i}`,
+            name: `File ${i}`,
+            measures: [],
+          })),
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          paging: { pageIndex: 2, pageSize: 500, total: 750 },
+          baseComponent: { key: 'project-key', measures: [] },
+          components: Array.from({ length: 250 }, (_, i) => ({
+            key: `file-${i + 500}`,
+            name: `File ${i + 500}`,
+            measures: [],
+          })),
+        },
+      });
+
+    const tree = await client.fetchComponentTree();
+
+    expect(tree).toHaveLength(751);
+    expect(mockGet).toHaveBeenCalledTimes(2);
+    expect(mockGet).toHaveBeenNthCalledWith(1, '/api/measures/component_tree', {
+      params: expect.objectContaining({ p: 1, ps: 500 }),
+    });
+    expect(mockGet).toHaveBeenNthCalledWith(2, '/api/measures/component_tree', {
+      params: expect.objectContaining({ p: 2, ps: 500 }),
+    });
+    expect(tree[1].key).toBe('file-0');
+    expect(tree[750].key).toBe('file-749');
+  });
+
+  it('should include baseComponent only once when paginating', async () => {
+    mockGet
+      .mockResolvedValueOnce({
+        data: {
+          paging: { pageIndex: 1, pageSize: 500, total: 2 },
+          baseComponent: { key: 'project-key', measures: [] },
+          components: [{ key: 'file-a', name: 'A', measures: [] }],
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          paging: { pageIndex: 2, pageSize: 500, total: 2 },
+          baseComponent: { key: 'project-key', measures: [] },
+          components: [{ key: 'file-b', name: 'B', measures: [] }],
+        },
+      });
+
+    const tree = await client.fetchComponentTree();
+
+    expect(tree).toHaveLength(3);
+    expect(tree.filter((c) => c.key === 'project-key')).toHaveLength(1);
+  });
+
+  it('should stop after a single page when the response has no paging object', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        baseComponent: { key: 'project-key', measures: [] },
+        components: [{ key: 'file-a', name: 'A', measures: [] }],
+      },
+    });
+
+    const tree = await client.fetchComponentTree();
+
+    expect(tree).toHaveLength(2);
+    expect(mockGet).toHaveBeenCalledTimes(1);
   });
 });

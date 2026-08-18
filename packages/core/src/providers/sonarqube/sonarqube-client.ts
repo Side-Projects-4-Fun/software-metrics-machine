@@ -127,37 +127,69 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
           (options?.endDate ? ` to ${options.endDate}` : '')
       );
 
-      const response = await this.axiosInstance.get('/api/measures/search_history', {
-        params: {
-          component: this.projectKey,
-          metrics: metrics.join(','),
-          ...(options?.startDate && { from: options.startDate }),
-          ...(options?.endDate && { to: options.endDate }),
-          p: 1, // First page
-          ps: 100, // Max 100 results per page
-        },
-      });
+      // Pagination applies to the number of measures for each metric: every page
+      // returns one history entry per analysis for each requested metric, so we
+      // loop over pages until the reported total of analyses is covered and merge
+      // the per-metric history across pages.
+      const historyByMetric = new Map<string, CodeMetric[]>();
+      const metricOrder: string[] = [];
+      let pageIndex = 1;
+      let totalAnalyses = 0;
+      let pageSize = 100;
 
-      const { measures } = response.data;
+      do {
+        const response = await this.axiosInstance.get('/api/measures/search_history', {
+          params: {
+            component: this.projectKey,
+            metrics: metrics.join(','),
+            ...(options?.startDate && { from: options.startDate }),
+            ...(options?.endDate && { to: options.endDate }),
+            p: pageIndex,
+            ps: 100, // Max 100 results per page
+          },
+        });
 
-      if (!measures || measures.length === 0) {
-        this.logger.warn(`No historical measures found for project ${this.projectKey}`);
-        return [];
-      }
+        const { measures, paging } = response.data;
 
-      // Flatten measurements
-      const flatMeasures: CodeMetric[] = [];
-      for (const measure of measures) {
-        for (const history of measure.history || []) {
-          flatMeasures.push({
-            key: `${measure.metric}_${history.date}`,
-            name: `${measure.metric} on ${history.date}`,
-            metric: measure.metric,
-            value: history.value || 0,
-            formatter: measure.metric === 'coverage' ? 'PERCENT' : 'NUMBER',
-            timestamp: history.date,
-          });
+        if (!measures || measures.length === 0) {
+          break;
         }
+
+        for (const measure of measures) {
+          let historyEntries = historyByMetric.get(measure.metric);
+          if (!historyEntries) {
+            historyEntries = [];
+            historyByMetric.set(measure.metric, historyEntries);
+            metricOrder.push(measure.metric);
+          }
+
+          for (const history of measure.history || []) {
+            historyEntries.push({
+              key: `${measure.metric}_${history.date}`,
+              name: `${measure.metric} on ${history.date}`,
+              metric: measure.metric,
+              value: history.value || 0,
+              formatter: measure.metric === 'coverage' ? 'PERCENT' : 'NUMBER',
+              timestamp: history.date,
+            });
+          }
+        }
+
+        // When the API does not return a paging object, treat the response as a single page.
+        if (!paging) {
+          break;
+        }
+
+        totalAnalyses = paging.total ?? 0;
+        pageSize = paging.pageSize ?? 100;
+        pageIndex += 1;
+      } while (pageIndex <= Math.ceil(totalAnalyses / pageSize));
+
+      // Flatten merged history keeping the original metric-first ordering.
+      const flatMeasures = metricOrder.flatMap((metric) => historyByMetric.get(metric) ?? []);
+
+      if (flatMeasures.length === 0) {
+        this.logger.warn(`No historical measures found for project ${this.projectKey}`);
       }
 
       this.logger.info(
@@ -214,23 +246,46 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
           `with depth ${depth}: ${metrics.join(', ')}`
       );
 
-      const response = await this.axiosInstance.get('/api/measures/component_tree', {
-        params: treeParams,
-      });
+      const allComponents: SonarqubeComponentTreeMeasure[] = [];
+      let baseComponent: SonarqubeComponentTreeMeasure | undefined;
+      let pageIndex = 1;
+      let total = 0;
 
-      const { baseComponent, components } = response.data;
+      do {
+        const response = await this.axiosInstance.get('/api/measures/component_tree', {
+          params: { ...treeParams, p: pageIndex },
+        });
 
-      if (!baseComponent) {
-        throw new Error(`Component ${component} not found in SonarQube.`);
-      }
+        const { baseComponent: pageBase, components, paging } = response.data;
 
-      const allComponents = [baseComponent, ...(components || [])];
+        if (!pageBase) {
+          throw new Error(`Component ${component} not found in SonarQube.`);
+        }
 
-      this.logger.info(
-        `Fetched component tree with ${allComponents.length} components for ${component}`
-      );
+        // The base component is repeated on every page — keep only the first one.
+        if (!baseComponent) {
+          baseComponent = pageBase;
+        }
 
-      return allComponents;
+        const pageComponents: SonarqubeComponentTreeMeasure[] = components || [];
+        allComponents.push(...pageComponents);
+
+        // When the API does not return a paging object, treat the response as a single page.
+        total = paging?.total ?? allComponents.length;
+        pageIndex += 1;
+
+        // Guard against an inconsistent server that reports a total larger than
+        // the sum of returned pages but stops returning components.
+        if (pageComponents.length === 0) {
+          break;
+        }
+      } while (allComponents.length < total);
+
+      const result = baseComponent ? [baseComponent, ...allComponents] : allComponents;
+
+      this.logger.info(`Fetched component tree with ${result.length} components for ${component}`);
+
+      return result;
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.logger.error(`Failed to fetch SonarQube component tree: ${errorMsg}`);
