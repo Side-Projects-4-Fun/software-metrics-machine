@@ -187,6 +187,46 @@ describe('SonarqubeFetchMetricsRepository', () => {
         'Failed to fetch component tree: network down'
       );
     });
+
+    it('logs that defaults will be applied when called without options', async () => {
+      const cacheDir = await fs.mkdtemp(path.join(os.tmpdir(), 'smm-sq-tree-log-'));
+      const fetchComponentTree = vi.fn().mockResolvedValue([createComponentTreeMeasure()]);
+      const sonarqubeClient = createSonarqubeClient({ fetchComponentTree });
+      const configuration = createConfiguration(cacheDir);
+      const logger = new MockLoggerBuilder().build();
+
+      const repository = new SonarqubeFetchMetricsRepository(
+        sonarqubeClient,
+        configuration as never,
+        logger
+      );
+
+      await repository.fetchComponentTree();
+
+      expect(logger.debug).toHaveBeenCalledWith(
+        'Fetching component tree: no options provided — defaults will be applied'
+      );
+    });
+
+    it('logs the provided options as JSON when options are given', async () => {
+      const cacheDir = await fs.mkdtemp(path.join(os.tmpdir(), 'smm-sq-tree-log-opt-'));
+      const fetchComponentTree = vi.fn().mockResolvedValue([createComponentTreeMeasure()]);
+      const sonarqubeClient = createSonarqubeClient({ fetchComponentTree });
+      const configuration = createConfiguration(cacheDir);
+      const logger = new MockLoggerBuilder().build();
+
+      const repository = new SonarqubeFetchMetricsRepository(
+        sonarqubeClient,
+        configuration as never,
+        logger
+      );
+
+      await repository.fetchComponentTree({ component: 'my-project', depth: 1 });
+
+      expect(logger.debug).toHaveBeenCalledWith(
+        'Fetching component tree: {"component":"my-project","depth":1}'
+      );
+    });
   });
 
   describe('fetchHistoricalMeasures', () => {
@@ -403,6 +443,46 @@ describe('SonarqubeFetchMetricsRepository', () => {
 
       await expect(repository.fetchHistoricalMeasures()).rejects.toThrow(
         'Failed to fetch historical measures: timeout'
+      );
+    });
+
+    it('logs that defaults will be applied when called without options', async () => {
+      const cacheDir = await fs.mkdtemp(path.join(os.tmpdir(), 'smm-sq-hist-log-'));
+      const fetchHistoricalMeasures = vi.fn().mockResolvedValue([createCodeMetric()]);
+      const sonarqubeClient = createSonarqubeClient({ fetchHistoricalMeasures });
+      const configuration = createConfiguration(cacheDir);
+      const logger = new MockLoggerBuilder().build();
+
+      const repository = new SonarqubeFetchMetricsRepository(
+        sonarqubeClient,
+        configuration as never,
+        logger
+      );
+
+      await repository.fetchHistoricalMeasures();
+
+      expect(logger.debug).toHaveBeenCalledWith(
+        'Fetching historical measures: no options provided — defaults will be applied'
+      );
+    });
+
+    it('logs the provided options as JSON when options are given', async () => {
+      const cacheDir = await fs.mkdtemp(path.join(os.tmpdir(), 'smm-sq-hist-log-opt-'));
+      const fetchHistoricalMeasures = vi.fn().mockResolvedValue([createCodeMetric()]);
+      const sonarqubeClient = createSonarqubeClient({ fetchHistoricalMeasures });
+      const configuration = createConfiguration(cacheDir);
+      const logger = new MockLoggerBuilder().build();
+
+      const repository = new SonarqubeFetchMetricsRepository(
+        sonarqubeClient,
+        configuration as never,
+        logger
+      );
+
+      await repository.fetchHistoricalMeasures({ metrics: ['coverage'] });
+
+      expect(logger.debug).toHaveBeenCalledWith(
+        'Fetching historical measures: {"metrics":["coverage"]}'
       );
     });
   });

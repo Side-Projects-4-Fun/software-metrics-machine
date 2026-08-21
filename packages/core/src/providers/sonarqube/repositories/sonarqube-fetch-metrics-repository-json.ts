@@ -64,7 +64,7 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
     metrics?: string[];
   }): Promise<SonarqubeComponentTreeMeasure[]> {
     try {
-      this.logger.debug(`Fetching component tree: ${JSON.stringify(options)}`);
+      this.logger.debug(`Fetching component tree: ${this.describeOptions(options)}`);
 
       const componentTree = await this.sonarqubeClient.fetchComponentTree({
         component: options?.component,
@@ -93,7 +93,7 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
     incrementalUpdate?: boolean;
   }): Promise<CodeMetric[]> {
     try {
-      this.logger.debug(`Fetching historical measures: ${JSON.stringify(options)}`);
+      this.logger.debug(`Fetching historical measures: ${this.describeOptions(options)}`);
 
       const fromDisk = await this.historicalMeasuresJsonRepository.load();
       const cachedData = extractLatestData(fromDisk);
@@ -154,6 +154,17 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
       .map((t) => new Date(t).getTime());
     if (timestamps.length === 0) return new Date(0).toISOString();
     return new Date(Math.max(...timestamps)).toISOString();
+  }
+
+  /**
+   * Formats fetch options for debug logging. When no options are provided the
+   * call is expected: the client falls back to default metrics and date ranges.
+   */
+  private describeOptions(options: unknown): string {
+    if (options === undefined) {
+      return 'no options provided — defaults will be applied';
+    }
+    return JSON.stringify(options);
   }
 
   private mergeHistoricalMeasures(existing: CodeMetric[], incoming: CodeMetric[]): CodeMetric[] {
