@@ -30,7 +30,7 @@ Keep pages practical and user-facing. Prefer concrete workflows, exact commands,
 3. Verify command names and flags from source code or existing tests before writing examples.
 4. Verify dashboard routes, filters, screenshot paths, and terminology from the webapp or existing docs.
 5. Update sidebar links in `docs/vitepress/.vitepress/config.mts` when adding or renaming pages.
-6. Run a docs build or targeted markdown checks when the change touches links, frontmatter, tabs, or config.
+6. Run the docs build as the final, mandatory step after every change (see [Validation](#validation)). This catches frontmatter errors, broken links, and malformed tabs before they reach CI.
 
 ## Page Style
 
@@ -100,18 +100,7 @@ When no screenshot exists, still describe the dashboard location and route. Do n
 
 ## Validation
 
-Use the smallest validation that covers the change:
-
-- Markdown-only edits: inspect rendered-sensitive syntax manually, especially tabs, fenced code blocks, tables, and links.
-- New or moved pages: verify `docs/vitepress/.vitepress/config.mts` sidebar entries.
-- Link, image, frontmatter, or VitePress config changes: run the VitePress build from `docs/vitepress` when practical.
-- **Tab pattern audit**: after any change that adds or modifies VitePress tabs, verify no wrong patterns exist:
-
-```bash
-rg ':::tab ' docs/vitepress/          # must return nothing
-rg '::::tabs' docs/vitepress/         # must return nothing
-rg '^:::$' docs/vitepress/ | wc -l   # must equal the count of ':::tabs key:cli' lines
-```
+Always finish by running the VitePress build — it is the authoritative check and catches YAML frontmatter errors (e.g. a missing closing `---`), broken relative links, bad image paths, and invalid VitePress tabs/sidebar config. Do not skip it, even for small edits.
 
 Common docs commands:
 
@@ -121,3 +110,15 @@ npm run docs:build
 ```
 
 If dependencies are missing or the build cannot run because network access is required, report that clearly and state which files were checked manually.
+
+Use the smallest additional validation that covers the change:
+
+- Markdown-only edits: inspect rendered-sensitive syntax manually, especially tabs, fenced code blocks, tables, and links.
+- New or moved pages: verify `docs/vitepress/.vitepress/config.mts` sidebar entries.
+- **Tab pattern audit**: after any change that adds or modifies VitePress tabs, verify no wrong patterns exist:
+
+```bash
+rg ':::tab ' docs/vitepress/          # must return nothing
+rg '::::tabs' docs/vitepress/         # must return nothing
+rg '^:::$' docs/vitepress/ | wc -l   # must equal the count of ':::tabs key:cli' lines
+```

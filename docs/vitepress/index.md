@@ -24,6 +24,7 @@ features:
   - title: Move from charts to decisions
     details: Explore trends, compare date ranges, and use engineering-health signals to decide where to investigate next.
     link: ./features.md
+---
 
 ## See value before you instrument everything
 
