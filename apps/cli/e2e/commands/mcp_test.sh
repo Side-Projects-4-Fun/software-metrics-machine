@@ -5,7 +5,9 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/support/bootstrap.sh"
 
 function run_smm_mcp_request() {
   local request="$1"
-  SMM_E2E_OUTPUT="$(echo "${request}" | "${SMM_CLI_BIN}" mcp server start 2>/dev/null)"
+  local workspace
+  workspace="$(create_smm_e2e_workspace)"
+  SMM_E2E_OUTPUT="$(echo "${request}" | SMM_STORE_DATA_AT="${workspace}" "${SMM_CLI_BIN}" mcp server start 2>/dev/null)"
   SMM_E2E_STATUS=$?
 }
 
