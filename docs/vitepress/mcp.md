@@ -528,6 +528,80 @@ snapshot. `smm_evaluate_architecture` accepts the architecture view filters abov
 
 `providerFilter` defaults to `all` and `maxGapDays` defaults to `30`.
 
+## Analysis examples
+
+Use a project and a fixed date range in questions that compare performance. This makes the answer easier to verify and
+keeps the client from mixing unrelated data. The following prompts can be pasted into an MCP-enabled chat client after
+the SMM server is running. Replace `owner/repo` and the dates with your project details.
+
+### Prepare a sprint retrospective
+
+```text
+Use Software Metrics Machine to compare engineering health for owner/repo between 2026-07-01 and 2026-07-31 with
+2026-06-01 to 2026-06-30. Call smm_get_engineering_health with both date windows.
+
+Create a table with the metric, current value, previous value, trend, target, and recommendation level. Identify the
+two most important improvements and the two largest regressions. For each regression, suggest one experiment for the
+next sprint. Label every recommendation separately from facts returned by SMM.
+```
+
+### Investigate a slow or unreliable release workflow
+
+```text
+Use Software Metrics Machine to assess the deploy workflow for owner/repo from 2026-07-01 to 2026-07-31. Call
+smm_get_dora_metrics and smm_get_pipeline_dashboard with workflowPath=.github/workflows/deploy.yml, branch=main,
+and period=week.
+
+Report deployment frequency, failure-rate signals, duration, failed jobs, and the weekly trend. State the DORA tier
+only when the returned data supports it. Treat the most likely bottleneck as a hypothesis and give one concrete step
+to validate it.
+```
+
+### Find review-flow bottlenecks
+
+```text
+Use Software Metrics Machine to investigate change request flow for owner/repo from 2026-07-01 to 2026-07-31. Call
+smm_evaluate_change_requests, smm_get_change_request_review_time, smm_get_change_request_first_comment_time,
+smm_get_change_request_through_time, and smm_get_change_request_by_author. Use aggregateBy=week, method=median,
+and outlierMode=flag where supported.
+
+Decide whether the data indicates a team-wide review bottleneck or an author-specific pattern. Show the values that
+support the conclusion, flag outliers, and propose one experiment to reduce review delay.
+```
+
+### Prioritize refactoring candidates
+
+```text
+Use Software Metrics Machine to identify refactoring candidates in owner/repo from 2026-04-01 to 2026-07-31. Call
+smm_get_code_entity_churn, smm_get_code_coupling, smm_get_code_entity_ownership, and smm_get_code_pairing_index.
+Use includePatterns=src/**, ignorePatterns=**/*.spec.ts, and top=15 where supported.
+
+Rank at most five files by high churn, strong coupling, and concentrated ownership. For every file, show the metric
+evidence, explain the maintenance risk in one sentence, and recommend a narrowly scoped next action. Do not recommend
+a rewrite from these metrics alone.
+```
+
+For an algorithmically expensive file, ask for a focused follow-up:
+
+```text
+Use Software Metrics Machine to analyze Big-O complexity for src/algorithms/sort.ts in owner/repo with
+smm_analyze_big_o_file. Summarize the line-level findings, identify the highest-impact complexity issue, and suggest
+a testable optimization.
+```
+
+### Check whether the data supports a decision
+
+```text
+Use Software Metrics Machine to determine whether owner/repo has enough current data for a July 2026 planning review.
+Call smm_health_check with maxGapDays=14 and call smm_get_configuration to identify the configured providers.
+
+Summarize freshness, collection gaps, missing fields, and item counts by provider. State which analyses are reliable,
+which are directional only, and which should wait for another CLI fetch. Do not infer unavailable metrics from a
+different provider.
+```
+
+The server is read-only. Refresh stale or incomplete data with the CLI before asking the client to repeat an analysis.
+
 ## Resources
 
 The MCP server exposes these static resources:
