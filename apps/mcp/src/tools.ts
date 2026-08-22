@@ -159,6 +159,8 @@ export const tools: RegisteredTool[] = [
           startDate: parsed.startDate,
           endDate: parsed.endDate,
           authors: parsed.authors,
+          includePatterns: parsed.includePatterns,
+          ignorePatterns: parsed.ignorePatterns,
         })
       );
     },
@@ -313,6 +315,8 @@ export const tools: RegisteredTool[] = [
           startDate: parsed.startDate,
           endDate: parsed.endDate,
           authors: parsed.authors,
+          includePatterns: parsed.includePatterns,
+          ignorePatterns: parsed.ignorePatterns,
         })
       );
     },

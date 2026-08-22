@@ -240,6 +240,8 @@ repository.
 }
 ```
 
+`includePatterns` and `ignorePatterns` are comma or newline separated file patterns (globs). They scope the **file coupling** result within `smm_get_code_metrics`. Code churn is a date-aggregated time series and is not filtered by path; for path-scoped entity-level churn use `smm_get_code_entity_churn` with the same pattern filters.
+
 ### Change request detailed filters
 
 `smm_get_change_request_summary`, `smm_get_change_request_through_time`, `smm_get_change_request_by_author`,
@@ -427,7 +429,8 @@ omitted, the latest snapshot is used.
 
 `smm_evaluate_change_requests`, `smm_evaluate_pipelines`, and `smm_evaluate_code` accept the shared metric filters
 (`project`, `startDate`, `endDate`, `timezone`). `smm_evaluate_code` also accepts `authors` and file pattern filters
-matching `smm_get_code_metrics`. `smm_evaluate_quality` accepts only `project` since it evaluates the latest SonarQube
+(`includePatterns`, `ignorePatterns`) matching `smm_get_code_metrics` — the patterns scope entity churn, file coupling,
+entity effort, and entity ownership. `smm_evaluate_quality` accepts only `project` since it evaluates the latest SonarQube
 snapshot. `smm_evaluate_architecture` accepts the architecture view filters above.
 
 ### Big-O filters

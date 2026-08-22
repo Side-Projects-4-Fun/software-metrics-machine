@@ -91,6 +91,8 @@ type MetricFilters = {
 
 type CodeMetricFilters = MetricFilters & {
   authors?: string;
+  includePatterns?: string;
+  ignorePatterns?: string;
 };
 
 type IssueMetricFilters = MetricFilters & {
@@ -273,6 +275,8 @@ export class McpMetricsReader {
         startDate: filters.startDate,
         endDate: filters.endDate,
         authors: filters.authors,
+        includePatterns: filters.includePatterns,
+        ignorePatterns: filters.ignorePatterns,
       },
       async () => {
         const codeRepository = CodemaatFactory.create(
@@ -292,7 +296,8 @@ export class McpMetricsReader {
         operationLogger.debug('getCodeMetrics: retrieving file coupling');
         const coupling = await codeRepository.getFileCoupling({
           authors: filters.authors ? parseCsvList(filters.authors, 'authors') : undefined,
-          ...(filters as CodeMaatEntityFilterOptions),
+          includePatterns: filters.includePatterns,
+          ignorePatterns: filters.ignorePatterns,
         });
 
         return {
@@ -702,6 +707,8 @@ export class McpMetricsReader {
         startDate: filters.startDate,
         endDate: filters.endDate,
         authors: filters.authors,
+        includePatterns: filters.includePatterns,
+        ignorePatterns: filters.ignorePatterns,
       },
       async () => {
         const codeRepository = CodemaatFactory.create(
@@ -716,6 +723,12 @@ export class McpMetricsReader {
         const bigOService = new BigOService(this.configuration);
         const evaluationService = new CodeEvaluationService();
 
+        const entityFilterOptions: CodeMaatEntityFilterOptions = {
+          includePatterns: filters.includePatterns,
+          ignorePatterns: filters.ignorePatterns,
+          authors: filters.authors,
+        };
+
         const [
           entityChurn,
           coupling,
@@ -725,14 +738,14 @@ export class McpMetricsReader {
           pairing,
           bigOFiles,
         ] = await Promise.all([
-          codeRepository.getEntityChurn({}),
-          codeRepository.getFileCoupling({ sortBy: 'degree' as const }),
-          codeRepository.getEntityEffort({}),
+          codeRepository.getEntityChurn(entityFilterOptions),
+          codeRepository.getFileCoupling({ ...entityFilterOptions, sortBy: 'degree' as const }),
+          codeRepository.getEntityEffort(entityFilterOptions),
           codeRepository.getCodeChurn({
             startDate: filters.startDate,
             endDate: filters.endDate,
           } as CodeMaatChurnOptions),
-          codeRepository.getEntityOwnership({ authors: filters.authors }),
+          codeRepository.getEntityOwnership(entityFilterOptions),
           pairingService.getPairingIndex(filters).catch(() => null),
           bigOService.listFiles({ limit: 200 }).catch(() => []),
         ]);
