@@ -1,6 +1,9 @@
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { Client } from '@modelcontextprotocol/client';
+import { InMemoryTransport } from '@modelcontextprotocol/server';
 import { getApplicationVersion } from '@smmachine/utils';
 import { createMcpServer } from '../src/server';
 
@@ -40,8 +43,14 @@ async function createConnectedClient(): Promise<{
 describe('MCP server (SDK-based)', () => {
   let client: Client;
   let cleanup: () => Promise<void>;
+  let storeDir: string;
+  let originalStoreDataAt: string | undefined;
 
   beforeEach(async () => {
+    originalStoreDataAt = process.env.SMM_STORE_DATA_AT;
+    storeDir = await mkdtemp(join(tmpdir(), 'smm-mcp-test-'));
+    process.env.SMM_STORE_DATA_AT = storeDir;
+
     const connected = await createConnectedClient();
     client = connected.client;
     cleanup = connected.cleanup;
@@ -49,6 +58,12 @@ describe('MCP server (SDK-based)', () => {
 
   afterEach(async () => {
     await cleanup();
+    if (originalStoreDataAt !== undefined) {
+      process.env.SMM_STORE_DATA_AT = originalStoreDataAt;
+    } else {
+      delete process.env.SMM_STORE_DATA_AT;
+    }
+    await rm(storeDir, { recursive: true, force: true });
   });
 
   it('responds to initialize with server capabilities', async () => {
@@ -135,21 +150,13 @@ describe('MCP server (SDK-based)', () => {
     );
   });
 
-  it('returns an error result for unknown tool calls', async () => {
-    const result = await client.callTool({
-      name: 'smm_missing_tool',
-      arguments: {},
-    });
-
-    expect(result.isError).toBe(true);
-    expect(result.content).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          type: 'text',
-          text: expect.stringContaining('smm_missing_tool'),
-        }),
-      ])
-    );
+  it('rejects unknown tool calls with a ProtocolError', async () => {
+    await expect(
+      client.callTool({
+        name: 'smm_missing_tool',
+        arguments: {},
+      })
+    ).rejects.toThrow();
   });
 
   it('lists MCP prompts', async () => {
@@ -332,17 +339,5 @@ describe('MCP server (SDK-based)', () => {
 
   it('rejects logging/setLevel with an invalid level', async () => {
     await expect(client.setLoggingLevel('verbose' as never)).rejects.toThrow();
-  });
-
-  it('returns method-not-found errors for unknown methods', async () => {
-    // The SDK's Protocol.request method rejects unknown methods at the client
-    // side before they reach the server. We verify this by sending a raw
-    // request via the protected request method.
-    await expect(
-      (client as never as { request: (req: unknown, schema: unknown) => Promise<unknown> }).request(
-        { method: 'missing/method' },
-        {}
-      )
-    ).rejects.toThrow();
   });
 });

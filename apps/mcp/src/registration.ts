@@ -1,6 +1,6 @@
 /**
  * Bridges the existing SMM tool, resource, and prompt definitions to the
- * `@modelcontextprotocol/sdk` high-level `McpServer` API.
+ * `@modelcontextprotocol/server` high-level `McpServer` API.
  *
  * The existing `tools.ts`, `resources.ts`, and `prompts.ts` modules contain the
  * business logic (handlers, read callbacks, prompt builders). This module
@@ -13,13 +13,13 @@
  * mirror the hand-crafted JSON Schemas so `tools/list` output is unchanged.
  */
 
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type {
-  ReadResourceResult,
-  CallToolResult,
-  GetPromptResult,
-} from '@modelcontextprotocol/sdk/types.js';
+import type { McpServer } from '@modelcontextprotocol/server';
+import {
+  ResourceTemplate,
+  type ReadResourceResult,
+  type CallToolResult,
+  type GetPromptResult,
+} from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { tools, findTool } from './tools';
 import {

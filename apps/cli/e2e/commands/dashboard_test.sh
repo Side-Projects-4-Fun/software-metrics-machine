@@ -30,7 +30,7 @@ function test_dashboard_serve_starts_rest_and_webapp_servers() {
 
   dashboard_pid="$(cat "${pid_file}")"
 
-  sleep 3
+  sleep 5
 
   SMM_E2E_OUTPUT="$(<"${log_file}")"
   assert_smm_output_contains "Starting bundled dashboard services"

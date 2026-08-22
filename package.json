@@ -76,7 +76,7 @@
     "@emotion/react": "catalog:",
     "@emotion/styled": "catalog:",
     "@fontsource/roboto": "catalog:",
-    "@modelcontextprotocol/sdk": "catalog:",
+    "@modelcontextprotocol/server": "catalog:",
     "@mui/icons-material": "catalog:",
     "@mui/material": "catalog:",
     "@mui/material-nextjs": "catalog:",

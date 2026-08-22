@@ -1,5 +1,5 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { McpServer } from '@modelcontextprotocol/server';
+import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import { getApplicationVersion } from '@smmachine/utils';
 import { resolveStoreDataAt } from '@smmachine/core';
 import { configureMcpLogging, redirectConsoleToStderr, transportLogger } from './mcp-logger';
@@ -46,7 +46,7 @@ export type StartMcpServerOptions = {
 
 /**
  * Starts the Software Metrics Machine MCP server over stdio using the official
- * `@modelcontextprotocol/sdk` `McpServer` and `StdioServerTransport`.
+ * `@modelcontextprotocol/server` `McpServer` and `serveStdio`.
  *
  * The server is read-only — it exposes tools, resources, and prompts that read
  * from the SMM data store but never writes. Data collection remains the
@@ -64,10 +64,7 @@ export async function startMcpServer(options: StartMcpServerOptions = {}): Promi
   log(`Configuration directory: ${resolveStoreDataAt(process.env) || '<not set>'}`);
   log(`Available tools: ${tools.map((tool) => tool.name).join(', ')}`);
 
-  const server = createMcpServer();
-  const transport = new StdioServerTransport();
-
-  await server.connect(transport);
+  await serveStdio(() => createMcpServer());
 
   log('MCP server connected to stdio transport');
 }
