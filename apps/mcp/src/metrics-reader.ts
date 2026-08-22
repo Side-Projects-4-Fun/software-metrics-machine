@@ -4,8 +4,10 @@ import {
   ArchitectureService,
   BigOService,
   CodeEvaluationService,
+  CodemaatService,
   createEngineeringHealthOrchestrator,
   DeploymentFrequencyService,
+  FilterResolver,
   FileSystemSavedFiltersAdapter,
   HealthCheckService,
   IssuesRepository,
@@ -27,10 +29,12 @@ import {
   type CodeDashboardData,
   type CodeMaatChurnOptions,
   type CodeMaatEntityFilterOptions,
+  type DashboardSection,
   type EngineeringHealthEvaluationInput,
   type MetricCategory,
   type MetricId,
   type PipelineDashboard,
+  type PipelineDashboardRunsByItem,
   type PipelineFilters,
   type ChangeRequestDashboardData,
   type ChangeRequestFilters,
@@ -51,6 +55,8 @@ import type {
   DoraMetricsArguments,
   EngineeringHealthArguments,
   PipelineDashboardArguments,
+  SavedFilterGetArguments,
+  SavedFilterListArguments,
   SonarqubeComponentTreeArguments,
 } from './validation';
 import { parseCsvList } from './validation';
@@ -118,11 +124,16 @@ function buildChangeRequestFiltersFromArgs(
   return {
     startDate: args.startDate,
     endDate: args.endDate,
-    authors: args.authors,
-    excludeAuthors: args.excludeAuthors,
-    excludeCommenters: args.excludeCommenters,
-    labels: args.labels,
+    authors: args.authors ? parseCsvList(args.authors, 'authors') : undefined,
+    excludeAuthors: args.excludeAuthors
+      ? parseCsvList(args.excludeAuthors, 'excludeAuthors')
+      : undefined,
+    excludeCommenters: args.excludeCommenters
+      ? parseCsvList(args.excludeCommenters, 'excludeCommenters')
+      : undefined,
+    labels: args.labels ? parseCsvList(args.labels, 'labels') : undefined,
     state: args.status as ChangeRequestFilters['state'],
+    rawFilters: args.rawFilters,
     cleaning,
   };
 }
@@ -143,7 +154,8 @@ function buildPipelineFiltersFromArgs(args: PipelineDashboardArguments): Pipelin
     jobName: args.jobName,
     jobConclusion: args.jobConclusion,
     event: args.event,
-    method: args.method,
+    rawFilters: args.rawFilters,
+    method: args.method as PipelineFilters['method'],
     cleaning,
   };
 }
@@ -154,6 +166,9 @@ function buildCodeEntityFilterOptions(args: CodeEntityArguments): CodeMaatEntity
     includePatterns: args.includePatterns,
     top: args.top,
     authors: args.authors,
+    minCoupling: args.minCoupling,
+    startDate: args.startDate,
+    endDate: args.endDate,
   };
 }
 
@@ -162,6 +177,80 @@ function buildCodeChurnOptions(args: CodeHistoryArguments): CodeMaatChurnOptions
     startDate: args.startDate,
     endDate: args.endDate,
   };
+}
+
+type RunsByPeriod = 'day' | 'week' | 'month';
+
+function toPeriodKey(inputPeriod: string, period: RunsByPeriod): string {
+  if (period === 'day') {
+    return inputPeriod;
+  }
+
+  const date = new Date(inputPeriod);
+  if (Number.isNaN(date.getTime())) {
+    return inputPeriod;
+  }
+
+  if (period === 'month') {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  }
+
+  const utcDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const dayOfWeek = utcDate.getUTCDay() || 7;
+  utcDate.setUTCDate(utcDate.getUTCDate() + 4 - dayOfWeek);
+  const isoYear = utcDate.getUTCFullYear();
+  const firstDay = new Date(Date.UTC(isoYear, 0, 1));
+  const week = Math.ceil(((utcDate.getTime() - firstDay.getTime()) / 86400000 + 1) / 7);
+  return `${isoYear}-W${String(week).padStart(2, '0')}`;
+}
+
+function aggregateRunsByPeriod(
+  metrics: PipelineDashboardRunsByItem[],
+  requestedPeriod?: string
+): PipelineDashboardRunsByItem[] {
+  const period = (requestedPeriod || 'day') as RunsByPeriod;
+  if (period === 'day') {
+    return metrics;
+  }
+
+  const grouped = new Map<string, number>();
+
+  for (const item of metrics) {
+    const normalizedPeriod = toPeriodKey(item.period, period);
+    const key = `${normalizedPeriod}||${item.workflow}`;
+    grouped.set(key, (grouped.get(key) || 0) + item.runs);
+  }
+
+  return Array.from(grouped.entries())
+    .map(([key, runs]) => {
+      const [normalizedPeriod, workflow] = key.split('||');
+      return { period: normalizedPeriod, workflow, runs };
+    })
+    .sort((a, b) => {
+      const periodComparison = a.period.localeCompare(b.period);
+      if (periodComparison !== 0) {
+        return periodComparison;
+      }
+      return a.workflow.localeCompare(b.workflow);
+    });
+}
+
+function computeDoraRating(
+  deploymentCounts: { daily_counts: number; weekly_counts: number; monthly_counts: number },
+  period?: string
+): string {
+  if (period === 'day' && deploymentCounts.daily_counts >= 1) {
+    return 'Elite';
+  }
+  if (period === 'week' && deploymentCounts.weekly_counts >= 1) {
+    return 'High';
+  }
+  if (period === 'month' && deploymentCounts.monthly_counts >= 1) {
+    return 'Medium';
+  }
+  return 'Low';
 }
 
 function buildSonarqubeComponentTreeOptions(args: SonarqubeComponentTreeArguments): {
@@ -466,8 +555,15 @@ export class McpMetricsReader {
         branch: args.branch,
         startDate: args.startDate,
         endDate: args.endDate,
+        rawFilters: args.rawFilters,
+        filter: args.filter,
+        period: args.period,
       },
       async () => {
+        const resolved = await this.resolvePipelineArgs(
+          args as unknown as PipelineDashboardArguments
+        );
+
         const pipelineArtifacts = PipelineFactory.create(
           this.configuration,
           createLogger(this.configuration, 'DoraPipelineRepository'),
@@ -480,14 +576,15 @@ export class McpMetricsReader {
         });
 
         const baseFilters = {
-          startDate: args.startDate,
-          endDate: args.endDate,
-          workflowPath: args.workflowPath,
-          status: args.status,
-          conclusion: args.conclusion,
-          targetBranch: args.branch,
-          jobName: args.jobName,
-          event: args.event,
+          startDate: resolved.startDate ?? args.startDate,
+          endDate: resolved.endDate ?? args.endDate,
+          workflowPath: resolved.workflowPath ?? args.workflowPath,
+          status: resolved.status ?? args.status,
+          conclusion: resolved.conclusion ?? args.conclusion,
+          targetBranch: resolved.branch ?? args.branch,
+          jobName: resolved.jobName ?? args.jobName,
+          event: resolved.event ?? args.event,
+          rawFilters: resolved.rawFilters ?? args.rawFilters,
           cleaning,
         };
 
@@ -514,9 +611,22 @@ export class McpMetricsReader {
           pipelinesService.getJobMetrics(baseFilters),
         ]);
 
+        const doraRating = computeDoraRating(
+          {
+            daily_counts:
+              (deploymentFrequency as Array<{ daily_counts: number }>)[0]?.daily_counts ?? 0,
+            weekly_counts:
+              (deploymentFrequency as Array<{ weekly_counts: number }>)[0]?.weekly_counts ?? 0,
+            monthly_counts:
+              (deploymentFrequency as Array<{ monthly_counts: number }>)[0]?.monthly_counts ?? 0,
+          },
+          args.period
+        );
+
         return {
           timestamp: new Date().toISOString(),
           deploymentFrequency,
+          doraRating,
           pipelineMetrics,
           jobMetrics,
           filters: baseFilters,
@@ -1025,10 +1135,12 @@ export class McpMetricsReader {
         startDate: args.startDate,
         endDate: args.endDate,
         status: args.status,
+        filter: args.filter,
       },
       async () => {
+        const resolved = await this.resolveChangeRequestArgs(args);
         const service = this.createChangeRequestsService();
-        return service.getSummary(buildChangeRequestFiltersFromArgs(args));
+        return service.getSummary(buildChangeRequestFiltersFromArgs(resolved));
       }
     );
   }
@@ -1041,10 +1153,15 @@ export class McpMetricsReader {
         startDate: args.startDate,
         endDate: args.endDate,
         aggregateBy: args.aggregateBy,
+        filter: args.filter,
       },
       async () => {
+        const resolved = await this.resolveChangeRequestArgs(args);
         const service = this.createChangeRequestsService();
-        return service.getThroughTime(buildChangeRequestFiltersFromArgs(args), args.aggregateBy);
+        return service.getThroughTime(
+          buildChangeRequestFiltersFromArgs(resolved),
+          args.aggregateBy
+        );
       }
     );
   }
@@ -1074,11 +1191,13 @@ export class McpMetricsReader {
         endDate: args.endDate,
         method: args.method,
         top: args.top,
+        filter: args.filter,
       },
       async () => {
+        const resolved = await this.resolveChangeRequestArgs(args);
         const service = this.createChangeRequestsService();
         return service.getReviewTime(
-          buildChangeRequestFiltersFromArgs(args),
+          buildChangeRequestFiltersFromArgs(resolved),
           args.top ?? 10,
           args.method ?? 'average'
         );
@@ -1095,11 +1214,13 @@ export class McpMetricsReader {
         endDate: args.endDate,
         aggregateBy: args.aggregateBy,
         method: args.method,
+        filter: args.filter,
       },
       async () => {
+        const resolved = await this.resolveChangeRequestArgs(args);
         const service = this.createChangeRequestsService();
         return service.getOpenTimeBy(
-          buildChangeRequestFiltersFromArgs(args),
+          buildChangeRequestFiltersFromArgs(resolved),
           args.aggregateBy,
           args.method ?? 'average'
         );
@@ -1115,13 +1236,23 @@ export class McpMetricsReader {
         startDate: args.startDate,
         endDate: args.endDate,
         method: args.method,
+        aggregateBy: args.aggregateBy,
+        filter: args.filter,
       },
       async () => {
+        const resolved = await this.resolveChangeRequestArgs(args);
         const service = this.createChangeRequestsService();
-        return service.getMetrics(
-          buildChangeRequestFiltersFromArgs(args),
-          args.method ?? 'average'
-        );
+        const filters = buildChangeRequestFiltersFromArgs(resolved);
+        const method = args.method ?? 'average';
+
+        if (args.aggregateBy) {
+          const mode = args.aggregateBy.toLowerCase();
+          return mode === 'month'
+            ? service.getMetricsByMonth(filters, method)
+            : service.getMetricsByWeek(filters, method);
+        }
+
+        return service.getMetrics(filters, method);
       }
     );
   }
@@ -1163,6 +1294,48 @@ export class McpMetricsReader {
     );
   }
 
+  async getChangeRequestMetricsByMonth(args: ChangeRequestMetricsArguments): Promise<unknown> {
+    return traceOperation(
+      'getChangeRequestMetricsByMonth',
+      {
+        project: this.configuration.githubRepository,
+        startDate: args.startDate,
+        endDate: args.endDate,
+        method: args.method,
+        filter: args.filter,
+      },
+      async () => {
+        const resolved = await this.resolveChangeRequestArgs(args);
+        const service = this.createChangeRequestsService();
+        return service.getMetricsByMonth(
+          buildChangeRequestFiltersFromArgs(resolved),
+          args.method ?? 'average'
+        );
+      }
+    );
+  }
+
+  async getChangeRequestMetricsByWeek(args: ChangeRequestMetricsArguments): Promise<unknown> {
+    return traceOperation(
+      'getChangeRequestMetricsByWeek',
+      {
+        project: this.configuration.githubRepository,
+        startDate: args.startDate,
+        endDate: args.endDate,
+        method: args.method,
+        filter: args.filter,
+      },
+      async () => {
+        const resolved = await this.resolveChangeRequestArgs(args);
+        const service = this.createChangeRequestsService();
+        return service.getMetricsByWeek(
+          buildChangeRequestFiltersFromArgs(resolved),
+          args.method ?? 'average'
+        );
+      }
+    );
+  }
+
   async getPipelineDashboard(args: PipelineDashboardArguments): Promise<unknown> {
     return traceOperation(
       'getPipelineDashboard',
@@ -1173,8 +1346,11 @@ export class McpMetricsReader {
         workflowPath: args.workflowPath,
         branch: args.branch,
         method: args.method,
+        filter: args.filter,
+        period: args.period,
       },
       async () => {
+        const resolved = await this.resolvePipelineArgs(args);
         const pipelineArtifacts = PipelineFactory.create(
           this.configuration,
           createLogger(this.configuration, 'PipelineDashboardRepository'),
@@ -1186,7 +1362,16 @@ export class McpMetricsReader {
           createLogger(this.configuration, 'PipelineDashboardImplementation'),
           this.timeZoneProvider
         );
-        return pipelineImpl.dashboard(buildPipelineFiltersFromArgs(args));
+        const dashboard = await pipelineImpl.dashboard(buildPipelineFiltersFromArgs(resolved));
+
+        if (args.period && args.period !== 'day') {
+          return {
+            ...dashboard,
+            runs_by: aggregateRunsByPeriod(dashboard.runs_by, args.period),
+          };
+        }
+
+        return dashboard;
       }
     );
   }
@@ -1198,6 +1383,7 @@ export class McpMetricsReader {
         project: this.configuration.githubRepository,
         startDate: args.startDate,
         endDate: args.endDate,
+        minShared: args.minShared,
       },
       async () => {
         const pairingService = PairingFactory.create(
@@ -1208,6 +1394,7 @@ export class McpMetricsReader {
         return pairingService.getPairingIndex({
           startDate: args.startDate,
           endDate: args.endDate,
+          minShared: args.minShared,
         });
       }
     );
@@ -1220,12 +1407,26 @@ export class McpMetricsReader {
         project: this.configuration.githubRepository,
         startDate: args.startDate,
         endDate: args.endDate,
+        authors: args.authors,
       },
       async () => {
         const codeRepository = CodemaatFactory.create(
           this.configuration,
           createLogger(this.configuration, 'CodeMetricsRepository')
         );
+
+        if (args.authors) {
+          const codemaatService = new CodemaatService(codeRepository);
+          const authors = parseCsvList(args.authors, 'authors');
+          return {
+            authorChurn: await codemaatService.getAuthorChurn({
+              startDate: args.startDate,
+              endDate: args.endDate,
+              authors,
+            }),
+          };
+        }
+
         return codeRepository.getCodeChurn(buildCodeChurnOptions(args));
       }
     );
@@ -1376,13 +1577,22 @@ export class McpMetricsReader {
   async getCodeEntityOwnership(args: CodeEntityArguments): Promise<unknown> {
     return traceOperation(
       'getCodeEntityOwnership',
-      { project: this.configuration.githubRepository },
+      { project: this.configuration.githubRepository, entity: args.entity },
       async () => {
         const codeRepository = CodemaatFactory.create(
           this.configuration,
           createLogger(this.configuration, 'CodeMetricsRepository')
         );
-        return codeRepository.getEntityOwnership(buildCodeEntityFilterOptions(args));
+        const ownership = await codeRepository.getEntityOwnership(
+          buildCodeEntityFilterOptions(args)
+        );
+
+        if (args.entity) {
+          const records = ownership as Array<{ entity: string }>;
+          return records.filter((row) => row.entity.includes(args.entity!));
+        }
+
+        return ownership;
       }
     );
   }
@@ -1517,20 +1727,37 @@ export class McpMetricsReader {
     );
   }
 
-  async listSavedFilters(): Promise<unknown> {
+  async listSavedFilters(args?: SavedFilterListArguments): Promise<unknown> {
     return traceOperation(
       'listSavedFilters',
-      { project: this.configuration.githubRepository },
+      { project: this.configuration.githubRepository, section: args?.section },
       async () => {
         const baseDir = this.configuration.getBaseDirectory();
         const adapter = new FileSystemSavedFiltersAdapter(baseDir);
         const store = new SavedFiltersStore(adapter);
-        const [filters, reports] = await Promise.all([store.getAll(), store.getReports()]);
+        const section = args?.section as DashboardSection | undefined;
+        const filters = section ? await store.getBySection(section) : await store.getAll();
+        const reports = await store.getReports();
         return {
           version: 1,
           filters,
           reports,
         };
+      }
+    );
+  }
+
+  async getSavedFilter(args: SavedFilterGetArguments): Promise<unknown> {
+    return traceOperation(
+      'getSavedFilter',
+      { project: this.configuration.githubRepository, name: args.name },
+      async () => {
+        const resolver = new FilterResolver();
+        const entry = await resolver.showFilter(this.configuration, args.name);
+        if (!entry) {
+          return null;
+        }
+        return entry;
       }
     );
   }
@@ -1546,6 +1773,38 @@ export class McpMetricsReader {
       this.timeZoneProvider,
       createLogger(this.configuration, 'ChangeRequestsService')
     );
+  }
+
+  private async resolveChangeRequestArgs(
+    args: ChangeRequestMetricsArguments
+  ): Promise<ChangeRequestMetricsArguments> {
+    if (!args.filter) {
+      return args;
+    }
+
+    const resolver = new FilterResolver();
+    const merged = await resolver.resolveSavedFilterOptions(
+      this.configuration,
+      'change-requests',
+      args as unknown as Record<string, unknown>
+    );
+    return merged as unknown as ChangeRequestMetricsArguments;
+  }
+
+  private async resolvePipelineArgs(
+    args: PipelineDashboardArguments
+  ): Promise<PipelineDashboardArguments> {
+    if (!args.filter) {
+      return args;
+    }
+
+    const resolver = new FilterResolver();
+    const merged = await resolver.resolveSavedFilterOptions(
+      this.configuration,
+      'pipelines',
+      args as unknown as Record<string, unknown>
+    );
+    return merged as unknown as PipelineDashboardArguments;
   }
 }
 

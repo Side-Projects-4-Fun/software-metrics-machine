@@ -94,6 +94,8 @@ describe('MCP server request handling', () => {
           expect.objectContaining({ name: 'smm_get_change_request_comments' }),
           expect.objectContaining({ name: 'smm_get_change_request_comments_by_author' }),
           expect.objectContaining({ name: 'smm_get_change_request_first_comment_time' }),
+          expect.objectContaining({ name: 'smm_get_change_request_metrics_by_month' }),
+          expect.objectContaining({ name: 'smm_get_change_request_metrics_by_week' }),
           expect.objectContaining({ name: 'smm_get_pipeline_dashboard' }),
           expect.objectContaining({ name: 'smm_get_code_pairing_index' }),
           expect.objectContaining({ name: 'smm_get_code_churn' }),
@@ -115,6 +117,7 @@ describe('MCP server request handling', () => {
           expect.objectContaining({ name: 'smm_get_architecture_summary' }),
           expect.objectContaining({ name: 'smm_export_architecture_view' }),
           expect.objectContaining({ name: 'smm_list_saved_filters' }),
+          expect.objectContaining({ name: 'smm_get_saved_filter' }),
         ]),
       },
     });

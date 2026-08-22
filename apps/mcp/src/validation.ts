@@ -18,6 +18,8 @@ export type ChangeRequestMetricsArguments = MetricsToolArguments & {
   method?: 'average' | 'median' | 'p75' | 'p90' | 'p95' | 'min' | 'max';
   weekends?: 'include' | 'exclude' | 'weekends_only';
   outlierMode?: 'include' | 'flag' | 'exclude';
+  rawFilters?: string;
+  filter?: string;
 };
 
 export type PipelineDashboardArguments = MetricsToolArguments & {
@@ -31,6 +33,9 @@ export type PipelineDashboardArguments = MetricsToolArguments & {
   method?: 'average' | 'median' | 'p75' | 'p90' | 'p95' | 'min' | 'max';
   weekends?: 'include' | 'exclude' | 'weekends_only';
   outlierMode?: 'include' | 'flag' | 'exclude';
+  rawFilters?: string;
+  filter?: string;
+  period?: 'day' | 'week' | 'month';
 };
 
 export type CodeEntityArguments = MetricsToolArguments & {
@@ -38,9 +43,14 @@ export type CodeEntityArguments = MetricsToolArguments & {
   includePatterns?: string;
   top?: number;
   authors?: string;
+  minCoupling?: number;
+  entity?: string;
 };
 
-export type CodeHistoryArguments = MetricsToolArguments;
+export type CodeHistoryArguments = MetricsToolArguments & {
+  authors?: string;
+  minShared?: number;
+};
 
 export type EngineeringHealthArguments = {
   project?: string;
@@ -71,6 +81,9 @@ export type DoraMetricsArguments = {
   event?: string;
   weekends?: 'include' | 'exclude' | 'weekends_only';
   outlierMode?: 'include' | 'flag' | 'exclude';
+  rawFilters?: string;
+  filter?: string;
+  period?: 'day' | 'week' | 'month';
 };
 
 export type CodeMetricsArguments = MetricsToolArguments & {
@@ -97,6 +110,16 @@ export type BigOFileArguments = {
   ignorePatterns?: string;
   includePatterns?: string;
   limit?: number;
+};
+
+export type SavedFilterListArguments = {
+  project?: string;
+  section?: string;
+};
+
+export type SavedFilterGetArguments = {
+  project?: string;
+  name: string;
 };
 
 export type BigOAnalyzeArguments = {
@@ -296,6 +319,9 @@ export function parseDoraMetricsArguments(argumentsValue: unknown): DoraMetricsA
     event: readString(args.event, 'event'),
     weekends: readEnum(args.weekends, 'weekends', ['include', 'exclude', 'weekends_only'] as const),
     outlierMode: readEnum(args.outlierMode, 'outlierMode', ['include', 'flag', 'exclude'] as const),
+    rawFilters: readString(args.rawFilters, 'rawFilters'),
+    filter: readString(args.filter, 'filter'),
+    period: readEnum(args.period, 'period', ['day', 'week', 'month'] as const),
   };
 }
 
@@ -331,6 +357,8 @@ export function parseChangeRequestMetricsArguments(
     method: readEnum(args.method, 'method', METRIC_METHOD_VALUES),
     weekends: readEnum(args.weekends, 'weekends', ['include', 'exclude', 'weekends_only'] as const),
     outlierMode: readEnum(args.outlierMode, 'outlierMode', ['include', 'flag', 'exclude'] as const),
+    rawFilters: readString(args.rawFilters, 'rawFilters'),
+    filter: readString(args.filter, 'filter'),
   };
 }
 
@@ -354,6 +382,9 @@ export function parsePipelineDashboardArguments(
     method: readEnum(args.method, 'method', METRIC_METHOD_VALUES),
     weekends: readEnum(args.weekends, 'weekends', ['include', 'exclude', 'weekends_only'] as const),
     outlierMode: readEnum(args.outlierMode, 'outlierMode', ['include', 'flag', 'exclude'] as const),
+    rawFilters: readString(args.rawFilters, 'rawFilters'),
+    filter: readString(args.filter, 'filter'),
+    period: readEnum(args.period, 'period', ['day', 'week', 'month'] as const),
   };
 }
 
@@ -369,6 +400,8 @@ export function parseCodeEntityArguments(argumentsValue: unknown): CodeEntityArg
     includePatterns: readString(args.includePatterns, 'includePatterns'),
     top: readNumber(args.top, 'top'),
     authors: readString(args.authors, 'authors'),
+    minCoupling: readNumber(args.minCoupling, 'minCoupling'),
+    entity: readString(args.entity, 'entity'),
   };
 }
 
@@ -378,7 +411,11 @@ export function parseCodeHistoryArguments(argumentsValue: unknown): CodeHistoryA
     return {};
   }
 
-  return parseMetricsToolArguments(args);
+  return {
+    ...parseMetricsToolArguments(args),
+    authors: readString(args.authors, 'authors'),
+    minShared: readNumber(args.minShared, 'minShared'),
+  };
 }
 
 export type SonarqubeComponentTreeArguments = {
@@ -467,6 +504,43 @@ export function parseHealthCheckArguments(argumentsValue: unknown): HealthCheckA
     project: readString(args.project, 'project'),
     providerFilter: readString(args.providerFilter, 'providerFilter'),
     maxGapDays: typeof args.maxGapDays === 'number' ? args.maxGapDays : undefined,
+  };
+}
+
+export function parseSavedFilterListArguments(argumentsValue: unknown): SavedFilterListArguments {
+  const args = readObject(argumentsValue);
+  if (!args) {
+    return {};
+  }
+
+  return {
+    project: readString(args.project, 'project'),
+    section: readEnum(args.section, 'section', [
+      'insights',
+      'pipelines',
+      'change-requests',
+      'source-code',
+      'engineering-health',
+      'architecture',
+      'sonarqube',
+    ] as const),
+  };
+}
+
+export function parseSavedFilterGetArguments(argumentsValue: unknown): SavedFilterGetArguments {
+  const args = readObject(argumentsValue);
+  if (!args) {
+    throw new Error('name is required');
+  }
+
+  const name = readString(args.name, 'name');
+  if (!name) {
+    throw new Error('name is required');
+  }
+
+  return {
+    project: readString(args.project, 'project'),
+    name,
   };
 }
 
@@ -660,6 +734,22 @@ export function buildDoraMetricsInputSchema(): JsonObject {
         enum: ['include', 'flag', 'exclude'],
         description: 'Outlier handling mode. Defaults to include.',
       },
+      rawFilters: {
+        type: 'string',
+        description:
+          'Optional raw provider filter string (e.g. status=success,branch=main). Passed through to the provider.',
+      },
+      filter: {
+        type: 'string',
+        description:
+          'Optional saved filter name or id. When set, missing filter fields are filled from the saved filter.',
+      },
+      period: {
+        type: 'string',
+        enum: ['day', 'week', 'month'],
+        description:
+          'Optional DORA rating period: day (elite), week (high), month (medium). Defaults to week.',
+      },
     },
   };
 }
@@ -766,6 +856,53 @@ export function buildHealthCheckInputSchema(): JsonObject {
   };
 }
 
+export function buildSavedFilterListInputSchema(): JsonObject {
+  return {
+    type: 'object',
+    description: 'Saved filters list filters.',
+    additionalProperties: false,
+    properties: {
+      project: {
+        type: 'string',
+        description: 'Optional github_repository project name from smm_config.json.',
+      },
+      section: {
+        type: 'string',
+        enum: [
+          'insights',
+          'pipelines',
+          'change-requests',
+          'source-code',
+          'engineering-health',
+          'architecture',
+          'sonarqube',
+        ],
+        description:
+          'Optional dashboard section filter. Only saved filters in this section are returned.',
+      },
+    },
+  };
+}
+
+export function buildSavedFilterGetInputSchema(): JsonObject {
+  return {
+    type: 'object',
+    description: 'Saved filter lookup by name or id.',
+    additionalProperties: false,
+    required: ['name'],
+    properties: {
+      project: {
+        type: 'string',
+        description: 'Optional github_repository project name from smm_config.json.',
+      },
+      name: {
+        type: 'string',
+        description: 'Required saved filter name or id to look up.',
+      },
+    },
+  };
+}
+
 export function buildEvaluationInputSchema(description: string): JsonObject {
   return {
     type: 'object',
@@ -858,6 +995,16 @@ export function buildChangeRequestMetricsInputSchema(description: string): JsonO
         enum: ['include', 'flag', 'exclude'],
         description: 'Optional outlier handling mode.',
       },
+      rawFilters: {
+        type: 'string',
+        description:
+          'Optional raw provider filter string (e.g. status=draft,author=john). Passed through to the provider.',
+      },
+      filter: {
+        type: 'string',
+        description:
+          'Optional saved filter name or id. When set, missing filter fields are filled from the saved filter.',
+      },
     },
   };
 }
@@ -927,6 +1074,22 @@ export function buildPipelineDashboardInputSchema(description: string): JsonObje
         enum: ['include', 'flag', 'exclude'],
         description: 'Optional outlier handling mode.',
       },
+      rawFilters: {
+        type: 'string',
+        description:
+          'Optional raw provider filter string (e.g. status=success,branch=main). Passed through to the provider.',
+      },
+      filter: {
+        type: 'string',
+        description:
+          'Optional saved filter name or id. When set, missing filter fields are filled from the saved filter.',
+      },
+      period: {
+        type: 'string',
+        enum: ['day', 'week', 'month'],
+        description:
+          'Optional aggregation period for runs_by time series. Defaults to day (raw per-day).',
+      },
     },
   };
 }
@@ -961,6 +1124,24 @@ export function buildCodeEntityInputSchema(description: string): JsonObject {
         type: 'string',
         description: 'Optional comma-separated authors filter (entity ownership only).',
       },
+      minCoupling: {
+        type: 'number',
+        description:
+          'Optional minimum coupling threshold (0-100). Filters coupling relationships below this degree.',
+      },
+      entity: {
+        type: 'string',
+        description:
+          'Optional entity/file substring filter. Only entities containing this string are returned.',
+      },
+      startDate: {
+        type: 'string',
+        description: 'Optional ISO 8601 start date.',
+      },
+      endDate: {
+        type: 'string',
+        description: 'Optional ISO 8601 end date.',
+      },
     },
   };
 }
@@ -986,6 +1167,16 @@ export function buildCodeHistoryInputSchema(description: string): JsonObject {
       endDate: {
         type: 'string',
         description: 'Optional ISO 8601 end date.',
+      },
+      authors: {
+        type: 'string',
+        description:
+          'Optional comma-separated authors filter. When set on code churn, returns per-author churn.',
+      },
+      minShared: {
+        type: 'number',
+        description:
+          'Optional minimum shared commits for pairing index. Defaults to 0 (all pairs included).',
       },
     },
   };

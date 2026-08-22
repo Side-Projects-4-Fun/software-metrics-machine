@@ -190,6 +190,8 @@ The MCP server exposes these tools:
 | `smm_get_change_request_comments` | Comments per change request (overall or by-period when `aggregateBy` is set). |
 | `smm_get_change_request_comments_by_author` | Comment counts grouped by author, with optional top-N limit. |
 | `smm_get_change_request_first_comment_time` | Time to first comment (hours) by author with selectable statistical method. |
+| `smm_get_change_request_metrics_by_month` | Change request metrics (comments, review time, open time) grouped by month. |
+| `smm_get_change_request_metrics_by_week` | Change request metrics (comments, review time, open time) grouped by week. |
 | `smm_get_pipeline_dashboard` | Full pipeline dashboard (summary, runs duration, runs by, jobs time, jobs summary, job steps time, jobs duration by workflow). |
 | `smm_get_code_pairing_index` | Detailed pairing index (percentage, total/paired commits, top pairs, latest paired commits). |
 | `smm_get_code_churn` | Code churn metrics (added/deleted/commits per period). |
@@ -210,7 +212,8 @@ The MCP server exposes these tools:
 | `smm_get_sonarqube_measurements_history` | Timestamped SonarQube measurement history entries. |
 | `smm_get_architecture_summary` | Architecture snapshot metadata (snapshot id, generated at, branch, commit count, view counts) for the latest or a specific snapshot. |
 | `smm_export_architecture_view` | Exports an architecture view (context, container, component, code) as JSON plus a Mermaid diagram string. |
-| `smm_list_saved_filters` | Lists saved filters and reports (read-only) including filter id, name, section, repository, and createdAt. |
+| `smm_list_saved_filters` | Lists saved filters and reports (read-only), optionally filtered by dashboard section. |
+| `smm_get_saved_filter` | Looks up a single saved filter by name or id, returning the full filter entry. |
 
 ### Shared metric filters
 
@@ -263,7 +266,9 @@ repository.
   "top": 10,
   "method": "median",
   "weekends": "exclude",
-  "outlierMode": "flag"
+  "outlierMode": "flag",
+  "rawFilters": "status=draft,author=john",
+  "filter": "my-saved-filter"
 }
 ```
 
@@ -271,6 +276,8 @@ repository.
 `aggregateBy` is one of `day`, `week`, `month` (used by through-time and open-time).
 `status` is the change request state (`open`, `closed`, `merged`, `draft`).
 `top` limits the number of authors/rows returned (defaults to `10`).
+`rawFilters` is a raw provider filter string passed through to the Git provider (e.g. `status=draft,author=john`).
+`filter` is a saved filter name or id. When set, missing filter fields are filled from the saved filter.
 
 ### Pipeline dashboard filters
 
@@ -291,9 +298,16 @@ repository.
   "event": "push",
   "method": "p95",
   "weekends": "exclude",
-  "outlierMode": "flag"
+  "outlierMode": "flag",
+  "rawFilters": "status=success,branch=main",
+  "filter": "ci-main",
+  "period": "week"
 }
 ```
+
+`rawFilters` is a raw provider filter string passed through to the Git provider.
+`filter` is a saved filter name or id. When set, missing filter fields are filled from the saved filter.
+`period` is one of `day`, `week`, `month` and aggregates the `runs_by` time series into the requested period. Defaults to `day` (raw per-day).
 
 ### Code entity filters
 
@@ -307,9 +321,16 @@ repository.
   "ignorePatterns": "**/*.spec.ts",
   "includePatterns": "src/**",
   "top": 15,
-  "authors": "alice"
+  "authors": "alice",
+  "minCoupling": 50,
+  "entity": "src/index",
+  "startDate": "2026-07-01",
+  "endDate": "2026-07-31"
 }
 ```
+
+`minCoupling` filters coupling relationships below this degree threshold (0–100). Used by `smm_get_code_coupling` only.
+`entity` is a substring filter — only entities whose path contains this string are returned. Used by `smm_get_code_entity_ownership` only.
 
 ### Code history filters
 
@@ -320,9 +341,14 @@ repository.
   "project": "owner/repo",
   "timezone": "Europe/Madrid",
   "startDate": "2026-01-01",
-  "endDate": "2026-07-31"
+  "endDate": "2026-07-31",
+  "authors": "alice,bob",
+  "minShared": 3
 }
 ```
+
+`authors` on `smm_get_code_churn` switches to per-author churn (returns `{ authorChurn: [...] }` instead of the date-aggregated time series).
+`minShared` on `smm_get_code_pairing_index` sets the minimum shared commits for pair inclusion (defaults to 0).
 
 ### SonarQube component tree filters
 
@@ -350,7 +376,30 @@ returns both the JSON view and a Mermaid `flowchart LR` diagram string.
 
 ### Saved filters
 
-`smm_list_saved_filters` accepts only `project` and returns saved filters and reports for that project.
+`smm_list_saved_filters` accepts:
+
+```json
+{
+  "project": "owner/repo",
+  "section": "pipelines"
+}
+```
+
+`section` is one of `insights`, `pipelines`, `change-requests`, `source-code`, `engineering-health`, `architecture`,
+`sonarqube`. When set, only saved filters in that section are returned. When omitted, all saved filters and reports
+are returned.
+
+`smm_get_saved_filter` accepts:
+
+```json
+{
+  "project": "owner/repo",
+  "name": "CI Main"
+}
+```
+
+`name` is required and can be either a saved filter name or id. Returns the full filter entry including section,
+filters, and repository, or `null` if not found.
 
 ### Issue metrics filters
 
@@ -404,9 +453,16 @@ Discover available metric ids with `smm_list_engineering_health_metrics`.
   "jobName": "deploy",
   "event": "push",
   "weekends": "exclude",
-  "outlierMode": "flag"
+  "outlierMode": "flag",
+  "rawFilters": "branch=main",
+  "filter": "deploy-filter",
+  "period": "day"
 }
 ```
+
+`rawFilters` is a raw provider filter string passed through to the Git provider.
+`filter` is a saved filter name or id. When set, missing filter fields are filled from the saved filter.
+`period` is one of `day`, `week`, `month` and controls the DORA rating: `day` (Elite), `week` (High), `month` (Medium). Defaults to `week`.
 
 ### Architecture view filters
 
@@ -427,7 +483,7 @@ omitted, the latest snapshot is used.
 
 ### Evaluation filters
 
-`smm_evaluate_change_requests`, `smm_evaluate_pipelines`, and `smm_evaluate_code` accept the shared metric filters
+`smm_evaluate_change_requests` and `smm_evaluate_pipelines` accept the shared metric filters
 (`project`, `startDate`, `endDate`, `timezone`). `smm_evaluate_code` also accepts `authors` and file pattern filters
 (`includePatterns`, `ignorePatterns`) matching `smm_get_code_metrics` — the patterns scope entity churn, file coupling,
 entity effort, and entity ownership. `smm_evaluate_quality` accepts only `project` since it evaluates the latest SonarQube

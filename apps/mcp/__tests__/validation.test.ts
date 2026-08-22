@@ -5,10 +5,13 @@ import {
   buildChangeRequestMetricsInputSchema,
   buildCodeEntityInputSchema,
   buildCodeHistoryInputSchema,
+  buildDoraMetricsInputSchema,
   buildEngineeringHealthInputSchema,
   buildEvaluationInputSchema,
   buildHealthCheckInputSchema,
   buildPipelineDashboardInputSchema,
+  buildSavedFilterGetInputSchema,
+  buildSavedFilterListInputSchema,
   buildSonarqubeComponentTreeInputSchema,
   parseArchitectureViewArguments,
   parseBigOAnalyzeArguments,
@@ -23,6 +26,8 @@ import {
   parseIssueMetricsArguments,
   parseMetricsToolArguments,
   parsePipelineDashboardArguments,
+  parseSavedFilterGetArguments,
+  parseSavedFilterListArguments,
   parseSonarqubeComponentTreeArguments,
 } from '../src/validation';
 
@@ -293,6 +298,8 @@ describe('parseChangeRequestMetricsArguments', () => {
         method: 'median',
         weekends: 'exclude',
         outlierMode: 'flag',
+        rawFilters: 'status=draft,author=john',
+        filter: 'my-saved-filter',
       })
     ).toEqual({
       project: 'owner/repo',
@@ -309,6 +316,8 @@ describe('parseChangeRequestMetricsArguments', () => {
       method: 'median',
       weekends: 'exclude',
       outlierMode: 'flag',
+      rawFilters: 'status=draft,author=john',
+      filter: 'my-saved-filter',
     });
   });
 
@@ -383,6 +392,9 @@ describe('parsePipelineDashboardArguments', () => {
         method: 'p95',
         weekends: 'exclude',
         outlierMode: 'flag',
+        rawFilters: 'status=success,branch=main',
+        filter: 'ci-main',
+        period: 'week',
       })
     ).toEqual({
       project: 'owner/repo',
@@ -399,6 +411,9 @@ describe('parsePipelineDashboardArguments', () => {
       method: 'p95',
       weekends: 'exclude',
       outlierMode: 'flag',
+      rawFilters: 'status=success,branch=main',
+      filter: 'ci-main',
+      period: 'week',
     });
   });
 
@@ -444,6 +459,8 @@ describe('parseCodeEntityArguments', () => {
         includePatterns: 'src/**',
         top: 15,
         authors: 'alice',
+        minCoupling: 50,
+        entity: 'src/index',
       })
     ).toEqual({
       project: 'owner/repo',
@@ -451,6 +468,8 @@ describe('parseCodeEntityArguments', () => {
       includePatterns: 'src/**',
       top: 15,
       authors: 'alice',
+      minCoupling: 50,
+      entity: 'src/index',
     });
   });
 
@@ -475,25 +494,31 @@ describe('parseCodeHistoryArguments', () => {
     expect(parseCodeHistoryArguments(undefined)).toEqual({});
   });
 
-  it('parses start/end date filters', () => {
+  it('parses start/end date filters with authors and minShared', () => {
     expect(
       parseCodeHistoryArguments({
         project: 'owner/repo',
         startDate: '2026-01-01',
         endDate: '2026-07-31',
+        authors: 'alice,bob',
+        minShared: 3,
       })
     ).toEqual({
       project: 'owner/repo',
       startDate: '2026-01-01',
       endDate: '2026-07-31',
+      authors: 'alice,bob',
+      minShared: 3,
     });
   });
 
-  it('builds a code history schema with date properties', () => {
+  it('builds a code history schema with date and threshold properties', () => {
     const schema = buildCodeHistoryInputSchema('History filters.');
     const properties = (schema.properties ?? {}) as Record<string, { type?: string }>;
     expect(properties.startDate?.type).toBe('string');
     expect(properties.endDate?.type).toBe('string');
+    expect(properties.authors?.type).toBe('string');
+    expect(properties.minShared?.type).toBe('number');
     expect(schema.description).toBe('History filters.');
   });
 });
@@ -552,5 +577,106 @@ describe('parseSonarqubeComponentTreeArguments', () => {
     expect(properties.includeFiles?.type).toBe('string');
     expect(properties.removeFolders?.type).toBe('boolean');
     expect(schema.description).toBe('Component tree.');
+  });
+});
+
+describe('parseDoraMetricsArguments parity fields', () => {
+  it('parses rawFilters, filter, and period', () => {
+    expect(
+      parseDoraMetricsArguments({
+        project: 'owner/repo',
+        startDate: '2026-07-01',
+        endDate: '2026-07-31',
+        rawFilters: 'branch=main',
+        filter: 'deploy-filter',
+        period: 'day',
+      })
+    ).toEqual({
+      project: 'owner/repo',
+      startDate: '2026-07-01',
+      endDate: '2026-07-31',
+      rawFilters: 'branch=main',
+      filter: 'deploy-filter',
+      period: 'day',
+    });
+  });
+
+  it('builds a DORA schema with rawFilters, filter, and period properties', () => {
+    const schema = buildDoraMetricsInputSchema();
+    const properties = (schema.properties ?? {}) as Record<
+      string,
+      { type?: string; enum?: string[] }
+    >;
+    expect(properties.rawFilters?.type).toBe('string');
+    expect(properties.filter?.type).toBe('string');
+    expect(properties.period?.enum).toEqual(['day', 'week', 'month']);
+  });
+});
+
+describe('parseSavedFilterListArguments', () => {
+  it('returns an empty object for non-object input', () => {
+    expect(parseSavedFilterListArguments(null)).toEqual({});
+    expect(parseSavedFilterListArguments(undefined)).toEqual({});
+  });
+
+  it('parses project and section', () => {
+    expect(
+      parseSavedFilterListArguments({
+        project: 'owner/repo',
+        section: 'pipelines',
+      })
+    ).toEqual({
+      project: 'owner/repo',
+      section: 'pipelines',
+    });
+  });
+
+  it('rejects an unknown section value', () => {
+    expect(() => parseSavedFilterListArguments({ section: 'unknown' })).toThrow(
+      /section must be one of/
+    );
+  });
+
+  it('builds a saved filter list schema with section enum', () => {
+    const schema = buildSavedFilterListInputSchema();
+    const properties = (schema.properties ?? {}) as Record<
+      string,
+      { type?: string; enum?: string[] }
+    >;
+    expect(properties.section?.enum).toEqual([
+      'insights',
+      'pipelines',
+      'change-requests',
+      'source-code',
+      'engineering-health',
+      'architecture',
+      'sonarqube',
+    ]);
+  });
+});
+
+describe('parseSavedFilterGetArguments', () => {
+  it('throws when name is missing', () => {
+    expect(() => parseSavedFilterGetArguments({})).toThrow(/name is required/);
+    expect(() => parseSavedFilterGetArguments(null)).toThrow(/name is required/);
+  });
+
+  it('parses project and name', () => {
+    expect(
+      parseSavedFilterGetArguments({
+        project: 'owner/repo',
+        name: 'CI Main',
+      })
+    ).toEqual({
+      project: 'owner/repo',
+      name: 'CI Main',
+    });
+  });
+
+  it('builds a saved filter get schema with required name', () => {
+    const schema = buildSavedFilterGetInputSchema();
+    expect(schema.required).toEqual(['name']);
+    const properties = (schema.properties ?? {}) as Record<string, { type?: string }>;
+    expect(properties.name?.type).toBe('string');
   });
 });

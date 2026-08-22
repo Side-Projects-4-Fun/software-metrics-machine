@@ -19,6 +19,8 @@ import {
   buildIssueMetricsInputSchema,
   buildMetricsInputSchema,
   buildPipelineDashboardInputSchema,
+  buildSavedFilterGetInputSchema,
+  buildSavedFilterListInputSchema,
   buildSonarqubeComponentTreeInputSchema,
   listEngineeringHealthMetricCatalog,
   parseArchitectureViewArguments,
@@ -34,6 +36,8 @@ import {
   parseIssueMetricsArguments,
   parseMetricsToolArguments,
   parsePipelineDashboardArguments,
+  parseSavedFilterGetArguments,
+  parseSavedFilterListArguments,
   parseSonarqubeComponentTreeArguments,
 } from './validation';
 
@@ -580,6 +584,34 @@ export const tools: RegisteredTool[] = [
     },
   },
   {
+    name: 'smm_get_change_request_metrics_by_month',
+    description:
+      'Get change request metrics (comments, review time, open time) grouped by month, with selectable statistical method.',
+    inputSchema: buildChangeRequestMetricsInputSchema('Change request by-month filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseChangeRequestMetricsArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getChangeRequestMetricsByMonth(parsed));
+    },
+  },
+  {
+    name: 'smm_get_change_request_metrics_by_week',
+    description:
+      'Get change request metrics (comments, review time, open time) grouped by week, with selectable statistical method.',
+    inputSchema: buildChangeRequestMetricsInputSchema('Change request by-week filters.'),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseChangeRequestMetricsArguments(argumentsValue);
+      const reader = createMcpMetricsReader({
+        project: parsed.project,
+        timezone: parsed.timezone,
+      });
+      return asToolResult(await reader.getChangeRequestMetricsByWeek(parsed));
+    },
+  },
+  {
     name: 'smm_get_pipeline_dashboard',
     description:
       'Get the full pipeline dashboard (summary, runs_duration, runs_by, jobs_time, jobs_summary, job_steps_time, jobs_duration_by_workflow) with rich filtering.',
@@ -832,12 +864,23 @@ export const tools: RegisteredTool[] = [
   {
     name: 'smm_list_saved_filters',
     description:
-      'List saved filters and reports (read-only) for a configured SMM project, including filter id, name, section, repository, and createdAt.',
-    inputSchema: buildMetricsInputSchema('Saved filters lookup.'),
+      'List saved filters and reports (read-only) for a configured SMM project, including filter id, name, section, repository, and createdAt. Optionally filter by dashboard section.',
+    inputSchema: buildSavedFilterListInputSchema(),
     async handler(argumentsValue: unknown): Promise<McpToolResult> {
-      const args = parseMetricsToolArguments(argumentsValue);
-      const reader = createMcpMetricsReader({ project: args.project });
-      return asToolResult(await reader.listSavedFilters());
+      const parsed = parseSavedFilterListArguments(argumentsValue);
+      const reader = createMcpMetricsReader({ project: parsed.project });
+      return asToolResult(await reader.listSavedFilters(parsed));
+    },
+  },
+  {
+    name: 'smm_get_saved_filter',
+    description:
+      'Look up a single saved filter by name or id for a configured SMM project. Returns the full filter entry including section, filters, and repository.',
+    inputSchema: buildSavedFilterGetInputSchema(),
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const parsed = parseSavedFilterGetArguments(argumentsValue);
+      const reader = createMcpMetricsReader({ project: parsed.project });
+      return asToolResult(await reader.getSavedFilter(parsed));
     },
   },
 ];
