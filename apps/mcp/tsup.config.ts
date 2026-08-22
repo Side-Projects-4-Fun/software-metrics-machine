@@ -12,7 +12,7 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   dts: true,
-  external: ['node:sqlite', 'axios', 'date-fns'],
+  external: ['node:sqlite', 'axios', 'date-fns', '@modelcontextprotocol/sdk', 'zod'],
   removeNodeProtocol: false,
   noExternal: ['@smmachine/core', '@smmachine/utils'],
   outExtension() {

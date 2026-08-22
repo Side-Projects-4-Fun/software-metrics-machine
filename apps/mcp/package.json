@@ -23,8 +23,10 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "catalog:",
     "axios": "catalog:",
-    "date-fns": "catalog:"
+    "date-fns": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@smmachine/core": "workspace:*",

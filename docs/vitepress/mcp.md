@@ -144,12 +144,14 @@ For more details on VS Code MCP configuration, see the
 
 The server advertises the following MCP capabilities during `initialize`:
 
-| Capability | Methods supported |
-| ---------- | ----------------- |
-| Tools | `tools/list`, `tools/call` |
-| Resources | `resources/list`, `resources/templates/list`, `resources/read` |
-| Prompts | `prompts/list`, `prompts/get` |
-| Logging | `logging/setLevel` |
+| Capability | Methods supported | Options |
+| ---------- | ----------------- | ------- |
+| Tools | `tools/list`, `tools/call` | `listChanged: true` |
+| Resources | `resources/list`, `resources/templates/list`, `resources/read` | `listChanged: true` |
+| Prompts | `prompts/list`, `prompts/get` | `listChanged: true` |
+| Logging | `logging/setLevel` | |
+
+The server is built on the official [`@modelcontextprotocol/sdk`](https://github.com/modelcontextprotocol/typescript-sdk) and negotiates the protocol version with the client during `initialize`.
 
 ## Tools
 
@@ -684,12 +686,13 @@ enabled in the project's `smm_config.json`.
 
 ### Client-controlled logging
 
-MCP clients can dynamically change the server's log level at runtime by sending a `logging/setLevel` notification.
-Accepted levels are `debug`, `info`, and `critical`:
+MCP clients can dynamically change the server's log level at runtime by sending a `logging/setLevel` request.
+The server accepts the standard MCP log levels:
 
 ```json
 {
   "jsonrpc": "2.0",
+  "id": 1,
   "method": "logging/setLevel",
   "params": {
     "level": "debug"
@@ -697,8 +700,9 @@ Accepted levels are `debug`, `info`, and `critical`:
 }
 ```
 
-This is equivalent to starting the server with `--debug` (for `debug`) or running in quiet mode (for `critical`).
-The `info` level enables transport and request lifecycle logs without the detailed operation traces.
+Accepted levels are `debug`, `info`, `notice`, `warning`, `error`, `critical`, `alert`, and `emergency`.
+Setting the level to `debug` is equivalent to starting the server with `--debug`. The `info` level enables
+transport and request lifecycle logs without the detailed operation traces.
 
 ```{tip}
 Transport and operation logs are independent of `smm_config.json` because the server may not have a project loaded at the

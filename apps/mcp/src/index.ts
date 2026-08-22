@@ -1,4 +1,4 @@
-export { startMcpServer, handleRequest } from './server';
+export { startMcpServer, createMcpServer } from './server';
 export type { StartMcpServerOptions } from './server';
 export { tools, findTool } from './tools';
 export type { RegisteredTool } from './tools';
@@ -7,5 +7,6 @@ export { prompts, getPrompt } from './prompts';
 export { createMcpMetricsReader, McpMetricsReader } from './metrics-reader';
 export { redactSecrets } from './redaction';
 export { configureMcpLogging, redirectConsoleToStderr, resolveMcpLogLevel } from './mcp-logger';
+export { registerAll, registerTools, registerResources, registerPrompts } from './registration';
 export * from './validation';
 export * from './mcp-types';

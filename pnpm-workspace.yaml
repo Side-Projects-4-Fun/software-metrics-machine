@@ -11,6 +11,7 @@ catalog:
   '@mui/icons-material': ^9.3.1
   '@mui/material': ^9.3.1
   '@mui/material-nextjs': ^9.3.0
+  '@modelcontextprotocol/sdk': ^1.30.0
   '@mui/x-date-pickers': ^9.11.0
   '@nestjs/common': ^11.2.1
   '@nestjs/core': ^11.2.1
@@ -80,5 +81,6 @@ catalog:
   vitepress-plugin-mermaid: ^2.0.17
   vitepress-plugin-tabs: ^0.9.1
   vitest: ^4.1.11
+  zod: ^3.25.0
 
 linkWorkspacePackages: true

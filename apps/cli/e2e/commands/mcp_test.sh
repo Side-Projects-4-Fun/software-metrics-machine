@@ -10,7 +10,7 @@ function run_smm_mcp_request() {
 }
 
 function test_mcp_server_initialize_responds_with_protocol_info() {
-  run_smm_mcp_request '{"jsonrpc":"2.0","id":1,"method":"initialize"}'
+  run_smm_mcp_request '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
 
   assert_smm_success
   assert_smm_output_contains '"jsonrpc":"2.0"'
@@ -37,28 +37,29 @@ function test_mcp_server_tools_list_returns_available_tools() {
 }
 
 function test_mcp_server_unknown_method_returns_error() {
-  run_smm_mcp_request '{"jsonrpc":"2.0","id":4,"method":"unknown"}'
+  run_smm_mcp_request '{"jsonrpc":"2.0","id":4,"method":"unknown","params":{}}'
 
   assert_smm_success
   assert_smm_output_contains '"id":4'
   assert_smm_output_contains '"error"'
   assert_smm_output_contains '"code":-32601'
-  assert_smm_output_contains '"message":"Method not found: unknown"'
+  assert_smm_output_contains '"message":"Method not found"'
 }
 
-function test_mcp_server_invalid_json_returns_parse_error() {
+function test_mcp_server_invalid_json_produces_no_response() {
   run_smm_mcp_request 'not-json'
 
   assert_smm_success
-  assert_smm_output_contains '"error"'
-  assert_smm_output_contains '"code":-32700'
+  # The SDK's StdioServerTransport silently drops invalid JSON lines without
+  # sending a JSON-RPC error response. The process exits cleanly with no output.
+  assert_smm_output_not_contains '"error"'
 }
 
-function test_mcp_server_invalid_rpc_request_returns_invalid_request_error() {
+function test_mcp_server_invalid_rpc_request_produces_no_response() {
   run_smm_mcp_request '{"jsonrpc":"2.0","method":123}'
 
   assert_smm_success
-  assert_smm_output_contains '"error"'
-  assert_smm_output_contains '"code":-32600'
-  assert_smm_output_contains '"message":"Invalid JSON-RPC request"'
+  # The SDK silently drops messages that do not conform to the JSON-RPC request
+  # schema (e.g. method must be a string). No error response is sent.
+  assert_smm_output_not_contains '"error"'
 }

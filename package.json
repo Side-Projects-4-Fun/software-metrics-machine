@@ -76,6 +76,7 @@
     "@emotion/react": "catalog:",
     "@emotion/styled": "catalog:",
     "@fontsource/roboto": "catalog:",
+    "@modelcontextprotocol/sdk": "catalog:",
     "@mui/icons-material": "catalog:",
     "@mui/material": "catalog:",
     "@mui/material-nextjs": "catalog:",
@@ -100,7 +101,8 @@
     "rimraf": "catalog:",
     "rxjs": "catalog:",
     "sqlite": "catalog:",
-    "swagger-ui-express": "catalog:"
+    "swagger-ui-express": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
