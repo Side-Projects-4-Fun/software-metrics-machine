@@ -180,4 +180,73 @@ describe('ReportsClient', () => {
       expect(mockDuplicateReport).toHaveBeenCalledWith('r1');
     });
   });
+
+  it('pre-populates the edit dialog with the report name and dates', async () => {
+    const existingReport = new ReportEntryBuilder()
+      .withId('r1')
+      .withName('Sprint 42')
+      .withStartDateOverride('2026-06-01')
+      .withEndDateOverride('2026-06-30')
+      .build();
+
+    render(
+      <ReportsClient
+        resolvedReports={[{ report: existingReport, windows: [] }]}
+        repository="owner/repo"
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /Edit Sprint 42/ }));
+
+    const nameInput = (await screen.findByLabelText('Report name')) as HTMLInputElement;
+    expect(nameInput.value).toBe('Sprint 42');
+
+    const dateRange = screen.getByLabelText('Date range') as HTMLInputElement;
+    expect(dateRange.value).toContain('2026-06-01');
+    expect(dateRange.value).toContain('2026-06-30');
+  });
+
+  it('re-populates fields when opening a different report for edit', async () => {
+    const reportA = new ReportEntryBuilder().withId('r1').withName('Report A').build();
+    const reportB = new ReportEntryBuilder().withId('r2').withName('Report B').build();
+
+    render(
+      <ReportsClient
+        resolvedReports={[
+          { report: reportA, windows: [] },
+          { report: reportB, windows: [] },
+        ]}
+        repository="owner/repo"
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /Edit Report A/ }));
+    const firstName = (await screen.findByLabelText('Report name')) as HTMLInputElement;
+    expect(firstName.value).toBe('Report A');
+
+    await userEvent.click(screen.getByRole('button', { name: /Cancel/ }));
+
+    await userEvent.click(screen.getByRole('button', { name: /Edit Report B/ }));
+    const secondName = (await screen.findByLabelText('Report name')) as HTMLInputElement;
+    expect(secondName.value).toBe('Report B');
+  });
+
+  it('does not leak typed input into a new report after cancel', async () => {
+    render(
+      <ReportsClient resolvedReports={[]} repository="owner/repo" />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /New Report/ }));
+    const nameInput = (await screen.findByLabelText('Report name')) as HTMLInputElement;
+    await userEvent.clear(nameInput);
+    await userEvent.type(nameInput, 'Draft Report');
+    expect(nameInput.value).toBe('Draft Report');
+
+    await userEvent.click(screen.getByRole('button', { name: /Cancel/ }));
+
+    await userEvent.click(screen.getByRole('button', { name: /New Report/ }));
+    const resetName = (await screen.findByLabelText('Report name')) as HTMLInputElement;
+    expect(resetName.value).not.toBe('Draft Report');
+    expect(resetName.value).toBeTruthy();
+  });
 });
