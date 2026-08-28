@@ -2,6 +2,14 @@ packages:
   - 'packages/*'
   - 'apps/*'
 
+allowBuilds:
+  '@scarf/scarf': set this to true or false
+  '@swc/core': set this to true or false
+  cypress: set this to true or false
+  esbuild: set this to true or false
+  msw: set this to true or false
+  unrs-resolver: set this to true or false
+
 catalog:
   '@cypress/webpack-preprocessor': ^7.1.2
   '@emotion/cache': ^11.14.0
