@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from 'react';
 import { ProjectItem } from '@/server/api/configuration';
 
 interface ProjectsContextValue {
@@ -29,10 +29,6 @@ export const ProjectsProvider = ({
   children?: ReactNode | undefined;
 }) => {
   const [activeProject, setActiveProject] = useState<string | undefined>(initialActiveProject);
-
-  useEffect(() => {
-    setActiveProject(initialActiveProject);
-  }, [initialActiveProject]);
 
   const selectProject = useCallback((projectName: string) => {
     setActiveProject(projectName);

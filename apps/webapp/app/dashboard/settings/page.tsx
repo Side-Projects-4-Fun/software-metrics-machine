@@ -53,13 +53,12 @@ function writeFetchCacheCookie(enabled: boolean) {
 }
 
 export default function SettingsPage() {
-  const [fetchCacheEnabled, setFetchCacheEnabled] = React.useState(false);
-  const [loaded, setLoaded] = React.useState(false);
-
-  React.useEffect(() => {
-    setFetchCacheEnabled(readFetchCacheCookie());
-    setLoaded(true);
-  }, []);
+  const [fetchCacheEnabled, setFetchCacheEnabled] = React.useState<boolean>(() => {
+    if (typeof document === 'undefined') {
+      return false;
+    }
+    return readFetchCacheCookie();
+  });
 
   const handleFetchCacheChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const enabled = event.target.checked;
@@ -84,12 +83,11 @@ export default function SettingsPage() {
             </Typography>
             <FormControlLabel
               control={
-                <Switch
-                  checked={fetchCacheEnabled}
-                  disabled={!loaded}
-                  onChange={handleFetchCacheChange}
-                  slotProps={{ input: { 'aria-label': 'toggle REST API cache' } }}
-                />
+              <Switch
+                checked={fetchCacheEnabled}
+                onChange={handleFetchCacheChange}
+                slotProps={{ input: { 'aria-label': 'toggle REST API cache' } }}
+              />
               }
               label="REST API cache"
             />

@@ -1,10 +1,6 @@
 export type CodeEvaluationSeverity = 'critical' | 'warning' | 'good';
 export type CodeEvaluationCategory =
-  | 'churn'
-  | 'coupling'
-  | 'ownership'
-  | 'complexity'
-  | 'collaboration';
+  'churn' | 'coupling' | 'ownership' | 'complexity' | 'collaboration';
 
 export interface CodeEvaluationSignal {
   id: string;

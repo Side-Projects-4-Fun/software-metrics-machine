@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Button,
   Dialog,
@@ -109,63 +109,45 @@ export default function ReportCreator({
   onSave,
   existingReport,
 }: ReportCreatorProps) {
-  const [name, setName] = useState(defaultReportName());
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [selections, setSelections] = useState<
-    Record<EvaluatableSection, string[]>
-  >({
+  const initialSelections: Record<EvaluatableSection, string[]> = {
     pipelines: [],
     'change-requests': [],
     'source-code': [],
     architecture: [],
     sonarqube: [],
-  });
+  };
+  if (existingReport) {
+    for (const ref of existingReport.sections) {
+      initialSelections[ref.section].push(ref.savedFilterId);
+    }
+  }
+
+  const hasDateWindows =
+    !!existingReport && (existingReport.dateWindows?.length ?? 0) > 0;
+
+  const [name, setName] = useState(() => existingReport?.name || defaultReportName());
+  const [startDate, setStartDate] = useState(() => existingReport?.startDateOverride ?? '');
+  const [endDate, setEndDate] = useState(() => existingReport?.endDateOverride ?? '');
+  const [selections, setSelections] = useState<Record<EvaluatableSection, string[]>>(
+    initialSelections,
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [multiWindow, setMultiWindow] = useState(false);
-  const [windowInterval, setWindowInterval] = useState<WindowInterval>('weekly');
+  const [multiWindow, setMultiWindow] = useState(hasDateWindows);
+  const [windowInterval, setWindowInterval] = useState<WindowInterval>(
+    hasDateWindows ? 'manual' : 'weekly',
+  );
   const [windowCount, setWindowCount] = useState(4);
   const [manualWindows, setManualWindows] = useState<
     Array<{ startDate: string; endDate: string }>
-  >([]);
-
-  // Pre-populate fields when opening in edit mode
-  useEffect(() => {
-    if (!open || !existingReport) { return; }
-
-    const nameToUse = existingReport.name || defaultReportName();
-    setName(nameToUse);
-    setStartDate(existingReport.startDateOverride ?? '');
-    setEndDate(existingReport.endDateOverride ?? '');
-
-    const existingSelections: Record<EvaluatableSection, string[]> = {
-      pipelines: [],
-      'change-requests': [],
-      'source-code': [],
-      architecture: [],
-      sonarqube: [],
-    };
-    for (const ref of existingReport.sections) {
-      existingSelections[ref.section].push(ref.savedFilterId);
-    }
-    setSelections(existingSelections);
-
-    if (existingReport.dateWindows && existingReport.dateWindows.length > 0) {
-      setMultiWindow(true);
-      setWindowInterval('manual');
-      setManualWindows(
-        existingReport.dateWindows.map((w) => ({
+  >(() =>
+    hasDateWindows
+      ? (existingReport?.dateWindows ?? []).map((w) => ({
           startDate: w.startDate,
           endDate: w.endDate,
-        })),
-      );
-    } else {
-      setMultiWindow(false);
-      setWindowInterval('weekly');
-      setManualWindows([]);
-    }
-  }, [open, existingReport]);
+        }))
+      : [],
+  );
 
   const autoPreview = useMemo(() => {
     if (!multiWindow || !startDate) { return []; }

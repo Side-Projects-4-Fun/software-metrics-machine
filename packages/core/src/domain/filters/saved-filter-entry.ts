@@ -66,11 +66,7 @@ export interface SavedFilterEntry {
 }
 
 export type EvaluatableSection =
-  | 'pipelines'
-  | 'change-requests'
-  | 'source-code'
-  | 'architecture'
-  | 'sonarqube';
+  'pipelines' | 'change-requests' | 'source-code' | 'architecture' | 'sonarqube';
 
 export interface ReportSectionRef {
   section: EvaluatableSection;

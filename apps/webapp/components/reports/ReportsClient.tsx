@@ -191,6 +191,7 @@ export default function ReportsClient({
       </div>
 
       <ReportCreator
+        key={isCreatorOpen ? `report-${editingReport?.id ?? 'new'}` : 'report-closed'}
         open={isCreatorOpen}
         repository={repository}
         onClose={handleCloseCreator}
