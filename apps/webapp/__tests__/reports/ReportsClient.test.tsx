@@ -225,6 +225,9 @@ describe('ReportsClient', () => {
     expect(firstName.value).toBe('Report A');
 
     await userEvent.click(screen.getByRole('button', { name: /Cancel/ }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
 
     await userEvent.click(screen.getByRole('button', { name: /Edit Report B/ }));
     const secondName = (await screen.findByLabelText('Report name')) as HTMLInputElement;
@@ -243,6 +246,9 @@ describe('ReportsClient', () => {
     expect(nameInput.value).toBe('Draft Report');
 
     await userEvent.click(screen.getByRole('button', { name: /Cancel/ }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
 
     await userEvent.click(screen.getByRole('button', { name: /New Report/ }));
     const resetName = (await screen.findByLabelText('Report name')) as HTMLInputElement;

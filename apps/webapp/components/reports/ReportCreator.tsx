@@ -102,13 +102,14 @@ function generateWindows(
   return windows;
 }
 
-export default function ReportCreator({
-  open,
+type ReportFormProps = Omit<ReportCreatorProps, 'open'>;
+
+function ReportForm({
   repository,
   onClose,
   onSave,
   existingReport,
-}: ReportCreatorProps) {
+}: ReportFormProps) {
   const initialSelections: Record<EvaluatableSection, string[]> = {
     pipelines: [],
     'change-requests': [],
@@ -166,25 +167,6 @@ export default function ReportCreator({
     return autoPreview;
   }, [multiWindow, windowInterval, manualWindows, autoPreview]);
 
-  const handleClose = () => {
-    setName(defaultReportName());
-    setStartDate('');
-    setEndDate('');
-    setSelections({
-      pipelines: [],
-      'change-requests': [],
-      'source-code': [],
-      architecture: [],
-      sonarqube: [],
-    });
-    setError(null);
-    setMultiWindow(false);
-    setWindowInterval('weekly');
-    setWindowCount(4);
-    setManualWindows([]);
-    onClose();
-  };
-
   const hasSelection = Object.values(selections).some((ids) => ids.length > 0);
 
   const handleSave = async () => {
@@ -230,7 +212,7 @@ export default function ReportCreator({
         endDate.trim() || undefined,
         activeDateWindows,
       );
-      handleClose();
+      onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save report.');
     } finally {
@@ -239,7 +221,7 @@ export default function ReportCreator({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+    <>
       <DialogTitle>{existingReport ? 'Edit Report' : 'New Report'}</DialogTitle>
       <DialogContent>
         <Stack spacing={3} sx={{ mt: 1 }}>
@@ -434,7 +416,7 @@ export default function ReportCreator({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={saving}>
+        <Button onClick={onClose} disabled={saving}>
           Cancel
         </Button>
         <Button
@@ -445,6 +427,26 @@ export default function ReportCreator({
           {saving ? 'Saving...' : existingReport ? 'Update Report' : 'Save Report'}
         </Button>
       </DialogActions>
+    </>
+  );
+}
+
+export default function ReportCreator({
+  open,
+  repository,
+  onClose,
+  onSave,
+  existingReport,
+}: ReportCreatorProps) {
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <ReportForm
+        key={existingReport ? `report-${existingReport.id}` : 'report-new'}
+        repository={repository}
+        onClose={onClose}
+        onSave={onSave}
+        existingReport={existingReport}
+      />
     </Dialog>
   );
 }

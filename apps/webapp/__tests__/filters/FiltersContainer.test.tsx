@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { FiltersProvider } from '@/components/filters/FiltersContext';
 import FiltersContainer from '@/components/filters/FiltersContainer';
 import * as api from '@/server/api';
@@ -125,5 +126,25 @@ describe('FiltersContainer', () => {
   it('renders without crashing', () => {
     render(<FiltersContainerWithProvider />);
     expect(screen.getByText('Filters')).toBeInTheDocument();
+  });
+
+  it('opens a fresh Save Filter dialog each time (no leaked input across opens)', async () => {
+    render(<FiltersContainerWithProvider />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Save Filter' }));
+
+    const nameInput = (await screen.findByLabelText('Filter name')) as HTMLInputElement;
+    await userEvent.clear(nameInput);
+    await userEvent.type(nameInput, 'My Filter');
+    expect(nameInput.value).toBe('My Filter');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Save Filter' }));
+    const reopenedInput = (await screen.findByLabelText('Filter name')) as HTMLInputElement;
+    expect(reopenedInput.value).toBe('');
   });
 });
