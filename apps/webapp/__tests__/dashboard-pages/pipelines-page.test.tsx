@@ -1,12 +1,10 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import PipelinesPage from '@/app/dashboard/pipelines/page';
-import { FiltersProvider } from '@/components/filters/FiltersContext';
-import { LinkBuilderProvider } from '@/components/providers/LinkBuilderContext';
-import { ConfigurationProvider } from '@/components/providers/ConfigurationContext';
 import { pipelineAPI } from '@/server/api';
 import { DashboardConfigurationBuilder } from '../builders/builders';
 import { PipelineDashboardBuilder } from '../builders/api-response/pipeline-dashboard.builder';
+import { renderWithProviders } from '../utils/test-providers';
 
 jest.mock('@/server/api', () => ({
   pipelineAPI: {
@@ -20,18 +18,6 @@ const mockPipeline = pipelineAPI as jest.Mocked<typeof pipelineAPI>;
 const mockConfig = new DashboardConfigurationBuilder()
   .withDeploymentFrequencyTargets([{ pipeline: '.github/workflows/deploy.yml', job: 'deploy' }])
   .build();
-
-function Providers({ children }: { children: React.ReactNode }): React.ReactElement {
-  return (
-    <ConfigurationProvider config={mockConfig}>
-      <FiltersProvider>
-        <LinkBuilderProvider config={mockConfig}>
-          {children}
-        </LinkBuilderProvider>
-      </FiltersProvider>
-    </ConfigurationProvider>
-  );
-}
 
 function makeDashboardResponse() {
   return {
@@ -62,7 +48,7 @@ describe('Pipelines Dashboard - User Journey', () => {
 
   it('renders pipeline health summary and evaluation', async () => {
     const ui = await PipelinesPage({ searchParams: Promise.resolve({}) });
-    render(<Providers>{ui}</Providers>);
+    renderWithProviders(ui, { config: mockConfig });
 
     expect(screen.getByText('Pipeline Health Summary')).toBeInTheDocument();
     expect(screen.getByText('Bottleneck Analysis')).toBeInTheDocument();
@@ -70,7 +56,7 @@ describe('Pipelines Dashboard - User Journey', () => {
 
   it('renders duration and performance metrics', async () => {
     const ui = await PipelinesPage({ searchParams: Promise.resolve({}) });
-    render(<Providers>{ui}</Providers>);
+    renderWithProviders(ui, { config: mockConfig });
 
     expect(screen.getByText('Pipeline Runs Duration')).toBeInTheDocument();
     expect(screen.getByText('Jobs Time')).toBeInTheDocument();
@@ -79,7 +65,7 @@ describe('Pipelines Dashboard - User Journey', () => {
 
   it('renders job rerun and reliability metrics', async () => {
     const ui = await PipelinesPage({ searchParams: Promise.resolve({}) });
-    render(<Providers>{ui}</Providers>);
+    renderWithProviders(ui, { config: mockConfig });
 
     expect(screen.getByText('Job Reruns')).toBeInTheDocument();
   });
@@ -89,7 +75,7 @@ describe('Pipelines Dashboard - User Journey', () => {
     mockPipeline.evaluate.mockRejectedValue(new Error('fail'));
 
     const ui = await PipelinesPage({ searchParams: Promise.resolve({}) });
-    render(<Providers>{ui}</Providers>);
+    renderWithProviders(ui, { config: mockConfig });
 
     expect(screen.getByText('Failed to load pipeline detail data.')).toBeInTheDocument();
   });

@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SortableTable } from '@/components/ui/sortable-table';
+import { renderWithProviders } from './utils/test-providers';
 
 interface TestRow {
   name: string;
@@ -27,7 +28,7 @@ function renderTable(overrides?: {
   getRowKey?: (row: TestRow) => string;
   defaultSort?: { key: string; direction: 'asc' | 'desc' };
 }) {
-  return render(
+  return renderWithProviders(
     <SortableTable
       columns={overrides?.columns ?? defaultColumns}
       rows={overrides?.rows ?? defaultRows}

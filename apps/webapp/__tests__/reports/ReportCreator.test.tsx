@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ReportCreator from '@/components/reports/ReportCreator';
 import * as savedFiltersActions from '@/components/filters/saved-filters-actions';
 import { SavedFilterBuilder, ReportEntryBuilder } from '../builders/builders';
+import { renderWithProviders } from '../utils/test-providers';
 
 jest.mock('@/components/filters/saved-filters-actions');
 
@@ -21,18 +22,18 @@ describe('ReportCreator', () => {
   });
 
   it('renders the dialog when open', () => {
-    render(<ReportCreator {...defaultProps} />);
+    renderWithProviders(<ReportCreator {...defaultProps} />);
     expect(screen.getByRole('dialog')).toBeVisible();
     expect(screen.getByText('New Report')).toBeVisible();
   });
 
   it('does not render when closed', () => {
-    render(<ReportCreator {...defaultProps} open={false} />);
+    renderWithProviders(<ReportCreator {...defaultProps} open={false} />);
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
   it('disables save button when no sections are selected and no name', async () => {
-    render(<ReportCreator {...defaultProps} />);
+    renderWithProviders(<ReportCreator {...defaultProps} />);
 
     const nameInput = screen.getByLabelText('Report name');
     await userEvent.clear(nameInput);
@@ -42,7 +43,7 @@ describe('ReportCreator', () => {
   });
 
   it('disables save when no filter section is selected', async () => {
-    render(<ReportCreator {...defaultProps} />);
+    renderWithProviders(<ReportCreator {...defaultProps} />);
 
     const nameInput = screen.getByLabelText('Report name');
     await userEvent.clear(nameInput);
@@ -53,21 +54,21 @@ describe('ReportCreator', () => {
   });
 
   it('calls onClose when cancel is clicked', async () => {
-    render(<ReportCreator {...defaultProps} />);
+    renderWithProviders(<ReportCreator {...defaultProps} />);
 
     await userEvent.click(screen.getByRole('button', { name: /Cancel/ }));
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
   it('has default report name pre-filled', () => {
-    render(<ReportCreator {...defaultProps} />);
+    renderWithProviders(<ReportCreator {...defaultProps} />);
 
     const input = screen.getByLabelText('Report name') as HTMLInputElement;
     expect(input.value).toBeTruthy();
   });
 
   it('renders five section dropdowns with correct labels', () => {
-    render(<ReportCreator {...defaultProps} />);
+    renderWithProviders(<ReportCreator {...defaultProps} />);
 
     expect(screen.getByLabelText('Pipelines')).toBeVisible();
     expect(screen.getByLabelText('Change Requests')).toBeVisible();
@@ -77,7 +78,7 @@ describe('ReportCreator', () => {
   });
 
   it('renders date range picker', () => {
-    render(<ReportCreator {...defaultProps} />);
+    renderWithProviders(<ReportCreator {...defaultProps} />);
 
     expect(screen.getByLabelText('Date range')).toBeVisible();
   });
@@ -112,7 +113,7 @@ describe('ReportCreator', () => {
     }
 
     it('persists manual window dateWindows even without top-level startDate', async () => {
-      render(<ReportCreator {...defaultProps} onSave={defaultProps.onSave} />);
+      renderWithProviders(<ReportCreator {...defaultProps} onSave={defaultProps.onSave} />);
       await selectPipelinesFilter();
 
       // Enable multi-window
@@ -168,7 +169,7 @@ describe('ReportCreator', () => {
     });
 
     it('shows Edit Report title when editing', () => {
-      render(
+      renderWithProviders(
         <ReportCreator
           {...defaultProps}
           existingReport={existingReport}
@@ -180,7 +181,7 @@ describe('ReportCreator', () => {
     });
 
     it('shows Update Report button text when editing', () => {
-      render(
+      renderWithProviders(
         <ReportCreator
           {...defaultProps}
           existingReport={existingReport}
@@ -192,7 +193,7 @@ describe('ReportCreator', () => {
     });
 
     it('pre-populates the report name', () => {
-      render(
+      renderWithProviders(
         <ReportCreator
           {...defaultProps}
           existingReport={existingReport}
@@ -204,7 +205,7 @@ describe('ReportCreator', () => {
     });
 
     it('pre-populates date overrides', () => {
-      render(
+      renderWithProviders(
         <ReportCreator
           {...defaultProps}
           existingReport={existingReport}
@@ -217,7 +218,7 @@ describe('ReportCreator', () => {
     });
 
     it('pre-populates multi-window config with manual mode', () => {
-      render(
+      renderWithProviders(
         <ReportCreator
           {...defaultProps}
           existingReport={existingReport}

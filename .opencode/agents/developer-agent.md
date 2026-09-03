@@ -97,6 +97,7 @@ architecture, and one-off analysis.
 | `code-reviewer` | `subagent`, edit denied | Reviewing a diff against lint/type/test conventions without making changes. |
 | `docs-writer` | `subagent`, bash denied | Writing/updating `docs/vitepress` pages once the doc content is determined. |
 | `test-writer` | `subagent` | Writing or running Vitest/Jest tests following the `tdd` skill's builder pattern. |
+| `webapp-developer` | `subagent` | Next.js webapp development: React 19, MUI 7, Tailwind CSS 4, Recharts, Jest 30 frontend testing with builder pattern and renderWithProviders(). |
 
 ## Commands
 
@@ -362,6 +363,11 @@ When modifying or adding CI/CD workflows:
 
 
 ## Webapp (Next.js) Development
+
+> **Delegation:** For webapp-specific tasks (component development, page architecture, frontend testing, print support,
+> MUI patterns), delegate to the `webapp-developer` subagent. It has deep expertise in React 19, MUI 7, Tailwind CSS 4,
+> Recharts, and Jest 30 with the builder pattern and `renderWithProviders()`. Use the general developer agent for
+> cross-cutting concerns (REST API endpoints, core package changes, CLI commands) that affect the webapp.
 
 ### Technology
 

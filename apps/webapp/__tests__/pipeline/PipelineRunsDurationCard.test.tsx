@@ -1,10 +1,9 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import PipelineRunsDurationCard from '@/components/charts/pipeline/PipelineRunsDurationCard';
-import { LinkBuilderProvider } from '@/components/providers/LinkBuilderContext';
-import { FiltersProvider } from '@/components/filters/FiltersContext';
 import { defaultFilters } from '@/components/filters/DashboardFilters';
 import { DashboardConfigurationBuilder } from '../builders/builders';
+import { renderWithProviders } from '../utils/test-providers';
 
 const configuration = new DashboardConfigurationBuilder()
   .withGithubRepository('acme/widgets')
@@ -14,32 +13,32 @@ const configuration = new DashboardConfigurationBuilder()
 
 describe('PipelineRunsDurationCard', () => {
   it('keeps the workflow link and links the average duration to workflow metrics', () => {
-    render(
-      <FiltersProvider initialFilters={{ ...defaultFilters, startDate: '2026-01-01', endDate: '2026-01-31' }}>
-        <LinkBuilderProvider config={configuration}>
-          <PipelineRunsDurationCard
-            dataByAggregation={{
-              avg: [
-                {
-                  workflow: '.github/workflows/ci.yml',
-                  value: 5,
-                  value_formatted: '5 min',
-                  method: 'average',
-                  min_duration: 3,
-                  min_duration_formatted: '3 min',
-                  max_duration: 8,
-                  max_duration_formatted: '8 min',
-                  total_runs: 10,
-                },
-              ],
-              min: [],
-              max: [],
-            }}
-            runsByDay={[]}
-            jobsDurationByWorkflow={[]}
-          />
-        </LinkBuilderProvider>
-      </FiltersProvider>
+    renderWithProviders(
+      <PipelineRunsDurationCard
+        dataByAggregation={{
+          avg: [
+            {
+              workflow: '.github/workflows/ci.yml',
+              value: 5,
+              value_formatted: '5 min',
+              method: 'average',
+              min_duration: 3,
+              min_duration_formatted: '3 min',
+              max_duration: 8,
+              max_duration_formatted: '8 min',
+              total_runs: 10,
+            },
+          ],
+          min: [],
+          max: [],
+        }}
+        runsByDay={[]}
+        jobsDurationByWorkflow={[]}
+      />,
+      {
+        config: configuration,
+        initialFilters: { ...defaultFilters, startDate: '2026-01-01', endDate: '2026-01-31' },
+      }
     );
 
     expect(screen.getByRole('link', { name: '.github/workflows/ci.yml' })).toHaveAttribute(

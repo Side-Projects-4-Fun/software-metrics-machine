@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ReportRenderer from '@/components/reports/ReportRenderer';
 import { ReportEntryBuilder, SavedFilterBuilder } from '../builders/builders';
+import { renderWithProviders } from '../utils/test-providers';
 
 jest.mock('@/components/charts/pipeline/PipelineEvaluationCard', () => ({
   __esModule: true,
@@ -31,7 +32,7 @@ const defaultProps = {
 
 describe('ReportRenderer', () => {
   it('renders report name', () => {
-    render(
+    renderWithProviders(
       <ReportRenderer
         report={new ReportEntryBuilder().withId('r1').withName('Report 42').build()}
         savedFiltersMap={new Map()}
@@ -45,7 +46,7 @@ describe('ReportRenderer', () => {
   });
 
   it('shows "No sections selected" when report has no sections', () => {
-    render(
+    renderWithProviders(
       <ReportRenderer
         report={new ReportEntryBuilder().withId('r1').withName('Empty Report').build()}
         savedFiltersMap={new Map()}
@@ -63,7 +64,7 @@ describe('ReportRenderer', () => {
       ['f1', new SavedFilterBuilder().withId('f1').withName('CI Filter').withSection('pipelines').build()],
     ]);
 
-    render(
+    renderWithProviders(
       <ReportRenderer
         report={
           new ReportEntryBuilder()
@@ -90,7 +91,7 @@ describe('ReportRenderer', () => {
   });
 
   it('shows "filter missing" chip when saved filter reference is broken', () => {
-    render(
+    renderWithProviders(
       <ReportRenderer
         report={
           new ReportEntryBuilder()
@@ -112,7 +113,7 @@ describe('ReportRenderer', () => {
   });
 
   it('shows error message when evaluation fails', () => {
-    render(
+    renderWithProviders(
       <ReportRenderer
         report={
           new ReportEntryBuilder()
@@ -144,7 +145,7 @@ describe('ReportRenderer', () => {
         ['f2', new SavedFilterBuilder().withId('f2').withName('PR Filter').withSection('change-requests').build()],
       ]);
 
-      return render(
+      return renderWithProviders(
         <ReportRenderer
           report={
             new ReportEntryBuilder()
@@ -230,7 +231,7 @@ describe('ReportRenderer', () => {
           .build()],
       ]);
 
-      render(
+      renderWithProviders(
         <ReportRenderer
           report={
             new ReportEntryBuilder()
@@ -255,7 +256,7 @@ describe('ReportRenderer', () => {
     });
 
     it('does not render a dashboard link for sections with missing saved filter', () => {
-      render(
+      renderWithProviders(
         <ReportRenderer
           report={
             new ReportEntryBuilder()
@@ -284,7 +285,7 @@ describe('ReportRenderer', () => {
           .build()],
       ]);
 
-      render(
+      renderWithProviders(
         <ReportRenderer
           report={
             new ReportEntryBuilder()
@@ -312,7 +313,7 @@ describe('ReportRenderer', () => {
           .build()],
       ]);
 
-      render(
+      renderWithProviders(
         <ReportRenderer
           report={
             new ReportEntryBuilder()
@@ -343,7 +344,7 @@ describe('ReportRenderer', () => {
           .build()],
       ]);
 
-      render(
+      renderWithProviders(
         <ReportRenderer
           report={
             new ReportEntryBuilder()

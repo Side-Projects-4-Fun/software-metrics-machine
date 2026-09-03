@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ReportsClient from '@/components/reports/ReportsClient';
 import * as savedFiltersActions from '@/components/filters/saved-filters-actions';
 import { ReportEntryBuilder } from '../builders/builders';
+import { renderWithProviders } from '../utils/test-providers';
 
 jest.mock('@/components/filters/saved-filters-actions');
 
@@ -17,7 +18,7 @@ describe('ReportsClient', () => {
   });
 
   it('renders empty state when no reports exist', () => {
-    render(
+    renderWithProviders(
       <ReportsClient
         resolvedReports={[]}
         repository="owner/repo"
@@ -34,7 +35,7 @@ describe('ReportsClient', () => {
   });
 
   it('renders resolved reports as a list with links to detail pages', () => {
-    render(
+    renderWithProviders(
       <ReportsClient
         resolvedReports={[
           { report: new ReportEntryBuilder().withId('r1').withName('Report 42').build(), windows: [] },
@@ -53,7 +54,7 @@ describe('ReportsClient', () => {
   });
 
   it('shows section count and creation date for each report', () => {
-    render(
+    renderWithProviders(
       <ReportsClient
         resolvedReports={[
           {
@@ -76,7 +77,7 @@ describe('ReportsClient', () => {
   });
 
   it('opens create dialog when New Report is clicked', async () => {
-    render(
+    renderWithProviders(
       <ReportsClient
         resolvedReports={[]}
         repository="owner/repo"
@@ -94,7 +95,7 @@ describe('ReportsClient', () => {
   it('deletes a report when delete button is clicked and confirmed', async () => {
     window.confirm = jest.fn(() => true);
 
-    render(
+    renderWithProviders(
       <ReportsClient
         resolvedReports={[
           { report: new ReportEntryBuilder().withId('r1').withName('Report 42').build(), windows: [] },
@@ -112,7 +113,7 @@ describe('ReportsClient', () => {
   });
 
   it('shows edit icon for each report and opens edit dialog', async () => {
-    render(
+    renderWithProviders(
       <ReportsClient
         resolvedReports={[
           { report: new ReportEntryBuilder().withId('r1').withName('Report 42').build(), windows: [] },
@@ -135,7 +136,7 @@ describe('ReportsClient', () => {
   });
 
   it('renders a duplicate icon to the left of the edit icon for each report', () => {
-    render(
+    renderWithProviders(
       <ReportsClient
         resolvedReports={[
           { report: new ReportEntryBuilder().withId('r1').withName('Report 42').build(), windows: [] },
@@ -163,7 +164,7 @@ describe('ReportsClient', () => {
       .withName('Report 42')
       .build();
 
-    render(
+    renderWithProviders(
       <ReportsClient
         resolvedReports={[
           { report: existingReport, windows: [] },
@@ -189,7 +190,7 @@ describe('ReportsClient', () => {
       .withEndDateOverride('2026-06-30')
       .build();
 
-    render(
+    renderWithProviders(
       <ReportsClient
         resolvedReports={[{ report: existingReport, windows: [] }]}
         repository="owner/repo"
@@ -210,7 +211,7 @@ describe('ReportsClient', () => {
     const reportA = new ReportEntryBuilder().withId('r1').withName('Report A').build();
     const reportB = new ReportEntryBuilder().withId('r2').withName('Report B').build();
 
-    render(
+    renderWithProviders(
       <ReportsClient
         resolvedReports={[
           { report: reportA, windows: [] },
@@ -235,7 +236,7 @@ describe('ReportsClient', () => {
   });
 
   it('does not leak typed input into a new report after cancel', async () => {
-    render(
+    renderWithProviders(
       <ReportsClient resolvedReports={[]} repository="owner/repo" />,
     );
 

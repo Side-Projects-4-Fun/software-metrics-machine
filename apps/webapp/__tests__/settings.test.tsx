@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SettingsPage from '@/app/dashboard/settings/page';
+import { renderWithProviders } from './utils/test-providers';
 
 function getWebappSettingsCookie() {
   const value = document.cookie
@@ -19,7 +20,7 @@ describe('SettingsPage', () => {
   it('loads the REST API cache toggle from the JSON settings cookie', async () => {
     document.cookie = `smm_webapp_settings=${encodeURIComponent(JSON.stringify({ fetchCache: true }))}; path=/`;
 
-    render(<SettingsPage />);
+    renderWithProviders(<SettingsPage />);
 
     await waitFor(() => {
       expect(screen.getByRole('switch', { name: 'toggle REST API cache' })).toBeChecked();
@@ -27,7 +28,7 @@ describe('SettingsPage', () => {
   });
 
   it('writes the REST API cache setting into the JSON settings cookie', async () => {
-    render(<SettingsPage />);
+    renderWithProviders(<SettingsPage />);
 
     const toggle = await screen.findByRole('switch', { name: 'toggle REST API cache' });
     await userEvent.click(toggle);

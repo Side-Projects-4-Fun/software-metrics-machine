@@ -1,13 +1,11 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import SourceCodePage from '@/app/dashboard/source-code/page';
-import { FiltersProvider } from '@/components/filters/FiltersContext';
-import { LinkBuilderProvider } from '@/components/providers/LinkBuilderContext';
-import { ConfigurationProvider } from '@/components/providers/ConfigurationContext';
 import { sourceCodeAPI, sonarqubeAPI } from '@/server/api';
 import { DashboardConfigurationBuilder } from '../builders/builders';
 import { CodeEvaluationBuilder } from '../builders/api-response/code-evaluation.builder';
 import { PairingIndexBuilder } from '../builders/api-response/pairing-index.builder';
+import { renderWithProviders } from '../utils/test-providers';
 
 jest.mock('@/server/api', () => ({
   sourceCodeAPI: {
@@ -30,18 +28,6 @@ const mockSourceCode = sourceCodeAPI as jest.Mocked<typeof sourceCodeAPI>;
 const mockSonarqube = sonarqubeAPI as jest.Mocked<typeof sonarqubeAPI>;
 
 const mockConfig = new DashboardConfigurationBuilder().build();
-
-function Providers({ children }: { children: React.ReactNode }): React.ReactElement {
-  return (
-    <ConfigurationProvider config={mockConfig}>
-      <FiltersProvider>
-        <LinkBuilderProvider config={mockConfig}>
-          {children}
-        </LinkBuilderProvider>
-      </FiltersProvider>
-    </ConfigurationProvider>
-  );
-}
 
 function setupMockApiResponse() {
   mockSourceCode.evaluate.mockResolvedValue(
@@ -78,7 +64,7 @@ describe('Source Code Dashboard - User Journey', () => {
 
   it('renders code health evaluation section', async () => {
     const ui = await SourceCodePage({ searchParams: Promise.resolve({}) });
-    render(<Providers>{ui}</Providers>);
+    renderWithProviders(ui, { config: mockConfig });
 
     expect(screen.getByText('Code Health Summary')).toBeInTheDocument();
     expect(screen.getByText('Code Quality Signals')).toBeInTheDocument();
@@ -86,7 +72,7 @@ describe('Source Code Dashboard - User Journey', () => {
 
   it('renders all metric card sections with data', async () => {
     const ui = await SourceCodePage({ searchParams: Promise.resolve({}) });
-    render(<Providers>{ui}</Providers>);
+    renderWithProviders(ui, { config: mockConfig });
 
     expect(screen.getByText('Code Churn Over Time')).toBeInTheDocument();
     expect(screen.getByText('Code Coupling (Top 20)')).toBeInTheDocument();
@@ -113,7 +99,7 @@ describe('Source Code Dashboard - User Journey', () => {
     mockSonarqube.componentTree.mockResolvedValue([]);
 
     const ui = await SourceCodePage({ searchParams: Promise.resolve({}) });
-    render(<Providers>{ui}</Providers>);
+    renderWithProviders(ui, { config: mockConfig });
 
     expect(screen.getByText('Code Churn Over Time')).toBeInTheDocument();
   });

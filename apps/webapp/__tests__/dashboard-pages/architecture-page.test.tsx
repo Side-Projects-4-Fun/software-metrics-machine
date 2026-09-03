@@ -1,9 +1,9 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import ArchitecturePage from '@/app/dashboard/architecture/page';
 import { architectureAPI } from '@/server/api/architecture';
 import type { ArchitectureSummary, ArchitectureView, ArchitectureEvaluation } from '@/server/api/architecture';
-import { FiltersProvider } from '@/components/filters/FiltersContext';
+import { renderWithProviders } from '../utils/test-providers';
 
 jest.mock('next/link', () => {
   const MockLink = ({ children, href }: { children: React.ReactNode; href: string }) =>
@@ -76,7 +76,7 @@ describe('Architecture Dashboard - User Journey', () => {
 
   it('shows snapshot metadata when data is loaded', async () => {
     const ui = await ArchitecturePage({ searchParams: Promise.resolve({}) });
-    render(<FiltersProvider>{ui}</FiltersProvider>);
+    renderWithProviders(ui);
 
     expect(screen.getByText('Architecture Snapshot')).toBeInTheDocument();
     expect(screen.getByText('snapshot-1')).toBeInTheDocument();
@@ -86,7 +86,7 @@ describe('Architecture Dashboard - User Journey', () => {
 
   it('renders the view title and diagram', async () => {
     const ui = await ArchitecturePage({ searchParams: Promise.resolve({}) });
-    render(<FiltersProvider>{ui}</FiltersProvider>);
+    renderWithProviders(ui);
 
     expect(screen.getAllByText('Containers')).toHaveLength(2);
     expect(screen.getByText('Mermaid C4 Diagram')).toBeInTheDocument();
@@ -95,14 +95,14 @@ describe('Architecture Dashboard - User Journey', () => {
 
   it('renders evaluation card when evaluation data is available', async () => {
     const ui = await ArchitecturePage({ searchParams: Promise.resolve({}) });
-    render(<FiltersProvider>{ui}</FiltersProvider>);
+    renderWithProviders(ui);
 
     expect(screen.getByText('Architecture Health Summary')).toBeInTheDocument();
   });
 
   it('renders elements list from view nodes', async () => {
     const ui = await ArchitecturePage({ searchParams: Promise.resolve({}) });
-    render(<FiltersProvider>{ui}</FiltersProvider>);
+    renderWithProviders(ui);
 
     expect(screen.getByText('Elements')).toBeInTheDocument();
     expect(screen.getByText('Web App')).toBeInTheDocument();
@@ -112,7 +112,7 @@ describe('Architecture Dashboard - User Journey', () => {
 
   it('renders relationships list from view edges', async () => {
     const ui = await ArchitecturePage({ searchParams: Promise.resolve({}) });
-    render(<FiltersProvider>{ui}</FiltersProvider>);
+    renderWithProviders(ui);
 
     expect(screen.getByText('Relationships')).toBeInTheDocument();
     expect(screen.getByText('Confidence: 95%')).toBeInTheDocument();
@@ -120,7 +120,7 @@ describe('Architecture Dashboard - User Journey', () => {
 
   it('renders architecture level tabs', async () => {
     const ui = await ArchitecturePage({ searchParams: Promise.resolve({}) });
-    render(<FiltersProvider>{ui}</FiltersProvider>);
+    renderWithProviders(ui);
 
     expect(screen.getByText('CONTEXT')).toBeInTheDocument();
     expect(screen.getByText('CONTAINER')).toBeInTheDocument();
@@ -131,7 +131,7 @@ describe('Architecture Dashboard - User Journey', () => {
     mockArchitectureAPI.view.mockResolvedValue({ result: null });
 
     const ui = await ArchitecturePage({ searchParams: Promise.resolve({}) });
-    render(<FiltersProvider>{ui}</FiltersProvider>);
+    renderWithProviders(ui);
 
     expect(screen.getByText('No architecture snapshot available')).toBeInTheDocument();
     expect(screen.getByText(/Run CLI generation first/)).toBeInTheDocument();
@@ -141,7 +141,7 @@ describe('Architecture Dashboard - User Journey', () => {
     mockArchitectureAPI.evaluate.mockResolvedValue(null);
 
     const ui = await ArchitecturePage({ searchParams: Promise.resolve({}) });
-    render(<FiltersProvider>{ui}</FiltersProvider>);
+    renderWithProviders(ui);
 
     expect(screen.queryByText('Architecture Health Summary')).not.toBeInTheDocument();
   });
@@ -151,7 +151,7 @@ describe('Architecture Dashboard - User Journey', () => {
     mockArchitectureAPI.view.mockResolvedValue({ result: contextView });
 
     const ui = await ArchitecturePage({ searchParams: Promise.resolve({ level: 'context' }) });
-    render(<FiltersProvider>{ui}</FiltersProvider>);
+    renderWithProviders(ui);
 
     expect(screen.getByText('System Context')).toBeInTheDocument();
   });

@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import ReportsPage from '@/app/reports/page';
-import { FiltersProvider } from '@/components/filters/FiltersContext';
+import { renderWithProviders } from '../utils/test-providers';
 
 jest.mock('@/app/reports/shared', () => ({
   fetchSavedFiltersDocument: jest.fn(),
@@ -42,7 +42,7 @@ describe('Reports Page - User Journey', () => {
     ]);
 
     const ui = await ReportsPage();
-    render(<FiltersProvider>{ui}</FiltersProvider>);
+    renderWithProviders(ui);
 
     expect(screen.getByText('Sprint Review')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /New Report/ })).toBeInTheDocument();
@@ -53,7 +53,7 @@ describe('Reports Page - User Journey', () => {
     mockResolveReports.mockResolvedValue([]);
 
     const ui = await ReportsPage();
-    render(<FiltersProvider>{ui}</FiltersProvider>);
+    renderWithProviders(ui);
 
     expect(screen.getByRole('button', { name: /New Report/ })).toBeInTheDocument();
   });

@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import OutliersCard, { MetricOutlierRow } from '@/components/charts/OutliersCard';
-import { LinkBuilderProvider } from '@/components/providers/LinkBuilderContext';
 import { DashboardConfigurationBuilder } from './builders/builders';
+import { renderWithProviders } from './utils/test-providers';
 
 const configuration = new DashboardConfigurationBuilder()
   .withGithubRepository('acme/widgets')
@@ -13,11 +13,7 @@ const configuration = new DashboardConfigurationBuilder()
   .build();
 
 function renderOutliers(rows: MetricOutlierRow[]) {
-  return render(
-    <LinkBuilderProvider config={configuration}>
-      <OutliersCard rows={rows} />
-    </LinkBuilderProvider>
-  );
+  return renderWithProviders(<OutliersCard rows={rows} />, { config: configuration });
 }
 
 function makeRows(count: number): MetricOutlierRow[] {

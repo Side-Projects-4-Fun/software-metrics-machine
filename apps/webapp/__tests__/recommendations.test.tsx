@@ -1,8 +1,8 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { Recommendations } from '@/components/charts/Recommendations';
-import { FiltersProvider } from '@/components/filters/FiltersContext';
 import type { RecommendationsProps } from '@/components/charts/recommendations-types';
+import { renderWithProviders } from './utils/test-providers';
 
 // Mock MUI icons to avoid SVG issues in jsdom
 jest.mock('@mui/icons-material/Link', () => {
@@ -33,10 +33,6 @@ const defaultProps: RecommendationsProps = {
   jobsSummary: [],
   reviewTime: [],
 };
-
-function renderWithProviders(ui: React.ReactElement) {
-  return render(<FiltersProvider>{ui}</FiltersProvider>);
-}
 
 describe('Recommendations', () => {
   describe('Pairing Index', () => {

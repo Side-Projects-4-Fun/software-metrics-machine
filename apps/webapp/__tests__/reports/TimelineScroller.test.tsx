@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TimelineScroller from '@/components/reports/TimelineScroller';
+import { renderWithProviders } from '../utils/test-providers';
 
 describe('TimelineScroller', () => {
   const makeWindows = (count: number) =>
@@ -12,7 +13,7 @@ describe('TimelineScroller', () => {
 
   it('renders all windows as buttons', () => {
     const windows = makeWindows(3);
-    render(
+    renderWithProviders(
       <TimelineScroller windows={windows} activeIndex={0} onSelect={jest.fn()} />,
     );
 
@@ -23,7 +24,7 @@ describe('TimelineScroller', () => {
 
   it('highlights the active window', () => {
     const windows = makeWindows(3);
-    render(
+    renderWithProviders(
       <TimelineScroller windows={windows} activeIndex={1} onSelect={jest.fn()} />,
     );
 
@@ -35,7 +36,7 @@ describe('TimelineScroller', () => {
   it('calls onSelect with the clicked index', async () => {
     const onSelect = jest.fn();
     const windows = makeWindows(3);
-    render(
+    renderWithProviders(
       <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
     );
 
@@ -45,7 +46,7 @@ describe('TimelineScroller', () => {
 
   it('shows date range below label when dates are present', () => {
     const windows = makeWindows(1);
-    render(
+    renderWithProviders(
       <TimelineScroller windows={windows} activeIndex={0} onSelect={jest.fn()} />,
     );
 
@@ -54,7 +55,7 @@ describe('TimelineScroller', () => {
   });
 
   it('shows "Default" for null windows', () => {
-    render(
+    renderWithProviders(
       <TimelineScroller
         windows={[null]}
         activeIndex={0}
@@ -69,7 +70,7 @@ describe('TimelineScroller', () => {
     it('moves to next window on ArrowRight', async () => {
       const onSelect = jest.fn();
       const windows = makeWindows(3);
-      render(
+      renderWithProviders(
         <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
       );
 
@@ -82,7 +83,7 @@ describe('TimelineScroller', () => {
     it('moves to previous window on ArrowLeft', async () => {
       const onSelect = jest.fn();
       const windows = makeWindows(3);
-      render(
+      renderWithProviders(
         <TimelineScroller windows={windows} activeIndex={1} onSelect={onSelect} />,
       );
 
@@ -95,7 +96,7 @@ describe('TimelineScroller', () => {
     it('does nothing on ArrowRight when at last window', async () => {
       const onSelect = jest.fn();
       const windows = makeWindows(3);
-      render(
+      renderWithProviders(
         <TimelineScroller windows={windows} activeIndex={2} onSelect={onSelect} />,
       );
 
@@ -108,7 +109,7 @@ describe('TimelineScroller', () => {
     it('does nothing on ArrowLeft when at first window', async () => {
       const onSelect = jest.fn();
       const windows = makeWindows(3);
-      render(
+      renderWithProviders(
         <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
       );
 
@@ -121,7 +122,7 @@ describe('TimelineScroller', () => {
     it('ignores other keys', async () => {
       const onSelect = jest.fn();
       const windows = makeWindows(3);
-      render(
+      renderWithProviders(
         <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
       );
 
@@ -135,7 +136,7 @@ describe('TimelineScroller', () => {
     it('moves focus to the next window button after ArrowRight', async () => {
       const onSelect = jest.fn();
       const windows = makeWindows(3);
-      const { rerender } = render(
+      const { rerender } = renderWithProviders(
         <TimelineScroller windows={windows} activeIndex={0} onSelect={onSelect} />,
       );
 
@@ -154,7 +155,7 @@ describe('TimelineScroller', () => {
     it('moves focus to the previous window button after ArrowLeft', async () => {
       const onSelect = jest.fn();
       const windows = makeWindows(3);
-      const { rerender } = render(
+      const { rerender } = renderWithProviders(
         <TimelineScroller windows={windows} activeIndex={1} onSelect={onSelect} />,
       );
 

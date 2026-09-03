@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BigOAnalysisCard } from '@/components/charts/source-code/BigOAnalysisCard';
 import type { BigOFileSummary } from '@/server/api/sourceCode';
+import { renderWithProviders } from '../utils/test-providers';
 
 const files: BigOFileSummary[] = [
   {
@@ -38,7 +39,7 @@ describe('BigOAnalysisCard', () => {
   });
 
   it('sorts files by score descending on initial render', () => {
-    render(<BigOAnalysisCard files={files} search="" />);
+    renderWithProviders(<BigOAnalysisCard files={files} search="" />);
 
     expect(dataRows()[0]).toHaveTextContent('high.ts');
     expect(dataRows()[1]).toHaveTextContent('medium.ts');
@@ -46,7 +47,7 @@ describe('BigOAnalysisCard', () => {
   });
 
   it('shows Big O notation references from the info icon', async () => {
-    render(<BigOAnalysisCard files={files} search="" />);
+    renderWithProviders(<BigOAnalysisCard files={files} search="" />);
 
     await userEvent.click(screen.getByText('i'));
 
@@ -70,7 +71,7 @@ describe('BigOAnalysisCard', () => {
       value: fetchMock,
     });
 
-    render(<BigOAnalysisCard files={files} search="" />);
+    renderWithProviders(<BigOAnalysisCard files={files} search="" />);
 
     await userEvent.click(screen.getByRole('button', { name: /score/i }));
 

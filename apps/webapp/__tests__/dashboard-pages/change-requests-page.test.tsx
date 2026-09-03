@@ -1,13 +1,11 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import ChangeRequestsPage from '@/app/dashboard/change-requests/page';
-import { FiltersProvider } from '@/components/filters/FiltersContext';
-import { LinkBuilderProvider } from '@/components/providers/LinkBuilderContext';
-import { ConfigurationProvider } from '@/components/providers/ConfigurationContext';
 import { changeRequestAPI } from '@/server/api';
 import { DashboardConfigurationBuilder } from '../builders/builders';
 import { ChangeRequestSummaryBuilder } from '../builders/api-response/change-request-summary.builder';
 import { ChangeRequestEvaluationBuilder } from '../builders/api-response/change-request-evaluation.builder';
+import { renderWithProviders } from '../utils/test-providers';
 
 jest.mock('@/server/api', () => ({
   changeRequestAPI: {
@@ -26,18 +24,6 @@ jest.mock('@/server/api', () => ({
 const mockChangeRequestAPI = changeRequestAPI as jest.Mocked<typeof changeRequestAPI>;
 
 const mockConfig = new DashboardConfigurationBuilder().build();
-
-function Providers({ children }: { children: React.ReactNode }): React.ReactElement {
-  return (
-    <ConfigurationProvider config={mockConfig}>
-      <FiltersProvider>
-        <LinkBuilderProvider config={mockConfig}>
-          {children}
-        </LinkBuilderProvider>
-      </FiltersProvider>
-    </ConfigurationProvider>
-  );
-}
 
 function setupMockApiResponse() {
   mockChangeRequestAPI.byAuthor.mockResolvedValue([{ author: 'alice', count: 12 }, { author: 'bob', count: 8 }]);
@@ -71,7 +57,7 @@ describe('Change Requests Dashboard - User Journey', () => {
 
   it('renders the full dashboard with data-driven cards', async () => {
     const ui = await ChangeRequestsPage({ searchParams: Promise.resolve({}) });
-    render(<Providers>{ui}</Providers>);
+    renderWithProviders(ui, { config: mockConfig });
 
     expect(screen.getByText('Detail View')).toBeInTheDocument();
     expect(screen.getByText('Change Request Health Summary')).toBeInTheDocument();
@@ -104,7 +90,7 @@ describe('Change Requests Dashboard - User Journey', () => {
     mockChangeRequestAPI.evaluate.mockRejectedValue(new Error('fail'));
 
     const ui = await ChangeRequestsPage({ searchParams: Promise.resolve({}) });
-    render(<Providers>{ui}</Providers>);
+    renderWithProviders(ui, { config: mockConfig });
 
     expect(screen.getByText('Failed to load change request detail data.')).toBeInTheDocument();
   });

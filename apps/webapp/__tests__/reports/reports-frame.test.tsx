@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import ReportsFrame from '@/app/reports/reports-frame';
+import { renderWithProviders } from '../utils/test-providers';
 
 jest.mock('@/components/ThemeToggle', () => ({
   ThemeToggle: () => <div data-testid="theme-toggle">Theme Toggle</div>,
@@ -12,7 +13,7 @@ describe('ReportsFrame', () => {
   it('shows "Home" link when on reports list page', () => {
     mockUsePathname.mockReturnValue('/reports');
 
-    render(
+    renderWithProviders(
       <ReportsFrame>
         <div>Test Content</div>
       </ReportsFrame>,
@@ -26,7 +27,7 @@ describe('ReportsFrame', () => {
   it('shows "Back to Reports" link when on report detail page', () => {
     mockUsePathname.mockReturnValue('/reports/abc123');
 
-    render(
+    renderWithProviders(
       <ReportsFrame>
         <div>Test Content</div>
       </ReportsFrame>,
@@ -40,7 +41,7 @@ describe('ReportsFrame', () => {
   it('shows "Back to Reports" link for any report detail path', () => {
     mockUsePathname.mockReturnValue('/reports/some-report-id');
 
-    render(
+    renderWithProviders(
       <ReportsFrame>
         <div>Test Content</div>
       </ReportsFrame>,
@@ -54,7 +55,7 @@ describe('ReportsFrame', () => {
   it('renders children content', () => {
     mockUsePathname.mockReturnValue('/reports');
 
-    render(
+    renderWithProviders(
       <ReportsFrame>
         <div data-testid="child-content">Child Content</div>
       </ReportsFrame>,
@@ -66,7 +67,7 @@ describe('ReportsFrame', () => {
   it('renders the app title link', () => {
     mockUsePathname.mockReturnValue('/reports');
 
-    render(
+    renderWithProviders(
       <ReportsFrame>
         <div>Test Content</div>
       </ReportsFrame>,

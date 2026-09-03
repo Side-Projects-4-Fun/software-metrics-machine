@@ -1,26 +1,22 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SavedFiltersOverview from '@/components/home/SavedFiltersOverview';
-import { ProjectsProvider } from '@/components/providers/ProjectsContext';
 import * as api from '@/server/api';
 import { SavedFilterBuilder } from '../builders/builders';
+import { renderWithProviders } from '../utils/test-providers';
 
 jest.mock('@/server/api');
 
 const mockFetchAPI = api.fetchAPI as jest.Mock;
 
 function renderSavedFiltersOverview() {
-  return render(
-    <ProjectsProvider
-      projects={[
-        { github_repository: 'owner/repo-a' },
-        { github_repository: 'owner/repo-b' },
-      ]}
-      initialActiveProject="owner/repo-a"
-    >
-      <SavedFiltersOverview />
-    </ProjectsProvider>,
-  );
+  return renderWithProviders(<SavedFiltersOverview />, {
+    projects: [
+      { github_repository: 'owner/repo-a' },
+      { github_repository: 'owner/repo-b' },
+    ],
+    initialActiveProject: 'owner/repo-a',
+  });
 }
 
 describe('SavedFiltersOverview', () => {

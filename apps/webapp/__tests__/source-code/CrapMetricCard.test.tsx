@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import CrapMetricCard from '@/components/charts/source-code/CrapMetricCard';
 import { calculateCrapScore, toCrapRisk } from '@/components/charts/source-code/crap-metric';
 import type { CrapMetricData } from '@/components/charts/source-code/types';
+import { renderWithProviders } from '../utils/test-providers';
 
 const data: CrapMetricData[] = [
   {
@@ -44,7 +45,7 @@ describe('CrapMetricCard', () => {
   });
 
   it('sorts files by highest CRAP score first', () => {
-    render(<CrapMetricCard data={data} topEntries={3} />);
+    renderWithProviders(<CrapMetricCard data={data} topEntries={3} />);
 
     expect(dataRows()[0]).toHaveTextContent('risky.ts');
     expect(dataRows()[1]).toHaveTextContent('watch.ts');
@@ -52,7 +53,7 @@ describe('CrapMetricCard', () => {
   });
 
   it('shows the empty SonarQube state when no file measures exist', () => {
-    render(<CrapMetricCard data={[]} topEntries={10} />);
+    renderWithProviders(<CrapMetricCard data={[]} topEntries={10} />);
 
     expect(screen.getByText('No SonarQube file measures are available for CRAP yet.')).toBeInTheDocument();
   });

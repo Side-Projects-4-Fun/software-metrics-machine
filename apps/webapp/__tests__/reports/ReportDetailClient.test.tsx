@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ReportDetailClient from '@/components/reports/ReportDetailClient';
 import type { ResolvedReport } from '@/app/reports/shared';
 import { ReportEntryBuilder, SavedFilterBuilder } from '../builders/builders';
+import { renderWithProviders } from '../utils/test-providers';
 
 jest.mock('@/components/charts/pipeline/PipelineEvaluationCard', () => ({
   __esModule: true,
@@ -46,7 +47,7 @@ function buildResolved(overrides: Partial<ResolvedReport> = {}): ResolvedReport 
 
 describe('ReportDetailClient', () => {
   it('renders the report name', () => {
-    render(
+    renderWithProviders(
       <ReportDetailClient
         resolved={buildResolved()}
         savedFiltersMap={new Map()}
@@ -57,7 +58,7 @@ describe('ReportDetailClient', () => {
   });
 
   it('renders timeline when multiple windows exist', () => {
-    render(
+    renderWithProviders(
       <ReportDetailClient
         resolved={buildResolved()}
         savedFiltersMap={new Map()}
@@ -72,7 +73,7 @@ describe('ReportDetailClient', () => {
     const single = buildResolved();
     single.windows = single.windows.slice(0, 1);
 
-    render(
+    renderWithProviders(
       <ReportDetailClient
         resolved={single}
         savedFiltersMap={new Map()}
@@ -95,7 +96,7 @@ describe('ReportDetailClient', () => {
       ['f1', new SavedFilterBuilder().withId('f1').withName('CI Filter').withSection('pipelines').build()],
     ]);
 
-    render(
+    renderWithProviders(
       <ReportDetailClient
         resolved={resolved}
         savedFiltersMap={savedFiltersMap}
@@ -108,7 +109,7 @@ describe('ReportDetailClient', () => {
   });
 
   it('shows window label in the report header when multiple windows', () => {
-    render(
+    renderWithProviders(
       <ReportDetailClient
         resolved={buildResolved()}
         savedFiltersMap={new Map()}
@@ -120,7 +121,7 @@ describe('ReportDetailClient', () => {
   });
 
   it('returns null when windows array is empty', () => {
-    const { container } = render(
+    const { container } = renderWithProviders(
       <ReportDetailClient
         resolved={{ ...buildResolved(), windows: [] }}
         savedFiltersMap={new Map()}

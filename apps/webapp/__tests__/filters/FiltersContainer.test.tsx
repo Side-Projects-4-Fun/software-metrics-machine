@@ -1,10 +1,10 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { FiltersProvider } from '@/components/filters/FiltersContext';
 import FiltersContainer from '@/components/filters/FiltersContainer';
 import * as api from '@/server/api';
 import { DashboardFiltersBuilder } from '../builders/builders';
+import { renderWithProviders } from '../utils/test-providers';
 
 const navigation = jest.requireMock('next/navigation');
 
@@ -14,12 +14,6 @@ const mockPipelineAPI = api.pipelineAPI as jest.Mocked<typeof api.pipelineAPI>;
 const mockChangeRequestAPI = api.changeRequestAPI as jest.Mocked<typeof api.changeRequestAPI>;
 const mockSourceCodeAPI = api.sourceCodeAPI as jest.Mocked<typeof api.sourceCodeAPI>;
 const mockFetchAPI = api.fetchAPI as jest.Mock;
-
-const FiltersContainerWithProvider = () => (
-  <FiltersProvider>
-    <FiltersContainer repository="test/repository" />
-  </FiltersProvider>
-);
 
 describe('FiltersContainer', () => {
   beforeEach(() => {
@@ -73,7 +67,7 @@ describe('FiltersContainer', () => {
     navigation.usePathname.mockReturnValue('/dashboard/insights');
     navigation.useSearchParams.mockReturnValue(new URLSearchParams('startDate=2024-01-01&workflowStatus=completed'));
 
-    render(<FiltersContainerWithProvider />);
+    renderWithProviders(<FiltersContainer repository="test/repository" />);
 
     await waitFor(() => {
       expect(screen.getByLabelText('Saved Filters')).toHaveValue('Last Completed Pipelines');
@@ -109,7 +103,7 @@ describe('FiltersContainer', () => {
       new URLSearchParams('startDate=2024-01-01&workflowStatus=completed&authorSelect=alice')
     );
 
-    render(<FiltersContainerWithProvider />);
+    renderWithProviders(<FiltersContainer repository="test/repository" />);
 
     await waitFor(() => {
       expect(screen.getByLabelText('Saved Filters')).toHaveValue('Pipelines Baseline');
@@ -117,19 +111,19 @@ describe('FiltersContainer', () => {
   });
 
   it('renders filters section', () => {
-    render(<FiltersContainerWithProvider />);
+    renderWithProviders(<FiltersContainer repository="test/repository" />);
     expect(screen.getByText('Filters')).toBeInTheDocument();
     expect(screen.getByLabelText('Saved Filters')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Save Filter' })).toBeEnabled();
   });
 
   it('renders without crashing', () => {
-    render(<FiltersContainerWithProvider />);
+    renderWithProviders(<FiltersContainer repository="test/repository" />);
     expect(screen.getByText('Filters')).toBeInTheDocument();
   });
 
   it('opens a fresh Save Filter dialog each time (no leaked input across opens)', async () => {
-    render(<FiltersContainerWithProvider />);
+    renderWithProviders(<FiltersContainer repository="test/repository" />);
 
     await userEvent.click(screen.getByRole('button', { name: 'Save Filter' }));
 

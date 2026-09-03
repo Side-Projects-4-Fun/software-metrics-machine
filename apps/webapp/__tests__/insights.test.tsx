@@ -1,8 +1,9 @@
 import React from "react";
-import { render, renderHook, screen } from "@testing-library/react";
+import { renderHook, screen } from "@testing-library/react";
 import InsightsSection from "@/app/dashboard/insights/page";
 import { FiltersProvider, useFilters } from "@/components/filters/FiltersContext";
 import { pipelineAPI, changeRequestAPI, sourceCodeAPI } from "@/server/api";
+import { renderWithProviders } from './utils/test-providers';
 
 jest.mock('@/server/api', () => ({
   sourceCodeAPI: {
@@ -117,7 +118,7 @@ describe('Insights context', () => {
     } as never);
 
     const ui = await InsightsSection({ searchParams: Promise.resolve({}) });
-    render(<FiltersProvider>{ui}</FiltersProvider>);
+    renderWithProviders(ui);
 
     expect(screen.getByText('Improve Pipeline Reliability')).toBeInTheDocument();
     expect(screen.getByText('Reduce Pipeline Reruns')).toBeInTheDocument();
@@ -143,7 +144,7 @@ describe('Insights context', () => {
     } as never);
 
     const ui = await InsightsSection({ searchParams: Promise.resolve({}) });
-    render(<FiltersProvider>{ui}</FiltersProvider>);
+    renderWithProviders(ui);
 
     expect(screen.getByText('Data frame: Jan 02, 2026 to Jan 05, 2026')).toBeInTheDocument();
   });

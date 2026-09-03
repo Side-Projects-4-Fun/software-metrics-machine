@@ -1,32 +1,31 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { FiltersProvider } from '@/components/filters/FiltersContext';
 import DateRangePicker, { FilterDateRangePicker } from '@/components/filters/DateRangePicker';
 import { defaultFilters, DashboardFilters } from '@/components/filters/DashboardFilters';
 import dayjs from 'dayjs';
+import { renderWithProviders } from '../utils/test-providers';
 
 const DateRangePickerWithProvider = ({ initialFilters }: { initialFilters?: DashboardFilters }) => (
-  <FiltersProvider initialFilters={initialFilters}>
-    <DateRangePicker />
-  </FiltersProvider>
+  renderWithProviders(<DateRangePicker />, { initialFilters })
 );
 
 const CompareDateRangePickerWithProvider = ({ initialFilters }: { initialFilters?: DashboardFilters }) => (
-  <FiltersProvider initialFilters={initialFilters}>
+  renderWithProviders(
     <FilterDateRangePicker
       label="Compare date range"
       startKey="compareStartDate"
       endKey="compareEndDate"
       startInputLabel="Compare start"
       endInputLabel="Compare end"
-    />
-  </FiltersProvider>
+    />,
+    { initialFilters }
+  )
 );
 
 describe('DateRangePicker', () => {
   it('renders a single date range field', () => {
-    render(<DateRangePickerWithProvider />);
+    DateRangePickerWithProvider({});
 
     expect(screen.getByLabelText('Date range')).toBeInTheDocument();
     expect(screen.queryByLabelText('Start Date')).not.toBeInTheDocument();
@@ -34,12 +33,12 @@ describe('DateRangePicker', () => {
   });
 
   it('renders within provider without errors', () => {
-    render(<DateRangePickerWithProvider />);
+    DateRangePickerWithProvider({});
     expect(screen.getByLabelText('Date range')).toBeInTheDocument();
   });
 
   it('opens range options and applies a preset', async () => {
-    render(<DateRangePickerWithProvider />);
+    DateRangePickerWithProvider({});
 
     await userEvent.click(screen.getByLabelText('Date range'));
     await userEvent.click(screen.getByRole('button', { name: 'Last 7 days' }));
@@ -53,15 +52,13 @@ describe('DateRangePicker', () => {
   });
 
   it('lets users select date and time for a custom range', async () => {
-    render(
-      <DateRangePickerWithProvider
-        initialFilters={{
-          ...defaultFilters,
-          startDate: '2026-01-01',
-          endDate: '2026-01-31',
-        }}
-      />,
-    );
+    DateRangePickerWithProvider({
+      initialFilters: {
+        ...defaultFilters,
+        startDate: '2026-01-01',
+        endDate: '2026-01-31',
+      }
+    });
 
     await userEvent.click(screen.getByLabelText('Date range'));
     await userEvent.click(screen.getByRole('gridcell', { name: '5' }));
@@ -78,15 +75,13 @@ describe('DateRangePicker', () => {
   });
 
   it('supports a reusable compare date range picker', async () => {
-    render(
-      <CompareDateRangePickerWithProvider
-        initialFilters={{
-          ...defaultFilters,
-          compareStartDate: '2026-02-01',
-          compareEndDate: '2026-02-28',
-        }}
-      />,
-    );
+    CompareDateRangePickerWithProvider({
+      initialFilters: {
+        ...defaultFilters,
+        compareStartDate: '2026-02-01',
+        compareEndDate: '2026-02-28',
+      }
+    });
 
     await userEvent.click(screen.getByLabelText('Compare date range'));
     fireEvent.change(screen.getByLabelText('Start date and time'), {

@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import EngineeringHealthPage from '@/app/engineering-health/page';
 import { engineeringHealthAPI } from '@/server/api/engineeringHealth';
 import {
@@ -7,6 +7,7 @@ import {
 import {
   EngineeringHealthEvaluationBuilder,
 } from './builders/api-response/engineering-health-evaluation.builder';
+import { renderWithProviders } from './utils/test-providers';
 
 jest.mock('@/server/api/engineeringHealth', () => ({
   engineeringHealthAPI: {
@@ -49,7 +50,7 @@ describe('EngineeringHealthPage', () => {
         compareEndDate: '2026-05-31',
       }),
     });
-    render(ui);
+    renderWithProviders(ui);
 
     expect(screen.getByLabelText('Show comparison guide')).toBeInTheDocument();
     expect(screen.getByText('Comparison chart')).toBeInTheDocument();
@@ -94,7 +95,7 @@ describe('EngineeringHealthPage', () => {
     );
 
     const ui = await EngineeringHealthPage({ searchParams: Promise.resolve({}) });
-    render(ui);
+    renderWithProviders(ui);
 
     expect(screen.getByText('Comparison chart')).toBeInTheDocument();
     expect(screen.queryByText('Trend chart')).not.toBeInTheDocument();
@@ -119,7 +120,7 @@ describe('EngineeringHealthPage', () => {
         endDate: '2026-06-30',
       }),
     });
-    render(ui);
+    renderWithProviders(ui);
 
     expect(screen.getByLabelText('Show comparison guide')).toBeInTheDocument();
   });
@@ -142,7 +143,7 @@ describe('EngineeringHealthPage', () => {
         timezone: 'Europe/Madrid',
       }),
     });
-    render(ui);
+    renderWithProviders(ui);
 
     expect(screen.getByText(/Jul 19, 2026, 01:30/)).toBeInTheDocument();
   });
@@ -199,7 +200,7 @@ describe('EngineeringHealthPage', () => {
     );
 
     const ui = await EngineeringHealthPage({ searchParams: Promise.resolve({}) });
-    render(ui);
+    renderWithProviders(ui);
 
     const deliveryScorecards = screen.getByRole('region', { name: 'Delivery scorecards' });
     const qualityScorecards = screen.getByRole('region', { name: 'Quality scorecards' });

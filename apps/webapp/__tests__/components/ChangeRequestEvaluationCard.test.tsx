@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import ChangeRequestEvaluationCard from '@/components/charts/change-requests/ChangeRequestEvaluationCard';
+import { renderWithProviders } from '../utils/test-providers';
 
 type Severity = 'critical' | 'warning' | 'good';
 
@@ -33,7 +34,7 @@ const evaluationData = {
 
 describe('ChangeRequestEvaluationCard', () => {
   it('renders the commentsPerChangeRequest value from the evaluation summary', () => {
-    render(<ChangeRequestEvaluationCard data={evaluationData} method="average" />);
+    renderWithProviders(<ChangeRequestEvaluationCard data={evaluationData} method="average" />);
 
     // The component calls summary.commentsPerChangeRequest.toFixed(1) — if the field
     // name mismatches the API contract, this throws at runtime (TypeError: Cannot read
@@ -42,19 +43,19 @@ describe('ChangeRequestEvaluationCard', () => {
   });
 
   it('renders the review hours formatted value', () => {
-    render(<ChangeRequestEvaluationCard data={evaluationData} method="average" />);
+    renderWithProviders(<ChangeRequestEvaluationCard data={evaluationData} method="average" />);
 
     expect(screen.getByText('3.3 h')).toBeInTheDocument();
   });
 
   it('renders the open days formatted value', () => {
-    render(<ChangeRequestEvaluationCard data={evaluationData} method="average" />);
+    renderWithProviders(<ChangeRequestEvaluationCard data={evaluationData} method="average" />);
 
     expect(screen.getByText('2.3 days')).toBeInTheDocument();
   });
 
   it('renders the total change requests count', () => {
-    render(<ChangeRequestEvaluationCard data={evaluationData} method="average" />);
+    renderWithProviders(<ChangeRequestEvaluationCard data={evaluationData} method="average" />);
 
     expect(screen.getByText('20')).toBeInTheDocument();
   });

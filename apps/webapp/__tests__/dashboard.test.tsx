@@ -1,6 +1,7 @@
-import {render, screen, waitFor} from "@testing-library/react";
+import {screen, waitFor} from "@testing-library/react";
 import DashboardLayout from "@/app/dashboard/layout";
 import React from "react";
+import { renderWithProviders } from './utils/test-providers';
 
 jest.mock('@smmachine/core', () => ({
   Configuration: jest.fn().mockImplementation(() => ({
@@ -30,7 +31,7 @@ const MockChild = () => <div>Insights</div>;
 describe('Dashboard', () => {
   it('should render dashboard tabs', async () => {
     const layout = await DashboardLayout({ children: <MockChild /> });
-    render(layout);
+    renderWithProviders(layout);
 
     await waitFor(() => {
       const tabs = screen.getAllByRole('tab');
@@ -50,7 +51,7 @@ describe('Dashboard', () => {
 
   it('should render child content', async () => {
     const layout = await DashboardLayout({ children: <MockChild /> });
-    render(layout);
+    renderWithProviders(layout);
 
     await waitFor(() => {
       const insightsTab = screen.getByRole('tab', { name: /Insights/i });

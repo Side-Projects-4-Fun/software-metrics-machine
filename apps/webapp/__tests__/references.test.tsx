@@ -1,7 +1,8 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ReferencesPage from '@/app/dashboard/references/page';
 import { METRIC_TARGETS } from '@/components/charts/targets';
+import { renderWithProviders } from './utils/test-providers';
 
 // Mock MUI icons to avoid SVG issues in jsdom
 jest.mock('@mui/icons-material/ExpandMore', () => {
@@ -15,7 +16,7 @@ jest.mock('@mui/icons-material/ExpandLess', () => {
 
 describe('ReferencesPage', () => {
   it('renders the page title and description', () => {
-    render(<ReferencesPage />);
+    renderWithProviders(<ReferencesPage />);
 
     expect(screen.getByText('References & Sources')).toBeInTheDocument();
     expect(
@@ -25,7 +26,7 @@ describe('ReferencesPage', () => {
   });
 
   it('details which pipeline and change request data are used for outliers', () => {
-    render(<ReferencesPage />);
+    renderWithProviders(<ReferencesPage />);
 
     expect(screen.getByText('Pipeline Data Used')).toBeInTheDocument();
     expect(screen.getByText(/Run duration per workflow/)).toBeInTheDocument();
@@ -39,7 +40,7 @@ describe('ReferencesPage', () => {
   });
 
   it('displays metric and source counts', () => {
-    render(<ReferencesPage />);
+    renderWithProviders(<ReferencesPage />);
 
     const metricCount = Object.keys(METRIC_TARGETS).length;
     const sourceCount = Object.values(METRIC_TARGETS).reduce(
@@ -52,7 +53,7 @@ describe('ReferencesPage', () => {
   });
 
   it('renders all category sections', () => {
-    render(<ReferencesPage />);
+    renderWithProviders(<ReferencesPage />);
 
     expect(screen.getByText('Code Analysis')).toBeInTheDocument();
     expect(screen.getByText('Pipelines')).toBeInTheDocument();
@@ -63,7 +64,7 @@ describe('ReferencesPage', () => {
   });
 
   it('renders metric cards with targets and descriptions', () => {
-    render(<ReferencesPage />);
+    renderWithProviders(<ReferencesPage />);
 
     // Check a few key metrics
     expect(screen.getByText('Pairing Index')).toBeInTheDocument();
@@ -80,7 +81,7 @@ describe('ReferencesPage', () => {
   });
 
   it('shows source count hint for metrics with sources', () => {
-    render(<ReferencesPage />);
+    renderWithProviders(<ReferencesPage />);
 
     // Multiple metrics have 2 sources - verify at least one exists
     const sourceHints = screen.getAllByText('2 sources available');
@@ -88,7 +89,7 @@ describe('ReferencesPage', () => {
   });
 
   it('expands sources when expand button is clicked', async () => {
-    render(<ReferencesPage />);
+    renderWithProviders(<ReferencesPage />);
 
     // Find the first expand button (for Pairing Index)
     const expandButtons = screen.getAllByLabelText('expand sources');
@@ -104,7 +105,7 @@ describe('ReferencesPage', () => {
   });
 
   it('collapses sources when collapse button is clicked', async () => {
-    render(<ReferencesPage />);
+    renderWithProviders(<ReferencesPage />);
 
     // Expand first
     const expandButtons = screen.getAllByLabelText('expand sources');
@@ -122,7 +123,7 @@ describe('ReferencesPage', () => {
   });
 
   it('renders all metrics from targets.ts', () => {
-    render(<ReferencesPage />);
+    renderWithProviders(<ReferencesPage />);
 
     // Verify every metric key from METRIC_TARGETS is represented
     const expectedMetrics = [

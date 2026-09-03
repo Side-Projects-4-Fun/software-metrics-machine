@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SelectFilter from '@/components/filters/SelectFilter';
+import { renderWithProviders } from '../utils/test-providers';
 
 describe('SelectFilter', () => {
   const mockOnChange = jest.fn();
@@ -13,25 +14,25 @@ describe('SelectFilter', () => {
   };
 
   it('renders with label', () => {
-    render(<SelectFilter {...defaultProps} />);
+    renderWithProviders(<SelectFilter {...defaultProps} />);
     const selectElement = screen.getByRole('combobox');
     expect(selectElement).toBeInTheDocument();
   });
 
   it('renders and can open dropdown', async () => {
-    render(<SelectFilter {...defaultProps} />);
+    renderWithProviders(<SelectFilter {...defaultProps} />);
     const selectElement = screen.getByRole('combobox');
     await userEvent.click(selectElement);
     expect(screen.getByRole('listbox')).toBeInTheDocument();
   });
 
   it('displays the current value', () => {
-    render(<SelectFilter {...defaultProps} value="option2" />);
+    renderWithProviders(<SelectFilter {...defaultProps} value="option2" />);
     expect(screen.getByRole('combobox')).toHaveValue('option2');
   });
 
   it('calls onChange when selection changes', async () => {
-    render(<SelectFilter {...defaultProps} />);
+    renderWithProviders(<SelectFilter {...defaultProps} />);
     
     const selectElement = screen.getByRole('combobox');
     await userEvent.click(selectElement);
@@ -43,12 +44,12 @@ describe('SelectFilter', () => {
   });
 
   it('disables when disabled prop is true', () => {
-    render(<SelectFilter {...defaultProps} disabled={true} />);
+    renderWithProviders(<SelectFilter {...defaultProps} disabled={true} />);
     expect(screen.getByRole('combobox')).toBeDisabled();
   });
 
   it('is enabled by default', () => {
-    render(<SelectFilter {...defaultProps} />);
+    renderWithProviders(<SelectFilter {...defaultProps} />);
     expect(screen.getByRole('combobox')).not.toBeDisabled();
   });
 });
