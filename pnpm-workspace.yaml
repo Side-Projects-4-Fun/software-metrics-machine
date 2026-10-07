@@ -18,18 +18,18 @@ catalog:
   '@emotion/styled': ^11.14.1
   '@fontsource/roboto': ^5.3.0
   '@modelcontextprotocol/client': ^2.0.0
-  '@modelcontextprotocol/server': ^2.3.0
+  '@modelcontextprotocol/server': ^2.3.1
   '@mui/icons-material': ^9.4.0
   '@mui/material': ^9.4.0
   '@mui/material-nextjs': ^9.4.0
-  '@mui/x-date-pickers': ^9.14.0
+  '@mui/x-date-pickers': ^9.15.0
   '@nestjs/common': ^12.1.2
   '@nestjs/core': ^12.1.2
   '@nestjs/platform-express': ^12.1.2
   '@nestjs/swagger': ^12.0.2
   '@nestjs/testing': ^12.0.1
-  '@radix-ui/react-slot': ^1.3.3
-  '@radix-ui/react-tabs': ^1.1.21
+  '@radix-ui/react-slot': ^1.4.0
+  '@radix-ui/react-tabs': ^1.1.22
   '@swc/core': ^1.15.47
   '@tailwindcss/postcss': ^4
   '@testing-library/dom': ^10.4.1
@@ -42,8 +42,8 @@ catalog:
   '@types/react': ^19.2.18
   '@types/react-dom': ^19.2.4
   '@types/supertest': ^7.2.1
-  '@typescript-eslint/eslint-plugin': ^8.71.0
-  '@typescript-eslint/parser': ^8.71.0
+  '@typescript-eslint/eslint-plugin': ^8.71.1
+  '@typescript-eslint/parser': ^8.71.1
   '@vitest/coverage-v8': ^4.1.11
   axios: ^1.20.0
   babel-plugin-react-compiler: ^1.0.0
@@ -63,7 +63,7 @@ catalog:
   eslint-config-prettier: ^10.1.8
   eslint-plugin-prettier: ^5.5.6
   husky: ^9.1.7
-  inquirer: ^14.2.2
+  inquirer: ^14.2.3
   jest: ^30.4.2
   jest-environment-jsdom: ^30.4.1
   mermaid: ^12.0.0
