@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import ChangeRequestsPage from '@/app/dashboard/change-requests/page';
 import { changeRequestAPI } from '@/server/api';

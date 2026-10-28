@@ -1,51 +1,41 @@
 # Software Metrics Machine
 
-## A Data-Driven Approach to High-Performing Teams
+A data-driven approach to software measurement for high-performing teams.
 
-Agile software development has become a dominant practice, but many teams struggle to consistently deliver high-value
-software. While story points and code maintainability metrics (like SonarQube) provide a starting point, they often
-miss crucial factors like team dynamics, waiting times, code churn, and the impact of knowledge silos. Metrics Machine
-is designed to fill in these gaps by providing a comprehensive set of metrics that reflect the health of your development
-process.
+Software Metrics Machine (SMM) collects data from your Git provider, CI/CD pipelines, Jira, and SonarQube, stores it
+locally, and turns it into metrics you can explore from the CLI, a REST API, or the dashboard.
 
-## Why Metrics Machine?
+## What you can measure
 
-We believe that the success of an Agile team is directly tied to the speed and quality with which value is delivered to
-production. Software Metrics Machine provides insights beyond traditional metrics.
+- **Change requests** — volume, review times, merge patterns, comments
+- **Pipelines** — success rate, execution time, DORA deployment frequency
+- **Source code** — churn, coupling, entity ownership, pairing index
+- **Issues** — Jira issue metrics
+- **Quality** — SonarQube measures
+- **Engineering Health** — aggregated view across delivery, collaboration, quality, and architecture
 
-## Philosophy Drivers
+## Repository at a glance
 
-* Continuous Feedback Loops: A constant cycle of observation, analysis, and adjustment is essential.
-* Pipeline Health: Maintain a consistently green and stable development pipeline.
-* Controlled Code Churn: Minimize unnecessary code changes, as they often indicate underlying issues.
-* Knowledge Sharing: Actively avoid knowledge silos 
-* Data-Based Technical Debt: Define and prioritize technical debt based on *real* data and impact.
+SMM is a pnpm TypeScript monorepo:
 
-## Facets
+- `apps/cli` — `smm` command line (the only write-capable app)
+- `apps/rest` — NestJS REST API
+- `apps/webapp` — Next.js dashboard
+- `apps/mcp` — read-only MCP server for agent clients
+- `packages/core` — domain logic, providers, repositories
+- `packages/utils` — shared helpers
 
-This project relies on metrics that are extracted from:
+## Environment requirements
 
-* Pipeline
-  * Success rate of pipeline 
-  * Average time to complete pipeline from start to finish 
-* Change requests
-  * Average of Change requests opened 
-* Git history
-  * Code churn  
-  * Hotspots  
-  * Change Frequency 
-  * Complexity Trends Over Time 
+- Node.js 26+ (see `.nvmrc` for the exact version)
+- Java, only if you plan to run source-code analysis with Code Maat
 
-## Getting started
+## Get started
 
-This section provides the needed configuration to get started with Metrics machine, it requires knowledge of env variables and python ecosystem tools.
+- [Getting started](./getting-started.md) — install SMM and run a first analysis
+- [Your first analysis with GitHub](./your-first-analysis-with-github.md) — end-to-end walkthrough
+- [Configuration](./features/configuration.md) — every configuration key
+- [Supported providers](./supported-providers.md) — GitHub, GitLab, Jira, SonarQube, Code Maat
 
-### Environment requirements
-
-* python 3.10+
-* poetry installed --no-root
-
-### MacOs
-
-If you are on a mac, you can easily install them using the following commands:
-```
+Contributor workflows, repository structure details, and build commands live in `CONTRIBUTING.md` at the repository
+root.

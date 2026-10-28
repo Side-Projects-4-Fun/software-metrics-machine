@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: "Test-Driven Development workflow for Software Metrics Machine. Covers test frameworks (Vitest 4.x for CLI/REST/core/utils, Jest 30.x for webapp), test patterns (describe/it, builder pattern, mocks via vi.fn), test commands, coverage requirements, and the Red-Green-Refactor cycle. USE FOR: write tests, run tests, test this, add tests, testing, coverage, TDD, test-driven development, vitest, jest, test pattern, test convention. DO NOT USE FOR: linting (use lint skill), building (use build commands directly), debugging production issues."
+description: "Test-Driven Development workflow for Software Metrics Machine. Covers test frameworks (Vitest 5.x for CLI/MCP/REST/core/utils, Jest 30.x for webapp, bashunit + Cypress for e2e), test patterns (describe/it, builder pattern, mocks via vi.fn), test commands, coverage requirements, and the Red-Green-Refactor cycle. USE FOR: write tests, run tests, test this, add tests, testing, coverage, TDD, test-driven development, vitest, jest, test pattern, test convention. DO NOT USE FOR: linting (use lint skill), building (use build commands directly), debugging production issues."
 ---
 
 # TDD Skill — Software Metrics Machine
@@ -9,11 +9,13 @@ description: "Test-Driven Development workflow for Software Metrics Machine. Cov
 
 | Workspace | Framework | Config |
 |-----------|-----------|--------|
-| `packages/core` | Vitest 4.x | `vitest.config.ts` (extends `vitest.base.config.ts`) |
-| `packages/utils` | Vitest 4.x | `vitest.config.ts` (extends `vitest.base.config.ts`) |
-| `apps/cli` | Vitest 4.x | `vitest.config.ts` |
-| `apps/rest` | Vitest 4.x | `vitest.config.ts` |
+| `packages/core` | Vitest 5.x | `vitest.config.ts` (extends `vitest.base.config.ts`) |
+| `packages/utils` | Vitest 5.x | `vitest.config.ts` (extends `vitest.base.config.ts`) |
+| `apps/cli` | Vitest 5.x | `vitest.config.ts` |
+| `apps/mcp` | Vitest 5.x | `vitest.config.ts` |
+| `apps/rest` | Vitest 5.x | `vitest.config.ts` |
 | `apps/webapp` | Jest 30.x | `jest.config.ts` (via `next/jest`) |
+| `apps/webapp` e2e | Cypress 15.x | `cypress.config.ts` |
 
 ### Vitest base config (`vitest.base.config.ts`)
 - `pool: 'forks'`, `fileParallelism: false`
@@ -36,27 +38,33 @@ description: "Test-Driven Development workflow for Software Metrics Machine. Cov
 pnpm test                          # all workspaces (via turbo)
 pnpm --filter @smmachine/core test # single workspace
 pnpm --filter @smmachine/cli test
+pnpm --filter @smmachine/mcp test
 pnpm --filter @smmachine/rest test
 pnpm --filter @smmachine/webapp test
 pnpm --filter @smmachine/utils test
 pnpm --filter @smmachine/core exec vitest run --coverage  # with coverage
 pnpm --filter @smmachine/core exec vitest run --reporter=verbose
+pnpm run test:cli:acceptance       # bashunit CLI e2e (apps/cli/e2e)
+pnpm --filter @smmachine/webapp cy:run  # Cypress webapp e2e
 ```
 
 ## Test Location Convention
 
-Tests live in `__tests__/` directories alongside their source:
+Tests live in `__tests__/` directories alongside their source. In `packages/core`, each domain slice and provider owns
+its tests:
 
 ```
-packages/core/__tests__/
-  domain-services.test.ts
-  providers.test.ts
-  infrastructure.test.ts
-  providers/github/
-    github-pr-client.test.ts
-    pull-request-filters-repository.test.ts
-    ...
+packages/core/src/domain/change-requests/__tests__/
+  change-requests-service.test.ts
+  change-requests-repository-sqlite.test.ts
+packages/core/src/providers/github/__tests__/
+  fetch-pull-requests-repository.test.ts
+packages/core/src/infrastructure/__tests__/
+  configuration-repository.test.ts
 ```
+
+Apps keep a top-level `__tests__/` directory (`apps/cli/__tests__/`, `apps/mcp/__tests__/`, `apps/rest/__tests__/`,
+`apps/webapp/__tests__/`), and CLI acceptance tests live in `apps/cli/e2e/`.
 
 ## Test Patterns
 

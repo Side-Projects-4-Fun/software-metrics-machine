@@ -758,7 +758,7 @@ no data directory is available or no projects are configured yet.
 
 ## Development
 
-Requires **Node.js ≥ 25.2.1** and **pnpm ≥ 10.0.0**.
+Requires **Node.js ≥ 26.4.0** and **pnpm ≥ 10.0.0**.
 
 ```bash
 # Install dependencies from repo root

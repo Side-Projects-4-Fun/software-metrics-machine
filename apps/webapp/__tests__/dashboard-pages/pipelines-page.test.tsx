@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import PipelinesPage from '@/app/dashboard/pipelines/page';
 import { pipelineAPI } from '@/server/api';

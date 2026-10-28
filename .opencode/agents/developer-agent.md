@@ -19,7 +19,54 @@ maintenance tasks.
 
 Project overview, technology stack, project structure, architecture patterns, module system, and the critical
 DO/NEVER rules are maintained once in `AGENTS.md` at the repo root (shared with GitHub Copilot). Read it first —
-this file only adds OpenCode-specific delegation and workflow detail on top of it.
+this file only adds OpenCode-specific delegation, the detailed workspace map below, and workflow detail on top of it.
+
+### Detailed workspace map
+
+Use this map to jump straight to the right file. Directory names below are paths relative to the repo root.
+
+```
+apps/cli/src/
+  index.ts                 # Commander program; registers every command group
+  commands/                # change-requests, pipelines, code, architecture, engineering-health,
+                           #   filters, project, jira, sonarqube, tools, dashboard, mcp, health-check
+  factories/               # CLI-level factories (jira-factory.ts)
+  formatters/              # Terminal table/JSON output helpers
+  screen.ts                # Interactive prompt helpers
+apps/cli/e2e/              # bashunit acceptance suite: run.sh, commands/, support/
+apps/cli/lib/bashunit/     # Vendored bashunit runner
+apps/cli/tools/            # Bundled code-maat JAR (downloaded by fetch-codemaat.sh)
+
+apps/rest/src/
+  main.ts                  # Nest bootstrap + Swagger at /api
+  metrics.module.ts        # Root module wiring
+  controllers/             # One controller per feature area (+ *-evaluation controllers)
+  dtos/ filters/ middleware/ config/ logger/ utils/
+
+apps/mcp/src/
+  index.ts, bin.ts         # Entry points (smm mcp server start / smm-mcp)
+  server.ts                # stdio server bootstrap
+  tools.ts resources.ts prompts.ts registration.ts
+  metrics-reader.ts        # Composes core services (read-only)
+  redaction.ts validation.ts mcp-types.ts mcp-logger.ts
+
+apps/webapp/
+  app/                     # App Router: dashboard/<feature>/, engineering-health/, reports/[id]/, api/
+  components/              # Feature UI: charts/, filters/, reports/, tabs/, ui/, providers/, home/
+  server/                  # Server-only data layer: server/api/*.ts, api.ts, app-provider-data.ts
+  lib/                     # Client-safe helpers (dashboard-links.ts, metrics/)
+  __tests__/               # Jest tests, builders/, utils/
+  cypress/                 # Cypress e2e specs
+
+packages/core/src/
+  domain/<area>/           # services/, repositories/, factories/, infrastructure/, __tests__/
+  providers/<vendor>/      # API clients + *-fetch-repository implementations
+  engineering-health/      # registry, adapters, orchestrator, factory
+  infrastructure/          # configuration.ts, sqlite repository/migrations, timezone, user settings
+  test/                    # In-memory repositories and shared builders
+
+packages/utils/src/        # logger.ts, json.ts, date-time.ts, duration.ts, app-version.ts
+```
 
 ## Key Responsibilities
 
@@ -97,7 +144,7 @@ architecture, and one-off analysis.
 | `code-reviewer` | `subagent`, edit denied | Reviewing a diff against lint/type/test conventions without making changes. |
 | `docs-writer` | `subagent`, bash denied | Writing/updating `docs/vitepress` pages once the doc content is determined. |
 | `test-writer` | `subagent` | Writing or running Vitest/Jest tests following the `tdd` skill's builder pattern. |
-| `webapp-developer` | `subagent` | Next.js webapp development: React 19, MUI 7, Tailwind CSS 4, Recharts, Jest 30 frontend testing with builder pattern and renderWithProviders(). |
+| `webapp-developer` | `subagent` | Next.js webapp development: React 19, MUI 9, Tailwind CSS 4, Recharts 3, Jest 30 + Cypress frontend testing with builder pattern and renderWithProviders(). |
 
 ## Commands
 
@@ -184,6 +231,10 @@ pnpm --filter @smmachine/mcp test
 pnpm --filter @smmachine/rest test
 pnpm --filter @smmachine/webapp test  # uses Jest
 
+# Acceptance / e2e suites
+pnpm run test:cli:acceptance           # bashunit suite in apps/cli/e2e
+pnpm --filter @smmachine/webapp cy:run # Cypress suite in apps/webapp/cypress
+
 # With coverage
 pnpm --filter @smmachine/core exec vitest run --coverage
 ```
@@ -226,6 +277,12 @@ pnpm install
 
 Always use the pnpm catalog (`pnpm-workspace.yaml`) for dependency versions. Never hardcode versions in individual
 `package.json` files that overlap with catalog entries.
+
+**Keep tooling packages on one major.** `vitest` and `@vitest/coverage-v8` must share the same major (`^5.0.5`), and the
+same applies to any other package family split across the catalog (e.g. `@nestjs/*`, `@mui/*`). A mismatched coverage
+provider pulls a second copy of the Vitest toolchain (`@vitest/utils`, `@vitest/pretty-format`) into the tree. After a
+version bump, verify with `pnpm why vitest`, `pnpm why @vitest/coverage-v8`, and check that `pnpm-lock.yaml` has a single
+resolved version per family.
 
 #### Node.js / pnpm version bumps
 
@@ -284,11 +341,12 @@ pnpm build:npm                     # builds packages in publish order + bundles 
 ```
 
 Verify the `files` field in root `package.json` includes all required artifacts:
-- `dist/` (CLI bundle)
+- `dist/` (CLI bundle, bundled REST server, bundled webapp standalone server)
 - `apps/cli/fetch-codemaat.sh`
 - `apps/cli/tools/`
 - `apps/mcp/dist/`
-- `apps/webapp/.next/`
+- `apps/webapp/.next/BUILD_ID`, `apps/webapp/.next/*.json`, `apps/webapp/.next/*.js`
+- `apps/webapp/.next/server`, `apps/webapp/.next/static`
 - `apps/webapp/public/`
 
 ### CI/CD Workflows (`.github/workflows/`)
@@ -365,23 +423,24 @@ When modifying or adding CI/CD workflows:
 ## Webapp (Next.js) Development
 
 > **Delegation:** For webapp-specific tasks (component development, page architecture, frontend testing, print support,
-> MUI patterns), delegate to the `webapp-developer` subagent. It has deep expertise in React 19, MUI 7, Tailwind CSS 4,
-> Recharts, and Jest 30 with the builder pattern and `renderWithProviders()`. Use the general developer agent for
-> cross-cutting concerns (REST API endpoints, core package changes, CLI commands) that affect the webapp.
+> MUI patterns), delegate to the `webapp-developer` subagent. It has deep expertise in React 19, MUI 9, Tailwind CSS 4,
+> Recharts, and Jest 30 + Cypress with the builder pattern and `renderWithProviders()`. Use the general developer agent
+> for cross-cutting concerns (REST API endpoints, core package changes, CLI commands) that affect the webapp.
 
 ### Technology
 
 - **Framework**: Next.js 16 (App Router), React 19
-- **UI**: MUI 7 + Tailwind CSS 4
+- **UI**: MUI 9 + Tailwind CSS 4
 - **Charts**: Recharts
-- **Testing**: Jest 30 + React Testing Library
+- **Testing**: Jest 30 + React Testing Library (unit), Cypress 15 (e2e)
 
 ### Key conventions
 
 - Client components marked with `'use client'`
 - Props have TypeScript interfaces
 - Named exports for components
-- API calls in `lib/api.ts` fetch from `SMM_REST_BASE_URL`
+- API calls live in `apps/webapp/server/api/*.ts` (re-exported from `server/api.ts`) and fetch from `SMM_REST_BASE_URL`. Do not call the REST API directly from components.
+- Never import `@smmachine/core` or `@smmachine/utils` from `app/`, `components/`, `server/`, or `lib/` — those are devDependencies for typing only, and `apps/webapp/__tests__/server-code-boundary.test.ts` fails the suite if they leak into page code.
 - Pages must be printable — the printed output should show all data, charts, and metrics that are visible on screen, without navigation chrome. When building any page: test with `Ctrl+P` / `Cmd+P` print preview. Use Tailwind's `print:` prefix (e.g. `print:hidden` on nav bars, sidebars, sticky headers, action buttons) and ensure no content is clipped by `overflow` or fixed positioning. Collapsed sections must auto-expand in print.
 
 ### MUI 9 pitfalls
@@ -444,18 +503,19 @@ MUI major versions commonly move or rename props. Always verify with `next build
 1. Create client class in `packages/core/src/providers/<provider>/`
 2. Create fetch repository class implementing the fetch interface
 3. Add configuration keys to `Configuration` class
-4. Wire in a factory (`packages/core/src/aggregates/`)
+4. Wire it in the owning domain slice's factory (`packages/core/src/domain/<area>/factories/`) or `packages/core/src/infrastructure/repository-factory.ts`
 5. Create CLI commands for fetch and analysis
 6. Add REST endpoints if needed
 
 ## Adding a new metric calculation
 
 1. Define types in `packages/core/src/domain/<area>/<area>-types.ts`
-2. Add service methods in `packages/core/src/domain/<area>/<area>-service.ts`
-3. Add CLI command to call the service
-4. Add REST endpoint if the dashboard needs it
-5. Write tests in `__tests__/`
-6. Document in `docs/vitepress/features/`
+2. Add service methods in `packages/core/src/domain/<area>/services/`
+3. Register as an Engineering Health metric in `packages/core/src/engineering-health/registry.ts` when it should surface there
+4. Add CLI command to call the service
+5. Add REST endpoint if the dashboard needs it
+6. Write tests in `__tests__/`
+7. Document in `docs/vitepress/features/`
 
 ## Conversation Starters
 

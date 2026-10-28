@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import SourceCodePage from '@/app/dashboard/source-code/page';
 import { sourceCodeAPI, sonarqubeAPI } from '@/server/api';

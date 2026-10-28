@@ -1,6 +1,6 @@
 ---
 name: webapp-developer
-description: Specialized agent for SMM Next.js webapp development. Expert in React 19, MUI 7, Tailwind CSS 4, Recharts, and Jest 30 with React Testing Library.
+description: Specialized agent for SMM Next.js webapp development. Expert in React 19, MUI 9, Tailwind CSS 4, Recharts, and Jest 30 + Cypress with React Testing Library.
 tools: ['search', 'read', 'edit', 'execute']
 ---
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import ReportsPage from '@/app/reports/page';
 import { renderWithProviders } from '../utils/test-providers';

@@ -23,18 +23,19 @@ Thanks for contributing. This repository is a **pnpm TypeScript monorepo** with 
 
 | Tool    | Version    | Notes                          |
 |---------|------------|--------------------------------|
-| Node.js | `>=25.2.1` | See `.nvmrc` — use `nvm use`   |
-| pnpm    | `>=10.0.0` | Exact: `10.34.1`               |
+| Node.js | `>=26.4.0` | Exact: `26.12.1` — see `.nvmrc`, use `nvm use` |
+| pnpm    | `>=10.0.0` | Exact: `12.14.0` (`packageManager`) |
 | Git     | any        |                                |
 
 Optional:
 
 - **Docker / Docker Compose** — for local SonarQube analysis or running the full stack in containers
+- **Java** — only for Code Maat source-code analysis (the JAR is bundled in `apps/cli/tools/`)
 
 ### Quick environment check
 
 ```bash
-node --version   # should be >=25.2.1
+node --version   # should be >=26.4.0
 pnpm --version   # should be >=10.0.0
 nvm use          # if using nvm, reads .nvmrc
 ```
@@ -43,16 +44,31 @@ nvm use          # if using nvm, reads .nvmrc
 
 ```
 ├── apps/
-│   ├── cli/              # CLI application (@smmachine/cli)
+│   ├── cli/              # Commander.js CLI (@smmachine/cli)
+│   │   ├── src/          # index.ts, commands/, factories/, formatters/, screen.ts
+│   │   ├── __tests__/    # Vitest unit tests
+│   │   ├── e2e/          # bashunit acceptance suite
+│   │   ├── lib/bashunit/ # Vendored bashunit runner
+│   │   └── tools/        # Bundled code-maat JAR
+│   ├── mcp/              # Read-only MCP stdio server (@smmachine/mcp)
 │   ├── rest/             # REST API (@smmachine/rest, NestJS)
+│   │   └── src/          # controllers/, dtos/, filters/, middleware/, config/, logger/, utils/
 │   └── webapp/           # Next.js dashboard (@smmachine/webapp)
+│       ├── app/          # App Router routes (dashboard/, engineering-health/, reports/, api/)
+│       ├── components/   # Feature UI (charts/, filters/, reports/, tabs/, ui/, providers/)
+│       ├── server/       # Server-only data layer (server/api/*.ts)
+│       ├── lib/          # Client-safe helpers
+│       ├── __tests__/    # Jest tests + builders/ + utils/
+│       └── cypress/      # Cypress e2e specs
 ├── packages/
-│   ├── core/             # Domain logic, providers, aggregates (@smmachine/core)
+│   ├── core/             # Domain logic, providers, repositories (@smmachine/core)
+│   │   └── src/          # domain/, providers/, engineering-health/, infrastructure/, test/
 │   └── utils/            # Shared utilities — logging, JSON, date helpers (@smmachine/utils)
 ├── docs/
 │   ├── adrs/             # Architecture Decision Records
-│   ├── architecture/     # Architecture documentation
+│   ├── architecture/     # Architecture documentation (C4 diagrams)
 │   └── vitepress/        # VitePress documentation site
+├── scripts/              # merge-coverage.mjs, simulate-and-test-publish.sh
 ├── docker-compose.yml    # SonarQube + API + webapp containers
 ├── tsup.config.ts        # CLI bundler config
 ├── turbo.json            # Turborepo task runner config
@@ -60,13 +76,17 @@ nvm use          # if using nvm, reads .nvmrc
 └── vitest.base.config.ts # Shared Vitest configuration
 ```
 
+Each `packages/core/src/domain/<area>/` slice keeps the same layout: `services/`, `repositories/`, `factories/`,
+`infrastructure/`, and `__tests__/`.
+
 ### Package responsibilities
 
 - **`packages/utils`** — Logger, date formatting, JSON utilities. Zero dependencies on other workspace packages.
-- **`packages/core`** — Domain types, service layer (PRs, pipelines, code analysis), git providers (GitHub/GitLab), infrastructure (configuration, file system cache, SonarQube, Jira, CodeMaat). Depends on `@smmachine/utils`.
-- **`apps/cli`** — Commander.js CLI. Depends on `@smmachine/core` and `@smmachine/utils`.
-- **`apps/rest`** — NestJS REST API. Depends on `@smmachine/core`.
-- **`apps/webapp`** — Next.js 16 dashboard with MUI. Fetches from the REST API.
+- **`packages/core`** — Domain types and per-area slices (change requests, pipelines, code, issues, architecture, filters, metrics), providers (GitHub, GitLab, Jira, SonarQube, CodeMaat, git), engineering-health registry, infrastructure (configuration, SQLite/JSON repositories, migrations, timezone). Depends on `@smmachine/utils`.
+- **`apps/cli`** — Commander.js CLI. Depends on `@smmachine/core`, `@smmachine/mcp`, and `@smmachine/utils`.
+- **`apps/rest`** — NestJS REST API. Depends on `@smmachine/core` and `@smmachine/utils`.
+- **`apps/mcp`** — Read-only MCP stdio server exposing tools, resources, and prompts. Depends on `@smmachine/core`.
+- **`apps/webapp`** — Next.js 16 dashboard with MUI 9 and Tailwind. Reads from the REST API through `server/api/*.ts`. `@smmachine/core`/`@smmachine/utils` are devDependencies for typing only — never import them from page code.
 
 ### Data mutability boundary (critical)
 
@@ -75,8 +95,9 @@ SMM enforces a strict write boundary across applications:
 - **CLI is the only write-capable application** for project data and generated artifacts in `SMM_STORE_DATA_AT`.
 - **REST API is read-only** and must only serve previously generated/persisted data.
 - **Webapp is read-only** and must only consume REST responses.
+- **MCP server is read-only** and exposes tools/resources over stdio without writing files or caches.
 
-When implementing features (for example architecture generation), generation and persistence must happen in CLI commands. REST and webapp must not create files, trigger generation jobs, or mutate caches as side effects.
+When implementing features (for example architecture generation), generation and persistence must happen in CLI commands. REST, webapp, and MCP must not create files, trigger generation jobs, or mutate caches as side effects.
 
 ## Getting Started
 
@@ -255,7 +276,17 @@ This runs NestJS via `ts-node`. The API serves Swagger docs at `http://localhost
 pnpm --filter @smmachine/webapp dev
 ```
 
-Requires the REST API to be running.
+Requires the REST API to be running. The webapp reads `SMM_REST_BASE_URL` from `apps/webapp/.env.local`.
+
+### MCP server development
+
+```bash
+# Run the stdio server directly
+SMM_STORE_DATA_AT=/path/to/smm-data pnpm --filter @smmachine/mcp dev
+
+# Or via the CLI
+SMM_STORE_DATA_AT=/path/to/smm-data pnpm cli -- mcp server start
+```
 
 ### Running the full stack
 
@@ -269,6 +300,16 @@ pnpm dev
 ```bash
 # Start both bundled REST and webapp servers from the CLI
 pnpm cli -- dashboard serve
+```
+
+### Acceptance and e2e suites
+
+```bash
+# bashunit CLI acceptance suite (apps/cli/e2e)
+pnpm run test:cli:acceptance
+
+# Cypress webapp e2e (needs the webapp on localhost:3000)
+pnpm --filter @smmachine/webapp cy:run
 ```
 
 ### Documentation
@@ -300,10 +341,15 @@ pnpm --filter @smmachine/webapp build
 6. Build and test: `pnpm build && pnpm test`
 
 **Adding a new provider (e.g., a new git platform):**
-1. Create provider client in `packages/core/src/providers/`
+1. Create provider client in `packages/core/src/providers/<provider>/`
 2. Implement the fetch repository interface
-3. Wire it into the CLI command factory
+3. Wire it into the owning domain slice factory (`packages/core/src/domain/<area>/factories/`) or `packages/core/src/infrastructure/repository-factory.ts`
 4. Add configuration handling in `Configuration` class
+
+**Adding a new Engineering Health metric:**
+1. Add the adapter in `packages/core/src/engineering-health/adapters/`
+2. Register it in `packages/core/src/engineering-health/registry.ts`
+3. Expose it through the CLI/REST endpoints if needed
 
 ## Codebase Architecture
 
@@ -312,19 +358,23 @@ pnpm --filter @smmachine/webapp build
 ```
 @packages/utils  (no deps)
        ↓
-@packages/core   (depends on @packages/utils)
+@packages/core   (depends on @smmachine/utils)
        ↓
-apps/cli  ────── apps/rest
-                       ↓
-                 apps/webapp
+apps/cli   apps/mcp   apps/rest
+                          ↑ (HTTP/JSON)
+                      apps/webapp
 ```
+
+`apps/cli` also depends on `@smmachine/mcp` so `smm mcp server start` can boot the server. `apps/webapp` talks to the
+REST API over HTTP and has no runtime workspace dependency on `@smmachine/core`.
 
 ### Key patterns
 
-- **Services** (`packages/core/src/domain/`) — Business logic, no I/O. Accept `PRFilters` and return domain types.
-- **Repositories** (`packages/core/src/aggregates/` and `packages/core/src/providers/`) — Data access, caching. Read from local file cache or fetch from external APIs.
-- **Factories** (`packages/core/src/aggregates/*-factory.ts`) — Wire configuration and create repository instances.
+- **Services** (`packages/core/src/domain/<area>/services/`) — Business logic, no I/O. Accept typed filters and return domain types.
+- **Repositories** (`packages/core/src/providers/` for fetch, `packages/core/src/domain/<area>/repositories/` for read) — Data access and caching. Fetch repositories call external APIs; read repositories serve cached data.
+- **Factories** (`packages/core/src/domain/<area>/factories/`, `packages/core/src/engineering-health/factory.ts`, `packages/core/src/infrastructure/repository-factory.ts`) — Wire configuration and create repository/service instances.
 - **Commands** (`apps/cli/src/commands/`) — Commander.js command definitions. Thin layer that parses options and calls services.
+- **Webapp server layer** (`apps/webapp/server/api/*.ts`) — The only place that calls the REST API.
 
 ### Module system
 
@@ -332,8 +382,9 @@ The monorepo uses a mix of module systems:
 
 | Package     | Type     |
 |-------------|----------|
-| `apps/cli`  | CommonJS (for Node.js CLI distribution) |
-| `apps/rest` | ESM via NestJS/ts-node |
+| `apps/cli`  | CommonJS (bundled by tsup for Node.js distribution) |
+| `apps/mcp`  | CommonJS (bundled by tsup) |
+| `apps/rest` | CommonJS (tsc for production, ts-node for dev) |
 | `apps/webapp` | ESM (Next.js) |
 | `packages/core` | CommonJS |
 | `packages/utils` | CommonJS |
@@ -342,8 +393,10 @@ The monorepo uses a mix of module systems:
 
 ### Test framework
 
-- **Vitest** (`^4.1.8`) — used by `apps/cli`, `apps/rest`, `packages/core`, `packages/utils`
-- **Jest** — used by `apps/webapp` (via `next/jest`)
+- **Vitest** (`^5.0.5`) — used by `apps/cli`, `apps/mcp`, `apps/rest`, `packages/core`, `packages/utils`
+- **Jest** (30.x) — used by `apps/webapp` (via `next/jest`)
+- **bashunit** — CLI acceptance tests in `apps/cli/e2e`
+- **Cypress** (15.x) — webapp e2e tests in `apps/webapp/cypress`
 
 ### Running tests
 
@@ -354,6 +407,7 @@ pnpm test
 # Single workspace
 pnpm --filter @smmachine/core test
 pnpm --filter @smmachine/cli test
+pnpm --filter @smmachine/mcp test
 
 # With coverage
 pnpm --filter @smmachine/core test:coverage
@@ -364,7 +418,7 @@ pnpm --filter @smmachine/core exec vitest --watch
 
 ### Test conventions
 
-- Test files live in `__tests__/` directories within each workspace
+- Test files live in `__tests__/` directories within each workspace; `packages/core` colocates them per domain slice and provider
 - File pattern: `*.test.ts`
 - Vitest globals are enabled (`describe`, `it`, `expect` available without import)
 - Shared Vitest config lives in `vitest.base.config.ts`
@@ -554,7 +608,7 @@ SMM_STORE_DATA_AT=./.data smm pipelines fetch
 
 ```bash
 corepack enable
-corepack prepare pnpm@10.34.1 --activate
+corepack prepare pnpm@12.14.0 --activate
 ```
 
 ### SQLite data queries

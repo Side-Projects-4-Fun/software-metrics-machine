@@ -38,7 +38,7 @@ The way this project works goes through three main steps:
 
 ### Environment requirements
 
-* Node.js 25+
+* Node.js 26+ (see `.nvmrc` for the exact version)
 * Java, only if you plan to run source-code analysis with Code Maat
 
 ### Via npm
