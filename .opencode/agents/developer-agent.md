@@ -432,7 +432,7 @@ When modifying or adding CI/CD workflows:
 - **Framework**: Next.js 16 (App Router), React 19
 - **UI**: MUI 9 + Tailwind CSS 4
 - **Charts**: Recharts
-- **Testing**: Jest 30 + React Testing Library (unit), Cypress 15 (e2e)
+- **Testing**: Jest 30 + React Testing Library (unit), Cypress 16 (e2e)
 
 ### Key conventions
 

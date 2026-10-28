@@ -54,7 +54,7 @@ catalog:
   clsx: ^2.1.1
   commander: ^15.0.0
   concurrently: ^10.0.6
-  cypress: ^15.20.1
+  cypress: ^16.2.0
   date-fns: ^4.4.0
   dayjs: ^1.11.23
   dependency-cruiser: ^18.7.0

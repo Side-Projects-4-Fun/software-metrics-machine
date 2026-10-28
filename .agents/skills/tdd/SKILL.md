@@ -15,7 +15,7 @@ description: "Test-Driven Development workflow for Software Metrics Machine. Cov
 | `apps/mcp` | Vitest 5.x | `vitest.config.ts` |
 | `apps/rest` | Vitest 5.x | `vitest.config.ts` |
 | `apps/webapp` | Jest 30.x | `jest.config.ts` (via `next/jest`) |
-| `apps/webapp` e2e | Cypress 15.x | `cypress.config.ts` |
+| `apps/webapp` e2e | Cypress 16.x | `cypress.config.ts` |
 
 ### Vitest base config (`vitest.base.config.ts`)
 - `pool: 'forks'`, `fileParallelism: false`

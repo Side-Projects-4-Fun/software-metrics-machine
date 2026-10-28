@@ -25,7 +25,7 @@ Read `AGENTS.md` at the repo root for technology stack, project structure, archi
 | UI | MUI 9 + Tailwind CSS 4 |
 | Charts | Recharts |
 | Unit testing | Jest 30 + React Testing Library + `@testing-library/user-event` |
-| E2E testing | Cypress 15 (`apps/webapp/cypress/`) |
+| E2E testing | Cypress 16 (`apps/webapp/cypress/`) |
 | Linting | ESLint 9.x flat config (`apps/webapp/eslint.config.mjs`) |
 
 ## Webapp Structure
