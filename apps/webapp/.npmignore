@@ -1,0 +1,46 @@
+# This file intentionally takes precedence over `.gitignore` for packaging.
+#
+# npm-packlist honours ignore files in subdirectories. A nested `.npmignore`
+# replaces the root `.npmignore` for that subtree, and `apps/webapp/.gitignore`
+# ignores `/.next/`. While `package.json#files` whitelisted the whole `.next`
+# directory that was harmless, but once it started listing individual paths
+# inside `.next` the ignore rule pruned the directory during traversal and the
+# published tarball lost `.next/BUILD_ID`, `.next/server`, and `.next/static`.
+# That broke `smm dashboard serve` with:
+#   ENOENT: no such file or directory, scandir '.../apps/webapp/.next/static'
+#
+# Keep this file in sync with `apps/webapp/.gitignore` for entries that would
+# leak or bloat the package, and leave `package.json#files` as the source of
+# truth for what actually ships.
+
+# Build output that `next start` never reads. `.next/cache` alone is ~200MB and
+# is regenerated on every `next build`.
+.next/cache/
+.next/dev/
+.next/trace
+.next/trace-build
+.next/diagnostics
+.next/turbopack
+.next/standalone/
+
+# Build artifacts that are not part of the runtime bundle.
+next-env.d.ts
+*.tsbuildinfo
+out/
+build/
+coverage/
+
+# Source maps are not needed at runtime.
+**/*.map
+
+# Secrets and local machine noise.
+.env*
+*.pem
+.DS_Store
+
+# Dependencies and package-manager state.
+node_modules
+.pnp
+.pnp.*
+.yarn/
+.vercel

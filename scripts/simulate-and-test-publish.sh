@@ -93,6 +93,46 @@ EOF
 	echo "$template" > "$REPO_ROOT/tmp/smm_config.json"
 }
 
+verify_packed_webapp_build() {
+	local packed_file="$1"
+	local listing
+	listing="$(tar -tzf "$packed_file")"
+
+	local required_paths=(
+		"package/apps/webapp/.next/BUILD_ID"
+		"package/apps/webapp/.next/required-server-files.json"
+		"package/apps/webapp/.next/routes-manifest.json"
+	)
+
+	local required_path
+	for required_path in "${required_paths[@]}"; do
+		if ! grep -Fqx "$required_path" <<<"$listing"; then
+			echo "Error: packaged tarball is missing $required_path."
+			echo "Hint: check package.json#files and apps/webapp/.npmignore (a nested .gitignore can drop .next)."
+			exit 1
+		fi
+	done
+
+	if ! grep -q "^package/apps/webapp/.next/static/" <<<"$listing"; then
+		echo "Error: packaged tarball has no apps/webapp/.next/static assets."
+		echo "Hint: 'smm dashboard serve' fails with ENOENT scandir .next/static without them."
+		exit 1
+	fi
+
+	if ! grep -q "^package/apps/webapp/.next/server/" <<<"$listing"; then
+		echo "Error: packaged tarball has no apps/webapp/.next/server build output."
+		echo "Hint: 'smm dashboard serve' cannot run 'next start' without it."
+		exit 1
+	fi
+
+	if grep -q "^package/apps/webapp/.next/cache/" <<<"$listing"; then
+		echo "Error: packaged tarball ships apps/webapp/.next/cache/. The build cache must stay out of the package."
+		exit 1
+	fi
+
+	echo "Verified packaged webapp build (.next/BUILD_ID, .next/server, .next/static) is present."
+}
+
 if [ "$BUILD_FORCE" = "true" ]; then
 	echo "Packing @smmachine..."
 	(
@@ -106,6 +146,8 @@ if [ "$BUILD_FORCE" = "true" ]; then
 		echo "Error: could not locate generated package tarball in $REPO_ROOT ($PACKED_FILE)"
 		exit 1
 	fi
+
+	verify_packed_webapp_build "$PACKED_FILE"
 
 	PACKED_FILE_RELATIVE="${PACKED_FILE#$REPO_ROOT/}"
 

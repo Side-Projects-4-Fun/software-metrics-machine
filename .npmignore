@@ -1,13 +1,11 @@
-# Exclude Next.js build output that is not needed at runtime.
-# Keep .next/server, .next/static, and the manifest JSON files (used by `next start`).
-# .next/cache is the webpack/turbopack build cache (~200MB): regenerated on every
-# `next build` and never read by `next start`, so it must not ship in the package.
-apps/webapp/.next/cache/
-apps/webapp/.next/dev/
-apps/webapp/.next/trace
-apps/webapp/.next/trace-build
-apps/webapp/.next/diagnostics
-apps/webapp/.next/turbopack
+# Repo-wide packaging rules.
+#
+# What ships is controlled by the `files` field in package.json. Ignore rules
+# only filter inside the directories that the whitelist lets through.
+#
+# Webapp-specific build output rules live in apps/webapp/.npmignore, which also
+# exists so that apps/webapp/.gitignore (`/.next/`) cannot drop the packaged
+# `.next/server`, `.next/static`, and `.next/BUILD_ID` entries again.
 
 # Exclude source maps from the published package (not needed at runtime).
 **/*.map
