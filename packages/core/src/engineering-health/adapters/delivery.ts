@@ -4,11 +4,11 @@ import { BaseMetric } from '../metric';
 import type { EngineeringHealthDependencies } from '../dependencies';
 import type {
   EngineeringHealthEvaluationInput,
+  EngineeringHealthMetricScope,
+  EngineeringHealthMetricTarget,
+  EngineeringHealthMetricValue,
   MetricCalculationInput,
   MetricEvaluation,
-  MetricScope,
-  MetricTarget,
-  MetricValue,
 } from '../types';
 
 function toPipelineFilters(input?: MetricCalculationInput): PipelineFilters {
@@ -25,7 +25,7 @@ function toPipelineFilters(input?: MetricCalculationInput): PipelineFilters {
   };
 }
 
-function createTargetScope(target: DeploymentFrequencyTarget): MetricScope {
+function createTargetScope(target: DeploymentFrequencyTarget): EngineeringHealthMetricScope {
   return {
     type: 'deployment-target',
     key: `${target.pipeline}||${target.job}`,
@@ -73,7 +73,7 @@ export class DeploymentFrequencyMetric extends TargetScopedDeliveryMetric {
   readonly id = 'deployment-frequency' as const;
   readonly category = 'delivery' as const;
 
-  async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
+  async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
     const period = input?.period || 'week';
     const rows =
       await this.dependencies.deploymentFrequencyService.getDeploymentFrequencyWithAllIntervals(
@@ -108,7 +108,7 @@ export class DeploymentFrequencyMetric extends TargetScopedDeliveryMetric {
     };
   }
 
-  target(): MetricTarget {
+  target(): EngineeringHealthMetricTarget {
     return {
       operator: 'gte',
       value: 1,
@@ -121,7 +121,7 @@ export class LeadTimeMetric extends TargetScopedDeliveryMetric {
   readonly id = 'lead-time' as const;
   readonly category = 'delivery' as const;
 
-  async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
+  async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
     const dashboard = await this.dependencies.pipelineImplementation.dashboard(
       toPipelineFilters(input)
     );
@@ -137,7 +137,7 @@ export class LeadTimeMetric extends TargetScopedDeliveryMetric {
     };
   }
 
-  target(): MetricTarget {
+  target(): EngineeringHealthMetricTarget {
     return {
       operator: 'lt',
       value: 1440,
@@ -150,7 +150,7 @@ export class PipelineDurationMetric extends TargetScopedDeliveryMetric {
   readonly id = 'pipeline-duration' as const;
   readonly category = 'delivery' as const;
 
-  async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
+  async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
     const metrics = await this.dependencies.pipelinesService.getMetrics(toPipelineFilters(input));
 
     return {
@@ -165,7 +165,7 @@ export class PipelineDurationMetric extends TargetScopedDeliveryMetric {
     };
   }
 
-  target(): MetricTarget {
+  target(): EngineeringHealthMetricTarget {
     return {
       operator: 'lt',
       value: 10,
@@ -178,7 +178,7 @@ export class FailureRateMetric extends TargetScopedDeliveryMetric {
   readonly id = 'failure-rate' as const;
   readonly category = 'delivery' as const;
 
-  async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
+  async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
     const metrics = await this.dependencies.pipelinesService.getMetrics(toPipelineFilters(input));
     const failureRate = metrics.totalRuns > 0 ? (metrics.failedRuns / metrics.totalRuns) * 100 : 0;
 
@@ -194,7 +194,7 @@ export class FailureRateMetric extends TargetScopedDeliveryMetric {
     };
   }
 
-  target(): MetricTarget {
+  target(): EngineeringHealthMetricTarget {
     return {
       operator: 'lt',
       value: 15,

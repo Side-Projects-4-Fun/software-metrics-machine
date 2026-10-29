@@ -31,8 +31,8 @@ import {
   type CodeMaatEntityFilterOptions,
   type DashboardSection,
   type EngineeringHealthEvaluationInput,
-  type MetricCategory,
-  type MetricId,
+  type EngineeringHealthMetricCategory,
+  type EngineeringHealthMetricId,
   type PipelineDashboard,
   type PipelineDashboardRunsByItem,
   type PipelineFilters,
@@ -507,8 +507,9 @@ export class McpMetricsReader {
           this.timeZoneProvider
         );
 
-        const metricIds = parseCsvList(args.metric, 'metric') as MetricId[] | undefined;
-        const category = args.category as MetricCategory | undefined;
+        const metricIds = parseCsvList(args.metric, 'metric') as
+          EngineeringHealthMetricId[] | undefined;
+        const category = args.category as EngineeringHealthMetricCategory | undefined;
         const hasPrevious = Boolean(args.compareStartDate || args.compareEndDate);
 
         const input: EngineeringHealthEvaluationInput = {

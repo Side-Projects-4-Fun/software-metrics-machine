@@ -184,3 +184,22 @@ This ADR does NOT propose:
 - Adding new metric types (standard deviation, variance, mode). These can be added later by extending `MetricMethod`.
 - Changing the engineering health comparison/evaluation logic. The `value` scalar remains singular — which method produces it is a configuration detail.
 - Renaming output fields (`avg_days` → `value`). Deferred to a follow-up ADR for a clean cutover after aliases are removed — completed in ADR 0006.
+
+## Addendum — Engineering Health type rename
+
+The Engineering Health types referenced above were renamed so the domain is explicit at every use site. Part 4's
+behaviour is unchanged — only type names moved.
+
+| Before               | After                                    |
+| -------------------- | ---------------------------------------- |
+| `MetricId`           | `EngineeringHealthMetricId`              |
+| `MetricCategory`     | `EngineeringHealthMetricCategory`        |
+| `MetricScope`        | `EngineeringHealthMetricScope`           |
+| `MetricValue`        | `EngineeringHealthMetricValue`           |
+| `MetricComparison`   | `EngineeringHealthMetricComparison`      |
+| `MetricSummary`      | `EngineeringHealthMetricSummary`         |
+| `MetricTarget`       | `EngineeringHealthMetricTarget`          |
+| `MetricRecommendation` | `EngineeringHealthMetricRecommendation` |
+
+`MetricEvaluation` and `MetricCalculationInput` keep their names. The `MetricValue` reference in ADR 0006 should be
+read as `EngineeringHealthMetricValue`.

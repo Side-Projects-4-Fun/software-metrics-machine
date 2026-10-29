@@ -1,9 +1,10 @@
 import type { OutlierMode, WeekendsMode } from '../domain/metric-samples';
 import type { DeploymentFrequencyTarget } from '../domain/pipelines';
 
-export type MetricCategory = 'delivery' | 'quality' | 'collaboration' | 'architecture';
+export type EngineeringHealthMetricCategory =
+  'delivery' | 'quality' | 'collaboration' | 'architecture';
 
-export type MetricId =
+export type EngineeringHealthMetricId =
   | 'deployment-frequency'
   | 'lead-time'
   | 'pipeline-duration'
@@ -30,7 +31,7 @@ export interface TimeSeriesPoint {
   value: number;
 }
 
-export interface MetricValue {
+export interface EngineeringHealthMetricValue {
   value: number | null;
   unit: string;
   direction: MetricDirection;
@@ -39,13 +40,13 @@ export interface MetricValue {
   details?: Record<string, unknown>;
 }
 
-export interface MetricTarget {
+export interface EngineeringHealthMetricTarget {
   operator: MetricTargetOperator;
   value: number | string;
   description: string;
 }
 
-export interface MetricComparison {
+export interface EngineeringHealthMetricComparison {
   trend: TrendDirection;
   delta: number | null;
   deltaPercentage: number | null;
@@ -54,13 +55,13 @@ export interface MetricComparison {
   summary: string;
 }
 
-export interface MetricSummary {
+export interface EngineeringHealthMetricSummary {
   title: string;
   valueLabel: string;
   notes: string[];
 }
 
-export interface MetricRecommendation {
+export interface EngineeringHealthMetricRecommendation {
   level: 'good' | 'watch' | 'critical';
   summary: string;
   actions: string[];
@@ -81,7 +82,7 @@ export interface MetricCalculationInput {
   jobName?: string;
 }
 
-export interface MetricScope {
+export interface EngineeringHealthMetricScope {
   type: 'deployment-target';
   key: string;
   label: string;
@@ -91,19 +92,19 @@ export interface MetricScope {
 export interface EngineeringHealthEvaluationInput {
   current?: MetricCalculationInput;
   previous?: MetricCalculationInput;
-  metrics?: MetricId[];
-  category?: MetricCategory;
+  metrics?: EngineeringHealthMetricId[];
+  category?: EngineeringHealthMetricCategory;
 }
 
 export interface MetricEvaluation {
-  id: MetricId;
-  category: MetricCategory;
-  scope?: MetricScope;
-  value: MetricValue;
-  comparison: MetricComparison;
-  summary: MetricSummary;
-  target: MetricTarget;
-  recommendation: MetricRecommendation;
+  id: EngineeringHealthMetricId;
+  category: EngineeringHealthMetricCategory;
+  scope?: EngineeringHealthMetricScope;
+  value: EngineeringHealthMetricValue;
+  comparison: EngineeringHealthMetricComparison;
+  summary: EngineeringHealthMetricSummary;
+  target: EngineeringHealthMetricTarget;
+  recommendation: EngineeringHealthMetricRecommendation;
 }
 
 export interface EngineeringHealthEvaluation {

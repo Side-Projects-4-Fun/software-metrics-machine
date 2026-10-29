@@ -1,6 +1,10 @@
 import { BaseMetric } from '../metric';
 import type { EngineeringHealthDependencies } from '../dependencies';
-import type { MetricCalculationInput, MetricTarget, MetricValue } from '../types';
+import type {
+  EngineeringHealthMetricTarget,
+  EngineeringHealthMetricValue,
+  MetricCalculationInput,
+} from '../types';
 
 type SonarMeasure = {
   metric?: string;
@@ -55,7 +59,7 @@ export class ComplexityMetric extends SonarMetricBase {
     super(dependencies);
   }
 
-  async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
+  async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
     const payload = await this.loadMeasures(input);
 
     return {
@@ -65,7 +69,7 @@ export class ComplexityMetric extends SonarMetricBase {
     };
   }
 
-  target(): MetricTarget {
+  target(): EngineeringHealthMetricTarget {
     return {
       operator: 'lt',
       value: 1000,
@@ -82,7 +86,7 @@ export class DuplicationMetric extends SonarMetricBase {
     super(dependencies);
   }
 
-  async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
+  async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
     const payload = await this.loadMeasures(input);
 
     return {
@@ -92,7 +96,7 @@ export class DuplicationMetric extends SonarMetricBase {
     };
   }
 
-  target(): MetricTarget {
+  target(): EngineeringHealthMetricTarget {
     return {
       operator: 'lt',
       value: 5,
@@ -109,7 +113,7 @@ export class CoverageMetric extends SonarMetricBase {
     super(dependencies);
   }
 
-  async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
+  async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
     const payload = await this.loadMeasures(input);
 
     return {
@@ -119,7 +123,7 @@ export class CoverageMetric extends SonarMetricBase {
     };
   }
 
-  target(): MetricTarget {
+  target(): EngineeringHealthMetricTarget {
     return {
       operator: 'gte',
       value: 80,

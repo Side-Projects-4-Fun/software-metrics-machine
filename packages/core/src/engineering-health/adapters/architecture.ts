@@ -1,7 +1,11 @@
 import type { ArchitectureNode } from '../../domain/architecture';
 import { BaseMetric } from '../metric';
 import type { EngineeringHealthDependencies } from '../dependencies';
-import type { MetricCalculationInput, MetricTarget, MetricValue } from '../types';
+import type {
+  EngineeringHealthMetricTarget,
+  EngineeringHealthMetricValue,
+  MetricCalculationInput,
+} from '../types';
 
 function toPatternString(value?: string | string[]): string | undefined {
   if (!value) {
@@ -46,7 +50,7 @@ export class CouplingMetric extends BaseMetric {
     super();
   }
 
-  async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
+  async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
     const coupling = await this.dependencies.codemaatService.getFileCoupling({
       ignorePatterns: toStringArray(input?.ignorePatterns),
     });
@@ -60,7 +64,7 @@ export class CouplingMetric extends BaseMetric {
     };
   }
 
-  target(): MetricTarget {
+  target(): EngineeringHealthMetricTarget {
     return {
       operator: 'lt',
       value: 10,
@@ -77,7 +81,7 @@ export class OwnershipMetric extends BaseMetric {
     super();
   }
 
-  async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
+  async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
     const ownership = await this.dependencies.codemaatService.getEntityOwnership({
       ignoreFiles: toPatternString(input?.ignorePatterns),
       includeOnly: toPatternString(input?.includePatterns),
@@ -111,7 +115,7 @@ export class OwnershipMetric extends BaseMetric {
     };
   }
 
-  target(): MetricTarget {
+  target(): EngineeringHealthMetricTarget {
     return {
       operator: 'lt',
       value: 40,
@@ -128,7 +132,7 @@ export class ComponentsMetric extends BaseMetric {
     super();
   }
 
-  async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
+  async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
     const view = await this.dependencies.architectureService.getView('component', undefined, {
       includePatterns: input?.includePatterns,
       ignorePatterns: input?.ignorePatterns,
@@ -145,7 +149,7 @@ export class ComponentsMetric extends BaseMetric {
     };
   }
 
-  target(): MetricTarget {
+  target(): EngineeringHealthMetricTarget {
     return {
       operator: 'custom',
       value: 'context-dependent',

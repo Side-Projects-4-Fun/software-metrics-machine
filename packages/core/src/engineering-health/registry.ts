@@ -14,17 +14,17 @@ import {
 import { ComplexityMetric, CoverageMetric, DuplicationMetric } from './adapters/quality';
 import type { EngineeringHealthDependencies } from './dependencies';
 import type { Metric } from './metric';
-import type { MetricCategory, MetricId } from './types';
+import type { EngineeringHealthMetricCategory, EngineeringHealthMetricId } from './types';
 
 export class EngineeringHealthRegistry {
-  private readonly metrics = new Map<MetricId, Metric>();
+  private readonly metrics = new Map<EngineeringHealthMetricId, Metric>();
 
   register(metric: Metric): this {
     this.metrics.set(metric.id, metric);
     return this;
   }
 
-  get(metricId: MetricId): Metric {
+  get(metricId: EngineeringHealthMetricId): Metric {
     const metric = this.metrics.get(metricId);
     if (!metric) {
       throw new Error(`Engineering health metric not found: ${metricId}`);
@@ -37,7 +37,7 @@ export class EngineeringHealthRegistry {
     return Array.from(this.metrics.values());
   }
 
-  listByCategory(category: MetricCategory): Metric[] {
+  listByCategory(category: EngineeringHealthMetricCategory): Metric[] {
     return this.list().filter((metric) => metric.category === category);
   }
 }

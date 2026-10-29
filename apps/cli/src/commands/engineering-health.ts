@@ -1,15 +1,20 @@
 import {
   createEngineeringHealthOrchestrator,
   type EngineeringHealthEvaluationInput,
-  type MetricId,
-  type MetricCategory,
+  type EngineeringHealthMetricCategory,
+  type EngineeringHealthMetricId,
 } from '@smmachine/core';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 import type { SmmCommand } from './smm-command';
 
-const validCategories: MetricCategory[] = ['delivery', 'quality', 'collaboration', 'architecture'];
+const validCategories: EngineeringHealthMetricCategory[] = [
+  'delivery',
+  'quality',
+  'collaboration',
+  'architecture',
+];
 
-function parseMetricIds(value?: string): MetricId[] | undefined {
+function parseMetricIds(value?: string): EngineeringHealthMetricId[] | undefined {
   if (!value) {
     return undefined;
   }
@@ -17,7 +22,7 @@ function parseMetricIds(value?: string): MetricId[] | undefined {
   return value
     .split(',')
     .map((item) => item.trim())
-    .filter((item) => item.length > 0) as MetricId[];
+    .filter((item) => item.length > 0) as EngineeringHealthMetricId[];
 }
 
 function parseList(value?: string): string[] | undefined {
@@ -33,18 +38,18 @@ function parseList(value?: string): string[] | undefined {
   return parsed.length > 0 ? parsed : undefined;
 }
 
-function parseCategory(value?: string): MetricCategory | undefined {
+function parseCategory(value?: string): EngineeringHealthMetricCategory | undefined {
   if (!value) {
     return undefined;
   }
 
-  if (!validCategories.includes(value as MetricCategory)) {
+  if (!validCategories.includes(value as EngineeringHealthMetricCategory)) {
     throw new Error(
       `Invalid category \"${value}\". Supported categories: ${validCategories.join(', ')}`
     );
   }
 
-  return value as MetricCategory;
+  return value as EngineeringHealthMetricCategory;
 }
 
 function buildEvaluationInput(options: {

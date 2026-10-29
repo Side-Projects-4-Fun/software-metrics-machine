@@ -3,9 +3,9 @@ import { ApiTags } from '@nestjs/swagger';
 import type {
   EngineeringHealthEvaluation,
   EngineeringHealthEvaluationInput,
+  EngineeringHealthMetricCategory,
+  EngineeringHealthMetricId,
   EngineeringHealthOrchestrator,
-  MetricCategory,
-  MetricId,
 } from '@smmachine/core';
 import { formatMetricValue } from '@smmachine/utils';
 
@@ -46,8 +46,8 @@ export class EngineeringHealthController {
 
   @Get('/engineering-health/evaluate')
   async evaluate(@Query() query: EngineeringHealthQuery): Promise<EngineeringHealthEvaluation> {
-    const metrics = parseCsv(query.metric) as MetricId[] | undefined;
-    const category = query.category as MetricCategory | undefined;
+    const metrics = parseCsv(query.metric) as EngineeringHealthMetricId[] | undefined;
+    const category = query.category as EngineeringHealthMetricCategory | undefined;
 
     const input: EngineeringHealthEvaluationInput = {
       metrics,

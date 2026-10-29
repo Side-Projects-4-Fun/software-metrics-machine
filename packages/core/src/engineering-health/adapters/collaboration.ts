@@ -1,7 +1,11 @@
 import type { ChangeRequestFilters } from '../../domain/change-requests';
 import { BaseMetric } from '../metric';
 import type { EngineeringHealthDependencies } from '../dependencies';
-import type { MetricCalculationInput, MetricTarget, MetricValue } from '../types';
+import type {
+  EngineeringHealthMetricTarget,
+  EngineeringHealthMetricValue,
+  MetricCalculationInput,
+} from '../types';
 
 function toChangeRequestFilters(input?: MetricCalculationInput): ChangeRequestFilters {
   return {
@@ -40,7 +44,7 @@ export class ReviewTimeMetric extends BaseMetric {
     super();
   }
 
-  async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
+  async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
     const rows = await this.dependencies.changeRequestsService.getReviewTime(
       toChangeRequestFilters(input),
       input?.top,
@@ -57,7 +61,7 @@ export class ReviewTimeMetric extends BaseMetric {
     };
   }
 
-  target(): MetricTarget {
+  target(): EngineeringHealthMetricTarget {
     return {
       operator: 'lt',
       value: 1,
@@ -74,7 +78,7 @@ export class ReviewParticipationMetric extends BaseMetric {
     super();
   }
 
-  async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
+  async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
     const commentsByAuthor = await this.dependencies.changeRequestsService.getCommentsByAuthor(
       toChangeRequestFilters(input),
       input?.top
@@ -93,7 +97,7 @@ export class ReviewParticipationMetric extends BaseMetric {
     };
   }
 
-  target(): MetricTarget {
+  target(): EngineeringHealthMetricTarget {
     return {
       operator: 'gte',
       value: 3,
@@ -110,7 +114,7 @@ export class PairProgrammingMetric extends BaseMetric {
     super();
   }
 
-  async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
+  async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
     const result = await this.dependencies.pairingService.getPairingIndex({
       startDate: input?.startDate,
       endDate: input?.endDate,
@@ -127,7 +131,7 @@ export class PairProgrammingMetric extends BaseMetric {
     };
   }
 
-  target(): MetricTarget {
+  target(): EngineeringHealthMetricTarget {
     return {
       operator: 'gte',
       value: 30,
@@ -144,7 +148,7 @@ export class KnowledgeDistributionMetric extends BaseMetric {
     super();
   }
 
-  async calculate(input?: MetricCalculationInput): Promise<MetricValue> {
+  async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
     const ownership = await this.dependencies.codemaatService.getEntityOwnership({
       ignoreFiles: toPatternString(input?.ignorePatterns),
       includeOnly: toPatternString(input?.includePatterns),
@@ -181,7 +185,7 @@ export class KnowledgeDistributionMetric extends BaseMetric {
     };
   }
 
-  target(): MetricTarget {
+  target(): EngineeringHealthMetricTarget {
     return {
       operator: 'gte',
       value: 60,

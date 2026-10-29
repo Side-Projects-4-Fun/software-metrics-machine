@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { Metric } from '../metric';
 import type {
-  MetricComparison,
-  MetricRecommendation,
-  MetricSummary,
-  MetricTarget,
-  MetricValue,
+  EngineeringHealthMetricComparison,
+  EngineeringHealthMetricRecommendation,
+  EngineeringHealthMetricSummary,
+  EngineeringHealthMetricTarget,
+  EngineeringHealthMetricValue,
 } from '../types';
 import { EngineeringHealthOrchestrator } from '../orchestrator';
 import { EngineeringHealthRegistry } from '../registry';
@@ -14,7 +14,7 @@ function buildMetric(): Metric {
   return {
     id: 'coverage',
     category: 'quality',
-    async calculate(input): Promise<MetricValue> {
+    async calculate(input): Promise<EngineeringHealthMetricValue> {
       if (input?.startDate === '2025-01-01') {
         return {
           value: 75,
@@ -29,7 +29,7 @@ function buildMetric(): Metric {
         direction: 'higher_is_better',
       };
     },
-    compare(current, previous): MetricComparison {
+    compare(current, previous): EngineeringHealthMetricComparison {
       return {
         trend: 'improving',
         delta: (current.value || 0) - (previous?.value || 0),
@@ -39,21 +39,21 @@ function buildMetric(): Metric {
         summary: 'coverage improved',
       };
     },
-    summarize(value): MetricSummary {
+    summarize(value): EngineeringHealthMetricSummary {
       return {
         title: 'coverage',
         valueLabel: `${value.value}%`,
         notes: ['summary'],
       };
     },
-    target(): MetricTarget {
+    target(): EngineeringHealthMetricTarget {
       return {
         operator: 'gte',
         value: 80,
         description: 'keep coverage high',
       };
     },
-    recommendation(): MetricRecommendation {
+    recommendation(): EngineeringHealthMetricRecommendation {
       return {
         level: 'good',
         summary: 'keep going',

@@ -1,46 +1,55 @@
 import type {
   EngineeringHealthEvaluationInput,
+  EngineeringHealthMetricCategory,
+  EngineeringHealthMetricComparison,
+  EngineeringHealthMetricId,
+  EngineeringHealthMetricRecommendation,
+  EngineeringHealthMetricScope,
+  EngineeringHealthMetricSummary,
+  EngineeringHealthMetricTarget,
+  EngineeringHealthMetricValue,
   MetricCalculationInput,
-  MetricCategory,
-  MetricComparison,
   MetricEvaluation,
-  MetricId,
-  MetricRecommendation,
-  MetricScope,
-  MetricSummary,
-  MetricTarget,
-  MetricValue,
   TrendDirection,
 } from './types';
 
 export interface Metric {
-  readonly id: MetricId;
-  readonly category: MetricCategory;
+  readonly id: EngineeringHealthMetricId;
+  readonly category: EngineeringHealthMetricCategory;
 
   evaluate?(input: EngineeringHealthEvaluationInput): Promise<MetricEvaluation[]>;
 
-  calculate(input?: MetricCalculationInput): Promise<MetricValue>;
-  compare(current: MetricValue, previous?: MetricValue): MetricComparison;
-  summarize(value: MetricValue, comparison: MetricComparison): MetricSummary;
-  target(): MetricTarget;
-  recommendation(value: MetricValue, comparison: MetricComparison): MetricRecommendation;
+  calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue>;
+  compare(
+    current: EngineeringHealthMetricValue,
+    previous?: EngineeringHealthMetricValue
+  ): EngineeringHealthMetricComparison;
+  summarize(
+    value: EngineeringHealthMetricValue,
+    comparison: EngineeringHealthMetricComparison
+  ): EngineeringHealthMetricSummary;
+  target(): EngineeringHealthMetricTarget;
+  recommendation(
+    value: EngineeringHealthMetricValue,
+    comparison: EngineeringHealthMetricComparison
+  ): EngineeringHealthMetricRecommendation;
 }
 
 export abstract class BaseMetric implements Metric {
-  abstract readonly id: MetricId;
-  abstract readonly category: MetricCategory;
+  abstract readonly id: EngineeringHealthMetricId;
+  abstract readonly category: EngineeringHealthMetricCategory;
 
   async evaluate(input: EngineeringHealthEvaluationInput): Promise<MetricEvaluation[]> {
     return [await this.evaluateForScope(input.current, input.previous)];
   }
 
-  abstract calculate(input?: MetricCalculationInput): Promise<MetricValue>;
-  abstract target(): MetricTarget;
+  abstract calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue>;
+  abstract target(): EngineeringHealthMetricTarget;
 
   protected async evaluateForScope(
     currentInput?: MetricCalculationInput,
     previousInput?: MetricCalculationInput,
-    scope?: MetricScope
+    scope?: EngineeringHealthMetricScope
   ): Promise<MetricEvaluation> {
     const current = await this.calculate(currentInput);
     const previous = previousInput ? await this.calculate(previousInput) : undefined;
@@ -58,7 +67,10 @@ export abstract class BaseMetric implements Metric {
     };
   }
 
-  compare(current: MetricValue, previous?: MetricValue): MetricComparison {
+  compare(
+    current: EngineeringHealthMetricValue,
+    previous?: EngineeringHealthMetricValue
+  ): EngineeringHealthMetricComparison {
     const currentValue = current.value;
     const previousValue = previous?.value ?? null;
 
@@ -87,7 +99,10 @@ export abstract class BaseMetric implements Metric {
     };
   }
 
-  summarize(value: MetricValue, comparison: MetricComparison): MetricSummary {
+  summarize(
+    value: EngineeringHealthMetricValue,
+    comparison: EngineeringHealthMetricComparison
+  ): EngineeringHealthMetricSummary {
     const formatted = value.value === null ? 'N/A' : `${value.value.toFixed(2)} ${value.unit}`;
     const notes: string[] = [comparison.summary];
 
@@ -102,7 +117,10 @@ export abstract class BaseMetric implements Metric {
     };
   }
 
-  recommendation(value: MetricValue, comparison: MetricComparison): MetricRecommendation {
+  recommendation(
+    value: EngineeringHealthMetricValue,
+    comparison: EngineeringHealthMetricComparison
+  ): EngineeringHealthMetricRecommendation {
     const meetsTarget = this.meetsTarget(value);
 
     if (meetsTarget) {
@@ -128,7 +146,10 @@ export abstract class BaseMetric implements Metric {
     };
   }
 
-  private resolveTrend(direction: MetricValue['direction'], delta: number): TrendDirection {
+  private resolveTrend(
+    direction: EngineeringHealthMetricValue['direction'],
+    delta: number
+  ): TrendDirection {
     const epsilon = 0.0001;
     if (Math.abs(delta) <= epsilon) {
       return 'stable';
@@ -158,7 +179,7 @@ export abstract class BaseMetric implements Metric {
     return `Metric ${direction} by ${Math.abs(delta).toFixed(2)} ${unit}.`;
   }
 
-  private meetsTarget(value: MetricValue): boolean {
+  private meetsTarget(value: EngineeringHealthMetricValue): boolean {
     if (value.value === null) {
       return false;
     }
