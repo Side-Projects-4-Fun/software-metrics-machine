@@ -1,4 +1,13 @@
-import { ConfigurationRepository } from '@smmachine/core';
+import {
+  ConfigurationRepository,
+  METRIC_NAMESPACES,
+  METRIC_VISIBILITIES,
+  isMetricNamespace,
+  isMetricVisibility,
+  listMetricCatalogEntries,
+  type MetricNamespace,
+  type MetricVisibility,
+} from '@smmachine/core';
 import { getApplicationVersion, Logger } from '@smmachine/utils';
 import { toolLogger } from './mcp-logger';
 import { createMcpMetricsReader } from './metrics-reader';
@@ -73,6 +82,50 @@ function getReader(argumentsValue: unknown): {
   };
 }
 
+function parseMetricNamespace(value: unknown): MetricNamespace | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== 'string' || !isMetricNamespace(value)) {
+    throw new Error(`Invalid namespace. Supported: ${METRIC_NAMESPACES.join(', ')}`);
+  }
+
+  return value;
+}
+
+function parseMetricVisibility(value: unknown): MetricVisibility | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== 'string' || !isMetricVisibility(value)) {
+    throw new Error(`Invalid visibility. Supported: ${METRIC_VISIBILITIES.join(', ')}`);
+  }
+
+  return value;
+}
+
+function parseListMetricsArguments(value: unknown): {
+  namespace?: MetricNamespace;
+  visibility?: MetricVisibility;
+} {
+  if (value === undefined) {
+    return {};
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    throw new Error('smm_list_metrics expects an object argument');
+  }
+
+  const record = value as Record<string, unknown>;
+
+  return {
+    namespace: parseMetricNamespace(record.namespace),
+    visibility: parseMetricVisibility(record.visibility),
+  };
+}
+
 export const tools: RegisteredTool[] = [
   {
     name: 'smm_list_projects',
@@ -114,6 +167,31 @@ export const tools: RegisteredTool[] = [
         categories: ['delivery', 'quality', 'collaboration', 'architecture'],
         metrics: listEngineeringHealthMetricCatalog(),
       });
+    },
+  },
+  {
+    name: 'smm_list_metrics',
+    description:
+      'List every metric the application exposes, with stable id, namespace, unit, direction, and surfaces. Filter by namespace or visibility.',
+    inputSchema: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        namespace: {
+          type: 'string',
+          enum: [...METRIC_NAMESPACES],
+          description: 'Optional metric namespace filter.',
+        },
+        visibility: {
+          type: 'string',
+          enum: [...METRIC_VISIBILITIES],
+          description: 'Optional metric visibility filter.',
+        },
+      },
+    },
+    async handler(argumentsValue: unknown): Promise<McpToolResult> {
+      const args = parseListMetricsArguments(argumentsValue);
+      return asToolResult({ metrics: listMetricCatalogEntries(args) });
     },
   },
   {

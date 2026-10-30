@@ -1,4 +1,4 @@
-import type { MetricMethod } from '../index';
+import type { MetricMethod } from '../metric-samples';
 
 export const VALID_METRIC_METHODS: MetricMethod[] = [
   'average',

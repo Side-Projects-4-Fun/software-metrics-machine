@@ -9,6 +9,7 @@ import { createHealthCheckCommand } from './commands/health-check';
 import { createMcpCommands } from './commands/mcp';
 import { createArchitectureCommands } from './commands/architecture';
 import { createEngineeringHealthCommands } from './commands/engineering-health';
+import { createMetricsCommands } from './commands/metrics';
 import { createFiltersCommands } from './commands/filters';
 import { createProjectCommands } from './commands/project';
 import { getApplicationVersion, Logger } from '@smmachine/utils';
@@ -36,6 +37,7 @@ export function commands(): SmmCommand {
   createMcpCommands(program);
   createArchitectureCommands(program);
   createEngineeringHealthCommands(program);
+  createMetricsCommands(program);
   createFiltersCommands(program);
   createProjectCommands(program);
 

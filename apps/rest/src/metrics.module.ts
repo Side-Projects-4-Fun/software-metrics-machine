@@ -50,6 +50,7 @@ import { CodeEvaluationController } from './controllers/code-evaluation.controll
 import { ArchitectureEvaluationController } from './controllers/architecture-evaluation.controller';
 import { SonarqubeEvaluationController } from './controllers/sonarqube-evaluation.controller';
 import { VersionController } from './controllers/version.controller';
+import { MetricsCatalogController } from './controllers/metrics-catalog.controller';
 
 function buildDataDirectories(config: Configuration): {
   gitProviderDirectory: string;
@@ -128,6 +129,7 @@ function createRequestTimeZoneProvider(
     ArchitectureEvaluationController,
     SonarqubeEvaluationController,
     VersionController,
+    MetricsCatalogController,
   ],
   providers: [
     // Configuration Repository (singleton — caches project list)

@@ -1,17 +1,27 @@
 # Metrics Catalog
 
-Inventory of every metric type the application currently provides, with a proposed stable unique identifier
-for each one.
+Inventory of every metric type the application provides, each with a stable unique identifier.
 
-## Current state
+> **Source of truth:** `packages/core/src/domain/metrics/metric-catalog.ts` (metadata) and
+> `packages/core/src/domain/metrics/metric-implementations.ts` (service bindings). This page is the
+> human-readable inventory; it is being migrated to generated output. See
+> [ADR 0007](../adrs/0007-metric-catalog-as-static-data.md) for the design rationale.
 
-- Only **Engineering Health** has real metric identifiers today — the `EngineeringHealthMetricId` union in
-  `packages/core/src/engineering-health/types.ts` (14 IDs).
-- Every other domain is addressable only by its **CLI subcommand / REST route / MCP tool name**. There is no
-  shared catalog, and some names already collide (`coupling`, `coverage`, `complexity` each mean different
-  things in different domains).
+## Implementation status
 
-## Proposed identifier scheme
+- Phase 0 (leaf import for `MetricMethod`) and Phase 1 (static catalog + typed implementation bindings +
+  catalog tests) are implemented in `packages/core/src/domain/metrics/`.
+- The catalog is exported from `@smmachine/core` as `METRIC_CATALOG` and `METRIC_IMPLEMENTATIONS`.
+- `CatalogMetricId` is the derived ID union. It is temporarily named `CatalogMetricId` because
+  `engineering-health/types.ts` already exports a `MetricId`; the two will be unified when Engineering Health
+  adopts the catalog IDs.
+- Discovery surfaces are live: `smm metrics list`, `GET /metrics`, and MCP `smm_list_metrics`.
+- Forward surface-coverage tests check that every catalogued CLI command, REST route, and MCP tool exists.
+- Reverse surface-coverage tests require every leaf CLI command, REST route, and MCP tool to be catalogued or
+  explicitly allowlisted as non-metric.
+- Pending: generated docs and the webapp artifact.
+
+## Identifier scheme
 
 Keep the existing kebab-case style and add a domain namespace so IDs are globally unique:
 
@@ -22,23 +32,36 @@ Keep the existing kebab-case style and add a domain namespace so IDs are globall
 Namespaces: `cr` (change requests), `pl` (pipelines), `code`, `sq` (SonarQube), `arch`, `issue`, `eh`
 (engineering health).
 
+## Discovery
+
+```bash
+smm metrics list
+smm metrics list --namespace eh --output json
+smm metrics list --visibility internal
+```
+
+Equivalent surfaces: `GET /metrics?namespace=eh&visibility=public` and the MCP tool `smm_list_metrics`. On
+every surface, omitting `visibility` means no filter (all 86 metrics); pass `public` or `internal` to narrow.
+
 ---
 
 ## 1. Change requests (`cr-`)
 
-| ID                      | Metric                  | What it measures                                                                                                                                  | Surface                                                                                               |
-| ----------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `cr-summary`            | Change request summary  | Totals, merged/open/closed, comments/CR, unique authors & labels, first/last CR, top themes, most commented, top commenter, time-to-first-comment | CLI `change-requests summary` · `GET /change-requests/summary` · MCP `smm_get_change_request_summary` |
-| `cr-throughput`         | Throughput through time | Opened vs closed per day/week/month                                                                                                               | CLI `through-time` · REST · MCP `smm_get_change_request_through_time`                                 |
-| `cr-volume-by-author`   | Volume by author        | CR count per author                                                                                                                               | CLI `by-author` · REST · MCP                                                                          |
-| `cr-review-time`        | Review time             | Days from open to review, per author; `average/median/p75/p90/p95/min/max`                                                                        | CLI `review-time` · REST · MCP                                                                        |
-| `cr-open-time`          | Open time               | Days open per day/week/month, per method                                                                                                          | CLI `open-time` · REST · MCP                                                                          |
-| `cr-comments-per-cr`    | Comments per CR         | Comment count distribution, per method                                                                                                            | CLI `comments` · REST · MCP                                                                           |
-| `cr-comments-by-author` | Comments by reviewer    | Comment volume per reviewer                                                                                                                       | REST `comments-by-author` · MCP                                                                       |
-| `cr-first-comment-time` | Time to first comment   | Hours to first comment per author                                                                                                                 | REST `first-comment-time` · MCP                                                                       |
-| `cr-period-metrics`     | Period metrics          | Total/merged/closed/open, comments, openDays, leadTime per week/month                                                                             | CLI `by-week` / `by-month` · MCP                                                                      |
-| `cr-label-summary`      | Label distribution      | CR count per label                                                                                                                                | `getLabelSummaries` (inside summary)                                                                  |
-| `cr-evaluation`         | Bottleneck signals      | `review_time`, `reviewer_workload`, `open_time`, `throughput`, `first_comment`, `comment_health`                                                  | `GET /change-requests/evaluate` · MCP                                                                 |
+| ID                      | Metric                   | What it measures                                                                                                                                  | Surface                                                                                               |
+| ----------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `cr-summary`            | Change request summary   | Totals, merged/open/closed, comments/CR, unique authors & labels, first/last CR, top themes, most commented, top commenter, time-to-first-comment | CLI `change-requests summary` · `GET /change-requests/summary` · MCP `smm_get_change_request_summary` |
+| `cr-metrics`            | Change request metrics   | Aggregate open days, comments, lead time, label and comment summaries                                                                             | `GET /api/metrics/change-requests` · MCP `smm_get_change_request_metrics`                             |
+| `cr-throughput`         | Throughput through time  | Opened vs closed per day/week/month                                                                                                               | CLI `through-time` · REST · MCP `smm_get_change_request_through_time`                                 |
+| `cr-volume-by-author`   | Volume by author         | CR count per author                                                                                                                               | CLI `by-author` · REST · MCP                                                                          |
+| `cr-review-time`        | Review time              | Days from open to review, per author; `average/median/p75/p90/p95/min/max`                                                                        | CLI `review-time` · REST · MCP                                                                        |
+| `cr-open-time`          | Open time                | Days open per day/week/month, per method                                                                                                          | CLI `open-time` · REST · MCP                                                                          |
+| `cr-comments-per-cr`    | Comments per CR          | Comment count distribution, per method                                                                                                            | CLI `comments` · REST · MCP                                                                           |
+| `cr-comments-by-author` | Comments by reviewer     | Comment volume per reviewer                                                                                                                       | REST `comments-by-author` · MCP                                                                       |
+| `cr-first-comment-time` | Time to first comment    | Hours to first comment per author                                                                                                                 | REST `first-comment-time` · MCP                                                                       |
+| `cr-metrics-by-week`    | Change requests by week  | Total/merged/closed/open, comments, openDays, leadTime per week                                                                                   | CLI `by-week` · MCP `smm_get_change_request_metrics_by_week`                                          |
+| `cr-metrics-by-month`   | Change requests by month | Total/merged/closed/open, comments, openDays, leadTime per month                                                                                  | CLI `by-month` · MCP `smm_get_change_request_metrics_by_month`                                        |
+| `cr-label-summary`      | Label distribution       | CR count per label                                                                                                                                | `getLabelSummaries` (inside summary)                                                                  |
+| `cr-evaluation`         | Bottleneck signals       | `review_time`, `reviewer_workload`, `open_time`, `throughput`, `first_comment`, `comment_health`                                                  | `GET /change-requests/evaluate` · MCP                                                                 |
 
 ## 2. Pipelines (`pl-`)
 
@@ -67,7 +90,7 @@ Namespaces: `cr` (change requests), `pl` (pipelines), `code`, `sq` (SonarQube), 
 | `code-big-o`            | Big O complexity  | Per-file classification (`O(1)`…`O(n^3+)`), score, `needsHelp`                                                                                                                                       | CLI `big-o` · REST `/code/big-o` · MCP                 |
 | `code-summary`          | Code summary      | Pairing insights overview                                                                                                                                                                            | CLI `code summary`                                     |
 | `code-churn`            | Code churn        | Commits, lines added/deleted, total churn                                                                                                                                                            | CLI `churn` · REST `/code/code-churn` · MCP            |
-| `code-author-churn`     | Churn by author   | Added/deleted/commits per author                                                                                                                                                                     | CLI `churn --authors`                                  |
+| `code-author-churn`     | Churn by author   | Added/deleted/commits per author                                                                                                                                                                     | CLI `churn` (`--authors`)                              |
 | `code-coupling`         | File coupling     | Coupling degree and average revisions                                                                                                                                                                | CLI `coupling` · REST · MCP                            |
 | `code-layered-coupling` | Layered coupling  | Architectural-layer coupling                                                                                                                                                                         | REST `/code/layered-coupling` · MCP                    |
 | `code-entity-churn`     | Entity churn      | Added/deleted/commits per entity                                                                                                                                                                     | CLI `entity-churn` · REST · MCP                        |
@@ -80,21 +103,23 @@ Namespaces: `cr` (change requests), `pl` (pipelines), `code`, `sq` (SonarQube), 
 
 ## 4. Quality / SonarQube (`sq-`)
 
-| ID                          | Metric               | What it measures                                                                                                                                      | Surface                                      |
-| --------------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| `sq-coverage`               | Coverage             | Line coverage %                                                                                                                                       | `fetch-measures` · REST `/sonarqube/quality` |
-| `sq-maintainability-rating` | Maintainability      | `sqale_rating` (1–5)                                                                                                                                  | measures                                     |
-| `sq-reliability-rating`     | Reliability          | Reliability rating                                                                                                                                    | evaluation                                   |
-| `sq-security-rating`        | Security             | Security rating                                                                                                                                       | evaluation                                   |
-| `sq-complexity`             | Complexity           | Total cyclomatic complexity                                                                                                                           | measures                                     |
-| `sq-cognitive-complexity`   | Cognitive complexity | Per-component cognitive complexity                                                                                                                    | component tree                               |
-| `sq-duplication-density`    | Duplication          | `duplicated_lines_density` %                                                                                                                          | measures                                     |
-| `sq-ncloc`                  | Size                 | Non-commenting lines of code                                                                                                                          | measures / tree                              |
-| `sq-code-smells`            | Code smells          | Code smell count                                                                                                                                      | measures                                     |
-| `sq-bugs`                   | Bugs                 | Bug count                                                                                                                                             | measures                                     |
-| `sq-component-tree`         | Component tree       | Per-component metric rows                                                                                                                             | `fetch-component-tree` · REST                |
-| `sq-measurements-history`   | Historical measures  | Time series per metric                                                                                                                                | `fetch-historical-measures` · REST           |
-| `sq-evaluation`             | Quality signals      | `reliability_rating`, `security_rating`, `maintainability_rating`, `duplication_density`, `coverage_health`, `complexity_outlier`, `coverage_outlier` | `GET /sonarqube/evaluate` · MCP              |
+| ID                          | Metric                 | What it measures                                                                                                                                      | Surface                                        |
+| --------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `sq-coverage`               | Coverage               | Line coverage %                                                                                                                                       | `fetch-measures` · REST `/sonarqube/quality`   |
+| `sq-maintainability-rating` | Maintainability        | `sqale_rating` (1–5)                                                                                                                                  | measures                                       |
+| `sq-reliability-rating`     | Reliability            | Reliability rating                                                                                                                                    | evaluation                                     |
+| `sq-security-rating`        | Security               | Security rating                                                                                                                                       | evaluation                                     |
+| `sq-complexity`             | Complexity             | Total cyclomatic complexity                                                                                                                           | measures                                       |
+| `sq-cognitive-complexity`   | Cognitive complexity   | Per-component cognitive complexity                                                                                                                    | component tree                                 |
+| `sq-duplication-density`    | Duplication            | `duplicated_lines_density` %                                                                                                                          | measures                                       |
+| `sq-ncloc`                  | Size                   | Non-commenting lines of code                                                                                                                          | measures / tree                                |
+| `sq-code-smells`            | Code smells            | Code smell count                                                                                                                                      | measures                                       |
+| `sq-bugs`                   | Bugs                   | Bug count                                                                                                                                             | measures                                       |
+| `sq-component-tree`         | Component tree         | Per-component metric rows                                                                                                                             | `fetch-component-tree` · REST                  |
+| `sq-component-tree-history` | Component tree history | Timestamped component tree entries                                                                                                                    | REST `/sonarqube/component-tree/history` · MCP |
+| `sq-measurements`           | Raw measurements       | Raw SonarQube measure set                                                                                                                             | REST `/sonarqube/measurements` · MCP           |
+| `sq-measurements-history`   | Historical measures    | Time series per metric                                                                                                                                | `fetch-historical-measures` · REST             |
+| `sq-evaluation`             | Quality signals        | `reliability_rating`, `security_rating`, `maintainability_rating`, `duplication_density`, `coverage_health`, `complexity_outlier`, `coverage_outlier` | `GET /sonarqube/evaluate` · MCP                |
 
 ## 5. Architecture (`arch-`)
 
@@ -112,17 +137,16 @@ Namespaces: `cr` (change requests), `pl` (pipelines), `code`, `sq` (SonarQube), 
 
 ## 6. Issues / Jira (`issue-`)
 
-| ID                | Metric        | What it measures                                    | Surface                     |
-| ----------------- | ------------- | --------------------------------------------------- | --------------------------- |
-| `issue-total`     | Issue count   | Total issues (+ raw issue list) for a window/status | MCP `smm_get_issue_metrics` |
-| `issue-list`      | Issue records | Raw issue rows                                      | MCP · cache                 |
-| `issue-changelog` | Changelog     | Issue status transitions                            | CLI `jira fetch-changelog`  |
-| `issue-comments`  | Comments      | Issue comments                                      | CLI `jira fetch-comments`   |
+| ID            | Metric        | What it measures                 | Surface                     |
+| ------------- | ------------- | -------------------------------- | --------------------------- |
+| `issue-total` | Issue count   | Total issues for a window/status | MCP `smm_get_issue_metrics` |
+| `issue-list`  | Issue records | Raw issue rows backing the count | internal                    |
 
-> Note: Jira currently has **no derived analytics** — only fetch + count. Any real issue metric (lead time,
-> cycle time, WIP) would be net-new.
+> Note: Jira `fetch-changelog` and `fetch-comments` are data-fetch operations, not metrics, and are not in
+> the catalog. Jira currently has **no derived analytics** — only fetch + count. Any real issue metric (lead
+> time, cycle time, WIP) would be net-new.
 
-## 7. Engineering health (`eh-`, already implemented)
+## 7. Engineering health (namespace `eh`, IDs intentionally unprefixed)
 
 | Existing ID              | Category      | Unit               | Direction        | Target     |
 | ------------------------ | ------------- | ------------------ | ---------------- | ---------- |
@@ -153,22 +177,22 @@ Namespaces: `cr` (change requests), `pl` (pipelines), `code`, `sq` (SonarQube), 
 | `lead-time`        | EH delivery                                     | `pl-lead-time` (same computation, different exposure)            |
 | `pair-programming` | EH collaboration                                | `code-pairing-index` (same pairing service)                      |
 
-**Totals:** ~85 distinct metric types across 7 namespaces, of which only 14 have stable IDs today.
+**Totals:** 86 metric types across 7 namespaces. All 86 have stable IDs in the code catalog today.
 
-## Suggested implementation
+## Implementation notes
 
-1. Add `packages/core/src/domain/metrics/metric-catalog.ts` with a `MetricId` union for all ~85 IDs plus a
-   `METRIC_CATALOG` record (`id`, `namespace`, `label`, `unit`, `direction`, `source`, `surfaces`).
-2. Re-export from `packages/core/src/domain/metrics/index.ts` and `@smmachine/core`.
-3. Keep the 14 engineering-health IDs as canonical values; add namespaced aliases (`eh-coverage`) only if full
-   uniformity is desired.
-4. Add `smm metrics list [--namespace] [--json]` and `GET /metrics` so the catalog is discoverable, and have
-   MCP `smm_list_engineering_health_metrics` read from it.
-5. Guard uniqueness with a registry test (no duplicate IDs, every CLI command and REST route maps to a
-   catalog entry).
+1. `packages/core/src/domain/metrics/metric-catalog.ts` holds the metadata and derives `CatalogMetricId`.
+2. `metric-implementations.ts` maps each ID to a service/method pair. `Record<CatalogMetricId, ...>` plus a
+   type-level key equality assertion make a missing or orphan binding a compile error.
+3. The 14 engineering-health IDs stay unprefixed; the catalog marks their namespace as `eh`.
+4. Tests cover kebab-case IDs, namespace prefixes, public/internal surface rules, required fields, and
+   catalog/implementation key equality.
+5. Pending: `smm metrics list`, `GET /metrics`, CLI/REST/MCP surface-coverage tests, and generated docs/webapp
+   artifacts.
 
-## Open decisions
+## Resolved decisions
 
-1. **Granularity** — one ID per command/endpoint (the ~85 above), or also one ID per output field (~250)?
-2. **Existing EH IDs** — keep them unprefixed (`coverage`, `coupling`) or migrate to `eh-coverage` /
-   `eh-coupling` with aliases?
+1. **Granularity** — one ID per queryable metric family, not per output field. Method, period, and scope are
+   parameters and never part of the ID.
+2. **Existing EH IDs** — keep them unprefixed (`coverage`, `coupling`). Namespace metadata disambiguates them
+   from `sq-coverage` and `code-coupling`, so no migration is needed.

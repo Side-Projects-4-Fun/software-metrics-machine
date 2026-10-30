@@ -49,7 +49,8 @@ This project relies on metrics that are extracted from:
   * Code churn  ✅
   * Hotspots  ✅
   * Change Frequency ✅
-  * Complexity Trends Over Time 🚧
+* Source code
+  * Complexity Trends Over Time ✅
 
 ## Getting started
 
