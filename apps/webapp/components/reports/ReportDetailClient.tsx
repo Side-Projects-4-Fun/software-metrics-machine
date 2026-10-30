@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import TimelineScroller from './TimelineScroller';
 import ReportRenderer from './ReportRenderer';
 import type { SavedFilterEntry } from '@/components/filters/saved-filters-store';
@@ -30,6 +31,17 @@ export default function ReportDetailClient({
 
   return (
     <div>
+      <div className="mb-4">
+        <Link
+          href="/reports"
+          className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 no-underline hover:text-slate-900 hover:underline"
+        >
+          &larr; Back to Reports
+        </Link>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
+          {resolved.report.name}
+        </h1>
+      </div>
       {hasMultipleWindows && (
         <div className="sticky top-16 z-20 -mx-3 -mt-3 mb-4 bg-white/95 px-3 pb-3 pt-3 shadow-sm backdrop-blur">
           <TimelineScroller

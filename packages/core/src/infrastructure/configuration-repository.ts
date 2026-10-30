@@ -150,7 +150,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
     config.mainBranch = this.getString(configData, 'main_branch');
     config.dashboardStartDate = this.getString(configData, 'dashboard_start_date');
     config.dashboardEndDate = this.getString(configData, 'dashboard_end_date');
-    config.dashboardColor = this.getString(configData, 'dashboard_color');
 
     let logLevel: string = 'CRITICAL';
     const configuredLogLevel = this.getString(configData, 'log_level');
@@ -392,7 +391,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
       'main_branch',
       'dashboard_start_date',
       'dashboard_end_date',
-      'dashboard_color',
       'log_level',
       'jira_url',
       'jira_email',

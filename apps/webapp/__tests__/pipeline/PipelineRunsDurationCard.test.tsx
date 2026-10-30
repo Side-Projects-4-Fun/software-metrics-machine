@@ -8,7 +8,6 @@ import { renderWithProviders } from '../utils/test-providers';
 const configuration = new DashboardConfigurationBuilder()
   .withGithubRepository('acme/widgets')
   .withGitRepositoryLocation('')
-  .withDashboardColor('')
   .build();
 
 describe('PipelineRunsDurationCard', () => {

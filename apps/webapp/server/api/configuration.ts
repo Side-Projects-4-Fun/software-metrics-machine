@@ -10,7 +10,6 @@ export interface DashboardGlobalConfiguration {
   main_branch: string;
   dashboard_start_date: string | null;
   dashboard_end_date: string | null;
-  dashboard_color: string;
   logging_level: string;
   jira_url: string | null;
   jira_email: string | null;

@@ -76,11 +76,6 @@ export interface IConfiguration {
   dashboardEndDate?: string;
 
   /**
-   * Dashboard color (hex)
-   */
-  dashboardColor?: string;
-
-  /**
    * Log level (DEBUG, INFO, WARN, ERROR, CRITICAL)
    */
   loggingLevel: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL';
@@ -162,7 +157,6 @@ export interface ISmmProjectConfig extends JsonObject {
   main_branch?: string;
   dashboard_start_date?: string;
   dashboard_end_date?: string;
-  dashboard_color?: string;
   log_level?: string;
   jira_url?: string;
   jira_email?: string;
@@ -202,7 +196,6 @@ export class Configuration implements IConfiguration {
   mainBranch?: string;
   dashboardStartDate?: string;
   dashboardEndDate?: string;
-  dashboardColor?: string;
   loggingLevel: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL' = 'CRITICAL';
   jiraUrl?: string;
   jiraEmail?: string;

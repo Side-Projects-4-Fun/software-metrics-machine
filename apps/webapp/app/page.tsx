@@ -4,6 +4,11 @@ import SavedFiltersOverview from '@/components/home/SavedFiltersOverview';
 import AppProviders from '@/components/providers/AppProviders';
 import { loadAppProviderData } from '@/server/app-provider-data';
 import { versionAPI } from '@/server/api';
+import {
+  DASHBOARD_ACCENT_COLOR,
+  ENGINEERING_HEALTH_ACCENT_COLOR,
+  REPORTS_ACCENT_COLOR,
+} from '@/lib/section-colors';
 
 const resources = [
   {
@@ -71,19 +76,22 @@ export default async function Home() {
               <div className="flex gap-4 justify-center flex-wrap">
                 <Link
                   href="/dashboard"
-                  className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                  className="px-8 py-3 text-white rounded-lg transition-opacity hover:opacity-90 font-semibold"
+                  style={{ backgroundColor: DASHBOARD_ACCENT_COLOR }}
                 >
                   View Dashboard
                 </Link>
                 <Link
                   href="/reports"
-                  className="px-8 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-semibold"
+                  className="px-8 py-3 text-white rounded-lg transition-opacity hover:opacity-90 font-semibold"
+                  style={{ backgroundColor: REPORTS_ACCENT_COLOR }}
                 >
                   View Reports
                 </Link>
                 <Link
                   href="/engineering-health"
-                  className="px-8 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold"
+                  className="px-8 py-3 text-white rounded-lg transition-opacity hover:opacity-90 font-semibold"
+                  style={{ backgroundColor: ENGINEERING_HEALTH_ACCENT_COLOR }}
                 >
                   Engineering Health
                 </Link>

@@ -75,7 +75,6 @@ smm project list
       "main_branch": "main",
       "dashboard_start_date": "2025-01-01",
       "dashboard_end_date": "2025-12-31",
-      "dashboard_color": "#1976d2",
       "deployment_frequency_targets": [
         { "pipeline": ".github/workflows/ci.yml", "job": "deploy" }
       ],

@@ -1,0 +1,3 @@
+export const DASHBOARD_ACCENT_COLOR = '#2563eb';
+export const REPORTS_ACCENT_COLOR = '#059669';
+export const ENGINEERING_HEALTH_ACCENT_COLOR = '#4f46e5';

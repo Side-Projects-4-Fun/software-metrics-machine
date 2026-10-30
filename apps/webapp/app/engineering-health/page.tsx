@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { defaultFilters, parseDashboardFilters } from '@/components/filters/DashboardFilters';
 import { METRIC_TARGETS, type SourceEntry } from '@/components/charts/targets';
+import ActiveProjectName from '@/components/ActiveProjectName';
 import {
   engineeringHealthAPI,
   type EngineeringHealthEvaluation,
@@ -738,7 +739,13 @@ export default async function EngineeringHealthPage({
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-xl border border-slate-200 bg-white/90 px-4 py-3">
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-slate-500">Project</p>
+              <p className="mt-1 truncate text-sm text-slate-900">
+                <ActiveProjectName />
+              </p>
+            </div>
             <div className="rounded-xl border border-slate-200 bg-white/90 px-4 py-3">
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-slate-500">Generated</p>
               <p className="mt-1 text-sm text-slate-900">{formatHumanDateTime(data.generatedAt, reportTimeZone)}</p>

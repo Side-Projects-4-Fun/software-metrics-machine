@@ -81,6 +81,18 @@ describe('EngineeringHealthPage', () => {
     expect(screen.queryByText('Action Plan')).not.toBeInTheDocument();
   });
 
+  it('shows the selected project in the report header', async () => {
+    mockEngineeringHealthAPI.evaluate.mockResolvedValue(
+      new EngineeringHealthEvaluationBuilder().withMetric(pipelineDurationMetric()).build()
+    );
+
+    const ui = await EngineeringHealthPage({ searchParams: Promise.resolve({}) });
+    renderWithProviders(ui, { initialActiveProject: 'acme/backend' });
+
+    expect(screen.getByText('Project')).toBeInTheDocument();
+    expect(screen.getByText('acme/backend')).toBeInTheDocument();
+  });
+
   it('does not render trend chart when series is missing or too short', async () => {
     const metric = pipelineDurationMetric();
     metric.value.series = [{ period: '2026-W06', value: 15, value_formatted: '15' }];

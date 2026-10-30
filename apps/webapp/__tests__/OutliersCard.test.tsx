@@ -8,7 +8,6 @@ const configuration = new DashboardConfigurationBuilder()
   .withGithubRepository('acme/widgets')
   .withGitRepositoryLocation('')
   .withStoreData(true)
-  .withDashboardColor('blue')
   .withLoggingLevel('INFO')
   .build();
 

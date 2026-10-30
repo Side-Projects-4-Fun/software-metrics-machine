@@ -31,20 +31,6 @@ const defaultProps = {
 } as const;
 
 describe('ReportRenderer', () => {
-  it('renders report name', () => {
-    renderWithProviders(
-      <ReportRenderer
-        report={new ReportEntryBuilder().withId('r1').withName('Report 42').build()}
-        savedFiltersMap={new Map()}
-        evaluations={{}}
-        errors={{}}
-        {...defaultProps}
-      />,
-    );
-
-    expect(screen.getByText('Report 42')).toBeVisible();
-  });
-
   it('shows "No sections selected" when report has no sections', () => {
     renderWithProviders(
       <ReportRenderer

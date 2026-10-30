@@ -46,7 +46,7 @@ function buildResolved(overrides: Partial<ResolvedReport> = {}): ResolvedReport 
 }
 
 describe('ReportDetailClient', () => {
-  it('renders the report name', () => {
+  it('renders the report title with a back link to the reports list', () => {
     renderWithProviders(
       <ReportDetailClient
         resolved={buildResolved()}
@@ -54,7 +54,8 @@ describe('ReportDetailClient', () => {
       />,
     );
 
-    expect(screen.getByText('Report 42')).toBeVisible();
+    expect(screen.getByRole('heading', { level: 1, name: 'Report 42' })).toBeVisible();
+    expect(screen.getByRole('link', { name: '← Back to Reports' })).toHaveAttribute('href', '/reports');
   });
 
   it('renders timeline when multiple windows exist', () => {

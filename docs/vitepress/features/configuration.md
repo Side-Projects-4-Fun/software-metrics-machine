@@ -60,7 +60,6 @@ Wrap your project configurations in a `projects` array:
       "timezone": "Europe/Madrid",
       "dashboard_start_date": "2025-01-01",
       "dashboard_end_date": "2025-12-31",
-      "dashboard_color": "#1976d2",
       "log_level": "INFO"
     },
     {
@@ -149,7 +148,6 @@ project-specific environment variables are used only when the selected project d
 These keys affect dashboard behavior:
 
 - `dashboard_start_date` and `dashboard_end_date`: default dashboard date range when no URL filters are provided.
-- `dashboard_color`: theme color value exposed by the configuration API.
 - `deployment_frequency_targets`: pipeline/job pairs used by the Insights deployment frequency chart.
 - `timezone`: configured project timezone for CLI and provider fetch behavior.
 
@@ -206,7 +204,6 @@ Offset-aware date-time values such as `2026-01-01T09:00:00+01:00` are treated as
 | `main_branch` | Main branch name | No |
 | `dashboard_start_date` | Default start date in dashboard | No |
 | `dashboard_end_date` | Default end date in dashboard | No |
-| `dashboard_color` | Dashboard color theme value | No |
 | `log_level` | Logging level (`DEBUG`, `INFO`, `WARN`, `ERROR`, `CRITICAL`) | No |
 | `jira_url` | Jira base URL | No |
 | `jira_email` | Jira account email | No |

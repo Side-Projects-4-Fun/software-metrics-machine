@@ -22,23 +22,26 @@ import FiltersContainer from '@/components/filters/FiltersContainer';
 import ProjectsSidebar from '@/components/ProjectsSidebar';
 import DashboardTabs from '@/components/tabs/TabContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useConfiguration } from '@/components/providers/ConfigurationContext';
+import { useProjects } from '@/components/providers/ProjectsContext';
 
 const drawerWidth = 410;
 const leftDrawerWidth = 280;
 
 const Main = styled('main', {
-  shouldForwardProp: (prop) => prop !== 'open' && prop !== 'leftOpen',
+  shouldForwardProp: (prop) => prop !== 'open' && prop !== 'leftOpen' && prop !== 'showFilters',
 })<{
   open?: boolean;
   leftOpen?: boolean;
-}>(({ theme }) => ({
+  showFilters?: boolean;
+}>(({ theme, showFilters }) => ({
   flexGrow: 1,
   padding: theme.spacing(3),
   transition: theme.transitions.create('margin', {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
   }),
-  marginRight: `-${drawerWidth}px`,
+  marginRight: showFilters ? `-${drawerWidth}px` : 0,
   marginLeft: `-${leftDrawerWidth}px`,
   variants: [
     {
@@ -92,23 +95,33 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'flex-end',
 }));
 
-export default function DrawerLayout({
-  repository,
+export default function AppShell({
   children,
+  showTabs = true,
+  initialFiltersOpen = true,
+  showFilters = true,
+  accentColor,
 }: {
-  repository: string,
   children: React.ReactNode;
+  showTabs?: boolean;
+  initialFiltersOpen?: boolean;
+  showFilters?: boolean;
+  accentColor?: string;
 }) {
   const theme = useTheme();
-  const [rightOpen, setRightOpen] = React.useState(true);
+  const configuration = useConfiguration();
+  const { activeProject } = useProjects();
+  const repository = activeProject ?? configuration.github_repository;
+  const [rightDrawerOpen, setRightDrawerOpen] = React.useState(initialFiltersOpen);
   const [leftOpen, setLeftOpen] = React.useState(false);
+  const rightOpen = showFilters && rightDrawerOpen;
 
   const handleRightDrawerOpen = () => {
-    setRightOpen(true);
+    setRightDrawerOpen(true);
   };
 
   const handleRightDrawerClose = () => {
-    setRightOpen(false);
+    setRightDrawerOpen(false);
   };
 
   const handleLeftDrawerOpen = () => {
@@ -121,7 +134,7 @@ export default function DrawerLayout({
 
   return (
       <Box sx={{ display: 'flex' }}>
-        <AppBar position="fixed" open={rightOpen} leftOpen={leftOpen}>
+        <AppBar position="fixed" open={rightOpen} leftOpen={leftOpen} sx={{ bgcolor: accentColor }}>
           <Toolbar>
             <IconButton
               color="inherit"
@@ -184,20 +197,22 @@ export default function DrawerLayout({
             >
               <SettingsIcon />
             </IconButton>
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              onClick={handleRightDrawerOpen}
-              edge="end"
-              sx={[
-                {
-                  ml: 2,
-                },
-                rightOpen && { display: 'none' },
-              ]}
-            >
-              <MenuIcon />
-            </IconButton>
+            {showFilters ? (
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                onClick={handleRightDrawerOpen}
+                edge="end"
+                sx={[
+                  {
+                    ml: 2,
+                  },
+                  rightOpen && { display: 'none' },
+                ]}
+              >
+                <MenuIcon />
+              </IconButton>
+            ) : null}
           </Toolbar>
         </AppBar>
 
@@ -228,36 +243,38 @@ export default function DrawerLayout({
         </Drawer>
 
         {/* Main Content */}
-        <Main open={rightOpen} leftOpen={leftOpen}>
+        <Main open={rightOpen} leftOpen={leftOpen} showFilters={showFilters}>
           <DrawerHeader />
-          <DashboardTabs />
+          {showTabs ? <DashboardTabs /> : null}
           {children}
         </Main>
 
         {/* Right Drawer - Filters */}
-        <Drawer
-          sx={{
-            width: drawerWidth,
-            flexShrink: 0,
-            '& .MuiDrawer-paper': {
+        {showFilters ? (
+          <Drawer
+            sx={{
               width: drawerWidth,
-              boxSizing: 'border-box',
-            },
-          }}
-          variant="persistent"
-          anchor="right"
-          open={rightOpen}
-        >
-          <DrawerHeader>
-            <IconButton onClick={handleRightDrawerClose}>
-              {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-            </IconButton>
-          </DrawerHeader>
-          <Divider />
-          <Box sx={{ p: 2, overflowY: 'auto' }}>
-            <FiltersContainer repository={repository} />
-          </Box>
-        </Drawer>
+              flexShrink: 0,
+              '& .MuiDrawer-paper': {
+                width: drawerWidth,
+                boxSizing: 'border-box',
+              },
+            }}
+            variant="persistent"
+            anchor="right"
+            open={rightOpen}
+          >
+            <DrawerHeader>
+              <IconButton onClick={handleRightDrawerClose}>
+                {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+              </IconButton>
+            </DrawerHeader>
+            <Divider />
+            <Box sx={{ p: 2, overflowY: 'auto' }}>
+              <FiltersContainer repository={repository} />
+            </Box>
+          </Drawer>
+        ) : null}
       </Box>
   );
 }

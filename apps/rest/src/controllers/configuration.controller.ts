@@ -25,7 +25,6 @@ export class ConfigurationController {
         main_branch: this.config.mainBranch,
         dashboard_start_date: this.config.dashboardStartDate || null,
         dashboard_end_date: this.config.dashboardEndDate || null,
-        dashboard_color: this.config.dashboardColor,
         logging_level: this.config.loggingLevel,
         jira_url: this.config.jiraUrl || null,
         jira_email: this.config.jiraEmail || null,

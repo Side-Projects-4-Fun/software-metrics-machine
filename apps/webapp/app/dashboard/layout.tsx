@@ -1,5 +1,6 @@
 import AppProviders from '@/components/providers/AppProviders';
-import DashboardFrame from './dashboard-frame';
+import AppShell from '@/components/layout/AppShell';
+import { DASHBOARD_ACCENT_COLOR } from '@/lib/section-colors';
 import { Suspense } from 'react';
 import { loadAppProviderData } from '@/server/app-provider-data';
 import PageLoading from '@/components/ui/PageLoading';
@@ -16,9 +17,7 @@ export default async function DashboardLayout({
   return (
     <Suspense fallback={<PageLoading message="Loading dashboard..." />}>
       <AppProviders {...providerData} requireConfiguration>
-        <DashboardFrame>
-          {children}
-        </DashboardFrame>
+        <AppShell accentColor={DASHBOARD_ACCENT_COLOR}>{children}</AppShell>
       </AppProviders>
     </Suspense>
   );

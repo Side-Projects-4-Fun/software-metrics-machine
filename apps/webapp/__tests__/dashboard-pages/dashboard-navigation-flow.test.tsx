@@ -65,7 +65,6 @@ describe('Dashboard Navigation with Filters Flow', () => {
         main_branch: 'main',
         dashboard_start_date: null,
         dashboard_end_date: null,
-        dashboard_color: '#1976d2',
         logging_level: 'info',
         jira_url: null,
         jira_email: null,
