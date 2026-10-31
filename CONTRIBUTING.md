@@ -66,7 +66,7 @@ nvm use          # if using nvm, reads .nvmrc
 │   └── utils/            # Shared utilities — logging, JSON, date helpers (@smmachine/utils)
 ├── docs/
 │   ├── adrs/             # Architecture Decision Records
-│   ├── architecture/     # Architecture documentation (C4 diagrams)
+│   ├── architecture/     # Architecture documentation (C4 diagrams in Mermaid)
 │   └── vitepress/        # VitePress documentation site
 ├── scripts/              # merge-coverage.mjs, simulate-and-test-publish.sh
 ├── docker-compose.yml    # SonarQube + API + webapp containers
@@ -363,6 +363,23 @@ pnpm --filter @smmachine/webapp build
 3. Expose it through the CLI/REST endpoints if needed
 
 ## Codebase Architecture
+
+### Architecture diagrams (start here)
+
+`docs/architecture/` holds the C4 diagrams as Mermaid sources. They render directly on GitHub, so read them in place.
+They are contributor documentation and are intentionally not part of the VitePress site, which documents product usage.
+
+| Level | Answers | File |
+|-------|---------|------|
+| 1 — System context | Who uses SMM and which external systems it talks to | [level-1-system-context.md](docs/architecture/level-1-system-context.md) |
+| 2 — Containers | Which apps and libraries exist, and which one may write | [level-2-containers.md](docs/architecture/level-2-containers.md) |
+| 3 — Core components | Domain slices, providers, Engineering Health, persistence | [level-3-components-core.md](docs/architecture/level-3-components-core.md) |
+| 3 — Application components | CLI, REST, webapp and MCP internals | [level-3-components-apps.md](docs/architecture/level-3-components-apps.md) |
+| Dynamic views | Order of calls for the three main flows | [dynamic-views.md](docs/architecture/dynamic-views.md) |
+| Deployment | Published CLI stack vs local development | [deployment.md](docs/architecture/deployment.md) |
+
+Read them in that order on your first pass. Update the affected diagram in the same pull request that changes the
+architecture.
 
 ### Dependency graph
 

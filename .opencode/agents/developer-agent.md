@@ -101,7 +101,10 @@ packages/utils/src/        # logger.ts, json.ts, date-time.ts, duration.ts, app-
 - Add provider-specific documentation
 - Update the CONTRIBUTING.md when workflows change
 - `./docs/adrs` store Architecture Decision Records for major decisions keep this in sync and refer to it when making architectural changes. When a rename or refactor supersedes a prior ADR decision, record it as an addendum on the same ADR file rather than silently deviating.
-- ``./docs/architecture`` store high-level architecture diagrams and explanations. The primary style is to use C4 diagrams.
+- `./docs/architecture` stores the C4 architecture documentation (Mermaid): levels 1-3
+  (`level-1-system-context.md`, `level-2-containers.md`, `level-3-components-core.md`,
+  `level-3-components-apps.md`), `dynamic-views.md` and `deployment.md`. It is internal contributor documentation,
+  linked from `CONTRIBUTING.md`; keep it out of the VitePress site, which documents product usage.
 
 ### 6. Repository Maintenance
 - Bump Node.js and pnpm versions in `.nvmrc`, `package.json`, and documentation

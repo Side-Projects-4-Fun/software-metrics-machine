@@ -59,7 +59,7 @@ and `.github/agents/` for GitHub Copilot. Shared role prompts live under `.agent
 │   └── utils/            # @smmachine/utils — logger, JSON, date/duration helpers
 ├── docs/
 │   ├── vitepress/         # VitePress documentation site
-│   ├── architecture/      # Architecture docs (C4 diagrams — packages-current.c4.mmd)
+│   ├── architecture/      # C4 architecture docs (Mermaid, contributor-facing): levels 1-3, dynamic views, deployment
 │   └── adrs/               # Architecture Decision Records
 ├── scripts/               # merge-coverage.mjs, simulate-and-test-publish.sh, Dockerfile.publish-test
 ├── docker-compose.yml     # SonarQube + API + webapp

@@ -1,102 +1,76 @@
-# Architecture
+# Architecture (contributor documentation)
 
-This folder documents the current architecture of the Software Metrics Machine monorepo.
+This folder is the starting point for contributors who need to understand how Software Metrics Machine is built. It is
+internal documentation: the pages are written for people changing the code, not for people using the CLI or dashboard,
+so they are deliberately **not** published on the VitePress site.
 
-## Diagram
+The diagrams follow the [C4 model](https://c4model.com/) and are written in Mermaid. GitHub renders them directly in
+the file view, so you can read everything without extra tooling.
 
-- C4 container diagram source: `packages-current.c4.mmd`
+If you are new to the codebase, read the levels in order. Each level answers a different question:
 
-The diagram models the main runtime containers and workspace packages:
+| Level | Question it answers | Diagram |
+|-------|--------------------|---------|
+| 1 — System context | Who uses SMM, and which external systems does it talk to? | [level-1-system-context.md](./level-1-system-context.md) |
+| 2 — Containers | Which runnable units and shared libraries exist, and who may write? | [level-2-containers.md](./level-2-containers.md) |
+| 3 — Components | What is inside `@smmachine/core` and inside each application? | [level-3-components-core.md](./level-3-components-core.md), [level-3-components-apps.md](./level-3-components-apps.md) |
+| Dynamic views | In which order do components call each other for the three main flows? | [dynamic-views.md](./dynamic-views.md) |
+| Deployment | How does the published CLI stack differ from local development? | [deployment.md](./deployment.md) |
 
-- `@smmachine/webapp` (Next.js dashboard)
-- `@smmachine/rest` (NestJS API)
-- `@smmachine/cli` (CLI application)
-- `@smmachine/mcp` (MCP stdio server)
-- `@smmachine/core` (domain and orchestration library)
-- `@smmachine/utils` (shared utility library)
+## Overview
 
-## Repository Layout
+Software Metrics Machine is a pnpm monorepo with four runnable units and two shared libraries:
 
-```
-apps/
-  cli/      # Commander.js CLI: src/commands, src/factories, src/formatters, e2e/, lib/bashunit/, tools/
-  mcp/      # Read-only MCP stdio server: server.ts, tools.ts, resources.ts, prompts.ts, metrics-reader.ts
-  rest/     # NestJS API: main.ts, metrics.module.ts, controllers/, dtos/, filters/, middleware/, config/
-  webapp/   # Next.js App Router: app/, components/, server/ (REST data layer), lib/, __tests__/, cypress/
-packages/
-  core/     # domain/<area>/{services,repositories,factories,infrastructure}, providers/, engineering-health/, infrastructure/
-  utils/    # logger, json, date-time, duration, app-version
-docs/
-  adrs/           # Architecture Decision Records
-  architecture/   # This folder (C4 diagrams)
-  vitepress/      # Public documentation site
-scripts/          # Coverage merge and publish-simulation helpers
-```
+- **`@smmachine/cli`** — the only write-capable application. It fetches provider data, generates architecture snapshots
+  and computes metrics into `SMM_STORE_DATA_AT`.
+- **`@smmachine/rest`** — a read-only NestJS API that serves persisted metrics, filters and configuration.
+- **`@smmachine/webapp`** — a read-only Next.js dashboard that reads the REST API through `server/api/*.ts`.
+- **`@smmachine/mcp`** — a read-only MCP stdio server that projects the same metrics for agent clients.
+- **`@smmachine/core`** — domain slices, provider clients, the Engineering Health registry and persistence.
+- **`@smmachine/utils`** — logging, JSON, date-time and duration helpers.
 
-Domain slices in `packages/core/src/domain/<area>/` all share the same internal layout, so a new feature area is
-added by copying that layout rather than inventing a new one.
+The dependency direction is always `utils → core → apps`, and the webapp reaches data only over HTTP. Diagrams never
+cross that boundary: if a relationship is not on the diagrams, it is not part of the architecture.
 
-## Current Package Responsibilities
+## Reading paths by role
 
-### `@smmachine/cli`
+- **First week in the repo** — Level 1, Level 2, then the dynamic CLI flow. That is enough to know where a change goes.
+- **Working on metrics** — Level 3 core, specifically the domain slices and the Engineering Health section, then the
+  relevant adapter under `packages/core/src/engineering-health/adapters/`.
+- **Working on the dashboard** — Level 3 webapp plus the dynamic dashboard flow, then the endpoints in
+  `apps/webapp/server/api/`.
+- **Working on a provider** — Level 3 core (provider clients and the two repository kinds) and the provider-specific
+  page in `docs/vitepress/` (GitHub, GitLab, Jira, SonarQube, Code Maat).
+- **Packaging and deployment** — Level 2 and the deployment diagrams, plus `CONTRIBUTING.md` for the publish workflow.
 
-- Provides command-line workflows for metrics analysis and is the only write-capable app for `SMM_STORE_DATA_AT`.
-- Uses `@smmachine/core` for domain operations.
-- Uses `@smmachine/utils` for cross-cutting helpers (for example logging).
-- Uses `@smmachine/mcp` for the MCP server start command.
+## Ground rules the diagrams encode
 
-### `@smmachine/mcp`
+1. **Write boundary.** The CLI owns `SMM_STORE_DATA_AT`. The REST API, webapp and MCP server are read-only. This is not
+   a convention: review and tests enforce it, and it is why provider fetching is not reachable from the API.
+2. **Two kinds of repository.** Fetch repositories in `packages/core/src/providers/` call external APIs and are CLI-only;
+   read repositories in `packages/core/src/domain/<area>/repositories/` serve cached data to every front door.
+3. **One metric implementation.** Metric math lives in a domain service and is reused by CLI, REST, MCP and Engineering
+   Health instead of being reimplemented per surface.
+4. **Apps are adapters.** Command groups, controllers, MCP tools and React components translate inputs and outputs; they
+   do not own business rules.
 
-- Provides a read-only MCP stdio server for agent clients.
-- Uses `@smmachine/core` for domain operations.
-- Uses `@smmachine/utils` for shared concerns.
-- Exposes tools, resources, and prompts for metrics access.
+## Keeping the diagrams current
 
-### `@smmachine/webapp`
+Update the diagrams in the same pull request that changes the architecture. A change that adds a package, a container,
+a provider or a cross-component dependency is not complete until the relevant diagram and the table above still describe
+the truth.
 
-- Provides the user-facing dashboard.
-- Calls `@smmachine/rest` over HTTP/JSON through the server-only data layer in `apps/webapp/server/api/`.
-- Must not import `@smmachine/core` or `@smmachine/utils` from page or server code (devDependencies for typing only).
+When you edit a diagram:
 
-### `@smmachine/rest`
+1. Edit the Markdown file for the affected level — the Mermaid source is the single source of truth.
+2. Preview it by opening the file on GitHub, or paste the block into the
+   [Mermaid live editor](https://mermaid.live/).
+3. Keep element names aligned with workspace package names in the `package.json` files.
+4. If the change supersedes an architectural decision, add an addendum to the matching record in `docs/adrs/` instead of
+   silently deviating from it.
 
-- Exposes API endpoints for metrics and configuration.
-- Delegates business logic to `@smmachine/core`.
-- Uses `@smmachine/utils` for shared concerns.
-- Read-only: never generates or persists project data.
+These pages are linked from the "Codebase Architecture" section of `CONTRIBUTING.md`. Do not add them to the VitePress
+sidebar: the documentation site describes product usage, while this folder describes the implementation.
 
-### `@smmachine/core`
-
-- Contains business/domain logic and metric orchestration.
-- Integrates with external provider APIs (for example GitHub, GitLab, Jira, SonarQube).
-- Hosts the Engineering Health registry (`engineering-health/registry.ts`).
-- Uses `@smmachine/utils` to avoid duplicating low-level utilities.
-
-### `@smmachine/utils`
-
-- Holds reusable helpers shared by other packages.
-- Stays dependency-light to remain broadly reusable.
-
-## Relationship Summary
-
-- Developer -> `@smmachine/cli`
-- Developer -> `@smmachine/webapp`
-- Agent Client -> `@smmachine/mcp`
-- `@smmachine/webapp` -> `@smmachine/rest`
-- `@smmachine/cli` -> `@smmachine/core`
-- `@smmachine/cli` -> `@smmachine/utils`
-- `@smmachine/cli` -> `@smmachine/mcp`
-- `@smmachine/mcp` -> `@smmachine/core`
-- `@smmachine/mcp` -> `@smmachine/utils`
-- `@smmachine/rest` -> `@smmachine/core`
-- `@smmachine/rest` -> `@smmachine/utils`
-- `@smmachine/core` -> `@smmachine/utils`
-- `@smmachine/core` -> external provider systems
-
-## Keeping This Updated
-
-When package dependencies or responsibilities change:
-
-1. Update `packages-current.c4.mmd`.
-2. Update this README summary.
-3. Keep names aligned with workspace package names in `package.json` files.
+Related reading: `docs/adrs/` for decision records, `CONTRIBUTING.md` for the development workflow, and
+`docs/architecture/metrics-catalog.md` for the metric definitions themselves.
