@@ -210,7 +210,19 @@ jobs:
       - name: Install Cypress binary
         run: pnpm --filter @smmachine/webapp exec cypress install
 
+      - name: Install Chrome for Testing
+        id: chrome
+        # Chrome for Testing is the suite default (see cypress.config.ts); it is
+        # pinned and built for automation, unlike the auto-updating stable Chrome.
+        # Pin `chrome-version` to an exact build to make CI fully reproducible.
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+
       - name: Run webapp Cypress journeys
+        env:
+          # Pass the exact binary so the run does not depend on browser detection.
+          E2E_CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
         run: pnpm --filter @smmachine/webapp cy:run
 
       - name: Upload Cypress screenshots

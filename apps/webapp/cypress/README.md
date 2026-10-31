@@ -43,6 +43,28 @@ The first run on a fresh clone needs the Cypress binary (build scripts are not a
 pnpm --filter @smmachine/webapp exec cypress install
 ```
 
+## Browser: Chrome for Testing
+
+`cypress.config.ts` sets `defaultBrowser: 'chrome-for-testing'`. Chrome for Testing is pinned, never auto-updates, and
+is built for automation — stable Chrome silently changes between runs, and Cypress 16 deprecates Electron as a test
+browser. Cypress cannot download browsers itself, so install it once:
+
+```bash
+pnpm --filter @smmachine/webapp cy:install-browser        # latest stable
+pnpm --filter @smmachine/webapp cy:install-browser 156    # pinned major
+```
+
+The installer writes the binary into `tmp/chrome/` (git-ignored) and records its path, which `run-e2e.mjs` picks up
+automatically. Resolution order:
+
+1. `E2E_CHROME_PATH` — explicit Chrome for Testing binary
+2. `E2E_BROWSER` — any browser Cypress knows (`chrome`, `firefox`, …) or a path
+3. `tmp/chrome/default-browser-path` — written by `cy:install-browser`
+4. `defaultBrowser` from `cypress.config.ts`
+
+CI installs Chrome for Testing with `browser-actions/setup-chrome` and passes the binary path through
+`E2E_CHROME_PATH`.
+
 ## Layout
 
 ```
@@ -57,6 +79,7 @@ cypress/
 │   └── server-preload.mjs         # msw/node server loaded into Next.js
 └── support/
     ├── e2e.ts                     # Cypress support file
+    ├── install-browser.mjs        # installs Chrome for Testing into tmp/chrome
     └── run-e2e.mjs                # boots Next.js + MSW, runs Cypress, cleans up
 ```
 
@@ -77,3 +100,4 @@ missing fixture rather than ignoring them.
 - No `cy.wait(ms)`: Cypress retries assertions; the runner already waits for the app to answer before starting.
 - No browser-level interception of REST calls: it cannot see server component fetches.
 - The stub is read-only apart from `PUT /filters`, which echoes the saved document back.
+- Runs target Chrome for Testing, not Electron or the auto-updating Chrome channel.

@@ -313,11 +313,15 @@ pnpm --filter @smmachine/webapp cy:run
 ```
 
 The Cypress journeys run in CI as the `Webapp Cypress Journeys` job. Install scripts are skipped on install, so a
-fresh clone needs the binary once:
+fresh clone needs the binary and the test browser once:
 
 ```bash
 pnpm --filter @smmachine/webapp exec cypress install
+pnpm --filter @smmachine/webapp cy:install-browser   # Chrome for Testing
 ```
+
+Runs target Chrome for Testing (pinned, built for automation). See `apps/webapp/cypress/README.md` for overrides
+(`E2E_BROWSER`, `E2E_CHROME_PATH`).
 
 ### Documentation
 

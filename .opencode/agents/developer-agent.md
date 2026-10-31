@@ -372,6 +372,7 @@ Key details:
 - The `build-typescript` job uses a second `actions/checkout` step to clone `react/react` into `docs/project-example/react` with `fetch-depth: 500`. This provides real-world data for the build.
 - `check-distribution` uses a shallow clone (`--shallow-since`) to speed up the simulation.
 - Every job installs with `pnpm install --ignore-scripts`, so `webapp-e2e` downloads the Cypress binary explicitly with `pnpm --filter @smmachine/webapp exec cypress install` (cached in `~/.cache/Cypress`).
+- `webapp-e2e` also installs Chrome for Testing with `browser-actions/setup-chrome` and passes its binary path as `E2E_CHROME_PATH`, because the suite's `defaultBrowser` is `chrome-for-testing` (Electron is deprecated as a test browser in Cypress 16).
 - SonarQube only runs after all preceding jobs succeed and only on the `main` branch.
 
 #### `docs.yml` — VitePress Docs Deployment

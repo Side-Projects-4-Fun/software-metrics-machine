@@ -12,6 +12,7 @@
     "watch": "next dev",
     "clean": "rm -rf .next",
     "cy:open": "cypress open",
+    "cy:install-browser": "node cypress/support/install-browser.mjs",
     "cy:run": "node cypress/support/run-e2e.mjs",
     "test:e2e": "node cypress/support/run-e2e.mjs"
   },

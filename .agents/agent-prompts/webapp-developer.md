@@ -328,6 +328,9 @@ apps/webapp/cypress/                 # Cypress e2e journeys
 - Add payloads to `cypress/mocks/rest-fixtures.mjs` (key = endpoint path, value = the `server/api/*.ts` type);
   `handlers.mjs` picks them up automatically.
 - Run with `pnpm --filter @smmachine/webapp cy:run [spec]`; it boots the app itself, so no dev server is needed.
+- Runs target **Chrome for Testing** (`defaultBrowser` in `cypress.config.ts`), never Electron or the auto-updating
+  Chrome channel. Install it once with `pnpm --filter @smmachine/webapp cy:install-browser`; `E2E_BROWSER=chrome` or
+  `E2E_CHROME_PATH=<binary>` override the browser for a single run.
 
 ## Running Tests
 
@@ -344,9 +347,11 @@ pnpm --filter @smmachine/webapp test -- --coverage
 # Watch mode
 pnpm --filter @smmachine/webapp test -- --watch
 
-# Cypress journeys (boots Next.js with MSW-backed REST responses, then runs Cypress)
+# Cypress journeys (boots Next.js with MSW-backed REST responses, then runs Cypress in Chrome for Testing)
+pnpm --filter @smmachine/webapp cy:install-browser   # once, installs Chrome for Testing
 pnpm --filter @smmachine/webapp cy:run
 pnpm --filter @smmachine/webapp cy:run cypress/e2e/reports.cy.ts
+E2E_BROWSER=chrome pnpm --filter @smmachine/webapp cy:run   # override the browser
 
 # Interactive runner against your own dev server on localhost:3000
 pnpm --filter @smmachine/webapp cy:open
