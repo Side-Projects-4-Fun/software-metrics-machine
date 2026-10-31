@@ -6,13 +6,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "type-check": "tsc --noEmit && tsc --noEmit -p cypress/tsconfig.json",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "watch": "next dev",
     "clean": "rm -rf .next",
     "cy:open": "cypress open",
-    "cy:run": "cypress run",
-    "test:e2e": "cypress run"
+    "cy:run": "node cypress/support/run-e2e.mjs",
+    "test:e2e": "node cypress/support/run-e2e.mjs"
   },
   "dependencies": {
     "@emotion/cache": "catalog:",

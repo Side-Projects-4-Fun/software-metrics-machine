@@ -273,3 +273,8 @@ sonarqube_data/
 .pnpm-store/
 
 apps/cli/lib
+
+# Cypress
+apps/webapp/cypress/screenshots/
+apps/webapp/cypress/videos/
+apps/webapp/cypress/downloads/

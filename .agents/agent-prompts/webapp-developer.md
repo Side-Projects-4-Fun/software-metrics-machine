@@ -312,11 +312,22 @@ apps/webapp/__tests__/
   server/                            # Server utility tests
   server-code-boundary.test.ts       # Guards against @smmachine/core|utils leaking into page files
 
-apps/webapp/cypress/                 # Cypress e2e
-  e2e/dashboard.cy.ts
-  mocks/handlers.ts                  # REST API mocks
-  support/                           # commands.ts, e2e.ts
+apps/webapp/cypress/                 # Cypress e2e journeys
+  e2e/                               # dashboard.cy.ts, reports.cy.ts, engineering-health.cy.ts
+  mocks/                             # rest-fixtures.mjs, MSW handlers.mjs, server-preload.mjs
+  support/                           # e2e.ts, run-e2e.mjs (boots Next.js + MSW, runs Cypress)
 ```
+
+### Cypress Journey Conventions
+
+- Specs cover **happy-path user journeys** only (dashboard loads, reports list → detail, engineering health
+  scorecards). Keep assertions on what the user sees: headings, card text, `aria-label`/`role` selectors.
+- REST data is mocked with **MSW running in the Next.js Node process** (`cypress/mocks/server-preload.mjs`,
+  loaded via `NODE_OPTIONS=--import`), because pages are server components and browser-level interception cannot
+  see their fetches. Never reintroduce `msw/browser` or `cy.intercept` for REST data.
+- Add payloads to `cypress/mocks/rest-fixtures.mjs` (key = endpoint path, value = the `server/api/*.ts` type);
+  `handlers.mjs` picks them up automatically.
+- Run with `pnpm --filter @smmachine/webapp cy:run [spec]`; it boots the app itself, so no dev server is needed.
 
 ## Running Tests
 
@@ -333,8 +344,11 @@ pnpm --filter @smmachine/webapp test -- --coverage
 # Watch mode
 pnpm --filter @smmachine/webapp test -- --watch
 
-# Cypress e2e (needs the webapp on localhost:3000)
+# Cypress journeys (boots Next.js with MSW-backed REST responses, then runs Cypress)
 pnpm --filter @smmachine/webapp cy:run
+pnpm --filter @smmachine/webapp cy:run cypress/e2e/reports.cy.ts
+
+# Interactive runner against your own dev server on localhost:3000
 pnpm --filter @smmachine/webapp cy:open
 ```
 

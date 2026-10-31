@@ -170,10 +170,62 @@ jobs:
           SMM_STORE_DATA_AT: /home/runner/work/software-metrics-machine/software-metrics-machine/docs/project-example
         run: ./scripts/simulate-and-test-publish.sh build
 
+  webapp-e2e:
+    name: Webapp Cypress Journeys
+    runs-on: ubuntu-latest
+    needs: [build-typescript]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set Environment Variables
+        uses: tw3lveparsecs/github-actions-setvars@23da06e2c4d5804d2082ecf4d79b83a2338fb419 # v0.2
+        with:
+          envFilePath: ./envvars.for.actions
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        # `--ignore-scripts` is the convention for every job, so the Cypress
+        # binary is installed explicitly in the next step.
+        run: pnpm install --ignore-scripts
+
+      - name: Cache Cypress binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-cypress-
+
+      - name: Install Cypress binary
+        run: pnpm --filter @smmachine/webapp exec cypress install
+
+      - name: Run webapp Cypress journeys
+        run: pnpm --filter @smmachine/webapp cy:run
+
+      - name: Upload Cypress screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: apps/webapp/cypress/screenshots
+          retention-days: 5
+          if-no-files-found: ignore
+
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-latest
-    needs: [build-typescript, test, cli-acceptance, check-distribution]
+    needs: [build-typescript, test, cli-acceptance, check-distribution, webapp-e2e]
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout

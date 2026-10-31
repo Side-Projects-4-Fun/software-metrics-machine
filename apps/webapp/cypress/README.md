@@ -1,187 +1,79 @@
-# Cypress E2E Testing with MSW
+# Cypress E2E Journeys
 
-This directory contains Cypress end-to-end tests with MSW (Mock Service Worker) integration for mocking REST API responses.
+Happy-path user journeys for the webapp: the dashboard, the reports list/detail and the engineering health
+report. Every spec asserts what a user sees, not implementation details.
 
-## Setup
+## Why MSW runs in Node, not in the browser
 
-Cypress has been configured to work with the Next.js webapp and MSW for API mocking.
+The webapp never calls the REST API from the browser: pages are React Server Components that fetch
+`SMM_REST_BASE_URL` from `apps/webapp/server/api/client.ts` inside the Next.js Node process (the same is true for
+server actions such as the saved-filter lookups). A browser service worker — the classic `msw/browser` setup —
+therefore cannot observe those requests.
 
-### Dependencies
+The suite runs MSW in Node instead:
 
-- `cypress` - E2E testing framework
-- `msw` - Mock Service Worker for API mocking
-- `@cypress/webpack-preprocessor` - TypeScript support for Cypress
-
-## Running Tests
-
-### Start the Development Server
-
-First, ensure your Next.js development server is running:
-
-```bash
-cd apps/webapp
-pnpm dev
+```
+cypress/support/run-e2e.mjs
+  └─ spawns `next dev` with NODE_OPTIONS=--import cypress/mocks/server-preload.mjs
+       ├─ server-preload.mjs calls setupServer(...handlers) (msw/node)
+       └─ SMM_REST_BASE_URL=http://smm-rest-stub.local
+            └─ every request is answered by handlers.mjs — nothing hits the network
 ```
 
-### Open Cypress Test Runner
+`REST_BASE_URL` is a reserved host that never resolves; MSW answers it before any socket is opened.
+
+## Running
 
 ```bash
-cd apps/webapp
-pnpm cy:open
+# Everything (boots the app + MSW, then runs all specs)
+pnpm --filter @smmachine/webapp cy:run
+pnpm --filter @smmachine/webapp test:e2e   # same thing
+
+# A single spec
+pnpm --filter @smmachine/webapp cy:run cypress/e2e/dashboard.cy.ts
+
+# Interactive runner against your own dev server (real REST API on :8000)
+pnpm --filter @smmachine/webapp dev        # terminal 1
+pnpm --filter @smmachine/webapp cy:open    # terminal 2
 ```
 
-### Run Tests in Headless Mode
+The first run on a fresh clone needs the Cypress binary (build scripts are not auto-approved in this repo):
 
 ```bash
-cd apps/webapp
-pnpm cy:run
+pnpm --filter @smmachine/webapp exec cypress install
 ```
 
-## Directory Structure
+## Layout
 
 ```
 cypress/
-├── e2e/                    # E2E test files
-│   └── dashboard.cy.ts    # Example dashboard tests
-├── fixtures/              # Test fixtures (mock data)
-│   └── example.json      # Example fixture
-├── mocks/                # MSW mock handlers
-│   └── handlers.ts       # API endpoint mocks
-├── support/              # Support files
-│   ├── commands.ts      # Custom Cypress commands
-│   └── e2e.ts           # E2E setup and MSW initialization
-└── README.md            # This file
+├── e2e/
+│   ├── dashboard.cy.ts            # /dashboard → insights overview
+│   ├── reports.cy.ts              # /reports → report detail → back
+│   └── engineering-health.cy.ts   # /engineering-health scorecards
+├── mocks/
+│   ├── rest-fixtures.mjs          # REST payloads (single source of truth)
+│   ├── handlers.mjs               # MSW handlers for the payloads
+│   └── server-preload.mjs         # msw/node server loaded into Next.js
+└── support/
+    ├── e2e.ts                     # Cypress support file
+    └── run-e2e.mjs                # boots Next.js + MSW, runs Cypress, cleans up
 ```
 
-## MSW Integration
+## Adding a journey
 
-MSW is automatically initialized in `cypress/support/e2e.ts` and provides mocked responses for REST API endpoints.
+1. Add the REST payload to `cypress/mocks/rest-fixtures.mjs` — the key is the endpoint path (`/pipelines/summary`),
+   the value must match the type in `apps/webapp/server/api/*.ts`.
+2. `handlers.mjs` picks it up automatically; no handler edit needed.
+3. Write the spec in `cypress/e2e/`. Assert on user-visible content (headings, card text, aria labels) and prefer
+   role/aria selectors over CSS classes.
+4. Run it: `pnpm --filter @smmachine/webapp cy:run cypress/e2e/<spec>.cy.ts`.
 
-### Default Mocked Endpoints
+Unhandled requests to the mocked host are reported as `[MSW] Warning: ...` in the run output — treat them as a
+missing fixture rather than ignoring them.
 
-The following endpoints are mocked in `cypress/mocks/handlers.ts`:
+## Notes
 
-- `GET /api/metrics` - Mock metrics data
-- `GET /api/projects` - Mock projects list
-- `POST /api/configuration` - Mock configuration save
-- `GET /api/pipelines` - Mock pipeline data
-- `GET /api/pull-requests` - Mock pull request data
-- `GET /api/source-code` - Mock source code metrics
-- `GET /api/engineering-health` - Mock engineering health metrics
-- `GET /api/sonarqube` - Mock SonarQube metrics
-- `GET /api/jira` - Mock Jira data
-
-### Using Custom Mocks in Tests
-
-You can override or add custom mocks in individual tests:
-
-```typescript
-import { http, HttpResponse } from 'msw';
-
-it('should test with custom mock', () => {
-  // Override existing handler or add new one
-  cy.mswUse(
-    http.get('/api/custom-endpoint', () => {
-      return HttpResponse.json({ data: 'custom response' });
-    })
-  );
-  
-  // Your test code
-  cy.visit('/page');
-  // ...
-  
-  // Reset to default handlers
-  cy.mswResetHandlers();
-});
-```
-
-## Writing Tests
-
-### Basic Test Structure
-
-```typescript
-/// <reference types="cypress" />
-
-describe('Page Name', () => {
-  beforeEach(() => {
-    cy.visit('/your-page');
-  });
-
-  it('should display expected content', () => {
-    cy.contains('Expected Text').should('exist');
-  });
-});
-```
-
-### Testing with Mocked APIs
-
-```typescript
-it('should display data from mocked API', () => {
-  cy.visit('/dashboard');
-  
-  // Verify mocked data is displayed
-  cy.contains('Project A').should('exist');
-  cy.contains('1234').should('exist');
-});
-```
-
-### Custom Commands
-
-The following custom commands are available:
-
-- `cy.login(username, password)` - Mock login flow (when implemented)
-- `cy.logout()` - Mock logout flow (when implemented)
-- `cy.mswUse(...handlers)` - Add custom MSW handlers
-- `cy.mswResetHandlers()` - Reset MSW handlers to defaults
-
-## Configuration
-
-Cypress is configured in `cypress.config.ts`:
-
-- **Base URL**: `http://localhost:3000`
-- **Viewport**: 1280x720
-- **Spec Pattern**: `cypress/e2e/**/*.cy.{js,jsx,ts,tsx}`
-- **Support File**: `cypress/support/e2e.ts`
-
-## Best Practices
-
-1. **Always mock APIs** - Use MSW to mock all API responses to ensure tests are reliable and fast
-2. **Test user flows** - Focus on testing complete user workflows rather than implementation details
-3. **Use data-testid** - Add `data-testid` attributes to elements for more reliable selectors
-4. **Keep tests independent** - Each test should be able to run independently
-5. **Use realistic data** - Mock data should resemble production data for more accurate testing
-
-## Troubleshooting
-
-### MSW Not Intercepting Requests
-
-If MSW is not intercepting requests:
-1. Check that the Next.js dev server is running
-2. Verify MSW is initialized in the browser console (look for MSW messages)
-3. Ensure the endpoint matches exactly what your app requests
-
-### Tests Failing with Timeout
-
-If tests are timing out:
-1. Check that the dev server is running on the expected port (3000)
-2. Verify your selectors are correct
-3. Use `cy.wait()` sparingly - prefer using `cy.contains().should('exist')`
-
-### TypeScript Errors
-
-If you see TypeScript errors:
-1. Ensure you have the `/// <reference types="cypress" />` at the top of test files
-2. Restart your TypeScript server in your IDE
-
-## Next Steps
-
-1. Update the mock handlers in `cypress/mocks/handlers.ts` to match your actual API endpoints
-2. Add more test files in `cypress/e2e/` for different pages and features
-3. Add `data-testid` attributes to your React components for easier testing
-4. Configure CI/CD to run Cypress tests in headless mode
-
-## Resources
-
-- [Cypress Documentation](https://docs.cypress.io/)
-- [MSW Documentation](https://mswjs.io/)
-- [Best Practices](https://docs.cypress.io/guides/references/best-practices)
+- No `cy.wait(ms)`: Cypress retries assertions; the runner already waits for the app to answer before starting.
+- No browser-level interception of REST calls: it cannot see server component fetches.
+- The stub is read-only apart from `PUT /filters`, which echoes the saved document back.

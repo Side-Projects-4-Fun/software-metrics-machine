@@ -1,45 +1,13 @@
-import './commands';
-import type { RequestHandler } from 'msw';
+/**
+ * Cypress E2E support file.
+ *
+ * The journeys run against the real Next.js app. REST responses are produced by
+ * the MSW handlers in `cypress/mocks/handlers.mjs`, loaded into the Next.js Node
+ * process by `cypress/support/run-e2e.mjs` through `--import`.
+ *
+ * Because data is loaded in server components, browser-level API interception
+ * (cy.intercept / msw/browser) cannot see those requests — do not reintroduce it
+ * here.
+ */
 
-// MSW setup for Cypress
-
-  // Add MSW helper commands
-  Cypress.Commands.add('mswUse', (...args: unknown[]) => {
-    const handlers = args as RequestHandler[];
-    cy.window().then((win: Window & { mswWorker?: { use: (...handlers: RequestHandler[]) => void } }) => {
-      if (win.mswWorker) {
-        win.mswWorker.use(...handlers);
-      }
-    });
-  });
-
-Cypress.Commands.add('mswResetHandlers', () => {
-  cy.window().then((win: Window & { mswWorker?: { resetHandlers: () => void } }) => {
-    if (win.mswWorker) {
-      win.mswWorker.resetHandlers();
-    }
-  });
-});
-
-before(() => {
-  // Start MSW worker
-  cy.window().then(async (win) => {
-    const { setupWorker } = await import('msw/browser');
-    const { handlers } = await import('../mocks/handlers');
-    const worker = setupWorker(...handlers);
-    
-    (win as Window & { mswWorker?: { stop: () => void } }).mswWorker = worker;
-    await worker.start({
-      onUnhandledRequest: 'warn',
-    });
-  });
-});
-
-after(() => {
-  // Stop MSW worker
-  cy.window().then((win: Window & { mswWorker?: { stop: () => void } }) => {
-    if (win.mswWorker) {
-      win.mswWorker.stop();
-    }
-  });
-});
+export {};

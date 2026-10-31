@@ -308,8 +308,15 @@ pnpm cli -- dashboard serve
 # bashunit CLI acceptance suite (apps/cli/e2e)
 pnpm run test:cli:acceptance
 
-# Cypress webapp e2e (needs the webapp on localhost:3000)
+# Cypress webapp e2e (boots the app with MSW-backed REST responses)
 pnpm --filter @smmachine/webapp cy:run
+```
+
+The Cypress journeys run in CI as the `Webapp Cypress Journeys` job. Install scripts are skipped on install, so a
+fresh clone needs the binary once:
+
+```bash
+pnpm --filter @smmachine/webapp exec cypress install
 ```
 
 ### Documentation
@@ -396,7 +403,7 @@ The monorepo uses a mix of module systems:
 - **Vitest** (`^5.0.5`) — used by `apps/cli`, `apps/mcp`, `apps/rest`, `packages/core`, `packages/utils`
 - **Jest** (30.x) — used by `apps/webapp` (via `next/jest`)
 - **bashunit** — CLI acceptance tests in `apps/cli/e2e`
-- **Cypress** (15.x) — webapp e2e tests in `apps/webapp/cypress`
+- **Cypress** (16.x) — webapp e2e journeys in `apps/webapp/cypress`, with MSW running against the Next.js server
 
 ### Running tests
 
