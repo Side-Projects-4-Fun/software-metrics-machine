@@ -2,6 +2,10 @@
 outline: deep
 ---
 
+<script setup>
+import MetricsCatalogTable from '../.vitepress/theme/components/MetricsCatalogTable.vue'
+</script>
+
 # Metric catalog
 
 Every metric type exposed by SMM has a stable, namespaced identifier owned by the core package. The same id is used
@@ -10,6 +14,8 @@ releases.
 
 Identifiers name a **metric family** (for example `cr-review-time`), not a single number. Statistical method,
 aggregation period, and scope are parameters of that family.
+
+Browse the [full catalog](#full-catalog) for a description of every family, or download it as CSV.
 
 ## Namespaces
 
@@ -22,6 +28,18 @@ aggregation period, and scope are parameters of that family.
 | `arch-` | Architecture      |
 | `issue-`| Issues            |
 | `eh`    | Engineering health (existing unprefixed ids) |
+
+## Full catalog
+
+Every metric family in the catalog, with what it measures, its unit and preferred direction, and the CLI, REST, and
+MCP surfaces that expose it. Use the search box or the namespace filter to narrow the list, and select **Download
+CSV** to export the same data for offline analysis.
+
+<MetricsCatalogTable />
+
+The table and the CSV file are generated from `packages/core/src/domain/metrics/` with `pnpm docs:metrics`.
+`pnpm docs:metrics:check` fails when the committed artifacts drift from the catalog, and the core test suite checks
+the same files.
 
 ## Inspect the catalog
 
@@ -53,6 +71,12 @@ MCP tool:     smm_list_metrics
 Open **References & Sources** (`/dashboard/references`, book icon in the top bar). The page reads
 `GET /metrics` and shows every catalogued metric that carries a documented target, grouped by namespace. Each card
 shows the stable id, the target, the description, and the external papers, reports, and books behind it.
+
+The summary chips at the top of the page are clickable and reveal what they count:
+
+- **Documented metrics** — every metric that has a published target or source, linked to its card.
+- **Sources** — the consolidated source index with the metrics that cite each work.
+- **Catalogued metrics** — the full catalog, flagging entries that have no published reference yet.
 
 Dashboard cards use the same catalog entries for their info popover, so a target or source is defined once in
 `packages/core/src/domain/metrics/`.

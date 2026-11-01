@@ -39,7 +39,7 @@
     "lint": "turbo run lint",
     "lint:arch": "depcruise apps packages --config .dependency-cruiser.cjs",
     "watch": "turbo run watch",
-    "docs": "cd docs/vitepress && pnpm run docs:dev",
+    "docs": "pnpm run docs:metrics && cd docs/vitepress && pnpm run docs:dev",
     "docs:build": "cd docs/vitepress && pnpm run docs:build",
     "clean:full": "rm -rf node_modules && (cd apps/mcp && rm -rf node_modules) && (cd apps/cli && rm -rf node_modules) && (cd apps/rest && rm -rf node_modules) && (cd apps/webapp && rm -rf node_modules) && (cd packages/core && rm -rf node_modules) && (cd packages/utils && rm -rf node_modules)",
     "clean:install": "pnpm run clean:full && pnpm install",
@@ -56,7 +56,9 @@
     "webapp:e2e": "cd ./apps/webapp && pnpm run cy:run",
     "webapp:e2e:open": "cd ./apps/webapp && pnpm run cy:open",
     "prepack": "pnpm run build:npm",
-    "prepare": "husky"
+    "prepare": "husky",
+    "docs:metrics": "tsx scripts/generate-metrics-catalog-docs.mts",
+    "docs:metrics:check": "tsx scripts/generate-metrics-catalog-docs.mts --check"
   },
   "keywords": [
     "software-metrics",

@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ReferencesPage from '@/app/dashboard/references/page';
 import { MetricCatalogEntryBuilder } from './builders/api-response/metric-catalog.builder';
@@ -136,6 +136,94 @@ describe('ReferencesPage', () => {
     expect(screen.getByText('Change Request Data Used')).toBeInTheDocument();
     expect(screen.getByText(/Kamei et al\. \(2013\)/)).toBeInTheDocument();
     expect(screen.getByText(/Rahman & Devanbu \(2013\)/)).toBeInTheDocument();
+  });
+
+  it('reveals the documented metrics behind the summary chip', async () => {
+    await renderPage();
+
+    const chip = screen.getByRole('button', { name: '2 documented metrics' });
+    expect(chip).toHaveAttribute('aria-expanded', 'false');
+
+    await userEvent.click(chip);
+
+    expect(chip).toHaveAttribute('aria-expanded', 'true');
+    const panel = screen.getByTestId('references-documented-panel');
+    expect(within(panel).getByRole('link', { name: 'Review time' })).toHaveAttribute(
+      'href',
+      '#metric-cr-review-time'
+    );
+    expect(within(panel).getByRole('link', { name: 'Big O' })).toHaveAttribute(
+      'href',
+      '#metric-code-big-o'
+    );
+    expect(within(panel).queryByText('issue-total')).not.toBeInTheDocument();
+  });
+
+  it('lists every unique source and the metrics that cite it', async () => {
+    await renderPage();
+
+    await userEvent.click(screen.getByRole('button', { name: '5 sources' }));
+
+    const panel = screen.getByTestId('references-sources-panel');
+    expect(
+      within(panel).getByText(
+        '5 citations across 5 unique sources, with the metrics that reference each one.'
+      )
+    ).toBeInTheDocument();
+    expect(within(panel).getByRole('link', { name: /Forsgren et al\. \(2018\)/ })).toHaveAttribute(
+      'href',
+      'https://itrevolution.com/product/accelerate/'
+    );
+    expect(within(panel).getAllByText('Cited by Review time')).toHaveLength(2);
+    expect(within(panel).getAllByText('Cited by Big O')).toHaveLength(3);
+  });
+
+  it('lists every catalogued metric and flags the undocumented ones', async () => {
+    await renderPage();
+
+    await userEvent.click(screen.getByRole('button', { name: '3 catalogued metrics' }));
+
+    const panel = screen.getByTestId('references-catalogued-panel');
+    expect(within(panel).getByText('Issue total')).toBeInTheDocument();
+    expect(within(panel).getByText('issue-total')).toBeInTheDocument();
+    expect(within(panel).getByText('no source')).toBeInTheDocument();
+    expect(within(panel).getAllByText('documented')).toHaveLength(2);
+    expect(within(panel).getByRole('link', { name: 'Review time' })).toHaveAttribute(
+      'href',
+      '#metric-cr-review-time'
+    );
+  });
+
+  it('anchors metric cards so the index links can jump to them', async () => {
+    await renderPage();
+
+    expect(document.getElementById('metric-cr-review-time')).not.toBeNull();
+    expect(document.getElementById('metric-code-big-o')).not.toBeNull();
+  });
+
+  it('closes a summary panel when its chip is clicked again', async () => {
+    await renderPage();
+
+    const chip = screen.getByRole('button', { name: '2 documented metrics' });
+    await userEvent.click(chip);
+    expect(screen.getByTestId('references-documented-panel')).toBeInTheDocument();
+
+    await userEvent.click(chip);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('references-documented-panel')).not.toBeInTheDocument();
+    });
+    expect(chip).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('shows only one summary panel at a time', async () => {
+    await renderPage();
+
+    await userEvent.click(screen.getByRole('button', { name: '2 documented metrics' }));
+    await userEvent.click(screen.getByRole('button', { name: '5 sources' }));
+
+    expect(screen.queryByTestId('references-documented-panel')).not.toBeInTheDocument();
+    expect(screen.getByTestId('references-sources-panel')).toBeInTheDocument();
   });
 
   it('surfaces a readable error when the catalog cannot be loaded', async () => {

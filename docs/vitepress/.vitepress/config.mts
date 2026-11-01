@@ -6,6 +6,8 @@ const head: HeadConfig[] = [];
 // @ts-ignore
 const { NODE_ENV } = process.env;
 
+const base = '/software-metrics-machine/';
+
 if (NODE_ENV === 'production') {
   const id = 'G-0WD7NN88MZ';
   head.push([
@@ -23,7 +25,7 @@ if (NODE_ENV === 'production') {
     ]);
 }
 
-head.push(['link', { rel: 'icon', href: 'favicon.ico' }]);
+head.push(['link', { rel: 'icon', href: `${base}favicon.ico` }]);
 
 // https://vitepress.dev/reference/site-config
 export default withMermaid(
@@ -33,8 +35,37 @@ export default withMermaid(
     },
     title: "Software metrics machine",
     description: "Stop pointing, start measuring",
-    base: '/software-metrics-machine/',
+    base,
     head,
+    // mermaid pulls in the CommonJS `fastdom` package. Pre-bundling it lets Vite
+    // add the ESM default interop; without it the dev server serves the raw
+    // CommonJS file and the browser fails with "does not provide an export
+    // named 'default'".
+    vite: {
+      optimizeDeps: {
+        include: ['fastdom', 'fastdom/extensions/fastdom-promised.js'],
+      },
+      plugins: [
+        {
+          // VitePress injects `head` on the client, so the first paint has no
+          // icon link and the browser falls back to `/favicon.ico`, which sits
+          // outside the configured base. Redirect it in the dev server.
+          name: 'smm-favicon-fallback',
+          apply: 'serve',
+          configureServer(server) {
+            server.middlewares.use((request, response, next) => {
+              if (request.url === '/favicon.ico') {
+                response.statusCode = 302;
+                response.setHeader('Location', `${base}favicon.ico`);
+                response.end();
+                return;
+              }
+              next();
+            });
+          },
+        },
+      ],
+    },
     markdown: {
       config(md) {
         md.use(tabsMarkdownPlugin)

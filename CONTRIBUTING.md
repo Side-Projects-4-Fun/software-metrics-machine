@@ -326,11 +326,19 @@ Runs target Chrome for Testing (pinned, built for automation). See `apps/webapp/
 ### Documentation
 
 ```bash
+# Regenerate the metric catalog table + CSV used by the docs
+pnpm docs:metrics
+
+# Fail when the committed catalog artifacts are stale
+pnpm docs:metrics:check
+
 # Start VitePress dev server
 pnpm docs
 ```
 
-Docs are served at `http://localhost:5173` by default.
+Docs are served at `http://localhost:5173` by default. The full metric catalog on
+`docs/vitepress/features/metric-catalog.md` is generated from `packages/core/src/domain/metrics/`; rerun
+`pnpm docs:metrics` whenever the catalog changes and commit the regenerated files.
 
 ### Targeted workspace commands
 

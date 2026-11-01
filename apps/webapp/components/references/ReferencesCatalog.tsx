@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardHeader from '@mui/material/CardHeader';
@@ -9,6 +9,7 @@ import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Chip from '@mui/material/Chip';
 import Collapse from '@mui/material/Collapse';
+import type { SxProps, Theme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { OUTLIER_REFERENCE } from '@/lib/metrics/outlier-references';
@@ -30,6 +31,14 @@ const NAMESPACE_LABELS: Record<MetricNamespace, string> = {
 
 const NAMESPACE_ORDER: MetricNamespace[] = ['pl', 'cr', 'code', 'sq', 'arch', 'issue', 'eh'];
 
+type SummaryPanel = 'documented' | 'sources' | 'catalogued';
+
+interface AggregatedSource {
+  label: string;
+  url: string;
+  metricLabels: string[];
+}
+
 function hasReferences(entry: MetricCatalogEntry): boolean {
   return Boolean(entry.target) || (entry.sources?.length ?? 0) > 0;
 }
@@ -39,6 +48,39 @@ function groupByNamespace(entries: MetricCatalogEntry[]): Array<[MetricNamespace
     namespace,
     entries.filter((entry) => entry.definition.namespace === namespace),
   ]).filter(([, group]) => group.length > 0) as Array<[MetricNamespace, MetricCatalogEntry[]]>;
+}
+
+function aggregateSources(entries: MetricCatalogEntry[]): AggregatedSource[] {
+  const byUrl = new Map<string, AggregatedSource>();
+
+  entries.forEach((entry) => {
+    (entry.sources ?? []).forEach((source) => {
+      const existing = byUrl.get(source.url);
+      if (existing) {
+        if (!existing.metricLabels.includes(entry.definition.label)) {
+          existing.metricLabels.push(entry.definition.label);
+        }
+        return;
+      }
+      byUrl.set(source.url, {
+        label: source.label,
+        url: source.url,
+        metricLabels: [entry.definition.label],
+      });
+    });
+  });
+
+  return [...byUrl.values()].sort((left, right) => left.label.localeCompare(right.label));
+}
+
+function externalLinkSx(): SxProps<Theme> {
+  return {
+    fontSize: '0.875rem',
+    color: 'primary.main',
+    textDecoration: 'none',
+    '&:hover': { textDecoration: 'underline' },
+    lineHeight: 1.5,
+  };
 }
 
 function SourceList({ sources }: { sources: readonly MetricCatalogSource[] }) {
@@ -66,13 +108,7 @@ function SourceList({ sources }: { sources: readonly MetricCatalogSource[] }) {
               href={source.url}
               target="_blank"
               rel="noopener noreferrer"
-              sx={{
-                fontSize: '0.875rem',
-                color: 'primary.main',
-                textDecoration: 'none',
-                '&:hover': { textDecoration: 'underline' },
-                lineHeight: 1.5,
-              }}
+              sx={externalLinkSx()}
             >
               {source.label}
             </Link>
@@ -90,14 +126,21 @@ function MetricReferenceCard({ entry }: { entry: MetricCatalogEntry }) {
 
   return (
     <Card
+      id={`metric-${entry.id}`}
       variant="outlined"
       sx={{
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
         transition: 'box-shadow 0.2s',
+        // Keep anchored cards clear of the sticky dashboard tab bar.
+        scrollMarginTop: { xs: 104, sm: 112 },
         '&:hover': {
           boxShadow: 2,
+        },
+        '&:target': {
+          borderColor: 'primary.main',
+          boxShadow: 3,
         },
       }}
     >
@@ -232,6 +275,109 @@ function NamespaceSection({
   );
 }
 
+function MetricIndexList({
+  groups,
+  showStatus,
+}: {
+  groups: Array<[MetricNamespace, MetricCatalogEntry[]]>;
+  showStatus: boolean;
+}) {
+  return (
+    <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
+      {groups.map(([namespace, entries]) => (
+        <Box key={namespace}>
+          <Typography
+            variant="caption"
+            sx={{
+              display: 'block',
+              mb: 0.5,
+              fontWeight: 700,
+              color: 'text.secondary',
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+            }}
+          >
+            {NAMESPACE_LABELS[namespace]}
+          </Typography>
+          <Box component="ul" sx={{ m: 0, p: 0, listStyle: 'none' }}>
+            {entries.map((entry) => {
+              const documented = hasReferences(entry);
+              return (
+                <Box
+                  component="li"
+                  key={entry.id}
+                  sx={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 1, py: 0.25 }}
+                >
+                  {documented ? (
+                    <Link href={`#metric-${entry.id}`} sx={{ fontSize: '0.875rem' }}>
+                      {entry.definition.label}
+                    </Link>
+                  ) : (
+                    <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+                      {entry.definition.label}
+                    </Typography>
+                  )}
+                  <Box component="code" sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
+                    {entry.id}
+                  </Box>
+                  {showStatus ? (
+                    <Chip
+                      size="small"
+                      variant="outlined"
+                      color={documented ? 'primary' : 'default'}
+                      label={documented ? 'documented' : 'no source'}
+                      sx={{ height: 20, fontSize: '0.65rem' }}
+                    />
+                  ) : null}
+                </Box>
+              );
+            })}
+          </Box>
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
+function SummaryPanelBox({
+  id,
+  testId,
+  title,
+  description,
+  children,
+}: {
+  id: string;
+  testId: string;
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <Box
+      id={id}
+      data-testid={testId}
+      role="region"
+      aria-label={title}
+      sx={{
+        mb: 3,
+        p: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 2,
+        bgcolor: 'background.paper',
+      }}
+    >
+      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+        {title}
+      </Typography>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
+        {description}
+      </Typography>
+      {children}
+    </Box>
+  );
+}
+
 function OutlierImplementationDetails() {
   return (
     <Box
@@ -318,6 +464,41 @@ function OutlierImplementationDetails() {
   );
 }
 
+function SummaryChip({
+  label,
+  panel,
+  activePanel,
+  controls,
+  color,
+  variant,
+  onToggle,
+}: {
+  label: string;
+  panel: SummaryPanel;
+  activePanel: SummaryPanel | null;
+  controls: string;
+  color: 'primary' | 'secondary' | 'default';
+  variant: 'filled' | 'outlined';
+  onToggle: (panel: SummaryPanel) => void;
+}) {
+  const expanded = activePanel === panel;
+
+  return (
+    <Chip
+      label={label}
+      color={color}
+      variant={variant}
+      onClick={() => onToggle(panel)}
+      component="button"
+      type="button"
+      aria-expanded={expanded}
+      aria-controls={controls}
+      icon={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+      sx={{ fontWeight: 500 }}
+    />
+  );
+}
+
 export default function ReferencesCatalog({
   entries,
   error,
@@ -325,12 +506,20 @@ export default function ReferencesCatalog({
   entries: MetricCatalogEntry[];
   error: string | null;
 }) {
+  const [activePanel, setActivePanel] = useState<SummaryPanel | null>(null);
+
   const documented = entries.filter(hasReferences);
   const groups = groupByNamespace(documented);
+  const allGroups = groupByNamespace(entries);
   const totalSources = documented.reduce(
     (total, entry) => total + (entry.sources?.length ?? 0),
     0
   );
+  const aggregatedSources = aggregateSources(documented);
+
+  const togglePanel = (panel: SummaryPanel) => {
+    setActivePanel((current) => (current === panel ? null : panel));
+  };
 
   return (
     <div className="space-y-6">
@@ -349,10 +538,93 @@ export default function ReferencesCatalog({
           </Typography>
         ) : null}
         <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <Chip label={`${documented.length} documented metrics`} color="primary" variant="filled" />
-          <Chip label={`${totalSources} sources`} color="secondary" variant="filled" />
-          <Chip label={`${entries.length} catalogued metrics`} variant="outlined" />
+          <SummaryChip
+            label={`${documented.length} documented metrics`}
+            panel="documented"
+            activePanel={activePanel}
+            controls="references-documented-panel"
+            color="primary"
+            variant="filled"
+            onToggle={togglePanel}
+          />
+          <SummaryChip
+            label={`${totalSources} sources`}
+            panel="sources"
+            activePanel={activePanel}
+            controls="references-sources-panel"
+            color="secondary"
+            variant="filled"
+            onToggle={togglePanel}
+          />
+          <SummaryChip
+            label={`${entries.length} catalogued metrics`}
+            panel="catalogued"
+            activePanel={activePanel}
+            controls="references-catalogued-panel"
+            color="default"
+            variant="outlined"
+            onToggle={togglePanel}
+          />
         </Box>
+
+        <Collapse in={activePanel === 'documented'} timeout="auto" unmountOnExit>
+          <Box sx={{ mt: 2 }}>
+            <SummaryPanelBox
+              id="references-documented-panel"
+              testId="references-documented-panel"
+              title="Documented metrics"
+              description={`${documented.length} metric${documented.length === 1 ? '' : 's'} with at least one published source or target. Select one to jump to its card.`}
+            >
+              <MetricIndexList groups={groups} showStatus={false} />
+            </SummaryPanelBox>
+          </Box>
+        </Collapse>
+
+        <Collapse in={activePanel === 'sources'} timeout="auto" unmountOnExit>
+          <Box sx={{ mt: 2 }}>
+            <SummaryPanelBox
+              id="references-sources-panel"
+              testId="references-sources-panel"
+              title="Sources"
+              description={`${totalSources} citation${totalSources === 1 ? '' : 's'} across ${aggregatedSources.length} unique source${aggregatedSources.length === 1 ? '' : 's'}, with the metrics that reference each one.`}
+            >
+              <Box component="ul" sx={{ m: 0, p: 0, listStyle: 'none' }}>
+                {aggregatedSources.map((source) => (
+                  <Box component="li" key={source.url} sx={{ mb: 1.25, '&:last-child': { mb: 0 } }}>
+                    <Link
+                      href={source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={externalLinkSx()}
+                    >
+                      {source.label}
+                    </Link>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ display: 'block' }}
+                    >
+                      Cited by {source.metricLabels.join(', ')}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </SummaryPanelBox>
+          </Box>
+        </Collapse>
+
+        <Collapse in={activePanel === 'catalogued'} timeout="auto" unmountOnExit>
+          <Box sx={{ mt: 2 }}>
+            <SummaryPanelBox
+              id="references-catalogued-panel"
+              testId="references-catalogued-panel"
+              title="Catalogued metrics"
+              description={`All ${entries.length} metrics known to the core catalog. Metrics marked "no source" do not have a published reference yet.`}
+            >
+              <MetricIndexList groups={allGroups} showStatus />
+            </SummaryPanelBox>
+          </Box>
+        </Collapse>
       </Box>
 
       <OutlierImplementationDetails />
