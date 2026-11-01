@@ -12,7 +12,7 @@ export default function OpenChangeRequestsThroughTimeCard({ data }: { data: Open
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Open Change Requests Through Time</CardTitle>
-          <TargetInfo metric="open-change-requests-through-time" />
+          <TargetInfo metric="cr-throughput" />
         </div>
       </CardHeader>
       <CardContent>

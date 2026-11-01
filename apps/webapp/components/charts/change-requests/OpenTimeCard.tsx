@@ -15,7 +15,7 @@ export default function OpenTimeCard({ data, method }: { data: OpenTimeData[]; m
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Days Change Requests Remain Open</CardTitle>
-          <TargetInfo metric="change-requests-remain-open" />
+          <TargetInfo metric="cr-open-time" />
         </div>
       </CardHeader>
       <CardContent>

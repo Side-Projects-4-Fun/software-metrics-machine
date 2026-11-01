@@ -69,7 +69,7 @@ export default function JobsRerunCard({ data, dataByDay }: JobsRerunCardProps) {
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Job Reruns</CardTitle>
-          <TargetInfo metric="job-reruns" />
+          <TargetInfo metric="pl-jobs-summary" />
         </div>
       </CardHeader>
       <CardContent className="space-y-6">

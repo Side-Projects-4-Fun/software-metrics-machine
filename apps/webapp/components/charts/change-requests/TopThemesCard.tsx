@@ -32,7 +32,7 @@ export default function TopThemesCard({ data }: { data: Theme[] }) {
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Top Themes in Comments</CardTitle>
-          <TargetInfo metric="most-commented-change-requests" />
+          <TargetInfo metric="cr-summary" />
         </div>
         <p className="text-xs text-gray-500 mt-1">Click a theme to view related change requests</p>
       </CardHeader>

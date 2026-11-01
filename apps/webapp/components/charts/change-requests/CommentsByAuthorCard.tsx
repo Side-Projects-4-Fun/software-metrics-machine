@@ -12,7 +12,7 @@ export default function CommentsByAuthorCard({ data }: { data: CommentsByAuthorD
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Who Comments The Most</CardTitle>
-          <TargetInfo metric="comments-by-author" />
+          <TargetInfo metric="cr-comments-by-author" />
         </div>
       </CardHeader>
       <CardContent>

@@ -24,7 +24,7 @@ export default function FirstCommentTimeCard({ data, method }: { data: FirstComm
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Time To First Comment</CardTitle>
-          <TargetInfo metric="time-to-first-comment" />
+          <TargetInfo metric="cr-first-comment-time" />
         </div>
         <p className="text-xs text-gray-500 mt-1">Click on bars to view author&apos;s change requests</p>
       </CardHeader>

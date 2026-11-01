@@ -9,6 +9,13 @@
  * - IDs are explicit strings and are never derived from class, file, or
  *   command names.
  */
+import { METRIC_REFERENCES } from './metric-references';
+import type {
+  MetricReference,
+  MetricReferenceSource,
+  MetricReferenceTarget,
+} from './metric-references';
+
 export const METRIC_NAMESPACES = ['cr', 'pl', 'code', 'sq', 'arch', 'issue', 'eh'] as const;
 
 export type MetricNamespace = (typeof METRIC_NAMESPACES)[number];
@@ -1314,6 +1321,10 @@ export type CatalogMetricId = keyof typeof METRIC_CATALOG;
 export interface MetricCatalogEntry {
   readonly id: CatalogMetricId;
   readonly definition: MetricDefinition;
+  /** Documented benchmark, when the family has a published target. */
+  readonly target?: MetricReferenceTarget;
+  /** External papers, reports and books backing the benchmark. */
+  readonly sources?: readonly MetricReferenceSource[];
 }
 
 export interface MetricCatalogQuery {
@@ -1338,5 +1349,15 @@ export function listMetricCatalogEntries(query: MetricCatalogQuery = {}): Metric
       ([, definition]) =>
         query.visibility === undefined || definition.visibility === query.visibility
     )
-    .map(([id, definition]) => ({ id, definition }));
+    .map(([id, definition]) => {
+      const reference = (METRIC_REFERENCES as Partial<Record<CatalogMetricId, MetricReference>>)[
+        id
+      ];
+
+      return {
+        id,
+        definition,
+        ...(reference ? { target: reference.target, sources: reference.sources } : {}),
+      };
+    });
 }

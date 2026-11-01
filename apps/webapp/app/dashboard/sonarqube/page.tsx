@@ -137,10 +137,10 @@ export default async function SonarqubePage({
         </div>
       ) : null}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <SonarqubeStatCard title="Reliability Rating" value={reliabilityRating} color="#22c55e" />
-        <SonarqubeStatCard title="Security Rating" value={securityRating} color="#f97316" />
-        <SonarqubeStatCard title="Maintainability Rating" value={maintainabilityRating} color="#0ea5e9" />
-        <SonarqubeStatCard title="Duplication Density" value={duplicationDensity} color="#f43f5e" />
+        <SonarqubeStatCard title="Reliability Rating" value={reliabilityRating} color="#22c55e" metric="sq-reliability-rating" />
+        <SonarqubeStatCard title="Security Rating" value={securityRating} color="#f97316" metric="sq-security-rating" />
+        <SonarqubeStatCard title="Maintainability Rating" value={maintainabilityRating} color="#0ea5e9" metric="sq-maintainability-rating" />
+        <SonarqubeStatCard title="Duplication Density" value={duplicationDensity} color="#f43f5e" metric="sq-duplication-density" />
       </div>
       <SonarqubeMeasurementsTabbedCard measurements={measurements} history={measurementHistory} />
       <div className="grid grid-cols-1 gap-6">
@@ -150,6 +150,7 @@ export default async function SonarqubePage({
           data={topComplexity}
           dataKeyLabel="Complexity"
           color="#ef4444"
+          metric="sq-complexity"
         />
       </div>
 

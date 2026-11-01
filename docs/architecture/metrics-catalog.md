@@ -19,7 +19,8 @@ Inventory of every metric type the application provides, each with a stable uniq
 - Forward surface-coverage tests check that every catalogued CLI command, REST route, and MCP tool exists.
 - Reverse surface-coverage tests require every leaf CLI command, REST route, and MCP tool to be catalogued or
   explicitly allowlisted as non-metric.
-- Pending: generated docs and the webapp artifact.
+- The webapp consumes `GET /metrics`: the root layout loads the catalog once per request (React `cache`) and the
+  references page renders documented entries grouped by namespace.
 
 ## Identifier scheme
 
@@ -40,7 +41,8 @@ smm metrics list --namespace eh --output json
 smm metrics list --visibility internal
 ```
 
-Equivalent surfaces: `GET /metrics?namespace=eh&visibility=public` and the MCP tool `smm_list_metrics`. On
+Equivalent surfaces: `GET /metrics?namespace=eh&visibility=public`, the MCP tool `smm_list_metrics`, and the
+webapp `/dashboard/references` page (documented metrics, grouped by namespace). On
 every surface, omitting `visibility` means no filter (all 86 metrics); pass `public` or `internal` to narrow.
 
 ---
@@ -187,8 +189,10 @@ every surface, omitting `visibility` means no filter (all 86 metrics); pass `pub
 3. The 14 engineering-health IDs stay unprefixed; the catalog marks their namespace as `eh`.
 4. Tests cover kebab-case IDs, namespace prefixes, public/internal surface rules, required fields, and
    catalog/implementation key equality.
-5. Pending: `smm metrics list`, `GET /metrics`, CLI/REST/MCP surface-coverage tests, and generated docs/webapp
-   artifacts.
+5. Implemented: `smm metrics list`, `GET /metrics`, MCP `smm_list_metrics`, and CLI/REST/MCP surface-coverage
+   tests. The webapp reads the catalog from `GET /metrics`; the references page and card tooltips share it.
+6. Published targets and sources live in `metric-references.ts`, keyed by `CatalogMetricId`, so evidence cannot
+   reference an unknown metric id.
 
 ## Resolved decisions
 

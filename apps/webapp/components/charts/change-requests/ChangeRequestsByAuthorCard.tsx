@@ -20,7 +20,7 @@ export default function ChangeRequestsByAuthorCard({ data }: { data: ByAuthorDat
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Change Requests by Author</CardTitle>
-          <TargetInfo metric="change-requests-by-author" />
+          <TargetInfo metric="cr-volume-by-author" />
         </div>
         <p className="text-xs text-gray-500 mt-1">Click on bars to view author&apos;s change requests</p>
       </CardHeader>

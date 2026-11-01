@@ -1,7 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { defaultFilters, parseDashboardFilters } from '@/components/filters/DashboardFilters';
-import { METRIC_TARGETS, type SourceEntry } from '@/components/charts/targets';
+import { getMetricCatalog } from '@/server/metric-catalog';
+import type { MetricCatalogEntry } from '@/lib/metrics/metric-catalog';
+
+type SourceEntry = { label: string; url: string };
 import ActiveProjectName from '@/components/ActiveProjectName';
 import {
   engineeringHealthAPI,
@@ -449,41 +452,52 @@ function buildExecutiveSummary(data: EngineeringHealthEvaluation) {
 }
 
 const REFERENCE_KEYS_BY_METRIC: Record<string, string[]> = {
-  'deployment-frequency': ['deployment-frequency'],
-  'lead-time': ['deployment-frequency', 'pipeline-duration'],
-  'pipeline-duration': ['pipeline-duration'],
-  'failure-rate': ['jobs-success-rate'],
-  'complexity': ['sonarqube-complexity'],
-  'duplication': ['sonarqube-duplication'],
-  'coverage': ['sonarqube-coverage'],
-  'review-time': ['review-time', 'time-to-first-comment'],
-  'review-participation': ['comments-by-author'],
-  'pair-programming': ['pairing-index'],
-  'knowledge-distribution': ['ownership'],
+  'deployment-frequency': ['pl-deployment-frequency'],
+  'lead-time': ['pl-deployment-frequency', 'pl-run-duration'],
+  'pipeline-duration': ['pl-run-duration'],
+  'failure-rate': ['pl-job-status-counts'],
+  'complexity': ['sq-complexity'],
+  'duplication': ['sq-duplication-density'],
+  'coverage': ['sq-coverage'],
+  'review-time': ['cr-review-time', 'cr-first-comment-time'],
+  'review-participation': ['cr-comments-by-author'],
+  'pair-programming': ['code-pairing-index'],
+  'knowledge-distribution': ['code-entity-ownership'],
   'coupling': ['code-coupling'],
-  'ownership': ['ownership'],
-  'components': ['sonarqube-measurements'],
+  'ownership': ['code-entity-ownership'],
+  'components': ['sq-measurements'],
 };
+
+function buildReferencesById(catalog: MetricCatalogEntry[]): Map<string, SourceEntry[]> {
+  const catalogById = new Map(catalog.map((entry) => [entry.id, entry]));
+  const referencesById = new Map<string, SourceEntry[]>();
+
+  for (const [metricId, keys] of Object.entries(REFERENCE_KEYS_BY_METRIC)) {
+    const unique = new Map<string, SourceEntry>();
+
+    for (const key of keys) {
+      for (const source of catalogById.get(key)?.sources ?? []) {
+        unique.set(sourceKey(source), source);
+      }
+    }
+
+    referencesById.set(metricId, Array.from(unique.values()));
+  }
+
+  return referencesById;
+}
 
 function collectReferences(
   evaluations: EngineeringHealthEvaluation['evaluations'],
+  referencesById: Map<string, SourceEntry[]>,
 ): SourceEntry[] {
   const unique = new Map<string, SourceEntry>();
 
   for (const evaluation of evaluations) {
-    const keys = REFERENCE_KEYS_BY_METRIC[evaluation.id] || [];
-
-    for (const key of keys) {
-      const target = METRIC_TARGETS[key];
-      if (!target) {
-        continue;
-      }
-
-      for (const source of target.sources) {
-        const uniqueKey = `${source.label}||${source.url}`;
-        if (!unique.has(uniqueKey)) {
-          unique.set(uniqueKey, source);
-        }
+    for (const source of referencesById.get(evaluation.id) ?? []) {
+      const uniqueKey = sourceKey(source);
+      if (!unique.has(uniqueKey)) {
+        unique.set(uniqueKey, source);
       }
     }
   }
@@ -499,26 +513,19 @@ function buildReferenceIndex(references: SourceEntry[]): Map<string, number> {
   return new Map(references.map((reference, index) => [sourceKey(reference), index + 1]));
 }
 
-function getMetricReferences(metricId: string): SourceEntry[] {
-  const keys = REFERENCE_KEYS_BY_METRIC[metricId] || [];
-  const unique = new Map<string, SourceEntry>();
-
-  for (const key of keys) {
-    const target = METRIC_TARGETS[key];
-    if (!target) {
-      continue;
-    }
-
-    for (const source of target.sources) {
-      unique.set(sourceKey(source), source);
-    }
-  }
-
-  return Array.from(unique.values());
+function getMetricReferences(
+  metricId: string,
+  referencesById: Map<string, SourceEntry[]>,
+): SourceEntry[] {
+  return referencesById.get(metricId) ?? [];
 }
 
-function renderInlineCitations(metricId: string, referenceIndex: Map<string, number>) {
-  const references = getMetricReferences(metricId)
+function renderInlineCitations(
+  metricId: string,
+  referenceIndex: Map<string, number>,
+  referencesById: Map<string, SourceEntry[]>,
+) {
+  const references = getMetricReferences(metricId, referencesById)
     .map((reference) => ({
       reference,
       number: referenceIndex.get(sourceKey(reference)),
@@ -550,6 +557,7 @@ function renderInlineCitations(metricId: string, referenceIndex: Map<string, num
 function renderMetricAppendixRow(
   evaluation: HealthEvaluation,
   referenceIndex: Map<string, number>,
+  referencesById: Map<string, SourceEntry[]>,
 ) {
   return (
     <article
@@ -561,7 +569,7 @@ function renderMetricAppendixRow(
           <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-slate-500">Metric</p>
           <h3 className="text-base font-semibold tracking-tight text-slate-950">
             {formatMetricLabel(evaluation.summary.title)}
-            {renderInlineCitations(evaluation.id, referenceIndex)}
+            {renderInlineCitations(evaluation.id, referenceIndex, referencesById)}
           </h3>
           {evaluation.scope?.type === 'deployment-target' ? (
             <p className="text-xs text-slate-500">Deployment target: {evaluation.scope.label}</p>
@@ -613,7 +621,7 @@ function renderMetricAppendixRow(
           <p>
             <span className="font-medium text-slate-900">Target:</span>{' '}
             {evaluation.target.description}
-            {renderInlineCitations(evaluation.id, referenceIndex)}
+            {renderInlineCitations(evaluation.id, referenceIndex, referencesById)}
           </p>
           <p>
             <span className="font-medium text-slate-900">Recommendation:</span>{' '}
@@ -689,7 +697,16 @@ export default async function EngineeringHealthPage({
   const unknownComparisons = data.evaluations.filter((evaluation) => evaluation.comparison.trend === 'unknown').length;
   const missingSampleSize = data.evaluations.filter((evaluation) => typeof evaluation.value.sampleSize !== 'number').length;
   const withSeries = data.evaluations.filter((evaluation) => (evaluation.value.series?.length || 0) > 1).length;
-  const reportReferences = collectReferences(data.evaluations);
+  let catalog: MetricCatalogEntry[] = [];
+
+  try {
+    catalog = await getMetricCatalog();
+  } catch (catalogError) {
+    console.error('Error fetching metric catalog:', catalogError);
+  }
+
+  const referencesById = buildReferencesById(catalog);
+  const reportReferences = collectReferences(data.evaluations, referencesById);
   const referenceIndex = buildReferenceIndex(reportReferences);
   const reportTimeZone = resolveReportTimeZone(filters.timezone);
 
@@ -780,7 +797,7 @@ export default async function EngineeringHealthPage({
           {executiveSummary.degrading ? (
             <p>
               Most relevant degradation: <span className="font-semibold">{executiveSummary.degrading.summary.title}</span>{' '}
-              {renderInlineCitations(executiveSummary.degrading.id, referenceIndex)}{' '}
+              {renderInlineCitations(executiveSummary.degrading.id, referenceIndex, referencesById)}{' '}
               ({executiveSummary.degrading.category}) with delta{' '}
               <span className={`font-semibold ${trendClassName(executiveSummary.degrading.comparison.trend)}`}>
                 {executiveSummary.degrading.comparison.delta_formatted}
@@ -790,7 +807,7 @@ export default async function EngineeringHealthPage({
           {executiveSummary.improving ? (
             <p>
               Strongest improvement: <span className="font-semibold">{executiveSummary.improving.summary.title}</span>{' '}
-              {renderInlineCitations(executiveSummary.improving.id, referenceIndex)}
+              {renderInlineCitations(executiveSummary.improving.id, referenceIndex, referencesById)}
               ({executiveSummary.improving.category}) with delta{' '}
               <span className={`font-semibold ${trendClassName(executiveSummary.improving.comparison.trend)}`}>
                 {executiveSummary.improving.comparison.delta_formatted}
@@ -851,7 +868,7 @@ export default async function EngineeringHealthPage({
                               <div>
                                 <p className="font-medium text-slate-900">
                                   {formatMetricLabel(evaluation.summary.title)}
-                                  {renderInlineCitations(evaluation.id, referenceIndex)}
+                                  {renderInlineCitations(evaluation.id, referenceIndex, referencesById)}
                                 </p>
                                 <p className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs font-medium uppercase tracking-[0.16em] ${CATEGORY_METADATA[evaluation.category].color.border} ${CATEGORY_METADATA[evaluation.category].color.badge} ${CATEGORY_METADATA[evaluation.category].color.text}`}>
                                   {evaluation.category}
@@ -907,7 +924,7 @@ export default async function EngineeringHealthPage({
               keyDegradations.map((evaluation) => (
                 <p key={`${evaluation.id}-${evaluation.scope?.key || 'default'}-degrading`} className="leading-6 text-slate-700">
                   <span className="font-semibold text-slate-900">{formatMetricLabel(evaluation.summary.title)}</span>
-                  {renderInlineCitations(evaluation.id, referenceIndex)} ({evaluation.category}):{' '}
+                  {renderInlineCitations(evaluation.id, referenceIndex, referencesById)} ({evaluation.category}):{' '}
                   {evaluation.comparison.summary}
                 </p>
               ))
@@ -921,7 +938,7 @@ export default async function EngineeringHealthPage({
               keyImprovements.map((evaluation) => (
                 <p key={`${evaluation.id}-${evaluation.scope?.key || 'default'}-improving`} className="leading-6 text-slate-700">
                   <span className="font-semibold text-slate-900">{formatMetricLabel(evaluation.summary.title)}</span>
-                  {renderInlineCitations(evaluation.id, referenceIndex)} ({evaluation.category}):{' '}
+                  {renderInlineCitations(evaluation.id, referenceIndex, referencesById)} ({evaluation.category}):{' '}
                   {evaluation.comparison.summary}
                 </p>
               ))
@@ -991,7 +1008,7 @@ export default async function EngineeringHealthPage({
               ) : null}
 
               <div className="space-y-3">
-                {scopeGroup.evaluations.map((evaluation) => renderMetricAppendixRow(evaluation, referenceIndex))}
+                {scopeGroup.evaluations.map((evaluation) => renderMetricAppendixRow(evaluation, referenceIndex, referencesById))}
               </div>
             </div>
           ))}

@@ -40,7 +40,7 @@ export default function CrapMetricCard({
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>CRAP Score (Top {topEntries})</CardTitle>
-          <TargetInfo metric="crap-score" />
+          <TargetInfo metric="code-crap" />
         </div>
         <p className="mt-2 text-sm text-gray-600">
           Combines cyclomatic complexity and test coverage to highlight complex files that are

@@ -35,7 +35,7 @@ export default function ChangeRequestStatisticsCard({
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Change Request Statistics</CardTitle>
-          <TargetInfo metric="change-request-statistics" />
+          <TargetInfo metric="cr-summary" />
         </div>
       </CardHeader>
       <CardContent>

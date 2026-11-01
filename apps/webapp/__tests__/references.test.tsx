@@ -1,10 +1,16 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ReferencesPage from '@/app/dashboard/references/page';
-import { METRIC_TARGETS } from '@/components/charts/targets';
+import { MetricCatalogEntryBuilder } from './builders/api-response/metric-catalog.builder';
 import { renderWithProviders } from './utils/test-providers';
+import { suppressConsoleError } from './utils/suppress-console';
 
-// Mock MUI icons to avoid SVG issues in jsdom
+const mockGetMetricCatalog = jest.fn();
+
+jest.mock('@/server/metric-catalog', () => ({
+  getMetricCatalog: () => mockGetMetricCatalog(),
+}));
+
 jest.mock('@mui/icons-material/ExpandMore', () => {
   const MockIcon = () => <span data-testid="icon-expand-more" />;
   return { __esModule: true, default: MockIcon };
@@ -14,151 +20,135 @@ jest.mock('@mui/icons-material/ExpandLess', () => {
   return { __esModule: true, default: MockIcon };
 });
 
+const reviewTime = new MetricCatalogEntryBuilder()
+  .withId('cr-review-time')
+  .withNamespace('cr')
+  .withLabel('Review time')
+  .withDescription('Days from change request creation to review.')
+  .withDirection('lower_is_better')
+  .withTarget({ operator: 'lt', value: 24, description: '< 24 hours' })
+  .withSources([
+    {
+      label: 'Forsgren et al. (2018) — Accelerate: The Science of Lean Software and DevOps',
+      url: 'https://itrevolution.com/product/accelerate/',
+    },
+    {
+      label: 'Bacchelli & Bird (2013) — ICSE on expectations and challenges of modern code review',
+      url: 'https://doi.org/10.1109/ICSE.2013.6606625',
+    },
+  ])
+  .build();
+
+const bigO = new MetricCatalogEntryBuilder()
+  .withId('code-big-o')
+  .withNamespace('code')
+  .withLabel('Big O')
+  .withDescription('Asymptotic complexity classification per file.')
+  .build();
+
+const undocumented = new MetricCatalogEntryBuilder()
+  .withId('issue-total')
+  .withNamespace('issue')
+  .withLabel('Issue total')
+  .withDescription('Total issues in the selected window.')
+  .withTarget(undefined)
+  .withSources(undefined)
+  .build();
+
+const catalog = [reviewTime, bigO, undocumented];
+
+async function renderPage() {
+  const ui = await ReferencesPage();
+  return renderWithProviders(ui);
+}
+
 describe('ReferencesPage', () => {
-  it('renders the page title and description', () => {
-    renderWithProviders(<ReferencesPage />);
+  beforeEach(() => {
+    mockGetMetricCatalog.mockResolvedValue(catalog);
+  });
+
+  it('renders the page title and description', async () => {
+    await renderPage();
 
     expect(screen.getByText('References & Sources')).toBeInTheDocument();
-    expect(
-      screen.getByText(/All academic papers, industry reports, and books/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Academic papers, industry reports and books/)).toBeInTheDocument();
     expect(screen.getByText('How Outliers Work In SMM')).toBeInTheDocument();
   });
 
-  it('details which pipeline and change request data are used for outliers', () => {
-    renderWithProviders(<ReferencesPage />);
+  it('summarises documented metrics, sources and the full catalog', async () => {
+    await renderPage();
 
-    expect(screen.getByText('Pipeline Data Used')).toBeInTheDocument();
-    expect(screen.getByText(/Run duration per workflow/)).toBeInTheDocument();
-    expect(screen.getByText(/Job time per job/)).toBeInTheDocument();
-    expect(screen.getByText(/Step time by day and step/)).toBeInTheDocument();
-
-    expect(screen.getByText('Change Request Data Used')).toBeInTheDocument();
-    expect(screen.getByText(/Review time per author/)).toBeInTheDocument();
-    expect(screen.getByText(/Open days per period/)).toBeInTheDocument();
-    expect(screen.getByText(/Time to first comment per author/)).toBeInTheDocument();
+    expect(screen.getByText('2 documented metrics')).toBeInTheDocument();
+    expect(screen.getByText('5 sources')).toBeInTheDocument();
+    expect(screen.getByText('3 catalogued metrics')).toBeInTheDocument();
   });
 
-  it('displays metric and source counts', () => {
-    renderWithProviders(<ReferencesPage />);
+  it('groups documented metrics by catalog namespace', async () => {
+    await renderPage();
 
-    const metricCount = Object.keys(METRIC_TARGETS).length;
-    const sourceCount = Object.values(METRIC_TARGETS).reduce(
-      (acc, def) => acc + def.sources.length,
-      0
-    );
-
-    expect(screen.getByText(`${metricCount} metrics`)).toBeInTheDocument();
-    expect(screen.getByText(`${sourceCount} sources`)).toBeInTheDocument();
-  });
-
-  it('renders all category sections', () => {
-    renderWithProviders(<ReferencesPage />);
-
-    expect(screen.getByText('Code Analysis')).toBeInTheDocument();
-    expect(screen.getByText('Pipelines')).toBeInTheDocument();
     expect(screen.getByText('Change Requests')).toBeInTheDocument();
-    expect(screen.getByText('SonarQube')).toBeInTheDocument();
-    expect(screen.getByText('Outlier Detection')).toBeInTheDocument();
-    expect(screen.getByText(/SMM flags outliers using the interquartile range \(IQR\) method\./)).toBeInTheDocument();
+    expect(screen.getByText('Source Code')).toBeInTheDocument();
+    expect(screen.queryByText('Issues')).not.toBeInTheDocument();
   });
 
-  it('renders metric cards with targets and descriptions', () => {
-    renderWithProviders(<ReferencesPage />);
+  it('renders catalog ids, targets and descriptions', async () => {
+    await renderPage();
 
-    // Check a few key metrics
-    expect(screen.getByText('Pairing Index')).toBeInTheDocument();
-    expect(screen.getByText('> 30%')).toBeInTheDocument();
-    expect(
-      screen.getByText(/Higher paired commit percentage/)
-    ).toBeInTheDocument();
+    expect(screen.getByText('Review time')).toBeInTheDocument();
+    expect(screen.getByText('cr-review-time')).toBeInTheDocument();
+    expect(screen.getByText('< 24 hours')).toBeInTheDocument();
+    expect(screen.getByText(/Days from change request creation to review\./)).toBeInTheDocument();
 
-    expect(screen.getByText('Big O Classification')).toBeInTheDocument();
+    expect(screen.getByText('Big O')).toBeInTheDocument();
     expect(screen.getByText('Review O(n^2+) hotspots')).toBeInTheDocument();
-
-    expect(screen.getByText('Deployment Frequency')).toBeInTheDocument();
-    expect(screen.getByText('Daily (Elite)')).toBeInTheDocument();
   });
 
-  it('shows source count hint for metrics with sources', () => {
-    renderWithProviders(<ReferencesPage />);
+  it('shows how many sources back each metric', async () => {
+    await renderPage();
 
-    // Multiple metrics have 2 sources - verify at least one exists
-    const sourceHints = screen.getAllByText('2 sources available');
-    expect(sourceHints.length).toBeGreaterThan(0);
+    expect(screen.getByText('2 sources available')).toBeInTheDocument();
   });
 
-  it('expands sources when expand button is clicked', async () => {
-    renderWithProviders(<ReferencesPage />);
+  it('expands the external references of a metric', async () => {
+    await renderPage();
 
-    // Find the first expand button (for Pairing Index)
-    const expandButtons = screen.getAllByLabelText('expand sources');
-    await userEvent.click(expandButtons[0]);
+    await userEvent.click(screen.getAllByLabelText('expand sources')[0]);
 
-    // After expanding, the sources should be visible
-    expect(
-      screen.getByText(/Cockburn & Williams \(2001\)/)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Hannay et al\. \(2009\)/)
-    ).toBeInTheDocument();
+    expect(screen.getAllByText(/Forsgren et al\. \(2018\)/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Bacchelli & Bird \(2013\)/).length).toBeGreaterThan(0);
   });
 
-  it('collapses sources when collapse button is clicked', async () => {
-    renderWithProviders(<ReferencesPage />);
+  it('collapses sources again', async () => {
+    await renderPage();
 
-    // Expand first
-    const expandButtons = screen.getAllByLabelText('expand sources');
-    await userEvent.click(expandButtons[0]);
+    await userEvent.click(screen.getAllByLabelText('expand sources')[0]);
+    await userEvent.click(screen.getByLabelText('collapse sources'));
 
-    // Now collapse
-    const collapseButton = screen.getByLabelText('collapse sources');
-    await userEvent.click(collapseButton);
-
-    // Wait for animation to complete and verify expand button is back
     await waitFor(() => {
-      const expandButtonsAfterCollapse = screen.getAllByLabelText('expand sources');
-      expect(expandButtonsAfterCollapse.length).toBeGreaterThan(0);
+      expect(screen.getAllByLabelText('expand sources').length).toBeGreaterThan(0);
     });
   });
 
-  it('renders all metrics from targets.ts', () => {
-    renderWithProviders(<ReferencesPage />);
+  it('keeps the outlier references and implementation details', async () => {
+    await renderPage();
 
-    // Verify every metric key from METRIC_TARGETS is represented
-    const expectedMetrics = [
-      'Pairing Index',
-      'Code Churn',
-      'Entity Churn',
-      'Entity Effort',
-      'Ownership',
-      'Code Coupling',
-      'Big O Classification',
-      'Deployment Frequency',
-      'Pipeline Duration',
-      'Job Time',
-      'Job Reruns',
-      'Jobs Success Rate',
-      'Review Time',
-      'Time To First Comment',
-      'Change Requests By Author',
-      'Change Requests Remain Open',
-      'Change Request Statistics',
-      'Most Commented Change Requests',
-      'Comments By Author',
-      'Open Change Requests Through Time',
-      'Sonarqube Reliability',
-      'Sonarqube Security',
-      'Sonarqube Maintainability',
-      'Sonarqube Duplication',
-      'Sonarqube Coverage',
-      'Sonarqube Complexity',
-      'Sonarqube Measurements',
-      'Metric Outliers',
-    ];
+    expect(screen.getByText('Pipeline Data Used')).toBeInTheDocument();
+    expect(screen.getByText('Change Request Data Used')).toBeInTheDocument();
+    expect(screen.getByText(/Kamei et al\. \(2013\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Rahman & Devanbu \(2013\)/)).toBeInTheDocument();
+  });
 
-    for (const metric of expectedMetrics) {
-      expect(screen.getByText(metric)).toBeInTheDocument();
-    }
+  it('surfaces a readable error when the catalog cannot be loaded', async () => {
+    const suppression = suppressConsoleError();
+    mockGetMetricCatalog.mockRejectedValue(new Error('API error: unavailable'));
+
+    await renderPage();
+
+    expect(
+      screen.getByText('Failed to load the metric catalog. Verify that the REST API is running.')
+    ).toBeInTheDocument();
+    expect(screen.getByText('0 documented metrics')).toBeInTheDocument();
+
+    suppression.restore();
   });
 });

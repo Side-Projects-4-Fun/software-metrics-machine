@@ -111,7 +111,7 @@ export default function SonarqubeMeasurementsTabbedCard({
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>SonarQube Measurements</CardTitle>
-          <TargetInfo metric="sonarqube-measurements" />
+          <TargetInfo metric="sq-measurements" />
         </div>
         <Box sx={{ mt: 2 }}>
           <Tabs

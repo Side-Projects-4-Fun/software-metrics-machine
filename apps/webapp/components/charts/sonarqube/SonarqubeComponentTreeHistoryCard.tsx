@@ -129,7 +129,7 @@ export default function SonarqubeComponentTreeHistoryCard({
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Component Tree Metrics History</CardTitle>
-          <TargetInfo metric="sonarqube-complexity" />
+          <TargetInfo metric="sq-complexity" />
         </div>
         <p className="mt-2 text-sm text-gray-600">
           Complexity and cognitive complexity changes over time for the selected files. Click a

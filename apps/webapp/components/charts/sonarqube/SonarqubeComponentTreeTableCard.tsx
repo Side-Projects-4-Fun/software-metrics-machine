@@ -77,7 +77,7 @@ export default function SonarqubeComponentTreeTableCard({
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Component Tree Metrics</CardTitle>
-          <TargetInfo metric="sonarqube-complexity" />
+          <TargetInfo metric="sq-complexity" />
         </div>
         <p className="mt-2 text-sm text-gray-600">
           Detailed per-component metrics from SonarQube component tree (complexity, cognitive complexity,

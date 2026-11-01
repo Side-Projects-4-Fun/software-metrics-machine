@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TargetInfo } from '@/components/charts/TargetInfo';
+import { OUTLIER_REFERENCE } from '@/lib/metrics/outlier-references';
 import { ClientPaginatedSortableTable } from '@/components/ui/client-paginated-sortable-table';
 import { UrlBuilder } from '@/server/utils/urlBuilder';
 import { useLinkBuilder } from '@/components/providers/LinkBuilderContext';
@@ -81,7 +82,11 @@ export default function OutliersCard({ rows }: { rows: MetricOutlierRow[] }) {
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Flagged Outliers</CardTitle>
-          <TargetInfo metric="metric-outliers" />
+          <TargetInfo
+            target={OUTLIER_REFERENCE.target}
+            description={OUTLIER_REFERENCE.description}
+            sources={OUTLIER_REFERENCE.sources}
+          />
         </div>
       </CardHeader>
       <CardContent>

@@ -82,6 +82,7 @@ export default withMermaid(
             { text: 'Features', link: '/features', items: [
               { text: 'Project management', link: '/project' },
               { text: 'Engineering Health', link: '/features/engineering-health' },
+              { text: 'Metric catalog', link: '/features/metric-catalog' },
               { text: 'Dashboard', link: '/features/dashboard' },
               { text: 'Insights', link: '/features/insights' },
               { text: 'Change requests', link: '/features/change-requests' },

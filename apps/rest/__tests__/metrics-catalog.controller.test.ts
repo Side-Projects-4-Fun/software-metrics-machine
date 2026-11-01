@@ -16,6 +16,15 @@ describe('MetricsCatalogController', () => {
     expect(response.result).toHaveLength(Object.keys(METRIC_CATALOG).length);
   });
 
+  it('exposes the published target and sources consumed by the webapp', () => {
+    const response = controller.list();
+    const reviewTime = response.result.find((entry) => entry.id === 'cr-review-time');
+
+    expect(reviewTime?.target?.description).toBe('< 24 hours');
+    expect(reviewTime?.sources).toHaveLength(2);
+    expect(reviewTime?.sources?.[0].url).toContain('accelerate');
+  });
+
   it('filters by namespace', () => {
     const response = controller.list('eh');
 

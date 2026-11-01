@@ -66,7 +66,7 @@ export default function JobStepsAnalysis({
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Steps Analysis: {jobName}</CardTitle>
-          <TargetInfo metric="pipeline-duration" />
+          <TargetInfo metric="pl-job-steps-duration" />
         </div>
         <p className="text-sm text-gray-500">
           {methodLabel} execution time of each step across {data[0]?.count || 0} runs.

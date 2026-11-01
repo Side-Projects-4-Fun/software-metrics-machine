@@ -7,6 +7,7 @@ import {
 import {
   EngineeringHealthEvaluationBuilder,
 } from './builders/api-response/engineering-health-evaluation.builder';
+import { MetricCatalogEntryBuilder } from './builders/api-response/metric-catalog.builder';
 import { renderWithProviders } from './utils/test-providers';
 
 jest.mock('@/server/api/engineeringHealth', () => ({
@@ -14,6 +15,31 @@ jest.mock('@/server/api/engineeringHealth', () => ({
     evaluate: jest.fn(),
   },
 }));
+
+const mockGetMetricCatalog = jest.fn();
+
+jest.mock('@/server/metric-catalog', () => ({
+  getMetricCatalog: () => mockGetMetricCatalog(),
+}));
+
+const pipelineDurationReference = new MetricCatalogEntryBuilder()
+  .withId('pl-run-duration')
+  .withNamespace('pl')
+  .withLabel('Run duration')
+  .withDescription('Min/max/avg duration per workflow.')
+  .withDirection('lower_is_better')
+  .withTarget({ operator: 'lt', value: 10, description: '< 10 min' })
+  .withSources([
+    {
+      label: 'Forsgren et al. (2018) — Accelerate (Lead time elite benchmark: < 1 hour)',
+      url: 'https://itrevolution.com/product/accelerate/',
+    },
+    {
+      label: 'Vasilescu et al. (2015) — ESEC/FSE on CI quality and productivity outcomes',
+      url: 'https://doi.org/10.1145/2786805.2786850',
+    },
+  ])
+  .build();
 
 const mockEngineeringHealthAPI = engineeringHealthAPI as jest.Mocked<typeof engineeringHealthAPI>;
 
@@ -28,6 +54,10 @@ function pipelineDurationMetric(): ReturnType<EngineeringHealthMetricBuilder['bu
 }
 
 describe('EngineeringHealthPage', () => {
+  beforeEach(() => {
+    mockGetMetricCatalog.mockResolvedValue([pipelineDurationReference]);
+  });
+
   it('renders comparison chart and trend chart when series is available', async () => {
     const metric = pipelineDurationMetric();
     metric.value.series = [

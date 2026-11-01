@@ -17,7 +17,7 @@ export default async function SonarqubeMeasurementsCard({ filters }: SonarqubeMe
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>SonarQube Measurements</CardTitle>
-          <TargetInfo metric="sonarqube-measurements" />
+          <TargetInfo metric="sq-measurements" />
         </div>
       </CardHeader>
       <CardContent>

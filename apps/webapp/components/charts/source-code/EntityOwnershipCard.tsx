@@ -231,7 +231,7 @@ export default function EntityOwnershipCard({ data }: { data: EntityOwnershipDat
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Ownership</CardTitle>
-          <TargetInfo metric="ownership" />
+          <TargetInfo metric="code-entity-ownership" />
         </div>
         <Box sx={{ mt: 2 }}>
           <Tabs

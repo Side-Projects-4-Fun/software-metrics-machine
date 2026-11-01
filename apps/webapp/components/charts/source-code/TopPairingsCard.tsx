@@ -34,7 +34,7 @@ export function TopPairingsCard({ data }: { data: TopPairing[] }) {
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Who Paired The Most With Whom</CardTitle>
-          <TargetInfo metric="pairing-index" />
+          <TargetInfo metric="code-pairing-index" />
         </div>
         <p className="mt-2 text-sm text-gray-600">
           Ranked by number of paired commits between each author pair.

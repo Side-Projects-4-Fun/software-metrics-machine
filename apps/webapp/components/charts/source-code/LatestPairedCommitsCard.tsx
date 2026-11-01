@@ -11,7 +11,7 @@ export function LatestPairedCommitsCard({ data }: { data: Array<{ hash: string; 
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Latest 20 Paired Commits</CardTitle>
-          <TargetInfo metric="pairing-index" />
+          <TargetInfo metric="code-pairing-index" />
         </div>
         <p className="mt-2 text-sm text-gray-600">
           Most recent commits containing co-authors.

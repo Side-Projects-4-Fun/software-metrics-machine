@@ -18,7 +18,7 @@ export default function EntityChurnCard({
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Entity Churn (Top {topEntries})</CardTitle>
-          <TargetInfo metric="entity-churn" />
+          <TargetInfo metric="code-entity-churn" />
         </div>
         <p className="mt-2 text-sm text-gray-600">
           Compares files with the highest change volume. Each bar is one file: green is lines added

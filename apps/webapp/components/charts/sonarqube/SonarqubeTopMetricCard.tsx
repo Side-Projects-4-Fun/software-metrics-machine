@@ -21,12 +21,14 @@ export default function SonarqubeTopMetricCard({
   dataKeyLabel,
   color,
   description,
+  metric,
 }: {
   title: string;
   data: SonarqubeTopMetricData[];
   dataKeyLabel: string;
   color: string;
   description?: string;
+  metric?: string;
 }) {
   const { urlBuilder } = useLinkBuilder();
 
@@ -37,16 +39,12 @@ export default function SonarqubeTopMetricCard({
     }
   };
 
-  const metricKey = title.toLowerCase().includes('complexity')
-    ? 'sonarqube-complexity'
-    : 'sonarqube-coverage';
-
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>{title}</CardTitle>
-          <TargetInfo metric={metricKey} />
+          <TargetInfo metric={metric} />
         </div>
         <p className="mt-2 text-sm text-gray-600">{description}</p>
         {data.some(d => d.componentKey) && (

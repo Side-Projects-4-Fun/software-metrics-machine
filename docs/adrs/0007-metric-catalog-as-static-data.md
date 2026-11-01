@@ -134,6 +134,11 @@ output-shape axis has real reuse — at the presentation layer, not in computati
 
 ## Addenda
 
+- 2026-11-01 — Published targets and external references moved into the catalog structure as
+  `metric-references.ts` (keyed by `CatalogMetricId`, merged into `MetricCatalogEntry` by
+  `listMetricCatalogEntries`). The webapp no longer keeps a local `targets.ts`: the root layout loads
+  `GET /metrics` once per request and `/dashboard/references` plus every card tooltip read from it.
+
 - `CatalogMetricId` is a temporary name to avoid colliding with the existing Engineering Health `MetricId`.
   When Engineering Health adopts the catalog IDs, the catalog type becomes `MetricId` and the old union is
   removed.

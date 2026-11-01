@@ -44,7 +44,7 @@ export default function JobsByStatusCard({ data }: { data: JobByStatusData[] }) 
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Jobs by Status</CardTitle>
-          <TargetInfo metric="jobs-success-rate" />
+          <TargetInfo metric="pl-job-status-counts" />
         </div>
         <p className="text-xs text-gray-500 mt-1">Click to view pipeline runs with this status</p>
       </CardHeader>

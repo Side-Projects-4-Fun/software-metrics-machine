@@ -167,7 +167,7 @@ export function DeploymentFrequency({ deploymentFrequency }: { deploymentFrequen
     <div style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
       <div className="flex items-center gap-2 mb-4">
         <h3 className="text-sm font-semibold text-gray-700">Deployment Frequency Targets</h3>
-        <TargetInfo metric="deployment-frequency" />
+        <TargetInfo metric="pl-deployment-frequency" />
       </div>
       {targetLabels.length > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2" aria-label="Toggle deployment frequency workflows">

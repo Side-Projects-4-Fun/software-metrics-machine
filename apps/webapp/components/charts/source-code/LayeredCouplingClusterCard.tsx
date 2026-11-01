@@ -130,7 +130,7 @@ export default function LayeredCouplingClusterCard({ data, method }: { data: Lay
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Layered Coupling</CardTitle>
-          <TargetInfo metric="layered-coupling" />
+          <TargetInfo metric="code-layered-coupling" />
         </div>
         <p className="mt-2 text-sm text-gray-600">
           Bubble clusters represent architectural layers. Larger bubbles mean stronger coupling;

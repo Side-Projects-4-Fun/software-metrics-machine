@@ -18,7 +18,7 @@ export default function EntityEffortCard({
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Entity Effort (Top {topEntries})</CardTitle>
-          <TargetInfo metric="entity-effort" />
+          <TargetInfo metric="code-entity-effort" />
         </div>
         <p className="mt-2 text-sm text-gray-600">
           Shows files touched most often. Taller bars mean more revisions, indicating higher

@@ -135,10 +135,16 @@ to `smm pipelines ...` commands, a `change-requests` filter to `smm change-reque
 
 ## References and targets
 
-The `/dashboard/references` page lists the metric targets and sources used by dashboard recommendations and target info
-popovers. Sources are grouped by Code Analysis, Pipelines, Change Requests, and SonarQube.
+The `/dashboard/references` page is generated from the core metric catalog (`GET /metrics`). It lists every
+catalogued metric that carries a documented target and groups it by catalog namespace: Pipelines, Change Requests,
+Source Code, SonarQube, Architecture, Issues, and Engineering Health.
 
-Many dashboard cards show an info control with the target value, explanation, and supporting sources for that metric.
+Each card shows the stable metric id, the target, the description, and the academic papers, industry reports, and
+books behind it. Sources are collapsed by default and expanded on demand; printing expands them automatically.
+
+Dashboard cards use the same catalog entries for their info popover, so targets and references stay aligned with the
+CLI, the MCP server, and the REST API. See [Metric catalog](./metric-catalog.md) for the CLI and API discovery
+commands.
 
 ## Filter URL format
 

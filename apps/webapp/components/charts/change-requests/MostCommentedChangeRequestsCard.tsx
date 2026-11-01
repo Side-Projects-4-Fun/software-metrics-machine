@@ -59,7 +59,7 @@ const MostCommentedChangeRequestsCard: React.FC<MostCommentedChangeRequestsCardP
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Most Commented Change Requests</CardTitle>
-          <TargetInfo metric="most-commented-change-requests" />
+          <TargetInfo metric="cr-summary" />
         </div>
       </CardHeader>
       <CardContent>

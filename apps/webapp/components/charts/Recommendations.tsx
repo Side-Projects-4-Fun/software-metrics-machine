@@ -15,7 +15,7 @@ import {
   type Recommendation,
   type RecommendationSeverity,
 } from './recommendations-types';
-import { METRIC_TARGETS } from './targets';
+import { useMetricDefinition } from '@/components/providers/MetricCatalogProvider';
 import { ContextLink } from '@/components/filters/ContextLink';
 
 type JobSummary = NonNullable<RecommendationsProps['jobsSummary']>[number];
@@ -88,41 +88,49 @@ export function Recommendations({
   selectedWorkflow,
   reviewTime,
 }: RecommendationsProps) {
+  const pairingTarget = useMetricDefinition('code-pairing-index')?.target?.description;
+  const jobsSuccessTarget = useMetricDefinition('pl-job-status-counts')?.target?.description;
+  const rerunsTarget = useMetricDefinition('pl-jobs-summary')?.target?.description;
+  const jobDurationTarget = useMetricDefinition('pl-job-duration')?.target?.description;
+  const reviewTimeTarget = useMetricDefinition('cr-review-time')?.target?.description;
+  const openTimeTarget = useMetricDefinition('cr-open-time')?.target?.description;
+  const deploymentTarget = useMetricDefinition('pl-deployment-frequency')?.target?.description;
+
   const recommendations = useMemo(() => {
     const recs: Recommendation[] = [];
 
     // --- Pairing Index ---
     if (pairingIndex) {
-      const target = METRIC_TARGETS['pairing-index'];
+      const target = pairingTarget;
       const value = pairingIndex.pairing_index_percentage;
       if (value < 30) {
         recs.push({
           id: 'pairing-low',
-          metric: 'pairing-index',
+          metric: 'code-pairing-index',
           title: 'Increase Pair Programming',
           message: `Your pairing index is ${value.toFixed(1)}%, below the 30% target. Consider scheduling more pair programming sessions to improve knowledge sharing and reduce bus factor risk.`,
           severity: 'warning',
           currentValue: `${value.toFixed(1)}%`,
-          targetValue: target?.target,
+          targetValue: target,
           href: '/dashboard/source-code',
           hrefLabel: 'View Source Code',
         });
       } else {
         recs.push({
           id: 'pairing-good',
-          metric: 'pairing-index',
+          metric: 'code-pairing-index',
           title: 'Pair Programming on Track',
           message: `Your pairing index is ${value.toFixed(1)}%, meeting the 30% target. Keep up the collaborative practices!`,
           severity: 'success',
           currentValue: `${value.toFixed(1)}%`,
-          targetValue: target?.target,
+          targetValue: target,
         });
       }
     }
 
     // --- Pipeline Success Rate ---
     if (jobsSummary && jobsSummary.length > 0) {
-      const target = METRIC_TARGETS['jobs-success-rate'];
+      const target = jobsSuccessTarget;
       const overallSuccessRate =
         jobsSummary.reduce((sum, j) => sum + j.success_rate, 0) / jobsSummary.length;
 
@@ -136,12 +144,12 @@ export function Recommendations({
         );
         recs.push({
           id: 'pipeline-success-low',
-          metric: 'jobs-success-rate',
+          metric: 'pl-job-status-counts',
           title: 'Improve Pipeline Reliability',
           message: `Overall pipeline success rate is ${overallSuccessRate.toFixed(1)}%, below the 90% target. Most affected: ${affectedJobsMessage}. Investigate flaky tests and failure patterns to improve CI stability.`,
           severity: 'warning',
           currentValue: `${overallSuccessRate.toFixed(1)}%`,
-          targetValue: target?.target,
+          targetValue: target,
           contextItems: (affectedJobs.length > 0 ? affectedJobs : [...jobsSummary].sort((a, b) => a.success_rate - b.success_rate))
             .slice(0, 3)
             .map((job) => `${formatPipelineJob(job, selectedWorkflow)} - ${job.success_rate.toFixed(1)}% success`),
@@ -151,19 +159,19 @@ export function Recommendations({
       } else {
         recs.push({
           id: 'pipeline-success-good',
-          metric: 'jobs-success-rate',
+          metric: 'pl-job-status-counts',
           title: 'Pipeline Reliability on Track',
           message: `Overall pipeline success rate is ${overallSuccessRate.toFixed(1)}%, meeting the 90% target.`,
           severity: 'success',
           currentValue: `${overallSuccessRate.toFixed(1)}%`,
-          targetValue: target?.target,
+          targetValue: target,
         });
       }
     }
 
     // --- Job Reruns ---
     if (jobsSummary && jobsSummary.length > 0) {
-      const target = METRIC_TARGETS['job-reruns'];
+      const target = rerunsTarget;
       const totalReruns = jobsSummary.reduce((sum, j) => sum + j.rerun_count, 0);
 
       if (totalReruns > 0) {
@@ -176,12 +184,12 @@ export function Recommendations({
         );
         recs.push({
           id: 'reruns-detected',
-          metric: 'job-reruns',
+          metric: 'pl-jobs-summary',
           title: 'Reduce Pipeline Reruns',
           message: `Detected ${totalReruns} reruns across ${rerunJobs.length} job(s): ${rerunJobsMessage}. Reruns waste compute and erode CI trust; investigate flaky tests as the likely root cause.`,
           severity: 'warning',
           currentValue: `${totalReruns} reruns`,
-          targetValue: target?.target,
+          targetValue: target,
           contextItems: rerunJobs
             .slice(0, 3)
             .map((job) => `${formatPipelineJob(job, selectedWorkflow)} - ${job.rerun_count} reruns`),
@@ -193,7 +201,7 @@ export function Recommendations({
 
     // --- Average Job Duration ---
     if (jobsSummary && jobsSummary.length > 0) {
-      const target = METRIC_TARGETS['job-time'];
+      const target = jobDurationTarget;
       const avgDuration =
         jobsSummary.reduce((sum, j) => sum + j.value, 0) / jobsSummary.length;
       const avgDurationFormatted = jobsSummary[0]?.value_formatted || `${avgDuration.toFixed(1)} min`;
@@ -208,12 +216,12 @@ export function Recommendations({
         );
         recs.push({
           id: 'job-duration-high',
-          metric: 'job-time',
+          metric: 'pl-job-duration',
           title: 'Optimize Job Duration',
           message: `Average job duration is ${avgDurationFormatted}, exceeding the 5 min target. Slowest jobs: ${slowJobsMessage}. Consider parallelizing steps, caching dependencies, or splitting large jobs.`,
           severity: 'warning',
           currentValue: avgDurationFormatted,
-          targetValue: target?.target,
+          targetValue: target,
           contextItems: (slowJobs.length > 0 ? slowJobs : [...jobsSummary].sort((a, b) => b.value - a.value))
             .slice(0, 3)
             .map((job) => `${formatPipelineJob(job, selectedWorkflow)} - ${job.value_formatted || `${job.value.toFixed(1)} min`} avg`),
@@ -225,7 +233,7 @@ export function Recommendations({
 
     // --- Change Request Review Time ---
     if (reviewTime && reviewTime.length > 0) {
-      const target = METRIC_TARGETS['review-time'];
+      const target = reviewTimeTarget;
       const reviewDays =
         reviewTime.reduce((sum, a) => sum + a.value, 0) / reviewTime.length;
       const reviewTimeDataFormatted = reviewTime[0]?.value_formatted || `${reviewDays.toFixed(1)}d`;
@@ -233,39 +241,39 @@ export function Recommendations({
       if (reviewDays > 1) {
         recs.push({
           id: 'review-time-high',
-          metric: 'review-time',
+          metric: 'cr-review-time',
           title: 'Speed Up Code Reviews',
           message: `Review time is ${reviewTimeDataFormatted}, exceeding the 24-hour target. Slow reviews create delivery bottlenecks and reduce author productivity.`,
           severity: 'warning',
           currentValue: reviewTimeDataFormatted,
-          targetValue: target?.target,
+          targetValue: target,
           href: '/dashboard/change-requests',
           hrefLabel: 'View Change Requests',
         });
       } else if (reviewDays > 0) {
         recs.push({
           id: 'review-time-good',
-          metric: 'review-time',
+          metric: 'cr-review-time',
           title: 'Review Time on Track',
           message: `Review time is ${reviewTimeDataFormatted}, within the 24-hour target.`,
           severity: 'success',
           currentValue: reviewTimeDataFormatted,
-          targetValue: target?.target,
+          targetValue: target,
         });
       }
     }
 
     // --- Open Change Requests ---
     if (prSummary && prSummary.open > 0) {
-      const target = METRIC_TARGETS['change-requests-remain-open'];
+      const target = openTimeTarget;
       recs.push({
         id: 'open-change-requests',
-        metric: 'change-requests-remain-open',
+        metric: 'cr-open-time',
         title: 'Review Open Change Requests',
         message: `You have ${prSummary.open} open change request(s). Change requests open beyond 3 days slow delivery and increase merge conflicts. Prioritize reviewing stale change requests.`,
         severity: 'info',
         currentValue: `${prSummary.open} open`,
-        targetValue: target?.target,
+        targetValue: target,
         href: '/dashboard/change-requests',
         hrefLabel: 'View Change Requests',
       });
@@ -273,7 +281,7 @@ export function Recommendations({
 
     // --- Deployment Frequency ---
     if (deploymentFrequency && deploymentFrequency.length > 0) {
-      const target = METRIC_TARGETS['deployment-frequency'];
+      const target = deploymentTarget;
       const totalDailyDeployments = deploymentFrequency.reduce(
         (sum, d) => sum + d.day_count,
         0
@@ -286,12 +294,12 @@ export function Recommendations({
         );
         recs.push({
           id: 'no-deployments',
-          metric: 'deployment-frequency',
+          metric: 'pl-deployment-frequency',
           title: 'Increase Deployment Frequency',
           message: `No deployments detected for ${deploymentTargetsMessage} in the selected period. Elite teams deploy daily or multiple times per day. Consider automating your deployment pipeline.`,
           severity: 'info',
           currentValue: '0 deployments',
-          targetValue: target?.target,
+          targetValue: target,
           contextItems: deploymentFrequency.slice(0, 3).map(formatDeploymentTarget),
           href: '/dashboard/pipelines',
           hrefLabel: 'View Pipelines',
@@ -313,7 +321,21 @@ export function Recommendations({
     }
 
     return recs;
-  }, [pairingIndex, prSummary, deploymentFrequency, jobsSummary, selectedWorkflow, reviewTime]);
+  }, [
+    pairingIndex,
+    prSummary,
+    deploymentFrequency,
+    jobsSummary,
+    selectedWorkflow,
+    reviewTime,
+    pairingTarget,
+    jobsSuccessTarget,
+    rerunsTarget,
+    jobDurationTarget,
+    reviewTimeTarget,
+    openTimeTarget,
+    deploymentTarget,
+  ]);
 
   if (recommendations.length === 0) {
     return null;

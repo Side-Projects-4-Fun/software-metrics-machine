@@ -221,6 +221,9 @@ export default function AppShell({
           sx={{
             width: leftDrawerWidth,
             flexShrink: 0,
+            // The persistent root keeps its width while closed and the main
+            // content is pulled underneath it. Do not let it swallow clicks.
+            pointerEvents: leftOpen ? 'auto' : 'none',
             '& .MuiDrawer-paper': {
               width: leftDrawerWidth,
               boxSizing: 'border-box',
@@ -232,7 +235,7 @@ export default function AppShell({
         >
           <DrawerHeader sx={{ justifyContent: 'space-between' }}>
             <Typography variant="h6" sx={{ ml: 1 }}>Projects</Typography>
-            <IconButton onClick={handleLeftDrawerClose}>
+            <IconButton onClick={handleLeftDrawerClose} aria-label="close projects panel">
               {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
             </IconButton>
           </DrawerHeader>
@@ -255,6 +258,10 @@ export default function AppShell({
             sx={{
               width: drawerWidth,
               flexShrink: 0,
+              // The closed drawer root still occupies 410px and the main
+              // content extends beneath it (marginRight: -410px). Without this
+              // guard the root intercepts clicks on the last cards.
+              pointerEvents: rightOpen ? 'auto' : 'none',
               '& .MuiDrawer-paper': {
                 width: drawerWidth,
                 boxSizing: 'border-box',
@@ -265,7 +272,7 @@ export default function AppShell({
             open={rightOpen}
           >
             <DrawerHeader>
-              <IconButton onClick={handleRightDrawerClose}>
+              <IconButton onClick={handleRightDrawerClose} aria-label="close filters panel">
                 {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
               </IconButton>
             </DrawerHeader>

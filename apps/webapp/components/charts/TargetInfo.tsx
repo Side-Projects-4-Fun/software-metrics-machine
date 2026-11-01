@@ -2,23 +2,40 @@
 
 import { useState, useCallback } from 'react';
 import { Popover, Box, Link } from '@mui/material';
-import { METRIC_TARGETS, type TargetDefinition } from './targets';
+import { useMetricDefinition } from '@/components/providers/MetricCatalogProvider';
+import type { MetricCatalogSource } from '@/lib/metrics/metric-catalog';
 
 interface TargetInfoProps {
+  /** Catalogued metric id, e.g. `cr-review-time`. */
   metric?: string;
+  /** Explicit target for cross-cutting explanations without a catalog entry. */
   target?: string;
+  /** Explicit description paired with `target`. */
   description?: string;
+  /** Explicit sources paired with `target` and `description`. */
+  sources?: MetricCatalogSource[];
 }
 
-export function TargetInfo({ metric, target, description }: TargetInfoProps) {
+interface ResolvedDefinition {
+  target?: string;
+  description: string;
+  sources: readonly MetricCatalogSource[];
+}
+
+export function TargetInfo({ metric, target, description, sources }: TargetInfoProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const catalogEntry = useMetricDefinition(metric);
 
-  let definition: TargetDefinition | undefined;
+  let definition: ResolvedDefinition | undefined;
 
-  if (metric) {
-    definition = METRIC_TARGETS[metric];
+  if (catalogEntry) {
+    definition = {
+      target: catalogEntry.target?.description,
+      description: catalogEntry.definition.description,
+      sources: catalogEntry.sources ?? [],
+    };
   } else if (target && description) {
-    definition = { target, description, sources: [] };
+    definition = { target, description, sources: sources ?? [] };
   }
 
   const handleClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
@@ -74,9 +91,11 @@ export function TargetInfo({ metric, target, description }: TargetInfoProps) {
         }}
       >
         <Box sx={{ fontSize: '0.875rem', lineHeight: 1.6 }}>
-          <Box sx={{ fontWeight: 600, mb: 0.5 }}>
-            Target: {definition.target}
-          </Box>
+          {definition.target ? (
+            <Box sx={{ fontWeight: 600, mb: 0.5 }}>
+              Target: {definition.target}
+            </Box>
+          ) : null}
           <Box sx={{ color: 'text.secondary', mb: definition.sources.length > 0 ? 1.5 : 0 }}>
             {definition.description}
           </Box>

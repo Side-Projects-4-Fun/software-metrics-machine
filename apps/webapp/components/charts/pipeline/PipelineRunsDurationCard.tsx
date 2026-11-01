@@ -175,7 +175,7 @@ export default function PipelineRunsDurationCard({
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Pipeline Runs Duration</CardTitle>
-          <TargetInfo metric="pipeline-duration" />
+          <TargetInfo metric="pl-run-duration" />
         </div>
         <Box sx={{ mt: 2 }}>
           <Tabs

@@ -48,6 +48,7 @@ const ALLOWED_API_ENDPOINTS = new Set<string>([
   '/dora/deployment-frequency',
   '/engineering-health/evaluate',
   '/filters',
+  '/metrics',
   '/pipelines/by-status',
   '/pipelines/dashboard',
   '/pipelines/evaluate',

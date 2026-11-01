@@ -115,7 +115,7 @@ export function BigOAnalysisCard({ files, search }: BigOAnalysisCardProps) {
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <CardTitle>Big O Classification</CardTitle>
-              <TargetInfo metric="big-o-classification" />
+              <TargetInfo metric="code-big-o" />
             </Stack>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               Heuristic static complexity risk by source file.

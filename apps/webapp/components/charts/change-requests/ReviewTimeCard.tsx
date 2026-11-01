@@ -24,7 +24,7 @@ export default function ReviewTimeCard({ data, method }: { data: ReviewTimeData[
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Review Time</CardTitle>
-          <TargetInfo metric="review-time" />
+          <TargetInfo metric="cr-review-time" />
         </div>
         <p className="text-xs text-gray-500 mt-1">Click on bars to view author&apos;s change requests</p>
       </CardHeader>

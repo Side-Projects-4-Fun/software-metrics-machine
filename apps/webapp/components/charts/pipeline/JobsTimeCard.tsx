@@ -60,7 +60,7 @@ export default function JobsTimeCard({ data, dataByDay }: JobsTimeCardProps) {
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Jobs Time</CardTitle>
-          <TargetInfo metric="job-avg-time" />
+          <TargetInfo metric="pl-job-duration" />
         </div>
         <div className="flex gap-2 mt-3">
           <button
