@@ -46,6 +46,18 @@ describe('AppShell', () => {
     expect(screen.getByRole('tab', { name: 'Insights' })).toBeInTheDocument();
   });
 
+  it('keeps the dashboard tabs visible while scrolling', () => {
+    renderWithProviders(
+      <AppShell>
+        <div>Shell content</div>
+      </AppShell>,
+    );
+
+    expect(screen.getByTestId('dashboard-tabs-bar')).toHaveStyle({
+      position: 'sticky',
+    });
+  });
+
   it('hides the dashboard tabs when showTabs is false', () => {
     renderWithProviders(
       <AppShell showTabs={false}>
