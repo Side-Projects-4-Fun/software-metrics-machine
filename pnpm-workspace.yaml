@@ -22,11 +22,11 @@ catalog:
   '@mui/icons-material': ^9.5.0
   '@mui/material': ^9.5.0
   '@mui/material-nextjs': ^9.5.0
-  '@mui/x-date-pickers': ^9.16.0
-  '@nestjs/common': ^12.2.0
-  '@nestjs/core': ^12.2.0
-  '@nestjs/platform-express': ^12.2.0
-  '@nestjs/swagger': ^12.0.4
+  '@mui/x-date-pickers': ^9.17.0
+  '@nestjs/common': ^12.3.2
+  '@nestjs/core': ^12.3.2
+  '@nestjs/platform-express': ^12.3.2
+  '@nestjs/swagger': ^12.0.5
   '@nestjs/testing': ^12.0.1
   '@radix-ui/react-slot': ^1.5.0
   '@radix-ui/react-tabs': ^1.2.1
@@ -38,14 +38,14 @@ catalog:
   '@testing-library/user-event': ^14.6.4
   '@types/express': ^5.0.6
   '@types/jest': ^30.0.0
-  '@types/node': ^26.6.5
+  '@types/node': ^26.6.6
   '@types/react': ^19.2.18
   '@types/react-dom': ^19.2.4
   '@types/supertest': ^7.2.1
   '@typescript-eslint/eslint-plugin': ^8.72.1
   '@typescript-eslint/parser': ^8.72.1
   '@vitest/coverage-v8': ^5.0.5
-  axios: ^1.20.0
+  axios: ^1.21.0
   babel-plugin-react-compiler: ^1.0.0
   chalk: ^6.0.0
   class-transformer: ^0.5.1

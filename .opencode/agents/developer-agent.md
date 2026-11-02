@@ -368,7 +368,7 @@ All workflows read pnpm and Node.js versions from `./envvars.for.actions` via th
 | 2 | `test` | `build-typescript` | Runs `pnpm test` |
 | 3 | `cli-acceptance` | `build-typescript`, `test` | Builds, installs bashunit, runs `pnpm test:e2e` in `apps/cli` |
 | 4 | `check-distribution` | `build-typescript` | Clones facebook/react with `--shallow-since="2025-03-01"`, runs `scripts/simulate-and-test-publish.sh build` |
-| 5 | `webapp-e2e` | `build-typescript` | Installs the Cypress binary (cached in `~/.cache/Cypress`), runs `pnpm --filter @smmachine/webapp cy:run`, uploads screenshots on failure |
+| 5 | `webapp-e2e` | `build-typescript` | Installs the Cypress binary (cached in `~/.cache/Cypress`), runs `pnpm --filter @smmachine/webapp cy:run`, uploads screenshots and videos on failure |
 | 6 | `sonarqube` | `build-typescript`, `test`, `cli-acceptance`, `check-distribution`, `webapp-e2e` | Only on `main` branch. Builds, collects merged coverage (`pnpm coverage:all`), runs SonarQube scan with `SONAR_TOKEN` secret |
 
 Key details:

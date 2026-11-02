@@ -234,6 +234,15 @@ jobs:
           retention-days: 5
           if-no-files-found: ignore
 
+      - name: Upload Cypress videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: apps/webapp/cypress/videos
+          retention-days: 5
+          if-no-files-found: ignore
+
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-latest

@@ -19,7 +19,10 @@ export default defineConfig({
     baseUrl: 'http://localhost:3000',
     viewportWidth: 1280,
     viewportHeight: 720,
-    video: false,
+    // Videos are recorded in CI only (uploaded as a workflow artifact on
+    // failure, next to the screenshots) so local runs stay fast.
+    video: Boolean(process.env.CI),
+    videoCompression: 32,
     screenshotOnRunFailure: true,
     // Next.js compiles routes on first request, which is slower than a warm app.
     pageLoadTimeout: 120_000,
