@@ -1,6 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useLayoutEffect, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -11,28 +17,57 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeContextProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('theme') as Theme | null;
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      return savedTheme || (prefersDark ? 'dark' : 'light');
-    }
-    return 'light';
-  });
+function getStoredTheme(): Theme | null {
+  const stored = localStorage.getItem('theme');
 
-  const applyTheme = (newTheme: Theme) => {
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
-  };
+  return stored === 'light' || stored === 'dark' ? stored : null;
+}
+
+function getPreferredTheme(): Theme {
+  const stored = getStoredTheme();
+
+  if (stored) {
+    return stored;
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+const subscribeToHydration = () => () => {};
+const getHydratedSnapshot = () => true;
+const getHydratedServerSnapshot = () => false;
+
+/**
+ * `false` during the server render and the hydration pass, `true` afterwards.
+ * It lets the provider render the stored/system preference only once the markup
+ * is hydrated, so the toggle text cannot mismatch the server HTML.
+ */
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    subscribeToHydration,
+    getHydratedSnapshot,
+    getHydratedServerSnapshot,
+  );
+}
+
+export function ThemeContextProvider({ children }: { children: React.ReactNode }) {
+  const hydrated = useHydrated();
+  const [storedTheme, setStoredTheme] = useState<Theme>(() =>
+    typeof window === 'undefined' ? 'light' : getPreferredTheme(),
+  );
+  const theme: Theme = hydrated ? storedTheme : 'light';
 
   useLayoutEffect(() => {
-    applyTheme(theme);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
   const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
+    setStoredTheme((current) => {
+      const next = current === 'light' ? 'dark' : 'light';
+      localStorage.setItem('theme', next);
+
+      return next;
+    });
   };
 
   return (

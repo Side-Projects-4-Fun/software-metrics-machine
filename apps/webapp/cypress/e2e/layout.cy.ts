@@ -1,8 +1,5 @@
 /// <reference types="cypress" />
 
-// Hydration warnings are unrelated to hit-testing and are covered by the unit suite.
-Cypress.on('uncaught:exception', (error) => !error.message.includes('Minified React error #418'));
-
 /**
  * Layout regression guard.
  *

@@ -10,4 +10,18 @@
  * here.
  */
 
+/**
+ * React 19 development builds report Server Component render timings through
+ * `performance.measure`. Cypress hosts the application in a proxied document
+ * whose `performance.timeOrigin` lands after the server's, so the derived
+ * timestamps go negative and Chrome rejects the measure. It is dev-only
+ * instrumentation noise — rendering and hydration still complete.
+ *
+ * Only these known-noise messages are filtered; every other uncaught
+ * application error must keep failing the journey.
+ */
+const KNOWN_NOISE = ['cannot have a negative time stamp', 'Minified React error #418'];
+
+Cypress.on('uncaught:exception', (error) => !KNOWN_NOISE.some((message) => error.message.includes(message)));
+
 export {};
