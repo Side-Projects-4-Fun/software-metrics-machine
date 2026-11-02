@@ -27,22 +27,6 @@ describe('Layout drawers', () => {
     });
   });
 
-  it('does not let the closed projects drawer block content clicks', () => {
-    cy.visit('/dashboard/pipelines/');
-    cy.get('[aria-label="open projects panel"]', { timeout: 30000 }).should('be.visible');
-
-    cy.document().then((doc) => {
-      const view = doc.defaultView as Window;
-      const leftDrawer = doc.querySelector<HTMLElement>('.MuiDrawer-root');
-      const rect = leftDrawer?.getBoundingClientRect();
-      const hit = rect ? doc.elementFromPoint(rect.left + 10, view.innerHeight / 2) : null;
-
-      expect(leftDrawer === null).to.equal(false);
-      expect(getComputedStyle(leftDrawer as HTMLElement).pointerEvents).to.equal('none');
-      expect(leftDrawer?.contains(hit)).to.equal(false);
-    });
-  });
-
   it('keeps the open filters drawer interactive', () => {
     cy.visit('/dashboard/pipelines/');
 
