@@ -139,6 +139,7 @@ export default function AppShell({
             <IconButton
               color="inherit"
               aria-label="open projects panel"
+              data-testid="open-projects-panel"
               onClick={handleLeftDrawerOpen}
               edge="start"
               sx={[
@@ -201,6 +202,7 @@ export default function AppShell({
               <IconButton
                 color="inherit"
                 aria-label="open drawer"
+                data-testid="open-filters-panel"
                 onClick={handleRightDrawerOpen}
                 edge="end"
                 sx={[
@@ -218,6 +220,7 @@ export default function AppShell({
 
         {/* Left Drawer - Projects */}
         <Drawer
+          slotProps={{ docked: { 'data-testid': 'projects-drawer' } }}
           sx={{
             width: leftDrawerWidth,
             flexShrink: 0,
@@ -235,7 +238,11 @@ export default function AppShell({
         >
           <DrawerHeader sx={{ justifyContent: 'space-between' }}>
             <Typography variant="h6" sx={{ ml: 1 }}>Projects</Typography>
-            <IconButton onClick={handleLeftDrawerClose} aria-label="close projects panel">
+            <IconButton
+              onClick={handleLeftDrawerClose}
+              aria-label="close projects panel"
+              data-testid="close-projects-panel"
+            >
               {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
             </IconButton>
           </DrawerHeader>
@@ -246,7 +253,12 @@ export default function AppShell({
         </Drawer>
 
         {/* Main Content */}
-        <Main open={rightOpen} leftOpen={leftOpen} showFilters={showFilters}>
+        <Main
+          open={rightOpen}
+          leftOpen={leftOpen}
+          showFilters={showFilters}
+          data-testid="dashboard-content"
+        >
           <DrawerHeader />
           {showTabs ? <DashboardTabs /> : null}
           {children}
@@ -255,6 +267,7 @@ export default function AppShell({
         {/* Right Drawer - Filters */}
         {showFilters ? (
           <Drawer
+            slotProps={{ docked: { 'data-testid': 'filters-drawer' } }}
             sx={{
               width: drawerWidth,
               flexShrink: 0,
@@ -272,7 +285,11 @@ export default function AppShell({
             open={rightOpen}
           >
             <DrawerHeader>
-              <IconButton onClick={handleRightDrawerClose} aria-label="close filters panel">
+              <IconButton
+                onClick={handleRightDrawerClose}
+                aria-label="close filters panel"
+                data-testid="close-filters-panel"
+              >
                 {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
               </IconButton>
             </DrawerHeader>

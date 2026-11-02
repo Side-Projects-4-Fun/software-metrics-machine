@@ -87,46 +87,46 @@ describe('AppShell', () => {
     );
 
     expect(screen.queryByText('Filters container')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'open drawer' })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('open-filters-panel')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('filters-drawer')).not.toBeInTheDocument();
   });
 
   it('does not let the closed filters drawer intercept clicks on the content', async () => {
-    const { container } = renderWithProviders(
+    renderWithProviders(
       <AppShell>
         <div>Shell content</div>
       </AppShell>,
     );
-    const drawerRoots = container.querySelectorAll('.MuiDrawer-root');
-    const rightDrawerRoot = drawerRoots[drawerRoots.length - 1] as HTMLElement;
+    const filtersDrawer = screen.getByTestId('filters-drawer');
 
-    expect(rightDrawerRoot).toHaveStyle({ pointerEvents: 'auto' });
+    expect(filtersDrawer).toHaveStyle({ pointerEvents: 'auto' });
 
-    await userEvent.click(screen.getByRole('button', { name: 'close filters panel' }));
+    await userEvent.click(screen.getByTestId('close-filters-panel'));
 
-    expect(rightDrawerRoot).toHaveStyle({ pointerEvents: 'none' });
+    expect(filtersDrawer).toHaveStyle({ pointerEvents: 'none' });
 
-    await userEvent.click(screen.getByRole('button', { name: 'open drawer' }));
+    await userEvent.click(screen.getByTestId('open-filters-panel'));
 
-    expect(rightDrawerRoot).toHaveStyle({ pointerEvents: 'auto' });
+    expect(filtersDrawer).toHaveStyle({ pointerEvents: 'auto' });
   });
 
   it('does not let the closed projects drawer intercept clicks on the content', async () => {
-    const { container } = renderWithProviders(
+    renderWithProviders(
       <AppShell>
         <div>Shell content</div>
       </AppShell>,
     );
-    const leftDrawerRoot = container.querySelectorAll('.MuiDrawer-root')[0] as HTMLElement;
+    const projectsDrawer = screen.getByTestId('projects-drawer');
 
-    expect(leftDrawerRoot).toHaveStyle({ pointerEvents: 'none' });
+    expect(projectsDrawer).toHaveStyle({ pointerEvents: 'none' });
 
-    await userEvent.click(screen.getByRole('button', { name: 'open projects panel' }));
+    await userEvent.click(screen.getByTestId('open-projects-panel'));
 
-    expect(leftDrawerRoot).toHaveStyle({ pointerEvents: 'auto' });
+    expect(projectsDrawer).toHaveStyle({ pointerEvents: 'auto' });
 
-    await userEvent.click(screen.getByRole('button', { name: 'close projects panel' }));
+    await userEvent.click(screen.getByTestId('close-projects-panel'));
 
-    expect(leftDrawerRoot).toHaveStyle({ pointerEvents: 'none' });
+    expect(projectsDrawer).toHaveStyle({ pointerEvents: 'none' });
   });
 
   it('does not reserve filters drawer space when showFilters is false', () => {
@@ -136,6 +136,6 @@ describe('AppShell', () => {
       </AppShell>,
     );
 
-    expect(screen.getByRole('main')).toHaveStyle({ marginRight: '0px' });
+    expect(screen.getByTestId('dashboard-content')).toHaveStyle({ marginRight: '0px' });
   });
 });
