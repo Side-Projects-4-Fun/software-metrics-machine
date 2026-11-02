@@ -25,6 +25,11 @@ const reviewTime = new MetricCatalogEntryBuilder()
   .withNamespace('cr')
   .withLabel('Review time')
   .withDescription('Days from change request creation to review.')
+  .withComputation({
+    evidence: 'Merged change requests with created and merged timestamps.',
+    formula: 'Average days from creation to review per author.',
+    notation: 'value(author) = mean(review_days)',
+  })
   .withDirection('lower_is_better')
   .withTarget({ operator: 'lt', value: 24, description: '< 24 hours' })
   .withSources([
@@ -101,6 +106,19 @@ describe('ReferencesPage', () => {
 
     expect(screen.getByText('Big O')).toBeInTheDocument();
     expect(screen.getByText('Review O(n^2+) hotspots')).toBeInTheDocument();
+  });
+
+  it('explains how each metric is computed', async () => {
+    await renderPage();
+
+    expect(screen.getAllByText('How it is computed').length).toBeGreaterThan(0);
+    expect(
+      screen.getByText(/Merged change requests with created and merged timestamps\./)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Average days from creation to review per author\./)
+    ).toBeInTheDocument();
+    expect(screen.getByText(/value\(author\) = mean\(review_days\)/)).toBeInTheDocument();
   });
 
   it('shows how many sources back each metric', async () => {

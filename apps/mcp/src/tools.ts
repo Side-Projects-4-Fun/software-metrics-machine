@@ -172,7 +172,7 @@ export const tools: RegisteredTool[] = [
   {
     name: 'smm_list_metrics',
     description:
-      'List every metric the application exposes, with stable id, namespace, unit, direction, and surfaces. Filter by namespace or visibility.',
+      'List every metric the application exposes, with stable id, namespace, unit, direction, how it is computed (evidence, formula, and math notation), and surfaces. Filter by namespace or visibility.',
     inputSchema: {
       type: 'object',
       additionalProperties: false,

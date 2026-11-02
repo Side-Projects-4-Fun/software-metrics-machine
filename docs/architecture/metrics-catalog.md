@@ -33,6 +33,31 @@ Keep the existing kebab-case style and add a domain namespace so IDs are globall
 Namespaces: `cr` (change requests), `pl` (pipelines), `code`, `sq` (SonarQube), `arch`, `issue`, `eh`
 (engineering health).
 
+## Computation metadata
+
+Each entry carries a `computation` object so the answer to "how is this metric computed?" lives next to the
+metric identity instead of in separate prose:
+
+```ts
+'cr-review-time': {
+  // ...
+  computation: {
+    evidence: 'Merged or closed change requests with created and merged/closed timestamps, grouped by author.',
+    formula: 'Computes days from creation to merge/close per change request, groups the samples by author, and applies the selected method.',
+    notation: 'value(author) = mean(review_days)',
+  },
+}
+```
+
+- `evidence` identifies the input: the source records and fields the metric reads (Git provider, CodeMaat,
+  SonarQube, architecture snapshot, Jira).
+- `formula` describes the reduction from evidence to the reported value(s), including the statistical method or
+  threshold when the metric is a distribution or evaluation.
+- `notation` is the compact mathematical form of the same computation, using standard operators and symbols.
+- All three fields are required and non-blank; `metric-catalog.test.ts` fails when any is empty.
+- The generated CSV has `evidence`, `formula`, and `notation` columns, and every discovery surface
+  (`smm metrics list`, `GET /metrics`, MCP `smm_list_metrics`, and the dashboard references page) renders them.
+
 ## Discovery
 
 ```bash
@@ -183,7 +208,8 @@ every surface, omitting `visibility` means no filter (all 86 metrics); pass `pub
 
 ## Implementation notes
 
-1. `packages/core/src/domain/metrics/metric-catalog.ts` holds the metadata and derives `CatalogMetricId`.
+1. `packages/core/src/domain/metrics/metric-catalog.ts` holds the metadata — including `computation.evidence`,
+   `computation.formula`, and `computation.notation` — and derives `CatalogMetricId`.
 2. `metric-implementations.ts` maps each ID to a service/method pair. `Record<CatalogMetricId, ...>` plus a
    type-level key equality assertion make a missing or orphan binding a compile error.
 3. The 14 engineering-health IDs stay unprefixed; the catalog marks their namespace as `eh`.
@@ -191,8 +217,8 @@ every surface, omitting `visibility` means no filter (all 86 metrics); pass `pub
    catalog/implementation key equality.
 5. Implemented: `smm metrics list`, `GET /metrics`, MCP `smm_list_metrics`, and CLI/REST/MCP surface-coverage
    tests. The webapp reads the catalog from `GET /metrics`; the references page and card tooltips share it.
-6. Published targets and sources live in `metric-references.ts`, keyed by `CatalogMetricId`, so evidence cannot
-   reference an unknown metric id.
+6. Published targets and sources live in `metric-references.ts`, keyed by `CatalogMetricId`, so sources cannot
+   reference an unknown metric id. Computation evidence/formula live in the catalog entry itself.
 
 ## Resolved decisions
 
@@ -200,3 +226,6 @@ every surface, omitting `visibility` means no filter (all 86 metrics); pass `pub
    parameters and never part of the ID.
 2. **Existing EH IDs** — keep them unprefixed (`coverage`, `coupling`). Namespace metadata disambiguates them
    from `sq-coverage` and `code-coupling`, so no migration is needed.
+3. **Computation metadata** — `evidence`, `formula`, and `notation` are required catalog fields, not docs-only
+   prose. They describe the computation at the metric-family level; parameters such as method, period, and
+   scope remain inputs and are not repeated per entry.

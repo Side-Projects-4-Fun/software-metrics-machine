@@ -13,6 +13,11 @@ const reviewTimeEntry: MetricCatalogEntry = {
     namespace: 'cr',
     label: 'Review time',
     description: 'Days from change request creation to review, per author.',
+    computation: {
+      evidence: 'Merged or closed change requests with review timestamps.',
+      formula: 'Average days from creation to review per author.',
+      notation: 'value(author) = mean(review_days)',
+    },
     unit: 'hours',
     direction: 'lower_is_better',
     shape: 'distribution',
@@ -39,6 +44,11 @@ const quotedEntry: MetricCatalogEntry = {
     namespace: 'issue',
     label: 'Issue total, "all statuses"',
     description: 'Total issues in the window.\nIncludes open and closed issues.',
+    computation: {
+      evidence: 'Jira issues matching the selected filter.',
+      formula: 'Count the matching records.',
+      notation: 'count = |{issue: filter(issue)}|',
+    },
     unit: 'count',
     direction: 'neutral',
     shape: 'scalar',
@@ -66,6 +76,9 @@ describe('metric catalog export', () => {
         namespace: 'cr',
         label: 'Review time',
         description: 'Days from change request creation to review, per author.',
+        evidence: 'Merged or closed change requests with review timestamps.',
+        formula: 'Average days from creation to review per author.',
+        notation: 'value(author) = mean(review_days)',
         unit: 'hours',
         direction: 'lower_is_better',
         shape: 'distribution',
@@ -98,7 +111,7 @@ describe('metric catalog export', () => {
 
     expect(header).toBe(METRIC_CATALOG_EXPORT_COLUMNS.join(','));
     expect(header).toBe(
-      'id,namespace,label,description,unit,direction,shape,visibility,status,target,cli,rest,mcp'
+      'id,namespace,label,description,evidence,formula,notation,unit,direction,shape,visibility,status,target,cli,rest,mcp'
     );
   });
 
@@ -109,6 +122,14 @@ describe('metric catalog export', () => {
     expect(lines).toHaveLength(3);
     expect(lines[1]).toContain('cr-review-time,cr,Review time,');
     expect(lines[2]).toBe('');
+  });
+
+  it('exports the evidence, formula, and notation used to compute the metric', () => {
+    const row = findRow(toMetricCatalogExportRows([reviewTimeEntry]), 'cr-review-time');
+
+    expect(row.evidence).toBe('Merged or closed change requests with review timestamps.');
+    expect(row.formula).toBe('Average days from creation to review per author.');
+    expect(row.notation).toBe('value(author) = mean(review_days)');
   });
 
   it('quotes values containing commas, quotes, or line breaks', () => {

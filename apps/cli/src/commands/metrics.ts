@@ -39,7 +39,9 @@ export function createMetricsCommands(program: SmmCommand): void {
 
   group
     .subcommand('list')
-    .description('List available metrics and their stable identifiers')
+    .description(
+      'List available metrics, their stable identifiers, and how each is computed (formula and notation)'
+    )
     .option('--namespace <name>', `Filter by namespace: ${METRIC_NAMESPACES.join('|')}`)
     .option('--visibility <value>', 'Filter by visibility: public|internal (default: all)')
     .option('--output <format>', 'Output format (text|json)', 'text')
@@ -62,6 +64,9 @@ export function createMetricsCommands(program: SmmCommand): void {
           screen.printLine(
             `${entry.id} (${entry.definition.namespace}) - ${entry.definition.label}`
           );
+          screen.printLine(`  evidence: ${entry.definition.computation.evidence}`);
+          screen.printLine(`  formula: ${entry.definition.computation.formula}`);
+          screen.printLine(`  notation: ${entry.definition.computation.notation}`);
         }
         screen.printLine(`\nTotal: ${entries.length}`);
       } catch (error) {

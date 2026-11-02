@@ -1,81 +1,84 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { withBase } from 'vitepress'
-import catalogCsv from '../../../public/metrics-catalog.csv?raw'
+import { computed, ref } from 'vue';
+import { withBase } from 'vitepress';
+import catalogCsv from '../../../public/metrics-catalog.csv?raw';
 
 interface MetricCatalogRow {
-  id: string
-  namespace: string
-  label: string
-  description: string
-  unit: string
-  direction: string
-  shape: string
-  visibility: string
-  status: string
-  target: string
-  cli: string[]
-  rest: string[]
-  mcp: string[]
+  id: string;
+  namespace: string;
+  label: string;
+  description: string;
+  evidence: string;
+  formula: string;
+  notation: string;
+  unit: string;
+  direction: string;
+  shape: string;
+  visibility: string;
+  status: string;
+  target: string;
+  cli: string[];
+  rest: string[];
+  mcp: string[];
 }
 
 interface SurfaceGroup {
-  name: string
-  values: string[]
+  name: string;
+  values: string[];
 }
 
 function parseCsv(text: string): string[][] {
-  const rows: string[][] = []
-  let row: string[] = []
-  let field = ''
-  let quoted = false
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = '';
+  let quoted = false;
 
   for (let index = 0; index < text.length; index += 1) {
-    const character = text[index]
+    const character = text[index];
 
     if (quoted) {
       if (character === '"' && text[index + 1] === '"') {
-        field += '"'
-        index += 1
+        field += '"';
+        index += 1;
       } else if (character === '"') {
-        quoted = false
+        quoted = false;
       } else {
-        field += character
+        field += character;
       }
-      continue
+      continue;
     }
 
     if (character === '"') {
-      quoted = true
+      quoted = true;
     } else if (character === ',') {
-      row.push(field)
-      field = ''
+      row.push(field);
+      field = '';
     } else if (character === '\n') {
-      row.push(field)
-      rows.push(row)
-      row = []
-      field = ''
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = '';
     } else if (character !== '\r') {
-      field += character
+      field += character;
     }
   }
 
   if (field.length > 0 || row.length > 0) {
-    row.push(field)
-    rows.push(row)
+    row.push(field);
+    rows.push(row);
   }
 
-  return rows
+  return rows;
 }
 
 function splitSurfaces(value: string): string[] {
-  return value.length === 0 ? [] : value.split(' | ')
+  return value.length === 0 ? [] : value.split(' | ');
 }
 
 function toMetrics(text: string): MetricCatalogRow[] {
-  const [header, ...dataRows] = parseCsv(text)
-  const columns = new Map(header.map((name, index) => [name, index]))
-  const cell = (cells: string[], name: string): string => cells[columns.get(name) ?? -1] ?? ''
+  const [header, ...dataRows] = parseCsv(text);
+  const columns = new Map(header.map((name, index) => [name, index]));
+  const cell = (cells: string[], name: string): string => cells[columns.get(name) ?? -1] ?? '';
 
   return dataRows
     .filter((cells) => cells.length > 1 && cell(cells, 'id').length > 0)
@@ -84,6 +87,9 @@ function toMetrics(text: string): MetricCatalogRow[] {
       namespace: cell(cells, 'namespace'),
       label: cell(cells, 'label'),
       description: cell(cells, 'description'),
+      evidence: cell(cells, 'evidence'),
+      formula: cell(cells, 'formula'),
+      notation: cell(cells, 'notation'),
       unit: cell(cells, 'unit'),
       direction: cell(cells, 'direction'),
       shape: cell(cells, 'shape'),
@@ -93,10 +99,10 @@ function toMetrics(text: string): MetricCatalogRow[] {
       cli: splitSurfaces(cell(cells, 'cli')),
       rest: splitSurfaces(cell(cells, 'rest')),
       mcp: splitSurfaces(cell(cells, 'mcp')),
-    }))
+    }));
 }
 
-const metrics = toMetrics(catalogCsv)
+const metrics = toMetrics(catalogCsv);
 
 const namespaceLabels: Record<string, string> = {
   cr: 'Change requests',
@@ -106,43 +112,48 @@ const namespaceLabels: Record<string, string> = {
   arch: 'Architecture',
   issue: 'Issues',
   eh: 'Engineering health',
-}
+};
 
 const directionLabels: Record<string, string> = {
   higher_is_better: 'higher is better',
   lower_is_better: 'lower is better',
   neutral: 'neutral',
-}
+};
 
-const namespaceKeys = Object.keys(namespaceLabels)
-const query = ref('')
-const selectedNamespace = ref('all')
-const csvUrl = withBase('/metrics-catalog.csv')
+const namespaceKeys = Object.keys(namespaceLabels);
+const query = ref('');
+const selectedNamespace = ref('all');
+const csvUrl = withBase('/metrics-catalog.csv');
 
 const filteredMetrics = computed(() => {
-  const term = query.value.trim().toLowerCase()
+  const term = query.value.trim().toLowerCase();
 
   return metrics.filter((metric) => {
     const namespaceMatches =
-      selectedNamespace.value === 'all' || metric.namespace === selectedNamespace.value
+      selectedNamespace.value === 'all' || metric.namespace === selectedNamespace.value;
     if (!namespaceMatches) {
-      return false
+      return false;
     }
     if (term.length === 0) {
-      return true
+      return true;
     }
-    return [metric.id, metric.label, metric.description].some((value) =>
-      value.toLowerCase().includes(term)
-    )
-  })
-})
+    return [
+      metric.id,
+      metric.label,
+      metric.description,
+      metric.evidence,
+      metric.formula,
+      metric.notation,
+    ].some((value) => value.toLowerCase().includes(term));
+  });
+});
 
 function surfacesFor(metric: MetricCatalogRow): SurfaceGroup[] {
   return [
     { name: 'CLI', values: metric.cli },
     { name: 'REST', values: metric.rest },
     { name: 'MCP', values: metric.mcp },
-  ].filter((surface) => surface.values.length > 0)
+  ].filter((surface) => surface.values.length > 0);
 }
 </script>
 
@@ -183,6 +194,7 @@ function surfacesFor(metric: MetricCatalogRow): SurfaceGroup[] {
             <th scope="col">ID</th>
             <th scope="col">Metric</th>
             <th scope="col">What it measures</th>
+            <th scope="col">How it is computed</th>
             <th scope="col">Unit</th>
             <th scope="col">Direction</th>
             <th scope="col">Surfaces</th>
@@ -190,15 +202,31 @@ function surfacesFor(metric: MetricCatalogRow): SurfaceGroup[] {
         </thead>
         <tbody>
           <tr v-for="metric in filteredMetrics" :id="`metric-${metric.id}`" :key="metric.id">
-            <td><code>{{ metric.id }}</code></td>
+            <td>
+              <code>{{ metric.id }}</code>
+            </td>
             <td>
               {{ metric.label }}
-              <span v-if="metric.status === 'deprecated'" class="smm-catalog__badge">deprecated</span>
-              <span v-if="metric.visibility === 'internal'" class="smm-catalog__badge">internal</span>
+              <span v-if="metric.status === 'deprecated'" class="smm-catalog__badge"
+                >deprecated</span
+              >
+              <span v-if="metric.visibility === 'internal'" class="smm-catalog__badge"
+                >internal</span
+              >
             </td>
             <td>
               {{ metric.description }}
-              <span v-if="metric.target" class="smm-catalog__target">Target: {{ metric.target }}</span>
+              <span v-if="metric.target" class="smm-catalog__target"
+                >Target: {{ metric.target }}</span
+              >
+            </td>
+            <td>
+              <span class="smm-catalog__computation-label">Evidence</span>
+              {{ metric.evidence }}
+              <span class="smm-catalog__computation-label">Formula</span>
+              {{ metric.formula }}
+              <span class="smm-catalog__computation-label">Notation</span>
+              <code class="smm-catalog__notation">{{ metric.notation }}</code>
             </td>
             <td>{{ metric.unit }}</td>
             <td>{{ directionLabels[metric.direction] ?? metric.direction }}</td>
@@ -333,9 +361,34 @@ function surfacesFor(metric: MetricCatalogRow): SurfaceGroup[] {
   min-width: 18rem;
 }
 
-.smm-catalog__table td:nth-child(4),
-.smm-catalog__table td:nth-child(5) {
+.smm-catalog__table td:nth-child(4) {
+  min-width: 20rem;
+}
+
+.smm-catalog__table td:nth-child(5),
+.smm-catalog__table td:nth-child(6) {
   white-space: nowrap;
+}
+
+.smm-catalog__computation-label {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vp-c-text-2);
+}
+
+.smm-catalog__computation-label:first-child {
+  margin-top: 0;
+}
+
+.smm-catalog__notation {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  word-break: break-word;
 }
 
 .smm-catalog__target {

@@ -19,21 +19,22 @@ Browse the [full catalog](#full-catalog) for a description of every family, or d
 
 ## Namespaces
 
-| Prefix  | Area              |
-| ------- | ----------------- |
-| `cr-`   | Change requests   |
-| `pl-`   | Pipelines         |
-| `code-` | Source code       |
-| `sq-`   | SonarQube         |
-| `arch-` | Architecture      |
-| `issue-`| Issues            |
-| `eh`    | Engineering health (existing unprefixed ids) |
+| Prefix   | Area                                         |
+| -------- | -------------------------------------------- |
+| `cr-`    | Change requests                              |
+| `pl-`    | Pipelines                                    |
+| `code-`  | Source code                                  |
+| `sq-`    | SonarQube                                    |
+| `arch-`  | Architecture                                 |
+| `issue-` | Issues                                       |
+| `eh`     | Engineering health (existing unprefixed ids) |
 
 ## Full catalog
 
-Every metric family in the catalog, with what it measures, its unit and preferred direction, and the CLI, REST, and
-MCP surfaces that expose it. Use the search box or the namespace filter to narrow the list, and select **Download
-CSV** to export the same data for offline analysis.
+Every metric family in the catalog, with what it measures, how it is computed (the evidence it reads, the
+formula applied, and the math notation), its unit and preferred direction, and the CLI, REST, and MCP surfaces
+that expose it. Use the search box or the namespace filter to narrow the list, and select **Download CSV** to
+export the same data for offline analysis.
 
 <MetricsCatalogTable />
 
@@ -53,7 +54,7 @@ smm metrics list --namespace cr
 # Include internal metrics (omitted by default on public filters)
 smm metrics list --visibility internal
 
-# Machine-readable output
+# Machine-readable output, including evidence, formula, and notation
 smm metrics list --output json
 ```
 
@@ -87,4 +88,8 @@ Dashboard cards use the same catalog entries for their info popover, so a target
   successor instead.
 - Published targets and sources live in `metric-references.ts`, keyed by `CatalogMetricId`, so evidence cannot
   reference an unknown metric id.
+- Every entry defines `computation.evidence` (the records and fields identified as input),
+  `computation.formula` (how that input becomes the reported value), and `computation.notation` (the compact
+  mathematical form). All three are exposed by the CLI, REST API, MCP server, dashboard cards, and the
+  generated CSV.
 - The CLI, REST, and MCP surfaces are checked against the catalog by coverage tests in their owning apps.

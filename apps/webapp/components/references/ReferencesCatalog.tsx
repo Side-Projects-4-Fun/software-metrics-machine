@@ -43,7 +43,9 @@ function hasReferences(entry: MetricCatalogEntry): boolean {
   return Boolean(entry.target) || (entry.sources?.length ?? 0) > 0;
 }
 
-function groupByNamespace(entries: MetricCatalogEntry[]): Array<[MetricNamespace, MetricCatalogEntry[]]> {
+function groupByNamespace(
+  entries: MetricCatalogEntry[]
+): Array<[MetricNamespace, MetricCatalogEntry[]]> {
   return NAMESPACE_ORDER.map((namespace) => [
     namespace,
     entries.filter((entry) => entry.definition.namespace === namespace),
@@ -103,13 +105,12 @@ function SourceList({ sources }: { sources: readonly MetricCatalogSource[] }) {
       </Typography>
       <Box component="ul" sx={{ mt: 0.5, pl: 2, listStyleType: 'none' }}>
         {sources.map((source) => (
-          <Box component="li" key={`${source.label}-${source.url}`} sx={{ mb: 0.75, '&:last-child': { mb: 0 } }}>
-            <Link
-              href={source.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={externalLinkSx()}
-            >
+          <Box
+            component="li"
+            key={`${source.label}-${source.url}`}
+            sx={{ mb: 0.75, '&:last-child': { mb: 0 } }}
+          >
+            <Link href={source.url} target="_blank" rel="noopener noreferrer" sx={externalLinkSx()}>
               {source.label}
             </Link>
           </Box>
@@ -200,6 +201,48 @@ function MetricReferenceCard({ entry }: { entry: MetricCatalogEntry }) {
         <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
           {entry.definition.description}
         </Typography>
+        <Box
+          sx={{
+            mt: 1.5,
+            pt: 1.5,
+            borderTop: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <Typography
+            variant="caption"
+            sx={{
+              display: 'block',
+              mb: 0.5,
+              fontWeight: 600,
+              color: 'text.secondary',
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+            }}
+          >
+            How it is computed
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+            <Box component="span" sx={{ fontWeight: 600, color: 'text.primary' }}>
+              Evidence:{' '}
+            </Box>
+            {entry.definition.computation.evidence}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, mt: 0.5 }}>
+            <Box component="span" sx={{ fontWeight: 600, color: 'text.primary' }}>
+              Formula:{' '}
+            </Box>
+            {entry.definition.computation.formula}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, mt: 0.5 }}>
+            <Box component="span" sx={{ fontWeight: 600, color: 'text.primary' }}>
+              Notation:{' '}
+            </Box>
+            <Box component="code" sx={{ fontSize: '0.8rem' }}>
+              {entry.definition.computation.notation}
+            </Box>
+          </Typography>
+        </Box>
         {sources.length > 0 && (
           <>
             <Collapse in={expanded} timeout="auto">
@@ -306,7 +349,13 @@ function MetricIndexList({
                 <Box
                   component="li"
                   key={entry.id}
-                  sx={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 1, py: 0.25 }}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    flexWrap: 'wrap',
+                    gap: 1,
+                    py: 0.25,
+                  }}
                 >
                   {documented ? (
                     <Link href={`#metric-${entry.id}`} sx={{ fontSize: '0.875rem' }}>
@@ -394,7 +443,9 @@ function OutlierImplementationDetails() {
         How Outliers Work In SMM
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.7 }}>
-        The outliers panel is generated from outlier arrays returned by backend metric endpoints. Each outlier row uses the same schema: timestamp, value, lowerBound, upperBound, and item metadata used to label and link the event.
+        The outliers panel is generated from outlier arrays returned by backend metric endpoints.
+        Each outlier row uses the same schema: timestamp, value, lowerBound, upperBound, and item
+        metadata used to label and link the event.
       </Typography>
 
       <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
@@ -411,13 +462,17 @@ function OutlierImplementationDetails() {
           <Typography variant="body2">Job time by day (jobsTimeByDay outliers)</Typography>
         </Box>
         <Box component="li" sx={{ mb: 0.75 }}>
-          <Typography variant="body2">Job summary duration aggregates (jobsSummary outliers)</Typography>
+          <Typography variant="body2">
+            Job summary duration aggregates (jobsSummary outliers)
+          </Typography>
         </Box>
         <Box component="li" sx={{ mb: 0.75 }}>
           <Typography variant="body2">Step time (jobStepsTime outliers)</Typography>
         </Box>
         <Box component="li" sx={{ mb: 0 }}>
-          <Typography variant="body2">Step time by day and step (jobStepsTimeByDay step outliers)</Typography>
+          <Typography variant="body2">
+            Step time by day and step (jobStepsTimeByDay step outliers)
+          </Typography>
         </Box>
       </Box>
 
@@ -432,10 +487,14 @@ function OutlierImplementationDetails() {
           <Typography variant="body2">Open days per period (openTime outliers)</Typography>
         </Box>
         <Box component="li" sx={{ mb: 0.75 }}>
-          <Typography variant="body2">Comments per change request (commentsData outliers)</Typography>
+          <Typography variant="body2">
+            Comments per change request (commentsData outliers)
+          </Typography>
         </Box>
         <Box component="li" sx={{ mb: 0 }}>
-          <Typography variant="body2">Time to first comment per author (firstCommentTime outliers)</Typography>
+          <Typography variant="body2">
+            Time to first comment per author (firstCommentTime outliers)
+          </Typography>
         </Box>
       </Box>
 
@@ -444,16 +503,26 @@ function OutlierImplementationDetails() {
       </Typography>
       <Box component="ol" sx={{ m: 0, pl: 2.5 }}>
         <Box component="li" sx={{ mb: 0.75 }}>
-          <Typography variant="body2">The backend computes outliers per metric distribution using IQR bounds.</Typography>
+          <Typography variant="body2">
+            The backend computes outliers per metric distribution using IQR bounds.
+          </Typography>
         </Box>
         <Box component="li" sx={{ mb: 0.75 }}>
-          <Typography variant="body2">Dashboard pages collect outliers from each metric response and convert them with toOutlierRows.</Typography>
+          <Typography variant="body2">
+            Dashboard pages collect outliers from each metric response and convert them with
+            toOutlierRows.
+          </Typography>
         </Box>
         <Box component="li" sx={{ mb: 0.75 }}>
-          <Typography variant="body2">Rows are labeled with metric context such as workflow, job, step, period, or author.</Typography>
+          <Typography variant="body2">
+            Rows are labeled with metric context such as workflow, job, step, period, or author.
+          </Typography>
         </Box>
         <Box component="li" sx={{ mb: 0 }}>
-          <Typography variant="body2">The Flagged Outliers card shows value, IQR bounds, timestamp, and item link to support root-cause analysis.</Typography>
+          <Typography variant="body2">
+            The Flagged Outliers card shows value, IQR bounds, timestamp, and item link to support
+            root-cause analysis.
+          </Typography>
         </Box>
       </Box>
 
@@ -511,10 +580,7 @@ export default function ReferencesCatalog({
   const documented = entries.filter(hasReferences);
   const groups = groupByNamespace(documented);
   const allGroups = groupByNamespace(entries);
-  const totalSources = documented.reduce(
-    (total, entry) => total + (entry.sources?.length ?? 0),
-    0
-  );
+  const totalSources = documented.reduce((total, entry) => total + (entry.sources?.length ?? 0), 0);
   const aggregatedSources = aggregateSources(documented);
 
   const togglePanel = (panel: SummaryPanel) => {
@@ -599,11 +665,7 @@ export default function ReferencesCatalog({
                     >
                       {source.label}
                     </Link>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ display: 'block' }}
-                    >
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                       Cited by {source.metricLabels.join(', ')}
                     </Typography>
                   </Box>

@@ -1,4 +1,5 @@
 import type {
+  MetricCatalogComputation,
   MetricCatalogDefinition,
   MetricCatalogDirection,
   MetricCatalogEntry,
@@ -29,6 +30,11 @@ export class MetricCatalogEntryBuilder {
       namespace: 'code',
       label: 'Big O',
       description: 'Asymptotic complexity classification per file.',
+      computation: {
+        evidence: 'Source files scanned for loops and iteration helpers.',
+        formula: 'Highest signal weight times 12 plus signal count times 2.',
+        notation: 'score = min(100, weight[top] × 12 + |signals| × 2)',
+      },
       unit: 'score',
       direction: 'lower_is_better',
       shape: 'table',
@@ -73,6 +79,14 @@ export class MetricCatalogEntryBuilder {
     this.entry = {
       ...this.entry,
       definition: { ...this.entry.definition, description },
+    };
+    return this;
+  }
+
+  withComputation(computation: MetricCatalogComputation): this {
+    this.entry = {
+      ...this.entry,
+      definition: { ...this.entry.definition, computation },
     };
     return this;
   }

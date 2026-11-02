@@ -25,6 +25,15 @@ describe('MetricsCatalogController', () => {
     expect(reviewTime?.sources?.[0].url).toContain('accelerate');
   });
 
+  it('exposes how each metric is computed', () => {
+    const response = controller.list();
+    const reviewTime = response.result.find((entry) => entry.id === 'cr-review-time');
+
+    expect(reviewTime?.definition.computation.evidence).toContain('change requests');
+    expect(reviewTime?.definition.computation.formula).toContain('days');
+    expect(reviewTime?.definition.computation.notation).toContain('review_days');
+  });
+
   it('filters by namespace', () => {
     const response = controller.list('eh');
 

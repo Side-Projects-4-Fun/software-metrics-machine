@@ -19,6 +19,9 @@ interface TargetInfoProps {
 interface ResolvedDefinition {
   target?: string;
   description: string;
+  evidence?: string;
+  formula?: string;
+  notation?: string;
   sources: readonly MetricCatalogSource[];
 }
 
@@ -32,6 +35,9 @@ export function TargetInfo({ metric, target, description, sources }: TargetInfoP
     definition = {
       target: catalogEntry.target?.description,
       description: catalogEntry.definition.description,
+      evidence: catalogEntry.definition.computation.evidence,
+      formula: catalogEntry.definition.computation.formula,
+      notation: catalogEntry.definition.computation.notation,
       sources: catalogEntry.sources ?? [],
     };
   } else if (target && description) {
@@ -92,13 +98,51 @@ export function TargetInfo({ metric, target, description, sources }: TargetInfoP
       >
         <Box sx={{ fontSize: '0.875rem', lineHeight: 1.6 }}>
           {definition.target ? (
-            <Box sx={{ fontWeight: 600, mb: 0.5 }}>
-              Target: {definition.target}
-            </Box>
+            <Box sx={{ fontWeight: 600, mb: 0.5 }}>Target: {definition.target}</Box>
           ) : null}
           <Box sx={{ color: 'text.secondary', mb: definition.sources.length > 0 ? 1.5 : 0 }}>
             {definition.description}
           </Box>
+          {definition.evidence || definition.formula ? (
+            <Box
+              sx={{
+                borderTop: '1px solid',
+                borderColor: 'divider',
+                pt: 1.5,
+                mb: definition.sources.length > 0 ? 1.5 : 0,
+              }}
+            >
+              <Box sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', mb: 0.75 }}>
+                How it is computed
+              </Box>
+              {definition.evidence ? (
+                <Box sx={{ fontSize: '0.8rem', color: 'text.secondary', mb: 0.5 }}>
+                  <Box component="span" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                    Evidence:{' '}
+                  </Box>
+                  {definition.evidence}
+                </Box>
+              ) : null}
+              {definition.formula ? (
+                <Box sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
+                  <Box component="span" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                    Formula:{' '}
+                  </Box>
+                  {definition.formula}
+                </Box>
+              ) : null}
+              {definition.notation ? (
+                <Box sx={{ fontSize: '0.8rem', color: 'text.secondary', mt: 0.5 }}>
+                  <Box component="span" sx={{ fontWeight: 600, color: 'text.primary' }}>
+                    Notation:{' '}
+                  </Box>
+                  <Box component="code" sx={{ fontSize: '0.75rem' }}>
+                    {definition.notation}
+                  </Box>
+                </Box>
+              ) : null}
+            </Box>
+          ) : null}
           {definition.sources.length > 0 && (
             <Box
               sx={{

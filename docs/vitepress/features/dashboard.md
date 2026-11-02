@@ -117,6 +117,7 @@ Output as JSON when scripting:
 ```bash
 smm filters list --output json
 ```
+
 :::
 
 ### Applying saved filters to metric commands
@@ -139,12 +140,13 @@ The `/dashboard/references` page is generated from the core metric catalog (`GET
 catalogued metric that carries a documented target and groups it by catalog namespace: Pipelines, Change Requests,
 Source Code, SonarQube, Architecture, Issues, and Engineering Health.
 
-Each card shows the stable metric id, the target, the description, and the academic papers, industry reports, and
-books behind it. Sources are collapsed by default and expanded on demand; printing expands them automatically.
+Each card shows the stable metric id, the target, the description, how the metric is computed (the evidence it
+reads, the formula applied, and the math notation), and the academic papers, industry reports, and books behind
+it. Sources are collapsed by default and expanded on demand; printing expands them automatically.
 
-Dashboard cards use the same catalog entries for their info popover, so targets and references stay aligned with the
-CLI, the MCP server, and the REST API. See [Metric catalog](./metric-catalog.md) for the CLI and API discovery
-commands.
+Dashboard cards use the same catalog entries for their info popover, so targets, computation details, and
+references stay aligned with the CLI, the MCP server, and the REST API. See
+[Metric catalog](./metric-catalog.md) for the CLI and API discovery commands.
 
 ## Filter URL format
 

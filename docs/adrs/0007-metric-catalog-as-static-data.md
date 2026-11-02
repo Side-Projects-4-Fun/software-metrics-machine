@@ -142,3 +142,10 @@ output-shape axis has real reuse — at the presentation layer, not in computati
 - `CatalogMetricId` is a temporary name to avoid colliding with the existing Engineering Health `MetricId`.
   When Engineering Health adopts the catalog IDs, the catalog type becomes `MetricId` and the old union is
   removed.
+
+- 2026-11-02 — Every catalog entry now carries `computation.evidence`, `computation.formula`, and
+  `computation.notation`. This keeps the "how is it computed?" answer next to the stable id instead of in
+  separate documentation, with `notation` giving the compact mathematical form. The fields are required and
+  non-blank, exported as CSV columns, and returned by `smm metrics list`, `GET /metrics`, MCP
+  `smm_list_metrics`, and the dashboard references page/tooltips. The static-data decision is unchanged; the
+  computation text is metadata on each static entry.

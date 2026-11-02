@@ -13,6 +13,9 @@ export const METRIC_CATALOG_EXPORT_COLUMNS = [
   'namespace',
   'label',
   'description',
+  'evidence',
+  'formula',
+  'notation',
   'unit',
   'direction',
   'shape',
@@ -29,6 +32,9 @@ export interface MetricCatalogExportRow {
   readonly namespace: string;
   readonly label: string;
   readonly description: string;
+  readonly evidence: string;
+  readonly formula: string;
+  readonly notation: string;
   readonly unit: string;
   readonly direction: string;
   readonly shape: string;
@@ -56,6 +62,9 @@ export function toMetricCatalogExportRows(
     namespace: entry.definition.namespace,
     label: entry.definition.label,
     description: entry.definition.description,
+    evidence: entry.definition.computation.evidence,
+    formula: entry.definition.computation.formula,
+    notation: entry.definition.computation.notation,
     unit: entry.definition.unit,
     direction: entry.definition.direction,
     shape: entry.definition.shape,
@@ -75,6 +84,9 @@ export function toMetricCatalogCsv(rows: readonly MetricCatalogExportRow[]): str
       row.namespace,
       row.label,
       row.description,
+      row.evidence,
+      row.formula,
+      row.notation,
       row.unit,
       row.direction,
       row.shape,

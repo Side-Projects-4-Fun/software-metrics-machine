@@ -28,7 +28,12 @@ const NON_METRIC_MCP_TOOLS = new Set<string>([
 ]);
 
 interface ListMetricsPayload {
-  metrics: Array<{ id: string }>;
+  metrics: Array<{
+    id: string;
+    definition: {
+      computation: { evidence: string; formula: string; notation: string };
+    };
+  }>;
 }
 
 function catalogMcpTools(): string[] {
@@ -92,6 +97,14 @@ describe('metric catalog MCP coverage', () => {
     const payload = await listMetrics();
 
     expect(payload.metrics).toHaveLength(Object.keys(METRIC_CATALOG).length);
+  });
+
+  it('includes how each metric is computed', async () => {
+    const payload = await listMetrics({ namespace: 'cr' });
+
+    expect(payload.metrics[0]?.definition.computation.evidence.length).toBeGreaterThan(0);
+    expect(payload.metrics[0]?.definition.computation.formula.length).toBeGreaterThan(0);
+    expect(payload.metrics[0]?.definition.computation.notation.length).toBeGreaterThan(0);
   });
 
   it('filters by namespace', async () => {

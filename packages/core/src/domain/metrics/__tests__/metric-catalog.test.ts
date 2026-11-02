@@ -70,6 +70,15 @@ function blankFieldViolations(): string[] {
     if (definition.description.trim().length === 0) {
       violations.push(`${id}.description`);
     }
+    if (definition.computation.evidence.trim().length === 0) {
+      violations.push(`${id}.computation.evidence`);
+    }
+    if (definition.computation.formula.trim().length === 0) {
+      violations.push(`${id}.computation.formula`);
+    }
+    if (definition.computation.notation.trim().length === 0) {
+      violations.push(`${id}.computation.notation`);
+    }
     if (definition.unit.trim().length === 0) {
       violations.push(`${id}.unit`);
     }

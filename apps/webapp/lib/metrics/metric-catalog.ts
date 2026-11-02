@@ -17,10 +17,17 @@ export interface MetricCatalogSource {
   url: string;
 }
 
+export interface MetricCatalogComputation {
+  evidence: string;
+  formula: string;
+  notation: string;
+}
+
 export interface MetricCatalogDefinition {
   namespace: MetricNamespace;
   label: string;
   description: string;
+  computation: MetricCatalogComputation;
   unit: string;
   direction: MetricCatalogDirection;
   shape: string;
