@@ -155,6 +155,10 @@ function surfacesFor(metric: MetricCatalogRow): SurfaceGroup[] {
     { name: 'MCP', values: metric.mcp },
   ].filter((surface) => surface.values.length > 0);
 }
+
+function formatNotation(notation: string): string {
+  return notation.replace(/;\s*/g, ';\n');
+}
 </script>
 
 <template>
@@ -166,7 +170,7 @@ function surfacesFor(metric: MetricCatalogRow): SurfaceGroup[] {
           v-model="query"
           class="smm-catalog__input"
           type="search"
-          placeholder="id, name, or description"
+          placeholder="id, name, description, or formula"
         />
       </label>
       <label class="smm-catalog__control">
@@ -187,62 +191,60 @@ function surfacesFor(metric: MetricCatalogRow): SurfaceGroup[] {
       Showing {{ filteredMetrics.length }} of {{ metrics.length }} metrics
     </p>
 
-    <div class="smm-catalog__table-wrapper">
-      <table class="smm-catalog__table">
-        <thead>
-          <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Metric</th>
-            <th scope="col">What it measures</th>
-            <th scope="col">How it is computed</th>
-            <th scope="col">Unit</th>
-            <th scope="col">Direction</th>
-            <th scope="col">Surfaces</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="metric in filteredMetrics" :id="`metric-${metric.id}`" :key="metric.id">
-            <td>
-              <code>{{ metric.id }}</code>
-            </td>
-            <td>
-              {{ metric.label }}
-              <span v-if="metric.status === 'deprecated'" class="smm-catalog__badge"
-                >deprecated</span
-              >
-              <span v-if="metric.visibility === 'internal'" class="smm-catalog__badge"
-                >internal</span
-              >
-            </td>
-            <td>
-              {{ metric.description }}
-              <span v-if="metric.target" class="smm-catalog__target"
-                >Target: {{ metric.target }}</span
-              >
-            </td>
-            <td>
-              <span class="smm-catalog__computation-label">Evidence</span>
-              {{ metric.evidence }}
-              <span class="smm-catalog__computation-label">Formula</span>
-              {{ metric.formula }}
-              <span class="smm-catalog__computation-label">Notation</span>
-              <code class="smm-catalog__notation">{{ metric.notation }}</code>
-            </td>
-            <td>{{ metric.unit }}</td>
-            <td>{{ directionLabels[metric.direction] ?? metric.direction }}</td>
-            <td>
-              <div
-                v-for="surface in surfacesFor(metric)"
-                :key="surface.name"
-                class="smm-catalog__surface"
-              >
-                <span class="smm-catalog__surface-name">{{ surface.name }}</span>
-                <code v-for="value in surface.values" :key="value">{{ value }}</code>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="smm-catalog__list">
+      <article
+        v-for="metric in filteredMetrics"
+        :id="`metric-${metric.id}`"
+        :key="metric.id"
+        class="smm-catalog__card"
+      >
+        <header class="smm-catalog__card-header">
+          <div class="smm-catalog__card-title">
+            <code class="smm-catalog__id">{{ metric.id }}</code>
+            <span class="smm-catalog__name">{{ metric.label }}</span>
+            <span v-if="metric.status === 'deprecated'" class="smm-catalog__badge">deprecated</span>
+            <span v-if="metric.visibility === 'internal'" class="smm-catalog__badge">internal</span>
+          </div>
+          <div class="smm-catalog__meta">
+            <span>
+              <span class="smm-catalog__meta-label">Unit</span>
+              {{ metric.unit }}
+            </span>
+            <span>
+              <span class="smm-catalog__meta-label">Direction</span>
+              {{ directionLabels[metric.direction] ?? metric.direction }}
+            </span>
+          </div>
+        </header>
+
+        <p class="smm-catalog__description">{{ metric.description }}</p>
+        <p v-if="metric.target" class="smm-catalog__target">Target: {{ metric.target }}</p>
+
+        <div class="smm-catalog__computation">
+          <p class="smm-catalog__computation-title">How it is computed</p>
+          <dl class="smm-catalog__computation-list">
+            <dt>Evidence</dt>
+            <dd>{{ metric.evidence }}</dd>
+            <dt>Formula</dt>
+            <dd>{{ metric.formula }}</dd>
+            <dt>Notation</dt>
+            <dd>
+              <code class="smm-catalog__notation">{{ formatNotation(metric.notation) }}</code>
+            </dd>
+          </dl>
+        </div>
+
+        <div v-if="surfacesFor(metric).length > 0" class="smm-catalog__surfaces">
+          <div
+            v-for="surface in surfacesFor(metric)"
+            :key="surface.name"
+            class="smm-catalog__surface"
+          >
+            <span class="smm-catalog__surface-name">{{ surface.name }}</span>
+            <code v-for="value in surface.values" :key="value">{{ value }}</code>
+          </div>
+        </div>
+      </article>
     </div>
 
     <p v-if="filteredMetrics.length === 0" class="smm-catalog__empty">
@@ -312,127 +314,158 @@ function surfacesFor(metric: MetricCatalogRow): SurfaceGroup[] {
   color: var(--vp-c-text-2);
 }
 
-.smm-catalog__table-wrapper {
-  overflow-x: auto;
+.smm-catalog__list {
+  display: grid;
+  gap: 1rem;
+}
+
+.smm-catalog__card {
+  padding: 1rem;
   border: 1px solid var(--vp-c-divider);
   border-radius: 8px;
-}
-
-.smm-catalog__table {
-  display: table;
-  width: 100%;
-  margin: 0;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-}
-
-.smm-catalog__table th,
-.smm-catalog__table td {
-  padding: 0.65rem 0.75rem;
-  border-bottom: 1px solid var(--vp-c-divider);
-  text-align: left;
-  vertical-align: top;
-}
-
-.smm-catalog__table th {
   background-color: var(--vp-c-bg-soft);
+  scroll-margin-top: 5rem;
+}
+
+.smm-catalog__card:target {
+  border-color: var(--vp-c-brand-1);
+  box-shadow: 0 0 0 1px var(--vp-c-brand-1);
+}
+
+.smm-catalog__card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.smm-catalog__card-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.smm-catalog__id {
+  font-size: 0.8rem;
+}
+
+.smm-catalog__name {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.smm-catalog__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
   font-size: 0.75rem;
+  color: var(--vp-c-text-2);
+}
+
+.smm-catalog__meta-label {
+  margin-right: 0.2rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.smm-catalog__table tbody tr:last-child td {
-  border-bottom: 0;
+.smm-catalog__description {
+  margin: 0.75rem 0 0;
+  color: var(--vp-c-text-1);
 }
 
-.smm-catalog__table tbody tr:target {
-  background-color: var(--vp-c-brand-soft);
+.smm-catalog__target {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--vp-c-text-2);
 }
 
-.smm-catalog__table td:first-child {
-  white-space: nowrap;
+.smm-catalog__computation {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--vp-c-divider);
 }
 
-.smm-catalog__table td:nth-child(2) {
-  min-width: 10rem;
-}
-
-.smm-catalog__table td:nth-child(3) {
-  min-width: 18rem;
-}
-
-.smm-catalog__table td:nth-child(4) {
-  min-width: 20rem;
-}
-
-.smm-catalog__table td:nth-child(5),
-.smm-catalog__table td:nth-child(6) {
-  white-space: nowrap;
-}
-
-.smm-catalog__computation-label {
-  display: block;
-  margin-top: 0.35rem;
-  font-size: 0.65rem;
+.smm-catalog__computation-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--vp-c-text-2);
 }
 
-.smm-catalog__computation-label:first-child {
-  margin-top: 0;
+.smm-catalog__computation-list {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 0.4rem 0.75rem;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.smm-catalog__computation-list dt {
+  font-weight: 600;
+  color: var(--vp-c-text-2);
+}
+
+.smm-catalog__computation-list dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .smm-catalog__notation {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   line-height: 1.5;
-  word-break: break-word;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
-.smm-catalog__target {
-  display: block;
-  margin-top: 0.35rem;
-  font-size: 0.75rem;
-  color: var(--vp-c-text-2);
-}
-
-.smm-catalog__badge {
-  display: inline-block;
-  margin-left: 0.35rem;
-  padding: 0 0.35rem;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 4px;
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--vp-c-text-2);
+.smm-catalog__surfaces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--vp-c-divider);
 }
 
 .smm-catalog__surface {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-bottom: 0.25rem;
-}
-
-.smm-catalog__surface:last-child {
-  margin-bottom: 0;
+  align-items: baseline;
+  gap: 0.35rem;
 }
 
 .smm-catalog__surface-name {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--vp-c-text-2);
 }
 
 .smm-catalog__surface code {
   font-size: 0.7rem;
+  overflow-wrap: anywhere;
 }
 
 .smm-catalog__empty {
   margin-top: 1rem;
   color: var(--vp-c-text-2);
+}
+
+@media print {
+  .smm-catalog__toolbar {
+    display: none;
+  }
+
+  .smm-catalog__card {
+    break-inside: avoid;
+    background-color: transparent;
+  }
 }
 </style>

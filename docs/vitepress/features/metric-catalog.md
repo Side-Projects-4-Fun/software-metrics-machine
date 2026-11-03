@@ -38,7 +38,7 @@ export the same data for offline analysis.
 
 <MetricsCatalogTable />
 
-The table and the CSV file are generated from `packages/core/src/domain/metrics/` with `pnpm docs:metrics`.
+The catalog and the CSV file are generated from `packages/core/src/domain/metrics/` with `pnpm docs:metrics`.
 `pnpm docs:metrics:check` fails when the committed artifacts drift from the catalog, and the core test suite checks
 the same files.
 

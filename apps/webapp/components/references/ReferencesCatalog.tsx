@@ -13,6 +13,7 @@ import type { SxProps, Theme } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { OUTLIER_REFERENCE } from '@/lib/metrics/outlier-references';
+import { formatMetricNotation } from '@/lib/metrics/metric-catalog';
 import type {
   MetricCatalogEntry,
   MetricCatalogSource,
@@ -238,8 +239,11 @@ function MetricReferenceCard({ entry }: { entry: MetricCatalogEntry }) {
             <Box component="span" sx={{ fontWeight: 600, color: 'text.primary' }}>
               Notation:{' '}
             </Box>
-            <Box component="code" sx={{ fontSize: '0.8rem' }}>
-              {entry.definition.computation.notation}
+            <Box
+              component="code"
+              sx={{ display: 'block', fontSize: '0.8rem', whiteSpace: 'pre-line' }}
+            >
+              {formatMetricNotation(entry.definition.computation.notation)}
             </Box>
           </Typography>
         </Box>

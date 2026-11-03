@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Popover, Box, Link } from '@mui/material';
 import { useMetricDefinition } from '@/components/providers/MetricCatalogProvider';
+import { formatMetricNotation } from '@/lib/metrics/metric-catalog';
 import type { MetricCatalogSource } from '@/lib/metrics/metric-catalog';
 
 interface TargetInfoProps {
@@ -136,8 +137,11 @@ export function TargetInfo({ metric, target, description, sources }: TargetInfoP
                   <Box component="span" sx={{ fontWeight: 600, color: 'text.primary' }}>
                     Notation:{' '}
                   </Box>
-                  <Box component="code" sx={{ fontSize: '0.75rem' }}>
-                    {definition.notation}
+                  <Box
+                    component="code"
+                    sx={{ display: 'block', fontSize: '0.75rem', whiteSpace: 'pre-line' }}
+                  >
+                    {formatMetricNotation(definition.notation)}
                   </Box>
                 </Box>
               ) : null}

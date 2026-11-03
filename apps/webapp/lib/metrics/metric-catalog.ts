@@ -47,3 +47,12 @@ export interface MetricCatalogEntry {
   target?: MetricCatalogTarget;
   sources?: MetricCatalogSource[];
 }
+
+/**
+ * Renders a compact notation as one clause per line. The catalog keeps the
+ * notation on a single line so CSV and JSON stay easy to consume; display
+ * surfaces split it after each `;`.
+ */
+export function formatMetricNotation(notation: string): string {
+  return notation.replace(/;\s*/g, ';\n');
+}

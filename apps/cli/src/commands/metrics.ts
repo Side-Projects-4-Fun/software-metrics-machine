@@ -66,7 +66,17 @@ export function createMetricsCommands(program: SmmCommand): void {
           );
           screen.printLine(`  evidence: ${entry.definition.computation.evidence}`);
           screen.printLine(`  formula: ${entry.definition.computation.formula}`);
-          screen.printLine(`  notation: ${entry.definition.computation.notation}`);
+          screen.printLine('  notation:');
+
+          const notationLines = entry.definition.computation.notation
+            .split(';')
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0);
+
+          notationLines.forEach((line, index) => {
+            const suffix = index < notationLines.length - 1 ? ';' : '';
+            screen.printLine(`    ${line}${suffix}`);
+          });
         }
         screen.printLine(`\nTotal: ${entries.length}`);
       } catch (error) {
