@@ -17,7 +17,9 @@ From the workspace root:
 smm dashboard serve
 ```
 
-Default port is `3000` unless `PORT` is set.
+The bundled stack starts the REST API on port `3001` and the webapp on port `3000`; override them with
+`--rest-port` and `--webapp-port`. For local development, `pnpm --filter @smmachine/rest dev` runs the API on port
+`8000`, and running the compiled entrypoint directly uses `PORT` or `3000` when `PORT` is unset.
 
 ## Timezone query parameter
 
@@ -48,6 +50,7 @@ values such as `2026-01-01T09:00:00+01:00` are treated as exact instants.
 - `GET /change-requests/comments-by-author`
 - `GET /change-requests/first-comment-time`
 - `GET /change-requests/filter-options`
+- `GET /change-requests/evaluate`
 
 Common query params:
 
@@ -62,8 +65,10 @@ Common query params:
 - `GET /pipelines/summary`
 - `GET /pipelines/by-status`
 - `GET /pipelines/jobs-by-status`
+- `GET /pipelines/jobs-summary`
 - `GET /pipelines/runs-duration`
 - `GET /pipelines/jobs-duration-by-workflow`
+- `GET /pipelines/dashboard`
 - `GET /dora/deployment-frequency`
 - `GET /pipelines/runs-by`
 - `GET /pipelines/jobs-time-execution`
@@ -72,7 +77,13 @@ Common query params:
 - `GET /pipelines/jobs-steps-time`
 - `GET /pipelines/jobs-steps-time-by-day`
 - `GET /pipelines/filter-options`
+- `GET /pipelines/workflows`
+- `GET /pipelines/statuses`
+- `GET /pipelines/conclusions`
+- `GET /pipelines/branches`
+- `GET /pipelines/events`
 - `GET /pipelines/jobs`
+- `GET /pipelines/evaluate`
 
 Common query params:
 
@@ -87,13 +98,21 @@ Common query params:
 
 - `GET /code/pairing-index`
 - `GET /code/code-churn`
+- `GET /code/code-churn/history`
 - `GET /code/coupling`
+- `GET /code/coupling/history`
+- `GET /code/layered-coupling`
+- `GET /code/layered-coupling/history`
 - `GET /code/entity-churn`
+- `GET /code/entity-churn/history`
 - `GET /code/entity-effort`
+- `GET /code/entity-effort/history`
 - `GET /code/entity-ownership`
+- `GET /code/entity-ownership/history`
 - `GET /code/authors`
 - `GET /code/big-o`
 - `GET /code/big-o/file`
+- `GET /code/evaluate`
 
 Common query params:
 
@@ -120,12 +139,62 @@ Common query params:
 - `GET /sonarqube/measurements`
 - `GET /sonarqube/measurements/history`
 - `GET /sonarqube/component-tree/history`
+- `GET /sonarqube/evaluate`
 
 Common query params:
 
 - `measures`
 - `component`, `depth`, `metrics`
 - `ignore_files`, `include_files`, `remove_folders`
+
+## Architecture
+
+- `GET /architecture/snapshots`
+- `GET /architecture/summary`
+- `GET /architecture/view`
+- `GET /architecture/evaluate`
+
+The architecture endpoints read the snapshots persisted by `smm architecture generate`; they never generate data.
+
+## Engineering health
+
+- `GET /engineering-health/evaluate`
+
+Accepts the same filters as `smm engineering-health evaluate` (metric, category, current and comparison windows,
+period, weekend and outlier handling).
+
+## Metric catalog
+
+- `GET /metrics`
+
+Returns the static metric catalog with ids, namespaces, computation metadata and surface mappings. Supports the same
+`namespace` and `visibility` query parameters as `smm metrics list`.
+
+## Filters
+
+- `GET /filters`
+
+Returns the saved filters for the active project.
+
+## Projects and version
+
+- `GET /projects`
+- `GET /version`
+
+`GET /projects` lists the configured projects; `GET /version` returns the running application version.
+
+## Legacy aggregate metrics
+
+The original aggregate endpoints remain available under `/api/metrics/*`:
+
+- `GET /api/metrics/issues`
+- `GET /api/metrics/change-requests`
+- `GET /api/metrics/deployment`
+- `GET /api/metrics/code`
+- `GET /api/metrics/quality`
+- `GET /api/metrics/report`
+
+Prefer the domain endpoints above for new integrations; the aggregate endpoints return pre-computed report shapes.
 
 ## Logging
 

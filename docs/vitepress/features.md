@@ -36,9 +36,14 @@ Main command groups:
 - `smm architecture`
 - `smm jira`
 - `smm sonarqube`
+- `smm engineering-health`
+- `smm metrics`
+- `smm filters`
 - `smm dashboard`
 - `smm tools`
 - `smm health-check`
+- `smm mcp`
+- `smm project`
 
 ## REST API
 
@@ -50,7 +55,8 @@ Start REST API with:
 smm dashboard serve
 ```
 
-Swagger docs are available at `http://localhost:8000/api/docs` by default.
+Swagger docs are available at `http://localhost:8000/api/docs` when the API runs in development. With
+`smm dashboard serve` the REST API defaults to port `3001` (override with `--rest-port`).
 
 See [REST API](./rest-api.md) for endpoint overview.
 
@@ -61,6 +67,7 @@ Each feature has its own page:
 - [Insights](./features/insights.md)
 - [Dashboard](./features/dashboard.md)
 - [Engineering Health](./features/engineering-health.md)
+- [Metric catalog](./features/metric-catalog.md)
 - [Source Code](./features/code.md)
 - [Architecture](./features/architecture.md)
 - [Change Requests](./features/change-requests.md)

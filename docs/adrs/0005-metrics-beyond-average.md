@@ -8,14 +8,14 @@ Status: Accepted
 
 The CLI currently has "average" baked into subcommand names:
 
-| Current Command | Domain |
-|---|---|
-| `smm prs average-review-time` | Pull requests |
-| `smm prs average-open` | Pull requests |
-| `smm prs average-comments` | Pull requests |
-| `smm pipelines jobs-steps-average-time` | Pipelines |
+| Current Command                         | Domain        |
+| --------------------------------------- | ------------- |
+| `smm prs average-review-time`           | Pull requests |
+| `smm prs average-open`                  | Pull requests |
+| `smm prs average-comments`              | Pull requests |
+| `smm pipelines jobs-steps-average-time` | Pipelines     |
 
-This naming limits us to only ever computing the arithmetic mean. The underlying services already compute other statistics in *some* places (`summary` already outputs median for time-to-first-comment), but those richer statistics are not available as top-level commands or configurable metric choices.
+This naming limits us to only ever computing the arithmetic mean. The underlying services already compute other statistics in _some_ places (`summary` already outputs median for time-to-first-comment), but those richer statistics are not available as top-level commands or configurable metric choices.
 
 Internally, all metric computation flows through a single function (`averageMetricSamples` in `packages/core/src/domain/metric-samples.ts:55`) and the `cleanMetricSamples` pipeline (weekend filtering + IQR outlier detection), producing a single scalar. To expose other statistics, this pipeline needs to be generalized.
 
@@ -26,6 +26,7 @@ Internally, all metric computation flows through a single function (`averageMetr
 Replace the "average-" prefix in CLI subcommands with a `--method` option that selects the statistical aggregation:
 
 **Before:**
+
 ```
 smm prs average-review-time --top 10
 smm prs average-open --aggregate-by week
@@ -34,6 +35,7 @@ smm pipelines jobs-steps-average-time --job build
 ```
 
 **After:**
+
 ```
 smm prs review-time --method average --top 10
 smm prs open-time --method average --aggregate-by week
@@ -49,12 +51,12 @@ The default `--method` is `average` to preserve backward compatibility for users
 
 The following statistical measures each provide distinct value for software engineering insights:
 
-| Metric | Value for Software Metrics |
-|---|---|
-| **Median (p50)** | The typical experience. Not skewed by a single PR that sat open for 6 months. For metrics like review time, median answers "what does a normal PR look like?" — this is the single most important addition. |
-| **p75 / p90** | Represents the "bad case" experience. "90% of PRs are reviewed within X days" is the standard SLA formulation used by engineering organizations (DORA, Accelerate). If average is 3 days but p90 is 14 days, there's a long-tail problem. |
-| **p95** | Outlier boundary. Used in SRE-style monitoring (the "95th percentile latency" pattern). Shows the worst acceptable case, excluding true anomalies. |
-| **Min / Max** | Range awareness. Already partially surfaced in `summary` output. Useful on its own to understand the full spread of durations. |
+| Metric           | Value for Software Metrics                                                                                                                                                                                                                |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Median (p50)** | The typical experience. Not skewed by a single PR that sat open for 6 months. For metrics like review time, median answers "what does a normal PR look like?" — this is the single most important addition.                               |
+| **p75 / p90**    | Represents the "bad case" experience. "90% of PRs are reviewed within X days" is the standard SLA formulation used by engineering organizations (DORA, Accelerate). If average is 3 days but p90 is 14 days, there's a long-tail problem. |
+| **p95**          | Outlier boundary. Used in SRE-style monitoring (the "95th percentile latency" pattern). Shows the worst acceptable case, excluding true anomalies.                                                                                        |
+| **Min / Max**    | Range awareness. Already partially surfaced in `summary` output. Useful on its own to understand the full spread of durations.                                                                                                            |
 
 These are all computable from the existing `MetricSample[]` arrays — no provider changes, no schema migrations, no new fetch logic. The data is already in memory after filtering.
 
@@ -72,16 +74,23 @@ export function computeMetricSamples<TItem>(
   method: MetricMethod
 ): number {
   if (samples.length === 0) return 0;
-  const values = samples.map(s => s.value).sort((a, b) => a - b);
+  const values = samples.map((s) => s.value).sort((a, b) => a - b);
 
   switch (method) {
-    case 'average': return values.reduce((a, b) => a + b, 0) / values.length;
-    case 'median':  return percentile(values, 0.50);
-    case 'p75':     return percentile(values, 0.75);
-    case 'p90':     return percentile(values, 0.90);
-    case 'p95':     return percentile(values, 0.95);
-    case 'min':     return values[0];
-    case 'max':     return values[values.length - 1];
+    case 'average':
+      return values.reduce((a, b) => a + b, 0) / values.length;
+    case 'median':
+      return percentile(values, 0.5);
+    case 'p75':
+      return percentile(values, 0.75);
+    case 'p90':
+      return percentile(values, 0.9);
+    case 'p95':
+      return percentile(values, 0.95);
+    case 'min':
+      return values[0];
+    case 'max':
+      return values[values.length - 1];
   }
 }
 ```
@@ -94,18 +103,18 @@ Every method that currently calls `averageMetricSamples(cleaned.samples)` instea
 
 Affected methods:
 
-| Service | Method | File |
-|---|---|---|
-| `PRsService.getAverageReviewTime()` | → renamed `getReviewTime()` | `prs-service.ts:371` |
-| `PRsService.getAverageOpenBy()` | → renamed `getOpenTimeBy()` | `prs-service.ts:409` |
-| `PRsService.getMetrics()` | `averageComments`, `averageOpenDays` → `metrics.method` | `prs-service.ts:96` |
-| `PRsService.getMetricsByMonth()` | same fields | `prs-service.ts:477` |
-| `PRsService.getMetricsByWeek()` | same fields | `prs-service.ts` |
-| `PRsService.getFirstCommentTime()` | `avg_hours` → `method`-driven | `prs-service.ts:667` |
-| `PRsService.calculateFirstCommentTimeSummary()` | already has median inline — refactored to use `computeMetricSamples` | `prs-service.ts:620` |
-| `PipelinesService.getMetrics()` | `averageDurationMinutes` | `pipelines-service.ts:93` |
-| `PipelinesService.getJobMetrics()` | per-job averages | `pipelines-service.ts:336` |
-| `PipelinesService.getJobStepsAverageTime()` | per-step averages | `pipelines-service.ts:423` |
+| Service                                         | Method                                                               | File                       |
+| ----------------------------------------------- | -------------------------------------------------------------------- | -------------------------- |
+| `PRsService.getAverageReviewTime()`             | → renamed `getReviewTime()`                                          | `prs-service.ts:371`       |
+| `PRsService.getAverageOpenBy()`                 | → renamed `getOpenTimeBy()`                                          | `prs-service.ts:409`       |
+| `PRsService.getMetrics()`                       | `averageComments`, `averageOpenDays` → `metrics.method`              | `prs-service.ts:96`        |
+| `PRsService.getMetricsByMonth()`                | same fields                                                          | `prs-service.ts:477`       |
+| `PRsService.getMetricsByWeek()`                 | same fields                                                          | `prs-service.ts`           |
+| `PRsService.getFirstCommentTime()`              | `avg_hours` → `method`-driven                                        | `prs-service.ts:667`       |
+| `PRsService.calculateFirstCommentTimeSummary()` | already has median inline — refactored to use `computeMetricSamples` | `prs-service.ts:620`       |
+| `PipelinesService.getMetrics()`                 | `averageDurationMinutes`                                             | `pipelines-service.ts:93`  |
+| `PipelinesService.getJobMetrics()`              | per-job averages                                                     | `pipelines-service.ts:336` |
+| `PipelinesService.getJobStepsAverageTime()`     | per-step averages                                                    | `pipelines-service.ts:423` |
 
 **CLI layer** (`apps/cli/src/commands/prs.ts`, `pipelines.ts`):
 
@@ -124,9 +133,7 @@ JSON output should include the `method` used:
 ```json
 {
   "method": "p90",
-  "results": [
-    { "author": "alice", "value": 2.3, "unit": "days" }
-  ]
+  "results": [{ "author": "alice", "value": 2.3, "unit": "days" }]
 }
 ```
 
@@ -190,16 +197,32 @@ This ADR does NOT propose:
 The Engineering Health types referenced above were renamed so the domain is explicit at every use site. Part 4's
 behaviour is unchanged — only type names moved.
 
-| Before               | After                                    |
-| -------------------- | ---------------------------------------- |
-| `MetricId`           | `EngineeringHealthMetricId`              |
-| `MetricCategory`     | `EngineeringHealthMetricCategory`        |
-| `MetricScope`        | `EngineeringHealthMetricScope`           |
-| `MetricValue`        | `EngineeringHealthMetricValue`           |
-| `MetricComparison`   | `EngineeringHealthMetricComparison`      |
-| `MetricSummary`      | `EngineeringHealthMetricSummary`         |
-| `MetricTarget`       | `EngineeringHealthMetricTarget`          |
+| Before                 | After                                   |
+| ---------------------- | --------------------------------------- |
+| `MetricId`             | `EngineeringHealthMetricId`             |
+| `MetricCategory`       | `EngineeringHealthMetricCategory`       |
+| `MetricScope`          | `EngineeringHealthMetricScope`          |
+| `MetricValue`          | `EngineeringHealthMetricValue`          |
+| `MetricComparison`     | `EngineeringHealthMetricComparison`     |
+| `MetricSummary`        | `EngineeringHealthMetricSummary`        |
+| `MetricTarget`         | `EngineeringHealthMetricTarget`         |
 | `MetricRecommendation` | `EngineeringHealthMetricRecommendation` |
 
 `MetricEvaluation` and `MetricCalculationInput` keep their names. The `MetricValue` reference in ADR 0006 should be
 read as `EngineeringHealthMetricValue`.
+
+## Addendum — `prs` → `change-requests` rename (2026-08-09)
+
+The `smm prs` command group was renamed to `smm change-requests` to make the CLI provider-agnostic (GitHub pull
+requests, GitLab merge requests). The rename was applied atomically across every surface, with no deprecated alias:
+
+| Surface                     | Before                                                           | After                                                                 |
+| --------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------- |
+| CLI group and file          | `smm prs`, `commands/prs.ts`                                     | `smm change-requests`, `commands/change-requests.ts`                  |
+| REST controllers and routes | `prs.controller.ts`, `/change-requests/*` legacy paths unchanged | `change-requests.controller.ts`, `/change-requests/*`                 |
+| Webapp routes and labels    | pull-request pages and labels                                    | change-request pages and labels                                       |
+| MCP tools and e2e helpers   | `smm_get_pr_*`, `run_smm_with_github_prs_msw`                    | `smm_get_change_request_*`, `run_smm_with_github_change_requests_msw` |
+
+Every `smm prs …` example in this ADR should be read as `smm change-requests …`; the statistical decisions above are
+unchanged. The rejected alternative 3 ("dedicated `smm metrics` top-level group") still holds for domain commands: the
+`smm metrics` group that now exists only inspects the read-only metric catalog described in ADR 0007.

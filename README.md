@@ -9,7 +9,7 @@
 
 # Software Metrics Machine
 
-[![Sponsor](https://img.shields.io/badge/Sponsor-❤️-ff69b4?style=for-the-badge&logo=github)](https://github.com/sponsors/marabesi)   
+[![Sponsor](https://img.shields.io/badge/Sponsor-❤️-ff69b4?style=for-the-badge&logo=github)](https://github.com/sponsors/marabesi)
 
 Everything runs locally on your machine.
 
@@ -30,27 +30,27 @@ production. Software Metrics Machine provides insights beyond traditional metric
 
 ## Philosophy Drivers
 
-* Continuous Feedback Loops: A constant cycle of observation, analysis, and adjustment is essential.
-* Pipeline Health: Maintain a consistently green and stable development pipeline.
-* Controlled Code Churn: Minimize unnecessary code changes, as they often indicate underlying issues.
-* Knowledge Sharing: Actively avoid knowledge silos – encourage collaboration and knowledge transfer.
-* Data-Based Technical Debt: Define and prioritize technical debt based on *real* data and impact.
+- Continuous Feedback Loops: A constant cycle of observation, analysis, and adjustment is essential.
+- Pipeline Health: Maintain a consistently green and stable development pipeline.
+- Controlled Code Churn: Minimize unnecessary code changes, as they often indicate underlying issues.
+- Knowledge Sharing: Actively avoid knowledge silos – encourage collaboration and knowledge transfer.
+- Data-Based Technical Debt: Define and prioritize technical debt based on _real_ data and impact.
 
 ## Facets
 
 This project relies on metrics that are extracted from:
 
-* Pipeline
-  * Success rate of pipeline ✅
-  * Average time to complete pipeline from start to finish ✅
-* Pull requests
-  * Average of Pull requests opened ✅
-* Git history
-  * Code churn  ✅
-  * Hotspots  ✅
-  * Change Frequency ✅
-* Source code
-  * Complexity Trends Over Time ✅
+- Pipeline
+  - Success rate of pipeline ✅
+  - Average time to complete pipeline from start to finish ✅
+- Pull requests
+  - Average of change requests opened ✅
+- Git history
+  - Code churn ✅
+  - Hotspots ✅
+  - Change Frequency ✅
+- Source code
+  - Complexity Trends Over Time ✅
 
 ## Getting started
 
@@ -85,6 +85,7 @@ Commands:
   mcp                     Model Context Protocol operations
   architecture            Architecture analysis and visualization
   engineering-health      Engineering health metrics
+  metrics                 Inspect the metric catalog
   filters                 Manage saved filters
   project                 Configure and manage projects
   help                    Show help information
@@ -97,12 +98,12 @@ The official documentation is hosted at [github pages](https://side-projects-4-f
 This project uses other tools to extract the metrics, and is inspired by other works in the field of software metrics.
 Here are some references:
 
-* Metrics
-  * <https://github.com/adamtornhill/code-maat>
-  * <https://pragprog.com/titles/atevol/software-design-x-rays/>
-  * <https://github.com/fouadh/gocan>
-* Platform
-  * <https://git-scm.com/doc>
-  * <https://docs.github.com/en/rest?apiVersion=2022-11-28>
-* Research
-  * <https://www.researchgate.net/publication/379096213_Software_Metrics_in_Agile_Software_Development_A_Review_Report> 
+- Metrics
+  - <https://github.com/adamtornhill/code-maat>
+  - <https://pragprog.com/titles/atevol/software-design-x-rays/>
+  - <https://github.com/fouadh/gocan>
+- Platform
+  - <https://git-scm.com/doc>
+  - <https://docs.github.com/en/rest?apiVersion=2022-11-28>
+- Research
+  - <https://www.researchgate.net/publication/379096213_Software_Metrics_in_Agile_Software_Development_A_Review_Report>

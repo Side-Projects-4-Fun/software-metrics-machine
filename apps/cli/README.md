@@ -75,9 +75,7 @@ smm project list
       "main_branch": "main",
       "dashboard_start_date": "2025-01-01",
       "dashboard_end_date": "2025-12-31",
-      "deployment_frequency_targets": [
-        { "pipeline": ".github/workflows/ci.yml", "job": "deploy" }
-      ],
+      "deployment_frequency_targets": [{ "pipeline": ".github/workflows/ci.yml", "job": "deploy" }],
       "log_level": "INFO",
       "store_logs": true,
       "timezone": "Europe/Madrid",
@@ -156,13 +154,13 @@ Set `store_logs: true` in `smm_config.json` or `<REPO>_STORE_LOGS=true` to write
 
 ### Valid levels
 
-| Level | Console output | Use case |
-|-------|---------------|----------|
-| `DEBUG` | All messages | Development / troubleshooting |
-| `INFO` | Info, warnings, errors | General usage |
-| `WARN` | Warnings and errors | Production (moderate verbosity) |
-| `ERROR` | Errors only | Production |
-| `CRITICAL` | Fatal errors only | Silent operation (default) |
+| Level      | Console output         | Use case                        |
+| ---------- | ---------------------- | ------------------------------- |
+| `DEBUG`    | All messages           | Development / troubleshooting   |
+| `INFO`     | Info, warnings, errors | General usage                   |
+| `WARN`     | Warnings and errors    | Production (moderate verbosity) |
+| `ERROR`    | Errors only            | Production                      |
+| `CRITICAL` | Fatal errors only      | Silent operation (default)      |
 
 ## Outliers and weekend filtering
 
@@ -224,6 +222,7 @@ run, so it is already parallel-aware and is unaffected by this normalization.
 ### `smm change-requests` — Change request operations
 
 #### `smm change-requests fetch`
+
 Fetch change requests from the configured Git provider.
 
 ```
@@ -234,6 +233,7 @@ Fetch change requests from the configured Git provider.
 ```
 
 #### `smm change-requests fetch-comments`
+
 Fetch change request comments.
 
 ```
@@ -244,6 +244,7 @@ Fetch change request comments.
 ```
 
 #### `smm change-requests summary`
+
 View change request summary statistics.
 
 ```
@@ -258,6 +259,7 @@ View change request summary statistics.
 ```
 
 #### `smm change-requests by-month`
+
 View change request metrics grouped by month.
 
 ```
@@ -269,9 +271,11 @@ View change request metrics grouped by month.
 ```
 
 #### `smm change-requests by-week`
+
 View change request metrics grouped by week. Same options as `by-month`.
 
 #### `smm change-requests through-time`
+
 View change requests opened and closed over time (daily/weekly/monthly).
 
 ```
@@ -287,6 +291,7 @@ View change requests opened and closed over time (daily/weekly/monthly).
 ```
 
 #### `smm change-requests by-author`
+
 View change requests grouped by author.
 
 ```
@@ -302,9 +307,11 @@ View change requests grouped by author.
 ```
 
 #### `smm change-requests review-time`
+
 View review time (days) by author. Same options as `by-author`, plus the outlier and weekend filtering options.
 
 #### `smm change-requests open-time`
+
 View change request open time (days) aggregated by period.
 
 ```
@@ -322,13 +329,15 @@ View change request open time (days) aggregated by period.
 ```
 
 #### `smm change-requests comments`
-View number of comments per change request. Same options as `average-open`.
+
+View number of comments per change request. Same options as `open-time`.
 
 ---
 
 ### `smm pipelines` — Pipeline/workflow operations
 
 #### `smm pipelines fetch`
+
 Fetch pipeline runs from the configured Git provider.
 
 ```
@@ -341,6 +350,7 @@ Fetch pipeline runs from the configured Git provider.
 ```
 
 #### `smm pipelines fetch-jobs`
+
 Fetch pipeline jobs.
 
 ```
@@ -353,6 +363,7 @@ Fetch pipeline jobs.
 ```
 
 #### `smm pipelines summary`
+
 Display a summary of pipeline runs.
 
 ```
@@ -366,6 +377,7 @@ Display a summary of pipeline runs.
 ```
 
 #### `smm pipelines by-status`
+
 View pipeline runs grouped by status.
 
 ```
@@ -375,6 +387,7 @@ View pipeline runs grouped by status.
 ```
 
 #### `smm pipelines runs-duration`
+
 View pipeline run durations.
 
 ```
@@ -387,6 +400,7 @@ View pipeline run durations.
 ```
 
 #### `smm pipelines runs-by`
+
 View pipeline runs by time period.
 
 ```
@@ -397,6 +411,7 @@ View pipeline runs by time period.
 ```
 
 #### `smm pipelines jobs-summary`
+
 Display a summary of pipeline jobs.
 
 ```
@@ -409,6 +424,7 @@ Display a summary of pipeline jobs.
 ```
 
 #### `smm pipelines jobs-time-execution`
+
 View pipeline job execution times.
 
 ```
@@ -421,6 +437,7 @@ View pipeline job execution times.
 ```
 
 #### `smm pipelines jobs-steps-time`
+
 View pipeline job steps execution times.
 
 ```
@@ -433,6 +450,7 @@ View pipeline job steps execution times.
 ```
 
 #### `smm pipelines jobs-by-status`
+
 View pipeline jobs grouped by status.
 
 ```
@@ -444,6 +462,7 @@ View pipeline jobs grouped by status.
 ```
 
 #### `smm pipelines deployment-frequency`
+
 Calculate deployment frequency (DORA metric).
 
 ```
@@ -454,6 +473,7 @@ Calculate deployment frequency (DORA metric).
 ```
 
 #### `smm pipelines lead-time`
+
 Calculate lead time for changes (DORA metric).
 
 ```
@@ -472,6 +492,7 @@ Calculate lead time for changes (DORA metric).
 > `smm code codemaat-fetch` additionally requires **Java** to be installed.
 
 #### `smm code fetch-commits`
+
 Analyze change sets from the git repository. Run this before `codemaat-fetch`.
 
 ```
@@ -484,6 +505,7 @@ Analyze change sets from the git repository. Run this before `codemaat-fetch`.
 ```
 
 #### `smm code codemaat-fetch`
+
 Run CodeMaat analysis and produce CSV output. Requires `fetch-commits` to have run first. Requires Java.
 
 ```
@@ -496,6 +518,7 @@ Run CodeMaat analysis and produce CSV output. Requires `fetch-commits` to have r
 ```
 
 #### `smm code summary`
+
 View code summary with pairing insights.
 
 ```
@@ -505,6 +528,7 @@ View code summary with pairing insights.
 ```
 
 #### `smm code churn`
+
 Calculate code churn metrics.
 
 ```
@@ -515,6 +539,7 @@ Calculate code churn metrics.
 ```
 
 #### `smm code coupling`
+
 Analyze code coupling between modules.
 
 ```
@@ -525,6 +550,7 @@ Analyze code coupling between modules.
 ```
 
 #### `smm code entity-churn`
+
 Calculate entity-level churn metrics.
 
 ```
@@ -535,9 +561,11 @@ Calculate entity-level churn metrics.
 ```
 
 #### `smm code entity-effort`
+
 Calculate entity effort metrics. Same options as `entity-churn`.
 
 #### `smm code entity-ownership`
+
 Analyze entity ownership by developer.
 
 ```
@@ -548,6 +576,7 @@ Analyze entity ownership by developer.
 ```
 
 #### `smm code pairing-index`
+
 Calculate developer pairing index.
 
 ```
@@ -562,6 +591,7 @@ Calculate developer pairing index.
 ### `smm jira` — Jira integration operations
 
 #### `smm jira fetch-issues`
+
 Fetch issues from Jira.
 
 ```
@@ -574,6 +604,7 @@ Fetch issues from Jira.
 ```
 
 #### `smm jira fetch-changelog`
+
 Fetch issue changelog. Note: limited support in the current version.
 
 ```
@@ -582,6 +613,7 @@ Fetch issue changelog. Note: limited support in the current version.
 ```
 
 #### `smm jira fetch-comments`
+
 Fetch issue comments. Note: limited support in the current version.
 
 ```
@@ -594,6 +626,7 @@ Fetch issue comments. Note: limited support in the current version.
 ### `smm sonarqube` — SonarQube integration operations
 
 #### `smm sonarqube analysis run`
+
 Start a local SonarQube instance (if needed) and run sonar-scanner via Docker.
 
 ```
@@ -611,6 +644,7 @@ Start a local SonarQube instance (if needed) and run sonar-scanner via Docker.
 ```
 
 #### `smm sonarqube fetch-measures`
+
 Fetch quality measures from SonarQube.
 
 ```
@@ -620,6 +654,7 @@ Fetch quality measures from SonarQube.
 ```
 
 #### `smm sonarqube fetch-component-tree`
+
 Fetch component tree with metrics.
 
 ```
@@ -631,6 +666,7 @@ Fetch component tree with metrics.
 ```
 
 #### `smm sonarqube fetch-historical-measures`
+
 Fetch historical measures from SonarQube.
 
 ```
@@ -641,6 +677,42 @@ Fetch historical measures from SonarQube.
 --save <file>         save results to a JSON file at the given path
 --local
 --output <format>     text|json  (default: text)
+```
+
+---
+
+### `smm architecture` — Architecture snapshots and views
+
+Generate, list and export persisted architecture snapshots. Generation is a CLI-only write path; the dashboard and
+REST API only read existing snapshots.
+
+#### `smm architecture generate`
+
+Generate and persist an architecture snapshot from git history.
+
+```
+--start-date <date>    start date for git-history input (YYYY-MM-DD)
+--end-date <date>      end date for git-history input (YYYY-MM-DD)
+--refresh-git          force refreshing commits from the git repository
+--output <format>      text|json  (default: text)
+```
+
+#### `smm architecture list-snapshots`
+
+List persisted architecture snapshot ids and their available view levels.
+
+```
+--output <format>      text|json  (default: text)
+```
+
+#### `smm architecture export`
+
+Export a view from the latest (or a selected) persisted snapshot.
+
+```
+--snapshot-id <id>     snapshot id  (default: latest)
+--view <level>         context|container|component|code  (default: container)
+--format <format>      json|mermaid  (default: json)
 ```
 
 ---
@@ -699,9 +771,87 @@ Tip: use `--output json` in leadership reviews to store results and build a recu
 
 ---
 
+### `smm metrics` — Inspect the metric catalog
+
+#### `smm metrics list`
+
+List catalogued metrics with their stable ids and computation metadata (evidence, formula, notation).
+
+```
+--namespace <name>     cr|pl|code|sq|arch|issue|eh  (default: all)
+--visibility <value>   public|internal  (default: all)
+--output <format>      text|json  (default: text)
+```
+
+The same catalog is served by `GET /metrics`, the MCP tool `smm_list_metrics`, and the dashboard references page.
+
+---
+
+### `smm filters` — Manage saved filters
+
+Saved filters are stored per project and reused by every dashboard section.
+
+#### `smm filters list`
+
+List saved filters.
+
+```
+--section <section>    pipelines|change-requests|source-code|architecture|sonarqube
+--output <format>      text|json  (default: text)
+```
+
+#### `smm filters save <name>`
+
+Save the current filter options as a named filter. `--section` is required; every other option mirrors the dashboard
+filter fields.
+
+```
+--section <section>           section the filter belongs to (required)
+--start-date <date>           start date (YYYY-MM-DD)
+--end-date <date>             end date (YYYY-MM-DD)
+--workflow-selector <name>    workflow name filter
+--job-selector <name>         job name filter
+--branch <branches>           comma-separated branches
+--authors <authors>           comma-separated authors to include
+--exclude-authors <authors>   comma-separated authors to exclude
+--exclude-commenters <list>   comma-separated commenters to exclude
+--labels <labels>             comma-separated labels
+--change-request-status <s>   open|closed|merged|draft
+--aggregate-by <period>       day|week|month
+--weekends <mode>             include|exclude|weekends_only
+--outlier-mode <mode>         include|flag|exclude
+--raw-filters <filters>       raw provider filters
+--ignore-pattern-files <p>    files to ignore
+--include-pattern-files <p>   files to include
+--top-entries <number>        top N entries
+--type-churn <type>           churn type
+--metric <metric>             Engineering Health metric
+--category <category>         Engineering Health category
+--compare-start-date <date>   comparison window start date
+--compare-end-date <date>     comparison window end date
+--period <period>             day|week|month
+--sonarqube-remove-folders    strip folder prefix in SonarQube paths
+--timezone <tz>               IANA timezone (for example America/Sao_Paulo)
+```
+
+#### `smm filters show <name>`
+
+Show the stored values of a saved filter.
+
+```
+--output <format>      text|json  (default: text)
+```
+
+#### `smm filters delete <name>`
+
+Delete a saved filter by name or id.
+
+---
+
 ### `smm dashboard` — Dashboard operations
 
 #### `smm dashboard serve`
+
 Start the bundled REST API and webapp servers.
 
 ```
@@ -714,9 +864,25 @@ Requires a full build (`pnpm run build:npm` from the repo root) before first run
 
 ---
 
+### `smm mcp` — Model Context Protocol operations
+
+#### `smm mcp server start`
+
+Start the read-only MCP stdio server for agent clients.
+
+```bash
+SMM_STORE_DATA_AT=/path/to/smm-data smm mcp server start
+```
+
+The server exposes tools, resources and prompts over stdio and never writes to the data directory. See
+[MCP server](../../docs/vitepress/mcp.md) for the tool list and client configuration.
+
+---
+
 ### `smm tools` — Utility tools
 
 #### `smm tools json-merge`
+
 Merge multiple JSON files into one.
 
 ```
@@ -726,6 +892,7 @@ Merge multiple JSON files into one.
 ```
 
 ### `smm health-check`
+
 Analyze local cache data quality (missing, stale, invalid, coverage gaps).
 
 ```
@@ -741,6 +908,7 @@ Analyze local cache data quality (missing, stale, invalid, coverage gaps).
 Interactively configure projects stored in `smm_config.json`.
 
 #### `smm project configure`
+
 Create a new project or update an existing one through an interactive wizard. If no data directory is available yet
 (neither `SMM_STORE_DATA_AT` nor a saved default in the user settings file), the wizard asks for the data directory,
 creates it, and saves it as the default.
@@ -750,8 +918,19 @@ provider token, optional Jira and SonarQube integrations, log level, timezone, a
 are only written when provided, so updating a project keeps existing settings you left untouched.
 
 #### `smm project list`
+
 List the configured projects from `smm_config.json`. Prints a hint asking you to run `smm project configure` first when
 no data directory is available or no projects are configured yet.
+
+#### `smm project delete`
+
+Delete a project from `smm_config.json`.
+
+```
+--provider <name>      Git provider of the project to delete (github, gitlab)
+--repository <name>    repository (owner/repo) of the project to delete
+--yes                  skip the confirmation prompt
+```
 
 ---
 

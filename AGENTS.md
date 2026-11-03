@@ -6,17 +6,22 @@ and `.github/agents/` for GitHub Copilot. Shared role prompts live under `.agent
 
 ## Project Overview
 
-- **Pull Request** (`smm prs *`) — PR volume, review times, merge patterns, comments
+- **Change requests** (`smm change-requests *`) — change request volume, review times, merge patterns, comments
 - **Pipeline** (`smm pipelines *`) — success rates, execution times, DORA deployment frequency
 - **Code** (`smm code *`) — code churn, coupling, entity ownership, pairing index
 - **Issue** (`smm jira *`) — Jira issue metrics
 - **Quality** (`smm sonarqube *`) — SonarQube quality measures
+- **Architecture** (`smm architecture *`) — persisted architecture snapshots and C4 views
+- **Engineering health** (`smm engineering-health evaluate`) — delivery, quality, collaboration and architecture scorecards
+- **Metric catalog** (`smm metrics list`) — stable metric ids with computation metadata
+- **Saved filters** (`smm filters *`) — list, save, show and delete dashboard filters
+- **Project** (`smm project *`) — configure projects in `smm_config.json`
 - **Dashboard** (`smm dashboard serve`) — bundled REST API + Next.js webapp
 - **MCP server** (`smm mcp server start`, `smm-mcp`) — read-only stdio interface for agent clients
 
 ## Technology Stack
 
-- **Node.js**: `>=26.4.0` (`engines.node`; exact `.nvmrc` / `envvars.for.actions` = `26.12.1`); **pnpm**: `>=10.0.0` (`engines.pnpm`; `packageManager` = `pnpm@12.14.0`); Monorepo via pnpm workspaces + Turborepo
+- **Node.js**: `>=26.4.0` (`engines.node`; exact `.nvmrc` / `envvars.for.actions` = `26.12.1`); **pnpm**: `>=10.0.0` (`engines.pnpm`; `packageManager` = `pnpm@12.16.1`); Monorepo via pnpm workspaces + Turborepo
 - **TypeScript** 6.x (strict mode); **CLI**: Commander.js 15.x; **REST**: NestJS 12.x (Express, Swagger); **Webapp**: Next.js 16.x, React 19.x, MUI 9.x, Recharts 3.x, Tailwind CSS 4, Cypress 16.x e2e; **Docs**: VitePress
 - **Vitest** 5.x for `apps/cli`, `apps/mcp`, `apps/rest`, `packages/core`, `packages/utils`; **Jest** 30.x for `apps/webapp` unit tests (via `next/jest`, `clearMocks: true`); **bashunit** for `apps/cli/e2e`
 - **ESLint** 9.x (flat config `eslint.config.mjs`) + Prettier, auto-fixed on commit via lint-staged
@@ -59,9 +64,9 @@ and `.github/agents/` for GitHub Copilot. Shared role prompts live under `.agent
 │   └── utils/            # @smmachine/utils — logger, JSON, date/duration helpers
 ├── docs/
 │   ├── vitepress/         # VitePress documentation site
-│   ├── architecture/      # C4 architecture docs (Mermaid, contributor-facing): levels 1-3, dynamic views, deployment
+│   ├── architecture/      # C4 architecture docs (Mermaid, contributor-facing): levels 1-3, dynamic views, deployment, metrics catalog
 │   └── adrs/               # Architecture Decision Records
-├── scripts/               # merge-coverage.mjs, simulate-and-test-publish.sh, Dockerfile.publish-test
+├── scripts/               # merge-coverage.mjs, generate-metrics-catalog-docs.mts, simulate-and-test-publish.sh, Dockerfile.publish-test
 ├── docker-compose.yml     # SonarQube + API + webapp
 ├── tsup.config.ts         # Root CLI bundle (dist/index.cjs)
 ├── turbo.json             # Turborepo task graph (build/test/lint/type-check)
@@ -110,18 +115,19 @@ REST API over HTTP — it has no runtime workspace dependency on `@smmachine/cor
 - **CLI Command Pattern** — `apps/cli/src/commands/` commands are thin: parse options into typed filters, call service methods, format output.
 - **Webapp Server Layer** — `apps/webapp/server/api/*.ts` is the only place that talks to the REST API; pages and components consume it through server components and route handlers.
 - **MCP Server Pattern** — Thin stdio adapter; no `MetricsOrchestrator` abstraction — compose existing core services directly inside `apps/mcp/src/metrics-reader.ts`.
+- **Metric Catalog Pattern** — `packages/core/src/domain/metrics/metric-catalog.ts` is the single source of truth for metric ids, metadata and computation; `metric-implementations.ts` binds catalog ids to services. The CLI (`smm metrics list`), REST (`GET /metrics`), MCP (`smm_list_metrics`) and dashboard references page all render the same catalog.
 - **Configuration Pattern** — All config comes from environment variables via the `Configuration` class (`packages/core/src/infrastructure/configuration.ts`).
 
 ### Module system
 
-| Package | Module system | Notes |
-|---------|--------------|-------|
-| `packages/core` | CommonJS | Compiled by `tsc` to `dist/` |
-| `packages/utils` | CommonJS | Compiled by `tsc` to `dist/` |
-| `apps/cli` | CommonJS | Bundled by `tsup` to `dist/index.cjs` |
-| `apps/mcp` | CommonJS | Bundled by `tsup` to `dist/index.cjs` (binary `dist/bin.cjs`) |
-| `apps/rest` | CommonJS | `tsc` build for production, `ts-node` for dev |
-| `apps/webapp` | ESM | Next.js |
+| Package          | Module system | Notes                                                         |
+| ---------------- | ------------- | ------------------------------------------------------------- |
+| `packages/core`  | CommonJS      | Compiled by `tsc` to `dist/`                                  |
+| `packages/utils` | CommonJS      | Compiled by `tsc` to `dist/`                                  |
+| `apps/cli`       | CommonJS      | Bundled by `tsup` to `dist/index.cjs`                         |
+| `apps/mcp`       | CommonJS      | Bundled by `tsup` to `dist/index.cjs` (binary `dist/bin.cjs`) |
+| `apps/rest`      | CommonJS      | `tsc` build for production, `ts-node` for dev                 |
+| `apps/webapp`    | ESM           | Next.js                                                       |
 
 The root `tsup.config.ts` bundles the published launcher: `dist/index.cjs` (CLI), `dist/rest/main.cjs` (API), and
 `dist/webapp/server.cjs` (Next.js standalone server) so `smm dashboard serve` can run the full stack from one package.
@@ -134,13 +140,14 @@ The root `tsup.config.ts` bundles the published launcher: `dist/index.cjs` (CLI)
 - Keep `packages/core` and `packages/utils` as CommonJS (no `"type": "module"`)
 - Build `packages/utils` before `packages/core`, and both before any app
 - Use `pnpm --filter <name>` for targeted commands, and the pnpm catalog (`pnpm-workspace.yaml`) for dependency versions
-- Keep package families on one major in the catalog — `vitest` and `@vitest/coverage-v8` must both be `^5.0.5`; a mismatch pulls a duplicate Vitest toolchain into the lockfile
+- Keep package families on one major in the catalog — `vitest` and `@vitest/coverage-v8` must both be `^5.1.0`; a mismatch pulls a duplicate Vitest toolchain into the lockfile
 - Prefix unused vars with `_`; if `eslint-config-next` ignores `argsIgnorePattern`, use `void paramName;` instead
 - Write tests first for new features and bug fixes (TDD); a regression fix always starts with a failing test that reproduces it
 - Run the mandatory build verification after any change: `pnpm lint && pnpm typecheck && pnpm build && pnpm test`
 - All functions require explicit return types — derive from the called service (`Awaited<ReturnType<PipelinesService['getMetrics']>>`) rather than `unknown`, `any`, or `void`
 - Keep MCP tools read-only, redact token/credential-like fields from MCP resources
 - Renaming is a feature, not a blocker — rename atomically across all layers in one change, no deprecated aliases or compatibility shims; record it as an ADR addendum
+- Keep the metric catalog generated artifacts in sync: run `pnpm docs:metrics` after changing `packages/core/src/domain/metrics/`; `pnpm docs:metrics:check` must pass
 - Use the repo's `tmp/` folder for temporary files, never `/tmp`
 - Webapp tests: use builders (`apps/webapp/__tests__/builders/`), `renderWithProviders()`, and `userEvent`
 

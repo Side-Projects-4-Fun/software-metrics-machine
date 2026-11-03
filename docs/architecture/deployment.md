@@ -44,8 +44,8 @@ C4Deployment
     }
 
     Deployment_Node(compose, "docker compose", "Containers") {
-      Container(apiContainer, "api", "node:25-slim, port 8000", "Runs pnpm --filter @smmachine/rest dev with SMM_STORE_DATA_AT=/workspace/.data")
-      Container(webappContainer, "webapp", "node:25-slim, port 3000", "Runs pnpm --filter @smmachine/webapp dev")
+      Container(apiContainer, "api", "node:26-slim, port 8000", "Runs pnpm --filter @smmachine/rest dev with SMM_STORE_DATA_AT=/workspace/.data")
+      Container(webappContainer, "webapp", "node:26-slim, port 3000", "Runs pnpm --filter @smmachine/webapp dev")
       Container(sonarqube, "sonarqube", "sonarqube:10-community, port 9000", "Local code quality server used by the sonarqube commands")
     }
 

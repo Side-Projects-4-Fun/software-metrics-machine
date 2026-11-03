@@ -14,7 +14,7 @@ services:
       retries: 10
 
   api:
-    image: node:25-slim
+    image: node:26-slim
     working_dir: /workspace
     environment:
       PORT: 8000
@@ -29,7 +29,7 @@ services:
     command: sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm --filter @smmachine/rest dev"
 
   webapp:
-    image: node:25-slim
+    image: node:26-slim
     working_dir: /workspace
     environment:
       PORT: 3000

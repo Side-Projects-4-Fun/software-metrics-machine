@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1
 
-FROM node:25-slim AS base
+FROM node:26-slim AS base
 
 ARG PORT=3000
 ENV NEXT_TELEMETRY_DISABLED=1

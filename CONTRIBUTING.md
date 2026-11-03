@@ -21,11 +21,11 @@ Thanks for contributing. This repository is a **pnpm TypeScript monorepo** with 
 
 ## Requirements
 
-| Tool    | Version    | Notes                          |
-|---------|------------|--------------------------------|
+| Tool    | Version    | Notes                                          |
+| ------- | ---------- | ---------------------------------------------- |
 | Node.js | `>=26.4.0` | Exact: `26.12.1` — see `.nvmrc`, use `nvm use` |
-| pnpm    | `>=10.0.0` | Exact: `12.14.0` (`packageManager`) |
-| Git     | any        |                                |
+| pnpm    | `>=10.0.0` | Exact: `12.16.1` (`packageManager`)            |
+| Git     | any        |                                                |
 
 Optional:
 
@@ -145,10 +145,10 @@ project-specific `<REPO>_` environment variable overrides. The only global envir
 is `SMM_STORE_DATA_AT`. Generic variables such as `GITHUB_TOKEN`, `JIRA_TOKEN`, `SMM_TIMEZONE`, or
 `GIT_REPOSITORY_PATH` are not used.
 
-| Variable                 | Required | Description                                      |
-|--------------------------|----------|--------------------------------------------------|
-| `SMM_STORE_DATA_AT`      | No       | Path to the data directory (optional when a default is saved via `smm project configure`) |
-| `SMM_DEV_MODE`           | No       | Set to `true` during CLI dev to use local scripts |
+| Variable            | Required | Description                                                                               |
+| ------------------- | -------- | ----------------------------------------------------------------------------------------- |
+| `SMM_STORE_DATA_AT` | No       | Path to the data directory (optional when a default is saved via `smm project configure`) |
+| `SMM_DEV_MODE`      | No       | Set to `true` during CLI dev to use local scripts                                         |
 
 ### Webapp environment
 
@@ -166,7 +166,7 @@ The `Configuration` object has an `internal` property for **developer-only setti
 export type StorageType = 'json' | 'sqlite';
 
 export interface InternalConfiguration {
-  storageType: StorageType;  // 'json' (default) | 'sqlite'
+  storageType: StorageType; // 'json' (default) | 'sqlite'
 }
 
 export interface IConfiguration {
@@ -227,7 +227,7 @@ To add a new internal setting:
 ```typescript
 export interface InternalConfiguration {
   storageType: StorageType;
-  cacheStrategy: 'aggressive' | 'conservative';  // new setting
+  cacheStrategy: 'aggressive' | 'conservative'; // new setting
 }
 
 // In Configuration class:
@@ -242,7 +242,7 @@ internal: InternalConfiguration = {
 The CLI reads `SMM_STORAGE_TYPE` from the environment and applies it to the configuration. For other internal settings, you can set them via environment variables and wire them through the configuration repository:
 
 ```bash
-SMM_STORAGE_TYPE=sqlite pnpm cli -- prs summary
+SMM_STORAGE_TYPE=sqlite pnpm cli -- change-requests summary
 ```
 
 ## Development Workflows
@@ -252,10 +252,10 @@ SMM_STORAGE_TYPE=sqlite pnpm cli -- prs summary
 ```bash
 # Fast dev mode with tsx (no build step)
 pnpm cli -- --help
-pnpm cli -- prs summary
+pnpm cli -- change-requests summary
 
 # Pass additional options
-pnpm cli -- prs summary --start-date=2025-01-01 --output=json
+pnpm cli -- change-requests summary --start-date=2025-01-01 --output=json
 ```
 
 The `pnpm cli` command runs `tsx src/index.ts` from `apps/cli` with `SMM_DEV_MODE=true`.
@@ -267,7 +267,7 @@ The `pnpm cli` command runs `tsx src/index.ts` from `apps/cli` with `SMM_DEV_MOD
 pnpm --filter @smmachine/rest dev
 ```
 
-This runs NestJS via `ts-node`. The API serves Swagger docs at `http://localhost:8000/api`.
+This runs NestJS via `ts-node`. The API serves Swagger docs at `http://localhost:8000/api/docs`.
 
 ### Webapp development
 
@@ -352,23 +352,28 @@ pnpm --filter @smmachine/webapp build
 ### Common workflows
 
 **Adding a new CLI command:**
+
 1. Add domain logic to `packages/core/src/domain/` (service + types)
 2. Add CLI command to `apps/cli/src/commands/`
 3. Register it in `apps/cli/src/index.ts`
 4. Add REST endpoint to `apps/rest/src/controllers/` (if needed)
-5. Update VitePress docs in `docs/vitepress/features/`
-6. Build and test: `pnpm build && pnpm test`
+5. Register the metric in `packages/core/src/domain/metrics/` when the command exposes a metric surface, then run `pnpm docs:metrics`
+6. Update VitePress docs in `docs/vitepress/features/`
+7. Build and test: `pnpm build && pnpm test`
 
 **Adding a new provider (e.g., a new git platform):**
+
 1. Create provider client in `packages/core/src/providers/<provider>/`
 2. Implement the fetch repository interface
 3. Wire it into the owning domain slice factory (`packages/core/src/domain/<area>/factories/`) or `packages/core/src/infrastructure/repository-factory.ts`
 4. Add configuration handling in `Configuration` class
 
 **Adding a new Engineering Health metric:**
+
 1. Add the adapter in `packages/core/src/engineering-health/adapters/`
 2. Register it in `packages/core/src/engineering-health/registry.ts`
 3. Expose it through the CLI/REST endpoints if needed
+4. Add its catalog entry in `packages/core/src/domain/metrics/` and run `pnpm docs:metrics`
 
 ## Codebase Architecture
 
@@ -377,14 +382,14 @@ pnpm --filter @smmachine/webapp build
 `docs/architecture/` holds the C4 diagrams as Mermaid sources. They render directly on GitHub, so read them in place.
 They are contributor documentation and are intentionally not part of the VitePress site, which documents product usage.
 
-| Level | Answers | File |
-|-------|---------|------|
-| 1 — System context | Who uses SMM and which external systems it talks to | [level-1-system-context.md](docs/architecture/level-1-system-context.md) |
-| 2 — Containers | Which apps and libraries exist, and which one may write | [level-2-containers.md](docs/architecture/level-2-containers.md) |
-| 3 — Core components | Domain slices, providers, Engineering Health, persistence | [level-3-components-core.md](docs/architecture/level-3-components-core.md) |
-| 3 — Application components | CLI, REST, webapp and MCP internals | [level-3-components-apps.md](docs/architecture/level-3-components-apps.md) |
-| Dynamic views | Order of calls for the three main flows | [dynamic-views.md](docs/architecture/dynamic-views.md) |
-| Deployment | Published CLI stack vs local development | [deployment.md](docs/architecture/deployment.md) |
+| Level                      | Answers                                                   | File                                                                       |
+| -------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 1 — System context         | Who uses SMM and which external systems it talks to       | [level-1-system-context.md](docs/architecture/level-1-system-context.md)   |
+| 2 — Containers             | Which apps and libraries exist, and which one may write   | [level-2-containers.md](docs/architecture/level-2-containers.md)           |
+| 3 — Core components        | Domain slices, providers, Engineering Health, persistence | [level-3-components-core.md](docs/architecture/level-3-components-core.md) |
+| 3 — Application components | CLI, REST, webapp and MCP internals                       | [level-3-components-apps.md](docs/architecture/level-3-components-apps.md) |
+| Dynamic views              | Order of calls for the three main flows                   | [dynamic-views.md](docs/architecture/dynamic-views.md)                     |
+| Deployment                 | Published CLI stack vs local development                  | [deployment.md](docs/architecture/deployment.md)                           |
 
 Read them in that order on your first pass. Update the affected diagram in the same pull request that changes the
 architecture.
@@ -416,14 +421,14 @@ REST API over HTTP and has no runtime workspace dependency on `@smmachine/core`.
 
 The monorepo uses a mix of module systems:
 
-| Package     | Type     |
-|-------------|----------|
-| `apps/cli`  | CommonJS (bundled by tsup for Node.js distribution) |
-| `apps/mcp`  | CommonJS (bundled by tsup) |
-| `apps/rest` | CommonJS (tsc for production, ts-node for dev) |
-| `apps/webapp` | ESM (Next.js) |
-| `packages/core` | CommonJS |
-| `packages/utils` | CommonJS |
+| Package          | Type                                                |
+| ---------------- | --------------------------------------------------- |
+| `apps/cli`       | CommonJS (bundled by tsup for Node.js distribution) |
+| `apps/mcp`       | CommonJS (bundled by tsup)                          |
+| `apps/rest`      | CommonJS (tsc for production, ts-node for dev)      |
+| `apps/webapp`    | ESM (Next.js)                                       |
+| `packages/core`  | CommonJS                                            |
+| `packages/utils` | CommonJS                                            |
 
 ## Testing
 
@@ -483,6 +488,7 @@ pnpm --filter @smmachine/cli lint
 ```
 
 Key rules (from `eslint.config.mjs`):
+
 - `@typescript-eslint/no-explicit-any`: error
 - `@typescript-eslint/no-unused-vars`: error (prefix with `_` to ignore)
 - `prettier/prettier`: error
@@ -516,6 +522,7 @@ Configuration (`.prettierrc.json`):
 ### Pre-commit checks
 
 Lint-staged runs automatically on commit via `.lintstagedrc.json`:
+
 - `*.{ts,tsx}` → `eslint --fix` + `prettier --write`
 - `*.{json,md}` → `prettier --write`
 
@@ -534,9 +541,10 @@ docker compose up sonarqube
 ```
 
 Services:
+
 - **SonarQube** — port 9000, `sonarqube:10-community`
-- **API** — port 8000, `node:25-slim`
-- **Webapp** — port 3000, `node:25-slim`
+- **API** — port 8000, `node:26-slim`
+- **Webapp** — port 3000, `node:26-slim`
 
 ### CLI command for SonarQube analysis
 
@@ -551,10 +559,11 @@ smm sonarqube analysis run
 
 1. Branch is rebased or up to date with `main`.
 2. Run `pnpm test` — all tests pass.
-3. Run `pnpm lint` — no errors (warnings are acceptable).
+3. Run `pnpm lint` and `pnpm typecheck` — zero errors and zero warnings.
 4. Run `pnpm build` — builds successfully.
-5. Relevant documentation is updated (`docs/vitepress/`).
-6. New CLI commands are documented in `docs/vitepress/features/`.
+5. Run `pnpm docs:metrics:check` if you touched the metric catalog.
+6. Relevant documentation is updated (`docs/vitepress/`, and `docs/architecture/` for structural changes).
+7. New CLI commands are documented in `docs/vitepress/features/` and the architecture diagrams still match.
 
 ### Pre-submission sanity check
 
@@ -636,7 +645,7 @@ pnpm run lint -- --fix                      # Re-run lint
 Some tests require cached data in `SMM_STORE_DATA_AT`. Set it to a directory with pre-fetched data, or run the corresponding fetch commands first:
 
 ```bash
-SMM_STORE_DATA_AT=./.data smm prs fetch
+SMM_STORE_DATA_AT=./.data smm change-requests fetch
 SMM_STORE_DATA_AT=./.data smm pipelines fetch
 ```
 
@@ -644,7 +653,7 @@ SMM_STORE_DATA_AT=./.data smm pipelines fetch
 
 ```bash
 corepack enable
-corepack prepare pnpm@12.14.0 --activate
+corepack prepare pnpm@12.16.1 --activate
 ```
 
 ### SQLite data queries
@@ -733,7 +742,7 @@ DELETE FROM pipeline_jobs               WHERE namespace = '<your-namespace>';
 After deleting, re-run the relevant CLI fetch command to repopulate:
 
 ```bash
-SMM_STORE_DATA_AT=./.data smm prs fetch
+SMM_STORE_DATA_AT=./.data smm change-requests fetch
 SMM_STORE_DATA_AT=./.data smm pipelines fetch
 ```
 

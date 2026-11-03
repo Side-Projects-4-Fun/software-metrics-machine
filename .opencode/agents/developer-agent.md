@@ -1,6 +1,7 @@
 ---
 name: SMM Developer Agent
-description: Expert agent for Software Metrics Machine development and maintenance. Maintains pnpm TypeScript monorepo with Commander.js CLI,
+description:
+  Expert agent for Software Metrics Machine development and maintenance. Maintains pnpm TypeScript monorepo with Commander.js CLI,
   NestJS REST API, Next.js webapp, and shared core/utils packages. Enforces critical build/test/lint commands, prevents
   package breakage, manages workspace dependencies, guides through metrics implementation, provider development,
   architecture patterns, and handles ongoing repository maintenance (deps, audits, Docker, CI, coverage, migrations).
@@ -29,7 +30,8 @@ Use this map to jump straight to the right file. Directory names below are paths
 apps/cli/src/
   index.ts                 # Commander program; registers every command group
   commands/                # change-requests, pipelines, code, architecture, engineering-health,
-                           #   filters, project, jira, sonarqube, tools, dashboard, mcp, health-check
+                           #   filters, metrics, project, jira, sonarqube, tools, dashboard, mcp, health-check
+  commands/helpers/        # Shared command option parsing/formatting helpers
   factories/               # CLI-level factories (jira-factory.ts)
   formatters/              # Terminal table/JSON output helpers
   screen.ts                # Interactive prompt helpers
@@ -38,9 +40,11 @@ apps/cli/lib/bashunit/     # Vendored bashunit runner
 apps/cli/tools/            # Bundled code-maat JAR (downloaded by fetch-codemaat.sh)
 
 apps/rest/src/
-  main.ts                  # Nest bootstrap + Swagger at /api
+  main.ts                  # Nest bootstrap + Swagger UI at /api/docs
   metrics.module.ts        # Root module wiring
-  controllers/             # One controller per feature area (+ *-evaluation controllers)
+  metrics.controller.ts    # Legacy aggregate endpoints under /api/metrics/*
+  controllers/             # One controller per feature area (+ *-evaluation controllers,
+                           #   metrics-catalog, dora, pipeline-dashboard, filters, version, projects)
   dtos/ filters/ middleware/ config/ logger/ utils/
 
 apps/mcp/src/
@@ -52,7 +56,7 @@ apps/mcp/src/
 
 apps/webapp/
   app/                     # App Router: dashboard/<feature>/, engineering-health/, reports/[id]/, api/
-  components/              # Feature UI: charts/, filters/, reports/, tabs/, ui/, providers/, home/
+  components/              # Feature UI: charts/, filters/, reports/, tabs/, ui/, providers/, home/, references/
   server/                  # Server-only data layer: server/api/*.ts, api.ts, app-provider-data.ts
   lib/                     # Client-safe helpers (dashboard-links.ts, metrics/)
   __tests__/               # Jest tests, builders/, utils/
@@ -60,23 +64,29 @@ apps/webapp/
 
 packages/core/src/
   domain/<area>/           # services/, repositories/, factories/, infrastructure/, __tests__/
+  domain/metrics/          # Metric catalog: metric-catalog.ts, metric-implementations.ts, export helpers
   providers/<vendor>/      # API clients + *-fetch-repository implementations
   engineering-health/      # registry, adapters, orchestrator, factory
   infrastructure/          # configuration.ts, sqlite repository/migrations, timezone, user settings
   test/                    # In-memory repositories and shared builders
 
 packages/utils/src/        # logger.ts, json.ts, date-time.ts, duration.ts, app-version.ts
+
+docs/architecture/         # Contributor C4 docs (Mermaid) + metrics-catalog.md
+scripts/                   # merge-coverage.mjs, generate-metrics-catalog-docs.mts, simulate-and-test-publish.sh
 ```
 
 ## Key Responsibilities
 
 ### 1. Code Understanding & Navigation
+
 - Help developers understand the monorepo structure
 - Explain how providers work (GitHub, GitLab, Jira, CodeMaat, SonarQube)
 - Guide through the CLI command architecture (Commander.js)
 - Clarify the configuration system (env vars + `Configuration` class)
 
 ### 2. Feature Implementation
+
 - Assist in implementing new providers for different data sources
 - Help create new metric calculations in `packages/core/src/domain/`
 - Support adding new CLI commands in `apps/cli/src/commands/`
@@ -84,18 +94,21 @@ packages/utils/src/        # logger.ts, json.ts, date-time.ts, duration.ts, app-
 - Support MCP tools and resources in `apps/mcp/src/` while keeping the server read-only
 
 ### 3. Bug Fixing
+
 - Help identify root causes in metric calculations
 - Debug data fetching issues from Git providers
 - Assist with API integration problems
 - Fix configuration and environment issues
 
 ### 4. Code Quality
+
 - Ensure tests are written for new features (Vitest / Jest)
 - Respect ESLint rules (`eslint.config.mjs`) — no `explicit-any`, no unused vars, no floating promises
 - Follow Prettier formatting (`.prettierrc.json`)
 - Run `pnpm lint` and `pnpm typecheck` before changes
 
 ### 5. Documentation
+
 - Help update documentation at `docs/vitepress/features/`
 - Document new CLI commands
 - Add provider-specific documentation
@@ -103,10 +116,17 @@ packages/utils/src/        # logger.ts, json.ts, date-time.ts, duration.ts, app-
 - `./docs/adrs` store Architecture Decision Records for major decisions keep this in sync and refer to it when making architectural changes. When a rename or refactor supersedes a prior ADR decision, record it as an addendum on the same ADR file rather than silently deviating.
 - `./docs/architecture` stores the C4 architecture documentation (Mermaid): levels 1-3
   (`level-1-system-context.md`, `level-2-containers.md`, `level-3-components-core.md`,
-  `level-3-components-apps.md`), `dynamic-views.md` and `deployment.md`. It is internal contributor documentation,
-  linked from `CONTRIBUTING.md`; keep it out of the VitePress site, which documents product usage.
+  `level-3-components-apps.md`), `dynamic-views.md`, `deployment.md` and `metrics-catalog.md`. It is internal
+  contributor documentation, linked from `CONTRIBUTING.md`; keep it out of the VitePress site, which documents
+  product usage.
+- Keep the metric catalog artifacts in sync: `pnpm docs:metrics` regenerates
+  `docs/vitepress/public/metrics-catalog.csv` from `packages/core/src/domain/metrics/`; `pnpm docs:metrics:check`
+  fails on drift. Update `docs/architecture/metrics-catalog.md` by hand when the catalog changes structurally.
+- Rename/refactor changes that supersede a prior ADR decision need an addendum on the same ADR file (see the
+  `prs` → `change-requests` rename addendum in ADR 0005).
 
 ### 6. Repository Maintenance
+
 - Bump Node.js and pnpm versions in `.nvmrc`, `package.json`, and documentation
 - Update dependencies via pnpm catalog (`pnpm-workspace.yaml`)
 - Run `pnpm update` for minor/patch bumps and `pnpm update --latest` for majors (review changelogs first)
@@ -128,12 +148,12 @@ packages/utils/src/        # logger.ts, json.ts, date-time.ts, duration.ts, app-
 This agent references project-specific skills for specialized workflows. When a task matches the skill's domain,
 delegate to the skill using `SKILL.md` instructions and conventions:
 
-| Skill | Location | When to use |
-|-------|----------|-------------|
-| **TDD** | `.agents/skills/tdd/SKILL.md` | Writing/running Vitest or Jest tests, builder pattern, coverage, Red-Green-Refactor cycle. Delegate all test authoring here. |
-| **Lint** | `.agents/skills/lint/SKILL.md` | ESLint flat config, Prettier formatting, typecheck (`tsc --noEmit`), lint-staged, resolving lint warnings/errors. Delegate all lint/format/typecheck tasks. |
-| **CLI Acceptance Tests** | `.agents/skills/cli-acceptance-tests/SKILL.md` | bashunit e2e tests under `apps/cli/e2e`, MSW-backed GitHub flows, cached fixture workspaces. Delegate CLI acceptance test authoring and debugging. |
-| **Update VitePress Docs** | `.agents/skills/update-vitepress-docs/SKILL.md` | Creating/updating docs under `docs/vitepress`, CLI/dashboard parity, screenshots, sidebar config. Delegate all doc changes here. |
+| Skill                     | Location                                        | When to use                                                                                                                                                 |
+| ------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **TDD**                   | `.agents/skills/tdd/SKILL.md`                   | Writing/running Vitest or Jest tests, builder pattern, coverage, Red-Green-Refactor cycle. Delegate all test authoring here.                                |
+| **Lint**                  | `.agents/skills/lint/SKILL.md`                  | ESLint flat config, Prettier formatting, typecheck (`tsc --noEmit`), lint-staged, resolving lint warnings/errors. Delegate all lint/format/typecheck tasks. |
+| **CLI Acceptance Tests**  | `.agents/skills/cli-acceptance-tests/SKILL.md`  | bashunit e2e tests under `apps/cli/e2e`, MSW-backed GitHub flows, cached fixture workspaces. Delegate CLI acceptance test authoring and debugging.          |
+| **Update VitePress Docs** | `.agents/skills/update-vitepress-docs/SKILL.md` | Creating/updating docs under `docs/vitepress`, CLI/dashboard parity, screenshots, sidebar config. Delegate all doc changes here.                            |
 
 **When NOT to delegate to a skill:** general architecture discussions, provider implementation, service/repository
 pattern design, dependency resolution, build pipeline fixes, and configuration management. These remain in the
@@ -142,20 +162,20 @@ architecture, and one-off analysis.
 
 ## Subagents
 
-| Subagent | Mode | When to use |
-|----------|------|-------------|
-| `code-reviewer` | `subagent`, edit denied | Reviewing a diff against lint/type/test conventions without making changes. |
-| `docs-writer` | `subagent`, bash denied | Writing/updating `docs/vitepress` pages once the doc content is determined. |
-| `test-writer` | `subagent` | Writing or running Vitest/Jest tests following the `tdd` skill's builder pattern. |
-| `webapp-developer` | `subagent` | Next.js webapp development: React 19, MUI 9, Tailwind CSS 4, Recharts 3, Jest 30 + Cypress frontend testing with builder pattern and renderWithProviders(). |
+| Subagent           | Mode                    | When to use                                                                                                                                                 |
+| ------------------ | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `code-reviewer`    | `subagent`, edit denied | Reviewing a diff against lint/type/test conventions without making changes.                                                                                 |
+| `docs-writer`      | `subagent`, bash denied | Writing/updating `docs/vitepress` pages once the doc content is determined.                                                                                 |
+| `test-writer`      | `subagent`              | Writing or running Vitest/Jest tests following the `tdd` skill's builder pattern.                                                                           |
+| `webapp-developer` | `subagent`              | Next.js webapp development: React 19, MUI 9, Tailwind CSS 4, Recharts 3, Jest 30 + Cypress frontend testing with builder pattern and renderWithProviders(). |
 
 ## Commands
 
-| Command | Purpose |
-|---------|---------|
-| `/verify` | Runs the mandatory `pnpm lint && pnpm typecheck && pnpm build && pnpm test` gate. |
-| `/test-file <path>` | Runs all tests in a single file, picking Vitest or Jest based on workspace. |
-| `/e2e` | Runs the CLI acceptance suite (`pnpm run test:cli:acceptance`). |
+| Command             | Purpose                                                                           |
+| ------------------- | --------------------------------------------------------------------------------- |
+| `/verify`           | Runs the mandatory `pnpm lint && pnpm typecheck && pnpm build && pnpm test` gate. |
+| `/test-file <path>` | Runs all tests in a single file, picking Vitest or Jest based on workspace.       |
+| `/e2e`              | Runs the CLI acceptance suite (`pnpm run test:cli:acceptance`).                   |
 
 Technology stack, project structure, architecture, and the Critical Rules (DO/NEVER) are documented once in
 `AGENTS.md` at the repo root — read it before making changes. This file only adds OpenCode-specific delegation and
@@ -176,7 +196,7 @@ pnpm lint               # lints all workspaces
 
 ```bash
 pnpm cli -- --help
-pnpm cli -- prs summary --start-date=2025-01-01
+pnpm cli -- change-requests summary --start-date=2025-01-01
 ```
 
 Runs `tsx src/index.ts` with `SMM_DEV_MODE=true`.
@@ -187,7 +207,7 @@ Runs `tsx src/index.ts` with `SMM_DEV_MODE=true`.
 pnpm --filter @smmachine/rest dev    # port 8000
 ```
 
-Swagger docs at `http://localhost:8000/api`.
+Swagger docs at `http://localhost:8000/api/docs` (OpenAPI JSON at `/api-json`).
 
 ### MCP server development
 
@@ -281,7 +301,7 @@ pnpm install
 Always use the pnpm catalog (`pnpm-workspace.yaml`) for dependency versions. Never hardcode versions in individual
 `package.json` files that overlap with catalog entries.
 
-**Keep tooling packages on one major.** `vitest` and `@vitest/coverage-v8` must share the same major (`^5.0.5`), and the
+**Keep tooling packages on one major.** `vitest` and `@vitest/coverage-v8` must share the same major (`^5.1.0`), and the
 same applies to any other package family split across the catalog (e.g. `@nestjs/*`, `@mui/*`). A mismatched coverage
 provider pulls a second copy of the Vitest toolchain (`@vitest/utils`, `@vitest/pretty-format`) into the tree. After a
 version bump, verify with `pnpm why vitest`, `pnpm why @vitest/coverage-v8`, and check that `pnpm-lock.yaml` has a single
@@ -302,6 +322,17 @@ pnpm lint:arch                     # dependency-cruiser checks
 ```
 
 The rules are defined in `.dependency-cruiser.cjs`. Update them when package boundaries change.
+
+#### Metric catalog artifacts
+
+```bash
+pnpm docs:metrics                  # regenerate docs/vitepress/public/metrics-catalog.csv
+pnpm docs:metrics:check            # fail when the committed artifacts drift
+```
+
+The catalog source is `packages/core/src/domain/metrics/metric-catalog.ts`; every CLI command, REST route and MCP
+tool must stay catalogued or explicitly allowlisted (surface-coverage tests enforce this). Run the sync check in the
+same change that adds or renames a metric surface.
 
 #### Coverage pipeline
 
@@ -344,6 +375,7 @@ pnpm build:npm                     # builds packages in publish order + bundles 
 ```
 
 Verify the `files` field in root `package.json` includes all required artifacts:
+
 - `dist/` (CLI bundle, bundled REST server, bundled webapp standalone server)
 - `apps/cli/fetch-codemaat.sh`
 - `apps/cli/tools/`
@@ -362,16 +394,17 @@ All workflows read pnpm and Node.js versions from `./envvars.for.actions` via th
 
 **Jobs (sequential via `needs`):**
 
-| # | Job | Depends on | What it does |
-|---|-----|-----------|-------------|
-| 1 | `build-typescript` | — | Checks out repo + `react/react` as project example into `docs/project-example/react`, sets `SMM_STORE_DATA_AT`, runs `pnpm install`, `pnpm lint:arch`, `pnpm build` |
-| 2 | `test` | `build-typescript` | Runs `pnpm test` |
-| 3 | `cli-acceptance` | `build-typescript`, `test` | Builds, installs bashunit, runs `pnpm test:e2e` in `apps/cli` |
-| 4 | `check-distribution` | `build-typescript` | Clones facebook/react with `--shallow-since="2025-03-01"`, runs `scripts/simulate-and-test-publish.sh build` |
-| 5 | `webapp-e2e` | `build-typescript` | Installs the Cypress binary (cached in `~/.cache/Cypress`), runs `pnpm --filter @smmachine/webapp cy:run`, uploads screenshots and videos on failure |
-| 6 | `sonarqube` | `build-typescript`, `test`, `cli-acceptance`, `check-distribution`, `webapp-e2e` | Only on `main` branch. Builds, collects merged coverage (`pnpm coverage:all`), runs SonarQube scan with `SONAR_TOKEN` secret |
+| #   | Job                  | Depends on                                                                       | What it does                                                                                                                                                        |
+| --- | -------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `build-typescript`   | —                                                                                | Checks out repo + `react/react` as project example into `docs/project-example/react`, sets `SMM_STORE_DATA_AT`, runs `pnpm install`, `pnpm lint:arch`, `pnpm build` |
+| 2   | `test`               | `build-typescript`                                                               | Runs `pnpm test`                                                                                                                                                    |
+| 3   | `cli-acceptance`     | `build-typescript`, `test`                                                       | Builds, installs bashunit, runs `pnpm test:e2e` in `apps/cli`                                                                                                       |
+| 4   | `check-distribution` | `build-typescript`                                                               | Clones facebook/react with `--shallow-since="2025-03-01"`, runs `scripts/simulate-and-test-publish.sh build`                                                        |
+| 5   | `webapp-e2e`         | `build-typescript`                                                               | Installs the Cypress binary (cached in `~/.cache/Cypress`), runs `pnpm --filter @smmachine/webapp cy:run`, uploads screenshots and videos on failure                |
+| 6   | `sonarqube`          | `build-typescript`, `test`, `cli-acceptance`, `check-distribution`, `webapp-e2e` | Only on `main` branch. Builds, collects merged coverage (`pnpm coverage:all`), runs SonarQube scan with `SONAR_TOKEN` secret                                        |
 
 Key details:
+
 - The `build-typescript` job uses a second `actions/checkout` step to clone `react/react` into `docs/project-example/react` with `fetch-depth: 500`. This provides real-world data for the build.
 - `check-distribution` uses a shallow clone (`--shallow-since`) to speed up the simulation.
 - Every job installs with `pnpm install --ignore-scripts`, so `webapp-e2e` downloads the Cypress binary explicitly with `pnpm --filter @smmachine/webapp exec cypress install` (cached in `~/.cache/Cypress`).
@@ -383,8 +416,9 @@ Key details:
 **Triggers:** `push` to `main` with changes in `docs/**`, `workflow_dispatch`.
 
 **What it does:**
+
 - Runs in `docs/vitepress` as the working directory.
-- Installs with `npm install --dev`, builds with `npm run docs:build`.
+- Installs with `npm ci --ignore-scripts`, builds with `npm run docs:build` (Node version from `envvars.for.actions`).
 - Uploads `docs/vitepress/.vitepress/dist` as Pages artifact, deploys to GitHub Pages.
 - Concurrency group `pages` ensures only one deployment at a time; in-progress runs are not cancelled.
 
@@ -395,6 +429,7 @@ Key details:
 **Triggers:** `workflow_dispatch` only (manual).
 
 **What it does:**
+
 - Checks out repo + `react/react` into `docs/project-example/react` (fetch-depth 500).
 - Sets `SMM_STORE_DATA_AT` to the project example path.
 - Installs with `pnpm install --frozen-lockfile`, publishes with `pnpm publish --access public --no-git-checks`.
@@ -406,6 +441,7 @@ Key details:
 **Triggers:** `push` / `pull_request` to `main`, weekly cron (`26 16 * * 3`), `branch_protection_rule`.
 
 **What it does:**
+
 - Runs `ossf/scorecard-action` to analyze supply-chain security posture.
 - Uploads SARIF results as an artifact (5-day retention).
 - Uploads results to GitHub Code Scanning dashboard via `github/codeql-action/upload-sarif`.
@@ -416,6 +452,7 @@ Key details:
 #### Workflow maintenance checklist
 
 When modifying or adding CI/CD workflows:
+
 - Keep `actions/checkout` and other pinned actions at consistent versions across workflows.
 - Always use `envvars.for.actions` for version variables — never duplicate version strings.
 - Ensure new jobs respect the `paths-ignore: ["docs/**"]` pattern when appropriate.
@@ -423,8 +460,6 @@ When modifying or adding CI/CD workflows:
 - Test `workflow_dispatch` triggers after changes to manual workflows.
 - Keep `permissions` scoped to the minimum required for each job/workflow.
 - For checkout of external repos, use `persist-credentials: false`.
-
-
 
 ## Webapp (Next.js) Development
 
@@ -485,7 +520,7 @@ MUI major versions commonly move or rename props. Always verify with `next build
 
 ### Report composition patterns
 
-- Reports support multi-select for saved filters across all evaluatable sections (pipelines, pull-requests, source-code, architecture, sonarqube)
+- Reports support multi-select for saved filters across all evaluatable sections (pipelines, change-requests, source-code, architecture, sonarqube)
 - Each section can have multiple saved filters selected, creating separate evaluation cards per filter
 - The `SavedFilterSelect` component uses MUI Autocomplete with `multiple` prop for multi-selection
 - Report state stores selections as arrays of filter IDs per section
@@ -526,6 +561,7 @@ MUI major versions commonly move or rename props. Always verify with `next build
 ## Conversation Starters
 
 **Feature development:**
+
 - "How do I add a new CLI command?"
 - "Explain the PR metrics calculation"
 - "How do providers work?"
@@ -536,6 +572,7 @@ MUI major versions commonly move or rename props. Always verify with `next build
 - "How do I add a new REST endpoint?"
 
 **Maintenance:**
+
 - "Update all dependencies to latest compatible versions"
 - "Audit dependencies for vulnerabilities"
 - "Bump Node.js/pnpm versions across the repo"
@@ -547,6 +584,7 @@ MUI major versions commonly move or rename props. Always verify with `next build
 - "Review stale ADRs and clean up docs/architecture"
 
 **Skills (delegates to specialized workflows):**
+
 - "Write tests for this service" → delegates to TDD skill
 - "Fix lint errors" or "Run typecheck" → delegates to Lint skill
 - "Add acceptance test for the new CLI command" → delegates to CLI Acceptance Tests skill

@@ -144,12 +144,12 @@ For more details on VS Code MCP configuration, see the
 
 The server advertises the following MCP capabilities during `initialize`:
 
-| Capability | Methods supported | Options |
-| ---------- | ----------------- | ------- |
-| Tools | `tools/list`, `tools/call` | `listChanged: true` |
-| Resources | `resources/list`, `resources/templates/list`, `resources/read` | `listChanged: true` |
-| Prompts | `prompts/list`, `prompts/get` | `listChanged: true` |
-| Logging | `logging/setLevel` | |
+| Capability | Methods supported                                              | Options             |
+| ---------- | -------------------------------------------------------------- | ------------------- |
+| Tools      | `tools/list`, `tools/call`                                     | `listChanged: true` |
+| Resources  | `resources/list`, `resources/templates/list`, `resources/read` | `listChanged: true` |
+| Prompts    | `prompts/list`, `prompts/get`                                  | `listChanged: true` |
+| Logging    | `logging/setLevel`                                             |                     |
 
 The server is built on the official [`@modelcontextprotocol/sdk`](https://github.com/modelcontextprotocol/typescript-sdk) and negotiates the protocol version with the client during `initialize`.
 
@@ -157,65 +157,66 @@ The server is built on the official [`@modelcontextprotocol/sdk`](https://github
 
 The MCP server exposes these tools:
 
-| Tool | Description |
-| ---- | ----------- |
-| `smm_list_projects` | Lists configured projects from `smm_config.json`. |
-| `smm_list_engineering_health_metrics` | Lists the available engineering health metric ids, categories, and labels. |
-| `smm_get_change_request_metrics` | Reads change request metrics (throughput, review time, authors, outliers). |
-| `smm_get_deployment_metrics` | Reads pipeline and deployment metrics (durations, success rate, deployment frequency, jobs). |
-| `smm_get_code_metrics` | Reads code churn, coupling, and pairing metrics. Supports author and file pattern filters. |
-| `smm_get_issue_metrics` | Reads Jira issue metrics. Supports an optional status filter. |
-| `smm_get_quality_metrics` | Reads SonarQube quality metrics. |
-| `smm_get_engineering_health` | Evaluates engineering health metrics with values, trends, targets, and recommendations. |
-| `smm_get_dora_metrics` | Reads DORA and pipeline metrics with rich filters (workflow, branch, status, conclusion, event, cleaning). |
-| `smm_list_architecture_snapshots` | Lists architecture snapshots previously generated for a project. |
-| `smm_get_architecture_view` | Reads a C4 architecture view (context, container, component, or code) for a project. |
-| `smm_get_full_report` | Reads a combined project report (change requests, deployment, code, issues, quality). |
-| `smm_evaluate_change_requests` | Evaluates change request health signals (review bottlenecks, throughput, collaboration) and produces severity-graded recommendations. |
-| `smm_evaluate_pipelines` | Evaluates pipeline health signals (duration, stability, throughput) and produces severity-graded recommendations. |
-| `smm_evaluate_code` | Evaluates code health signals (churn, coupling, ownership, complexity, collaboration) and produces severity-graded recommendations. |
-| `smm_evaluate_quality` | Evaluates SonarQube quality signals (ratings, complexity, coverage, duplication) and produces severity-graded recommendations. |
-| `smm_evaluate_architecture` | Evaluates architecture health signals (container count, dependency concentration, orphan nodes, confidence) and produces severity-graded recommendations. |
-| `smm_list_big_o_files` | Lists source files with their Big-O complexity classification (O(1), O(log n), O(n), O(n log n), O(n^2), O(n^3+)). Supports search and file pattern filters. |
-| `smm_analyze_big_o_file` | Analyzes a specific source file for Big-O complexity, returning line-by-line classifications with reasons. |
-| `smm_health_check` | Generates a health report on dataset freshness, gaps, missing fields, and item counts across all data providers. |
-| `smm_get_version` | Returns the Software Metrics Machine version and server name. |
-| `smm_get_configuration` | Returns the redacted project configuration (tokens and secrets are masked). |
-| `smm_list_change_request_filter_options` | Lists available change request filter values (authors, labels, commenters). |
-| `smm_list_pipeline_filter_options` | Lists available pipeline filter values (workflows, statuses, conclusions, branches, events, jobs). |
-| `smm_list_code_authors` | Lists all code authors available in the CodeMaat data. |
-| `smm_get_change_request_summary` | Detailed change request summary (totals, labels, top commenter, themes, first/last/most-commented, time to first comment). |
-| `smm_get_change_request_through_time` | Change requests opened and closed through time, aggregated by day/week/month. |
-| `smm_get_change_request_by_author` | Change request counts grouped by author, with optional top-N limit. |
-| `smm_get_change_request_review_time` | Review time (days) by author with selectable statistical method and outlier handling. |
-| `smm_get_change_request_open_time` | Open time (days) aggregated by day/week/month with selectable statistical method. |
-| `smm_get_change_request_comments` | Comments per change request (overall or by-period when `aggregateBy` is set). |
-| `smm_get_change_request_comments_by_author` | Comment counts grouped by author, with optional top-N limit. |
-| `smm_get_change_request_first_comment_time` | Time to first comment (hours) by author with selectable statistical method. |
-| `smm_get_change_request_metrics_by_month` | Change request metrics (comments, review time, open time) grouped by month. |
-| `smm_get_change_request_metrics_by_week` | Change request metrics (comments, review time, open time) grouped by week. |
-| `smm_get_pipeline_dashboard` | Full pipeline dashboard (summary, runs duration, runs by, jobs time, jobs summary, job steps time, jobs duration by workflow). |
-| `smm_get_code_pairing_index` | Detailed pairing index (percentage, total/paired commits, top pairs, latest paired commits). |
-| `smm_get_code_churn` | Code churn metrics (added/deleted/commits per period). |
-| `smm_get_code_churn_history` | Timestamped code churn history entries. |
-| `smm_get_code_coupling` | File coupling relationships with optional pattern/top filters. |
-| `smm_get_code_coupling_history` | Timestamped file coupling history entries. |
-| `smm_get_code_layered_coupling` | Layered file coupling relationships with optional pattern/top filters. |
-| `smm_get_code_layered_coupling_history` | Timestamped layered file coupling history entries. |
-| `smm_get_code_entity_churn` | Entity-level churn metrics with optional pattern/top filters. |
-| `smm_get_code_entity_churn_history` | Timestamped entity-level churn history entries. |
-| `smm_get_code_entity_effort` | Entity-level effort metrics with optional pattern/top filters. |
-| `smm_get_code_entity_effort_history` | Timestamped entity-level effort history entries. |
-| `smm_get_code_entity_ownership` | Entity ownership by developers with optional pattern/authors/top filters. |
-| `smm_get_code_entity_ownership_history` | Timestamped entity ownership history entries. |
-| `smm_get_sonarqube_component_tree` | SonarQube component tree with metrics, optional component/depth/metrics/pattern filters. |
-| `smm_get_sonarqube_component_tree_history` | Timestamped SonarQube component tree history entries. |
-| `smm_get_sonarqube_measurements` | All SonarQube measurements (latest snapshot). |
-| `smm_get_sonarqube_measurements_history` | Timestamped SonarQube measurement history entries. |
-| `smm_get_architecture_summary` | Architecture snapshot metadata (snapshot id, generated at, branch, commit count, view counts) for the latest or a specific snapshot. |
-| `smm_export_architecture_view` | Exports an architecture view (context, container, component, code) as JSON plus a Mermaid diagram string. |
-| `smm_list_saved_filters` | Lists saved filters and reports (read-only), optionally filtered by dashboard section. |
-| `smm_get_saved_filter` | Looks up a single saved filter by name or id, returning the full filter entry. |
+| Tool                                        | Description                                                                                                                                                   |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `smm_list_projects`                         | Lists configured projects from `smm_config.json`.                                                                                                             |
+| `smm_list_engineering_health_metrics`       | Lists the available engineering health metric ids, categories, and labels.                                                                                    |
+| `smm_list_metrics`                          | Lists every catalogued metric with stable id, namespace, computation metadata (evidence, formula, notation), and surfaces. Filter by namespace or visibility. |
+| `smm_get_change_request_metrics`            | Reads change request metrics (throughput, review time, authors, outliers).                                                                                    |
+| `smm_get_deployment_metrics`                | Reads pipeline and deployment metrics (durations, success rate, deployment frequency, jobs).                                                                  |
+| `smm_get_code_metrics`                      | Reads code churn, coupling, and pairing metrics. Supports author and file pattern filters.                                                                    |
+| `smm_get_issue_metrics`                     | Reads Jira issue metrics. Supports an optional status filter.                                                                                                 |
+| `smm_get_quality_metrics`                   | Reads SonarQube quality metrics.                                                                                                                              |
+| `smm_get_engineering_health`                | Evaluates engineering health metrics with values, trends, targets, and recommendations.                                                                       |
+| `smm_get_dora_metrics`                      | Reads DORA and pipeline metrics with rich filters (workflow, branch, status, conclusion, event, cleaning).                                                    |
+| `smm_list_architecture_snapshots`           | Lists architecture snapshots previously generated for a project.                                                                                              |
+| `smm_get_architecture_view`                 | Reads a C4 architecture view (context, container, component, or code) for a project.                                                                          |
+| `smm_get_full_report`                       | Reads a combined project report (change requests, deployment, code, issues, quality).                                                                         |
+| `smm_evaluate_change_requests`              | Evaluates change request health signals (review bottlenecks, throughput, collaboration) and produces severity-graded recommendations.                         |
+| `smm_evaluate_pipelines`                    | Evaluates pipeline health signals (duration, stability, throughput) and produces severity-graded recommendations.                                             |
+| `smm_evaluate_code`                         | Evaluates code health signals (churn, coupling, ownership, complexity, collaboration) and produces severity-graded recommendations.                           |
+| `smm_evaluate_quality`                      | Evaluates SonarQube quality signals (ratings, complexity, coverage, duplication) and produces severity-graded recommendations.                                |
+| `smm_evaluate_architecture`                 | Evaluates architecture health signals (container count, dependency concentration, orphan nodes, confidence) and produces severity-graded recommendations.     |
+| `smm_list_big_o_files`                      | Lists source files with their Big-O complexity classification (O(1), O(log n), O(n), O(n log n), O(n^2), O(n^3+)). Supports search and file pattern filters.  |
+| `smm_analyze_big_o_file`                    | Analyzes a specific source file for Big-O complexity, returning line-by-line classifications with reasons.                                                    |
+| `smm_health_check`                          | Generates a health report on dataset freshness, gaps, missing fields, and item counts across all data providers.                                              |
+| `smm_get_version`                           | Returns the Software Metrics Machine version and server name.                                                                                                 |
+| `smm_get_configuration`                     | Returns the redacted project configuration (tokens and secrets are masked).                                                                                   |
+| `smm_list_change_request_filter_options`    | Lists available change request filter values (authors, labels, commenters).                                                                                   |
+| `smm_list_pipeline_filter_options`          | Lists available pipeline filter values (workflows, statuses, conclusions, branches, events, jobs).                                                            |
+| `smm_list_code_authors`                     | Lists all code authors available in the CodeMaat data.                                                                                                        |
+| `smm_get_change_request_summary`            | Detailed change request summary (totals, labels, top commenter, themes, first/last/most-commented, time to first comment).                                    |
+| `smm_get_change_request_through_time`       | Change requests opened and closed through time, aggregated by day/week/month.                                                                                 |
+| `smm_get_change_request_by_author`          | Change request counts grouped by author, with optional top-N limit.                                                                                           |
+| `smm_get_change_request_review_time`        | Review time (days) by author with selectable statistical method and outlier handling.                                                                         |
+| `smm_get_change_request_open_time`          | Open time (days) aggregated by day/week/month with selectable statistical method.                                                                             |
+| `smm_get_change_request_comments`           | Comments per change request (overall or by-period when `aggregateBy` is set).                                                                                 |
+| `smm_get_change_request_comments_by_author` | Comment counts grouped by author, with optional top-N limit.                                                                                                  |
+| `smm_get_change_request_first_comment_time` | Time to first comment (hours) by author with selectable statistical method.                                                                                   |
+| `smm_get_change_request_metrics_by_month`   | Change request metrics (comments, review time, open time) grouped by month.                                                                                   |
+| `smm_get_change_request_metrics_by_week`    | Change request metrics (comments, review time, open time) grouped by week.                                                                                    |
+| `smm_get_pipeline_dashboard`                | Full pipeline dashboard (summary, runs duration, runs by, jobs time, jobs summary, job steps time, jobs duration by workflow).                                |
+| `smm_get_code_pairing_index`                | Detailed pairing index (percentage, total/paired commits, top pairs, latest paired commits).                                                                  |
+| `smm_get_code_churn`                        | Code churn metrics (added/deleted/commits per period).                                                                                                        |
+| `smm_get_code_churn_history`                | Timestamped code churn history entries.                                                                                                                       |
+| `smm_get_code_coupling`                     | File coupling relationships with optional pattern/top filters.                                                                                                |
+| `smm_get_code_coupling_history`             | Timestamped file coupling history entries.                                                                                                                    |
+| `smm_get_code_layered_coupling`             | Layered file coupling relationships with optional pattern/top filters.                                                                                        |
+| `smm_get_code_layered_coupling_history`     | Timestamped layered file coupling history entries.                                                                                                            |
+| `smm_get_code_entity_churn`                 | Entity-level churn metrics with optional pattern/top filters.                                                                                                 |
+| `smm_get_code_entity_churn_history`         | Timestamped entity-level churn history entries.                                                                                                               |
+| `smm_get_code_entity_effort`                | Entity-level effort metrics with optional pattern/top filters.                                                                                                |
+| `smm_get_code_entity_effort_history`        | Timestamped entity-level effort history entries.                                                                                                              |
+| `smm_get_code_entity_ownership`             | Entity ownership by developers with optional pattern/authors/top filters.                                                                                     |
+| `smm_get_code_entity_ownership_history`     | Timestamped entity ownership history entries.                                                                                                                 |
+| `smm_get_sonarqube_component_tree`          | SonarQube component tree with metrics, optional component/depth/metrics/pattern filters.                                                                      |
+| `smm_get_sonarqube_component_tree_history`  | Timestamped SonarQube component tree history entries.                                                                                                         |
+| `smm_get_sonarqube_measurements`            | All SonarQube measurements (latest snapshot).                                                                                                                 |
+| `smm_get_sonarqube_measurements_history`    | Timestamped SonarQube measurement history entries.                                                                                                            |
+| `smm_get_architecture_summary`              | Architecture snapshot metadata (snapshot id, generated at, branch, commit count, view counts) for the latest or a specific snapshot.                          |
+| `smm_export_architecture_view`              | Exports an architecture view (context, container, component, code) as JSON plus a Mermaid diagram string.                                                     |
+| `smm_list_saved_filters`                    | Lists saved filters and reports (read-only), optionally filtered by dashboard section.                                                                        |
+| `smm_get_saved_filter`                      | Looks up a single saved filter by name or id, returning the full filter entry.                                                                                |
 
 ### Shared metric filters
 
@@ -437,7 +438,8 @@ filters, and repository, or `null` if not found.
 Use `metric` or `category` to narrow the evaluation. When both are omitted, all metrics are evaluated. Use
 `compareStartDate` and `compareEndDate` to produce trend deltas against a previous window.
 
-Discover available metric ids with `smm_list_engineering_health_metrics`.
+Discover available metric ids with `smm_list_engineering_health_metrics` (Engineering Health) or `smm_list_metrics`
+(every catalogued metric across the CLI, REST API and dashboard).
 
 ### DORA metrics filters
 
@@ -606,50 +608,50 @@ The server is read-only. Refresh stale or incomplete data with the CLI before as
 
 The MCP server exposes these static resources:
 
-| Resource | Description |
-| -------- | ----------- |
-| `smm://projects` | Project list with repository and provider names. |
-| `smm://engineering-health/metrics` | Engineering health metric catalog. |
-| `smm://project/{name}/configuration` | Redacted project configuration. |
-| `smm://project/{name}/report` | Complete project report. |
-| `smm://project/{name}/engineering-health` | Engineering health evaluation for the project. |
-| `smm://project/{name}/dora` | DORA and pipeline metrics for the project. |
-| `smm://project/{name}/architecture/snapshots` | Architecture snapshots stored for the project. |
-| `smm://project/{name}/evaluation/change-requests` | Change request health evaluation for the project. |
-| `smm://project/{name}/evaluation/pipelines` | Pipeline health evaluation for the project. |
-| `smm://project/{name}/evaluation/code` | Code health evaluation for the project. |
-| `smm://project/{name}/evaluation/quality` | SonarQube quality evaluation for the project. |
-| `smm://project/{name}/evaluation/architecture` | Architecture health evaluation for the project. |
-| `smm://project/{name}/big-o` | Big-O complexity classification for source files. |
-| `smm://project/{name}/health-check` | Dataset health report for the project. |
-| `smm://project/{name}/architecture/summary` | Architecture snapshot metadata for the latest snapshot. |
-| `smm://project/{name}/pipeline-dashboard` | Full pipeline dashboard for the project. |
-| `smm://project/{name}/saved-filters` | Saved filters and reports for the project. |
-| `smm://project/{name}/sonarqube/measurements` | Latest SonarQube measurements for the project. |
-| `smm://project/{name}/sonarqube/measurements/history` | Timestamped SonarQube measurement entries for the project. |
-| `smm://project/{name}/sonarqube/component-tree` | SonarQube component tree with metrics for the project. |
+| Resource                                                | Description                                                   |
+| ------------------------------------------------------- | ------------------------------------------------------------- |
+| `smm://projects`                                        | Project list with repository and provider names.              |
+| `smm://engineering-health/metrics`                      | Engineering health metric catalog.                            |
+| `smm://project/{name}/configuration`                    | Redacted project configuration.                               |
+| `smm://project/{name}/report`                           | Complete project report.                                      |
+| `smm://project/{name}/engineering-health`               | Engineering health evaluation for the project.                |
+| `smm://project/{name}/dora`                             | DORA and pipeline metrics for the project.                    |
+| `smm://project/{name}/architecture/snapshots`           | Architecture snapshots stored for the project.                |
+| `smm://project/{name}/evaluation/change-requests`       | Change request health evaluation for the project.             |
+| `smm://project/{name}/evaluation/pipelines`             | Pipeline health evaluation for the project.                   |
+| `smm://project/{name}/evaluation/code`                  | Code health evaluation for the project.                       |
+| `smm://project/{name}/evaluation/quality`               | SonarQube quality evaluation for the project.                 |
+| `smm://project/{name}/evaluation/architecture`          | Architecture health evaluation for the project.               |
+| `smm://project/{name}/big-o`                            | Big-O complexity classification for source files.             |
+| `smm://project/{name}/health-check`                     | Dataset health report for the project.                        |
+| `smm://project/{name}/architecture/summary`             | Architecture snapshot metadata for the latest snapshot.       |
+| `smm://project/{name}/pipeline-dashboard`               | Full pipeline dashboard for the project.                      |
+| `smm://project/{name}/saved-filters`                    | Saved filters and reports for the project.                    |
+| `smm://project/{name}/sonarqube/measurements`           | Latest SonarQube measurements for the project.                |
+| `smm://project/{name}/sonarqube/measurements/history`   | Timestamped SonarQube measurement entries for the project.    |
+| `smm://project/{name}/sonarqube/component-tree`         | SonarQube component tree with metrics for the project.        |
 | `smm://project/{name}/sonarqube/component-tree/history` | Timestamped SonarQube component tree entries for the project. |
 
 The server also advertises these resource templates through `resources/templates/list`:
 
-| Template | Description |
-| -------- | ----------- |
-| `smm://project/{project}/engineering-health` | Engineering health evaluation for a project. |
-| `smm://project/{project}/dora` | DORA metrics for a project. |
-| `smm://project/{project}/architecture/snapshots` | Architecture snapshots for a project. |
-| `smm://project/{project}/evaluation/change-requests` | Change request health evaluation for a project. |
-| `smm://project/{project}/evaluation/pipelines` | Pipeline health evaluation for a project. |
-| `smm://project/{project}/evaluation/code` | Code health evaluation for a project. |
-| `smm://project/{project}/evaluation/quality` | SonarQube quality evaluation for a project. |
-| `smm://project/{project}/evaluation/architecture` | Architecture health evaluation for a project. |
-| `smm://project/{project}/big-o` | Big-O complexity classification for a project. |
-| `smm://project/{project}/health-check` | Dataset health report for a project. |
-| `smm://project/{project}/architecture/summary` | Architecture snapshot metadata for a project. |
-| `smm://project/{project}/pipeline-dashboard` | Full pipeline dashboard for a project. |
-| `smm://project/{project}/saved-filters` | Saved filters and reports for a project. |
-| `smm://project/{project}/sonarqube/measurements` | Latest SonarQube measurements for a project. |
-| `smm://project/{project}/sonarqube/measurements/history` | Timestamped SonarQube measurement entries for a project. |
-| `smm://project/{project}/sonarqube/component-tree` | SonarQube component tree with metrics for a project. |
+| Template                                                   | Description                                                 |
+| ---------------------------------------------------------- | ----------------------------------------------------------- |
+| `smm://project/{project}/engineering-health`               | Engineering health evaluation for a project.                |
+| `smm://project/{project}/dora`                             | DORA metrics for a project.                                 |
+| `smm://project/{project}/architecture/snapshots`           | Architecture snapshots for a project.                       |
+| `smm://project/{project}/evaluation/change-requests`       | Change request health evaluation for a project.             |
+| `smm://project/{project}/evaluation/pipelines`             | Pipeline health evaluation for a project.                   |
+| `smm://project/{project}/evaluation/code`                  | Code health evaluation for a project.                       |
+| `smm://project/{project}/evaluation/quality`               | SonarQube quality evaluation for a project.                 |
+| `smm://project/{project}/evaluation/architecture`          | Architecture health evaluation for a project.               |
+| `smm://project/{project}/big-o`                            | Big-O complexity classification for a project.              |
+| `smm://project/{project}/health-check`                     | Dataset health report for a project.                        |
+| `smm://project/{project}/architecture/summary`             | Architecture snapshot metadata for a project.               |
+| `smm://project/{project}/pipeline-dashboard`               | Full pipeline dashboard for a project.                      |
+| `smm://project/{project}/saved-filters`                    | Saved filters and reports for a project.                    |
+| `smm://project/{project}/sonarqube/measurements`           | Latest SonarQube measurements for a project.                |
+| `smm://project/{project}/sonarqube/measurements/history`   | Timestamped SonarQube measurement entries for a project.    |
+| `smm://project/{project}/sonarqube/component-tree`         | SonarQube component tree with metrics for a project.        |
 | `smm://project/{project}/sonarqube/component-tree/history` | Timestamped SonarQube component tree entries for a project. |
 
 Configuration resources redact token-like fields before returning data to the MCP client.
@@ -659,12 +661,12 @@ Configuration resources redact token-like fields before returning data to the MC
 The server ships with ready-made prompts that guide an agent through common SMM workflows. Clients can list them with
 `prompts/list` and retrieve one with `prompts/get`.
 
-| Prompt | Description |
-| ------ | ----------- |
-| `smm_sprint_health_review` | Review engineering health for the current sprint and highlight metrics that need attention. |
-| `smm_compare_windows` | Compare engineering health between two time windows and summarise what improved or regressed. |
-| `smm_dora_summary` | Summarise DORA metrics for a project, including deployment frequency and failure rate. |
-| `smm_code_hotspots` | Identify code hotspots (high churn and high coupling files) and pair-programming gaps. |
+| Prompt                     | Description                                                                                   |
+| -------------------------- | --------------------------------------------------------------------------------------------- |
+| `smm_sprint_health_review` | Review engineering health for the current sprint and highlight metrics that need attention.   |
+| `smm_compare_windows`      | Compare engineering health between two time windows and summarise what improved or regressed. |
+| `smm_dora_summary`         | Summarise DORA metrics for a project, including deployment frequency and failure rate.        |
+| `smm_code_hotspots`        | Identify code hotspots (high churn and high coupling files) and pair-programming gaps.        |
 
 Example `prompts/get` request:
 
@@ -694,11 +696,11 @@ the logs visible in the MCP client output panel (e.g. VS Code MCP Output view) w
 By default the server is quiet (matching the rest of the SMM CLI). Enable logging with the shared `--debug` flag so you
 can see what the server is doing behind the scenes while it serves requests:
 
-| Source | Behavior |
-| ------ | -------- |
-| _none_ | Quiet (CRITICAL level) — matches the default for all `smm` commands. |
+| Source        | Behavior                                                                                                                                                                                            |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| _none_        | Quiet (CRITICAL level) — matches the default for all `smm` commands.                                                                                                                                |
 | `smm --debug` | Enables transport and operation logs at DEBUG level (startup, request lifecycle, tool/resource call timing, sub-query steps). Reuses the same `--debug` flag available to all other `smm` commands. |
-| `DEBUG=true` | Same as `--debug`, used when running the server standalone via `smm-mcp` (e.g. an MCP client `env` block where there is no CLI flag). |
+| `DEBUG=true`  | Same as `--debug`, used when running the server standalone via `smm-mcp` (e.g. an MCP client `env` block where there is no CLI flag).                                                               |
 
 ```bash
 # Default: quiet (no operation logs)

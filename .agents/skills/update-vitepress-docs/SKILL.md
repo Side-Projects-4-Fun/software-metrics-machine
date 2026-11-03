@@ -1,6 +1,6 @@
 ---
 name: update-vitepress-docs
-description: "VitePress documentation workflow for Software Metrics Machine docs under docs/vitepress. Use when creating, updating, reviewing, or restyling SMM documentation pages, especially feature docs that must keep CLI terminal examples and dashboard views/screenshots in sync. Covers Markdown style, VitePress tabs, command examples, dashboard screenshots, sidebar links, and docs validation. USE FOR: docs/vitepress, VitePress docs, documentation style, CLI docs, dashboard docs, screenshots, feature pages. DO NOT USE FOR: application code changes unless needed to verify documented behavior."
+description: 'VitePress documentation workflow for Software Metrics Machine docs under docs/vitepress. Use when creating, updating, reviewing, or restyling SMM documentation pages, especially feature docs that must keep CLI terminal examples and dashboard views/screenshots in sync. Covers Markdown style, VitePress tabs, command examples, dashboard screenshots, sidebar links, and docs validation. USE FOR: docs/vitepress, VitePress docs, documentation style, CLI docs, dashboard docs, screenshots, feature pages. DO NOT USE FOR: application code changes unless needed to verify documented behavior.'
 ---
 
 # Update VitePress Docs
@@ -36,7 +36,7 @@ Keep pages practical and user-facing. Prefer concrete workflows, exact commands,
 
 - Use sentence-case headings after the page title, except product names and command names.
 - Keep introductions short: one paragraph that says what the page helps the reader do.
-- Use active voice and concrete nouns. Prefer "Run `smm prs fetch`" over "The command can be executed".
+- Use active voice and concrete nouns. Prefer "Run `smm change-requests fetch`" over "The command can be executed".
 - Use `Software Metrics Machine` or `SMM` consistently; use `smm` only for the CLI binary.
 - Do not over-explain obvious Markdown, UI controls, or command syntax.
 - Prefer stable examples with fixed dates, repository names, and project names.
@@ -56,7 +56,7 @@ For feature pages, keep each metric or workflow section synchronized:
 
 Use VitePress tabs when a section naturally compares visual and terminal usage. **Always use the `==` title syntax inside `:::tabs` — never use the `::::tabs` / `:::tab` nesting pattern.**
 
-```markdown
+````markdown
 :::tabs key:cli
 == Dashboard
 ![Readable dashboard alt text](/dashboard/path/to-screenshot.png)
@@ -64,11 +64,15 @@ Use VitePress tabs when a section naturally compares visual and terminal usage. 
 The dashboard card appears in the Feature tab and uses the shared date filters.
 
 == CLI
+
 ```bash
 smm feature command --start-date 2026-01-01 --end-date 2026-01-31
 ```
+````
+
 :::
-```
+
+````
 
 ### Tab rules (mandatory)
 
@@ -107,7 +111,7 @@ Common docs commands:
 ```bash
 cd docs/vitepress
 npm run docs:build
-```
+````
 
 If dependencies are missing or the build cannot run because network access is required, report that clearly and state which files were checked manually.
 

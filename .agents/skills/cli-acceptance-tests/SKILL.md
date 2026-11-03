@@ -1,6 +1,6 @@
 ---
 name: cli-acceptance-tests
-description: "Acceptance testing workflow for the Software Metrics Machine CLI e2e suite. Use when writing, extending, debugging, or reviewing bashunit acceptance tests under apps/cli/e2e, including command help checks, cached fixture flows, GitHub MSW-backed flows, local git repository fixtures, SMM_STORE_DATA_AT workspaces, and pnpm run test:cli:acceptance. USE FOR: CLI acceptance tests, e2e tests, bashunit, apps/cli/e2e, command smoke tests, persisted CLI output tests. DO NOT USE FOR: unit tests or Vitest tests (use tdd skill), linting (use lint skill), webapp browser tests."
+description: 'Acceptance testing workflow for the Software Metrics Machine CLI e2e suite. Use when writing, extending, debugging, or reviewing bashunit acceptance tests under apps/cli/e2e, including command help checks, cached fixture flows, GitHub MSW-backed flows, local git repository fixtures, SMM_STORE_DATA_AT workspaces, and pnpm run test:cli:acceptance. USE FOR: CLI acceptance tests, e2e tests, bashunit, apps/cli/e2e, command smoke tests, persisted CLI output tests. DO NOT USE FOR: unit tests or Vitest tests (use tdd skill), linting (use lint skill), webapp browser tests.'
 ---
 
 # CLI Acceptance Tests
@@ -35,7 +35,7 @@ pnpm --filter @smmachine/cli build
 
 - Test files live in `apps/cli/e2e/commands/*_test.sh`.
 - Shared helpers live in `apps/cli/e2e/support/bootstrap.sh`.
-- GitHub PR network simulations use `apps/cli/e2e/support/github-prs-msw-runner.mjs`.
+- GitHub change request network simulations use `apps/cli/e2e/support/github-prs-msw-runner.mjs`.
 - Each test file starts with:
 
 ```bash
@@ -66,7 +66,7 @@ Prefer acceptance-level assertions over implementation details. Assert stable ou
 Use helpers from `support/bootstrap.sh`:
 
 - `run_smm <args...>` executes the built CLI and captures `SMM_E2E_STATUS` and `SMM_E2E_OUTPUT`.
-- `run_smm_with_github_prs_msw <args...>` runs the command through the GitHub PR MSW runner.
+- `run_smm_with_github_change_requests_msw <args...>` runs the command through the GitHub change request MSW runner.
 - `create_smm_e2e_workspace` creates a temp workspace under repo `tmp/` with `smm_config.json` and `repo/`.
 - `assert_smm_success`
 - `assert_smm_failure`
@@ -153,14 +153,14 @@ Set `GIT_AUTHOR_DATE`, `GIT_COMMITTER_DATE`, and author identity explicitly when
 Use the MSW runner for GitHub-backed fetch behavior:
 
 ```bash
-function test_prs_fetch_persists_pull_requests_from_mocked_github() {
+function test_change_requests_fetch_persists_change_requests_from_mocked_github() {
   local workspace
 
   workspace="$(create_smm_e2e_workspace)"
   export SMM_STORE_DATA_AT="${workspace}"
   export DEBUG=true
 
-  run_smm_with_github_prs_msw prs fetch --force
+  run_smm_with_github_change_requests_msw change-requests fetch --force
 
   unset DEBUG
   unset SMM_STORE_DATA_AT
@@ -179,7 +179,7 @@ When validating SQLite migrations or persisted database records, prefer a tiny l
 
 1. Find the closest existing command test in `apps/cli/e2e/commands`.
 2. Add the new case to the relevant `*_test.sh`, or create a new command file if the command group does not exist.
-3. Use `run_smm` for local/cached flows and `run_smm_with_github_prs_msw` for mocked GitHub HTTP flows.
+3. Use `run_smm` for local/cached flows and `run_smm_with_github_change_requests_msw` for mocked GitHub HTTP flows.
 4. Use isolated workspaces for any test that reads or writes store data.
 5. Assert success or failure explicitly before checking output details.
 6. Keep output assertions stable and user-facing.
