@@ -20,6 +20,7 @@ import type {
   BigOFileSummary as CoreBigOFileSummary,
   ChangeRequestMetricOutlier,
   PipelineMetricOutlier,
+  IssueProvider,
 } from '@smmachine/core';
 
 // Types defined in core but not re-exported through the public API,
@@ -494,6 +495,7 @@ export type CodeEntityOwnershipHistoryResponse = Array<{
 // ──────────────────────────────────────────
 
 export interface MetricsIssueResponse {
+  provider: IssueProvider;
   totalIssues: number;
   issues: Array<{
     id: string;
@@ -504,6 +506,10 @@ export interface MetricsIssueResponse {
     assignee?: string;
     createdAt: string;
     labels?: string[];
+    provider?: IssueProvider;
+    url?: string;
+    updatedAt?: string;
+    closedAt?: string;
   }>;
 }
 

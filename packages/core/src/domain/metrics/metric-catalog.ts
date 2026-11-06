@@ -1518,11 +1518,13 @@ export const METRIC_CATALOG = {
   'issue-total': {
     namespace: 'issue',
     label: 'Issue count',
-    description: 'Total Jira issues for the selected window and status filter.',
+    description:
+      'Total issues from the configured issue tracker (Jira, GitHub, or a Jira CSV export) for the selected window and status filter.',
     unit: 'count',
     direction: 'neutral',
     computation: {
-      evidence: 'Jira issues matching the selected project, window, and status filter.',
+      evidence:
+        'Issues from the configured issue tracker (Jira, GitHub, or a Jira CSV export) matching the selected project, window, status and label filters.',
       formula: 'Counts the matching issue records.',
       notation: 'count = |{issue: filter(issue)}|',
     },
@@ -1530,6 +1532,7 @@ export const METRIC_CATALOG = {
     visibility: 'public',
     status: 'active',
     surfaces: {
+      cli: ['issues fetch'],
       rest: ['/api/metrics/issues'],
       mcp: ['smm_get_issue_metrics'],
     },
@@ -1537,11 +1540,11 @@ export const METRIC_CATALOG = {
   'issue-list': {
     namespace: 'issue',
     label: 'Issue records',
-    description: 'Raw Jira issue records backing the issue count.',
+    description: 'Raw issue records from the configured issue tracker backing the issue count.',
     unit: 'rows',
     direction: 'neutral',
     computation: {
-      evidence: 'Jira issue records matching the selected filter.',
+      evidence: 'Issue records from the configured issue tracker matching the selected filter.',
       formula: 'Returns the raw issue rows that back the count.',
       notation: 'rows = {issue: filter(issue)}',
     },

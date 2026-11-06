@@ -162,16 +162,17 @@ every surface, omitting `visibility` means no filter (all 86 metrics); pass `pub
 | `arch-confidence-health`        | Confidence health        | Average relationship confidence                                      | evaluation signal                              |
 | `arch-evaluation`               | Architecture signals     | All of the above                                                     | `GET /architecture/evaluate` · MCP             |
 
-## 6. Issues / Jira (`issue-`)
+## 6. Issues (`issue-`)
 
-| ID            | Metric        | What it measures                 | Surface                     |
-| ------------- | ------------- | -------------------------------- | --------------------------- |
-| `issue-total` | Issue count   | Total issues for a window/status | MCP `smm_get_issue_metrics` |
-| `issue-list`  | Issue records | Raw issue rows backing the count | internal                    |
+| ID            | Metric        | What it measures                              | Surface                                                       |
+| ------------- | ------------- | --------------------------------------------- | ------------------------------------------------------------- |
+| `issue-total` | Issue count   | Total issues for a window/status              | CLI `smm issues fetch` · REST `GET /api/metrics/issues` · MCP |
+| `issue-list`  | Issue records | Raw issue rows backing the count              | internal                                                      |
 
-> Note: Jira `fetch-changelog` and `fetch-comments` are data-fetch operations, not metrics, and are not in
-> the catalog. Jira currently has **no derived analytics** — only fetch + count. Any real issue metric (lead
-> time, cycle time, WIP) would be net-new.
+> Note: `smm issues fetch-comments` is a data-fetch operation, not a metric, and is not in the catalog.
+> The source can be Jira, GitHub, or a Jira CSV export (`issues_provider: jira-csv`). Issue tracking
+> currently has **no derived analytics** — only fetch + count. Any real issue metric (lead
+> time, cycle time, WIP) would be net-new and needs a history source that this iteration does not fetch.
 
 ## 7. Engineering health (namespace `eh`, IDs intentionally unprefixed)
 

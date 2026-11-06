@@ -250,7 +250,7 @@ export const tools: RegisteredTool[] = [
   {
     name: 'smm_get_issue_metrics',
     description:
-      'Get Jira issue metrics for a configured SMM project. Supports optional status filter.',
+      'Get issue metrics from the configured issue tracker (Jira or GitHub). Supports optional status filter.',
     inputSchema: buildIssueMetricsInputSchema(),
     async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const parsed = parseIssueMetricsArguments(argumentsValue);

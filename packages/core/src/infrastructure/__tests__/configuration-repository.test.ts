@@ -191,6 +191,7 @@ describe('ConfigurationRepository', () => {
           ORG_REPO_A_JIRA_EMAIL: 'user@example.com',
           ORG_REPO_A_JIRA_TOKEN: 'jira-token',
           ORG_REPO_A_JIRA_PROJECT: 'JIRA',
+          ORG_REPO_A_ISSUES_PROVIDER: 'github',
           ORG_REPO_A_SONAR_URL: 'https://sonar.example.com',
           ORG_REPO_A_SONAR_TOKEN: 'sonar-token',
           ORG_REPO_A_SONAR_PROJECT: 'sonar-project',
@@ -211,12 +212,31 @@ describe('ConfigurationRepository', () => {
       expect(config.jiraEmail).toBe('user@example.com');
       expect(config.jiraToken).toBe('jira-token');
       expect(config.jiraProject).toBe('JIRA');
+      expect(config.issuesProvider).toBe('github');
       expect(config.sonarUrl).toBe('https://sonar.example.com');
       expect(config.sonarToken).toBe('sonar-token');
       expect(config.sonarProject).toBe('sonar-project');
       expect(config.storeLogs).toBe(true);
       expect(config.timezone).toBe('Europe/Madrid');
       expect(config.internal.storageType).toBe('sqlite');
+    });
+
+    it('should read jira-csv from the project environment', () => {
+      writeFileSync(
+        join(tempDir, 'smm_config.json'),
+        JSON.stringify({ projects: [{ github_repository: 'org/repo-a' }] }),
+        'utf-8'
+      );
+
+      const repo = createConfigurationRepository(
+        {
+          SMM_STORE_DATA_AT: tempDir,
+          ORG_REPO_A_ISSUES_PROVIDER: 'jira-csv',
+        },
+        'org/repo-a'
+      );
+
+      expect(repo.getActiveConfiguration().issuesProvider).toBe('jira-csv');
     });
 
     it('should ignore generic project configuration environment variables', () => {
@@ -244,6 +264,7 @@ describe('ConfigurationRepository', () => {
           JIRA_EMAIL: 'user@example.com',
           JIRA_TOKEN: 'jira-token',
           JIRA_PROJECT: 'JIRA',
+          ISSUES_PROVIDER: 'github',
           SONAR_URL: 'https://sonar.example.com',
           SONAR_TOKEN: 'sonar-token',
           SONAR_PROJECT: 'sonar-project',
@@ -264,6 +285,7 @@ describe('ConfigurationRepository', () => {
       expect(config.jiraEmail).toBeUndefined();
       expect(config.jiraToken).toBeUndefined();
       expect(config.jiraProject).toBeUndefined();
+      expect(config.issuesProvider).toBeUndefined();
       expect(config.sonarUrl).toBeUndefined();
       expect(config.sonarToken).toBeUndefined();
       expect(config.sonarProject).toBeUndefined();

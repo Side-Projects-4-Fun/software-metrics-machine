@@ -142,30 +142,112 @@ describe('JiraIssuesClient', () => {
     });
   });
 
-  describe('fetchIssueChanges', () => {
-    it('should call the issue endpoint with expand=changelog and return histories', async () => {
-      const histories = [{ id: '1', items: [] }];
-      getMock.mockResolvedValueOnce({ data: { changelog: { histories } } });
+  describe('fetchComments', () => {
+    it('should fetch and map comments for a single issue', async () => {
+      getMock.mockResolvedValueOnce({
+        data: {
+          comments: [
+            {
+              id: '42',
+              author: { displayName: 'Alice' },
+              body: 'LGTM',
+              created: '2026-05-01T10:00:00.000Z',
+              updated: '2026-05-01T11:00:00.000Z',
+              self: 'https://jira.example.com/rest/api/3/issue/PROJ-1/comment/42',
+            },
+          ],
+          total: 1,
+        },
+      });
 
-      const result = await client.fetchIssueChanges('PROJ-1');
+      const result = await client.fetchComments({ issueKey: 'PROJ-1' });
 
       expect(getMock).toHaveBeenCalledWith(
-        '/rest/api/3/issue/PROJ-1',
-        expect.objectContaining({ params: { expand: 'changelog' } })
+        '/rest/api/3/issue/PROJ-1/comment',
+        expect.objectContaining({ params: { startAt: 0, maxResults: 100 } })
       );
-      expect(result).toEqual(histories);
+      expect(result).toEqual([
+        {
+          id: '42',
+          issueKey: 'PROJ-1',
+          author: 'Alice',
+          body: 'LGTM',
+          createdAt: '2026-05-01T10:00:00.000Z',
+          updatedAt: '2026-05-01T11:00:00.000Z',
+          url: 'https://jira.example.com/rest/api/3/issue/PROJ-1/comment/42',
+          provider: 'jira',
+        },
+      ]);
     });
-  });
 
-  describe('fetchIssueComments', () => {
-    it('should call the comment endpoint and return comments', async () => {
-      const comments = [{ id: '42', body: 'LGTM' }];
-      getMock.mockResolvedValueOnce({ data: { comments } });
+    it('flattens Atlassian Document Format bodies to plain text', async () => {
+      getMock.mockResolvedValueOnce({
+        data: {
+          comments: [
+            {
+              id: '7',
+              body: {
+                type: 'doc',
+                content: [
+                  { type: 'paragraph', content: [{ type: 'text', text: 'Line one' }] },
+                  { type: 'paragraph', content: [{ type: 'text', text: 'Line two' }] },
+                ],
+              },
+              created: '2026-05-01T10:00:00.000Z',
+            },
+          ],
+          total: 1,
+        },
+      });
 
-      const result = await client.fetchIssueComments('PROJ-1');
+      const result = await client.fetchComments({ issueKey: 'PROJ-1' });
 
-      expect(getMock).toHaveBeenCalledWith('/rest/api/3/issue/PROJ-1/comment');
-      expect(result).toEqual(comments);
+      expect(result[0].body).toBe('Line one\nLine two');
+    });
+
+    it('fetches comments across issues matching the updated window', async () => {
+      getMock
+        .mockResolvedValueOnce({
+          data: {
+            issues: [
+              {
+                key: 'PROJ-1',
+                fields: {
+                  summary: 'Issue',
+                  status: { name: 'Open' },
+                  created: '2026-01-01T00:00:00.000Z',
+                  updated: '2026-05-02T00:00:00.000Z',
+                },
+              },
+            ],
+            total: 1,
+          },
+        })
+        .mockResolvedValueOnce({
+          data: {
+            comments: [
+              { id: '10', body: 'inside', created: '2026-05-03T00:00:00.000Z' },
+              { id: '11', body: 'outside', created: '2026-04-01T00:00:00.000Z' },
+            ],
+            total: 2,
+          },
+        });
+
+      const result = await client.fetchComments({
+        startDate: '2026-05-01',
+        endDate: '2026-05-31',
+      });
+
+      expect(getMock).toHaveBeenNthCalledWith(
+        1,
+        '/rest/api/3/search/jql',
+        expect.objectContaining({
+          params: expect.objectContaining({
+            jql: 'project = "PROJECT" AND updated >= "2026-05-01" AND updated <= "2026-05-31"',
+          }),
+        })
+      );
+      expect(result.map((comment) => comment.id)).toEqual(['10']);
     });
   });
 });

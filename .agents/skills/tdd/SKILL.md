@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: "Test-Driven Development workflow for Software Metrics Machine. Covers test frameworks (Vitest 5.x for CLI/MCP/REST/core/utils, Jest 30.x for webapp, bashunit + Cypress for e2e), test patterns (describe/it, builder pattern, mocks via vi.fn), test commands, coverage requirements, and the Red-Green-Refactor cycle. USE FOR: write tests, run tests, test this, add tests, testing, coverage, TDD, test-driven development, vitest, jest, test pattern, test convention. DO NOT USE FOR: linting (use lint skill), building (use build commands directly), debugging production issues."
+description: "Test-Driven Development workflow for Software Metrics Machine. Covers test frameworks (Vitest 5.x for CLI/MCP/REST/core/utils, Jest 30.x for webapp, bashunit + Cypress for e2e), MSW-backed provider integration tests, test patterns (describe/it, builder pattern, mocks via vi.fn), test commands, coverage requirements, and the Red-Green-Refactor cycle. USE FOR: write tests, run tests, test this, add tests, integration tests, MSW, msw, mock provider API, testing, coverage, TDD, test-driven development, vitest, jest, test pattern, test convention. DO NOT USE FOR: linting (use lint skill), building (use build commands directly), debugging production issues."
 ---
 
 # TDD Skill — Software Metrics Machine
@@ -157,6 +157,73 @@ const pairingService = new PairingIndexService(commitRepo);
 const spy = vi.spyOn(prRepo, 'loadPrsWithFilters');
 ```
 
+### Integration tests with MSW (REQUIRED)
+
+Any test that exercises a provider HTTP API (Jira, GitHub, GitLab, SonarQube) MUST use
+[MSW](https://mswjs.io/) with `msw/node`. Never call a real service, never require network access, and never gate
+tests behind credential or `RUN_*_INTEGRATION_TESTS` environment variables.
+
+Add `msw` as a `catalog:` devDependency to the workspace if it is missing (core, CLI, REST and MCP already have it).
+
+Canonical structure:
+
+```typescript
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { http, HttpResponse } from 'msw';
+import { setupServer } from 'msw/node';
+import { JiraIssuesClient } from '../jira-client';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
+
+const BASE_URL = 'https://jira.example.com';
+const SEARCH_URL = `${BASE_URL}/rest/api/3/search/jql`;
+const logger = new MockLoggerBuilder().build();
+const client = new JiraIssuesClient(BASE_URL, 'user@example.com', 'token', 'PROJ', logger);
+const server = setupServer();
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+describe('JiraIssuesClient', () => {
+  it('maps a provider response', async () => {
+    server.use(
+      http.get(SEARCH_URL, () =>
+        HttpResponse.json({ issues: [{ key: 'PROJ-1', fields: { summary: 'Fix' } }], total: 1 })
+      )
+    );
+
+    const issues = await client.fetchIssues();
+
+    expect(issues[0]).toMatchObject({ id: 'PROJ-1', title: 'Fix' });
+  });
+
+  it('asserts the outgoing request', async () => {
+    let receivedJql = '';
+    server.use(
+      http.get(SEARCH_URL, ({ request }) => {
+        receivedJql = new URL(request.url).searchParams.get('jql') ?? '';
+        return HttpResponse.json({ issues: [], total: 0 });
+      })
+    );
+
+    await client.fetchIssues({ status: 'Done' });
+
+    expect(receivedJql).toContain('status = "Done"');
+  });
+});
+```
+
+Rules:
+
+- `onUnhandledRequest: 'error'` is mandatory. It turns any unmocked call into a failing test.
+- Declare handlers per test with `server.use(...)`; rely on `afterEach(resetHandlers)` for isolation.
+- Read request details from `request.url` / `request.json()` when the test needs to assert a query, JQL string, body, or header.
+- Model pagination by branching on `startAt` / `page` query params and returning two pages.
+- Model auth and failure paths with `HttpResponse.json(body, { status: 401 })` and `new HttpResponse(null, { status: 404 })`.
+- Use builders for provider payloads when a builder exists; otherwise keep fixture helpers local to the provider test file.
+- Webapp Cypress already uses its own MSW server (`apps/webapp/cypress/mocks/`); keep that setup and do not reintroduce `cy.intercept`.
+- A real-API test is never an acceptable alternative. Delete or convert `it.skipIf(!process.env.RUN_..._INTEGRATION_TESTS)` suites.
+
 ### Assertions
 - Prefer specific expectations over generic ones
 - Validate field types, ranges, and formats (e.g. regex for date strings)
@@ -297,6 +364,8 @@ Run with: `pnpm --filter <workspace> exec vitest run --coverage`
 - Write tests for all new features and bug fixes
 - Use `describe`/`it` blocks (not `test`)
 - Tests must be deterministic (no reliance on external APIs or network)
+- Provider integration tests MUST mock HTTP with MSW (`msw/node`), not real endpoints or env-gated suites — see
+  "Integration tests with MSW" above
 - Integration tests go in `__tests__/providers/<name>/*.integration.test.ts` or `.test.ts`
 - Prefix unused callback params with `_` (consistent with ESLint rule)
 - Do NOT add `"type": "module"` to `packages/core` or `packages/utils` — this breaks Vitest

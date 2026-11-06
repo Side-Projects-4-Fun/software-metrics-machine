@@ -37,6 +37,7 @@
     "eslint": "catalog:",
     "eslint-config-prettier": "catalog:",
     "eslint-plugin-prettier": "catalog:",
+    "msw": "catalog:",
     "supertest": "catalog:",
     "ts-node": "catalog:",
     "tsx": "catalog:",

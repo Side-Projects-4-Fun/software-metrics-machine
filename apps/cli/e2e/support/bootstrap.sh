@@ -637,12 +637,18 @@ function seedPipelines() {
 
 function seedJira() {
   const ns = 'jira/issues.json';
-  clearNamespaces([ns]);
+  const commentsNs = 'jira/comments.json';
+  clearNamespaces([ns, commentsNs]);
   const updatedAt = new Date().toISOString();
   const issues = [
     { id: 'KAN-123', key: 'KAN-123', status: 'In Progress', title: 'Add checkout metrics', createdAt: '2026-01-09T12:00:00Z' },
     { id: 'KAN-456', key: 'KAN-456', status: 'Done', title: 'Refine cart logic', createdAt: '2026-01-10T09:00:00Z' },
     { id: 'KAN-789', key: 'KAN-789', status: 'To Do', title: 'Implement payment gateway', createdAt: '2026-01-11T14:00:00Z' },
+  ];
+  const comments = [
+    { id: 'comment-1', issueKey: 'KAN-123', author: 'Alice', body: 'Looks good', createdAt: '2026-01-10T12:00:00Z' },
+    { id: 'comment-2', issueKey: 'KAN-123', author: 'Bob', body: 'Needs tests', createdAt: '2026-01-11T12:00:00Z' },
+    { id: 'comment-3', issueKey: 'KAN-456', author: 'Alice', body: 'Done', createdAt: '2026-01-12T12:00:00Z' },
   ];
   const insert = db.prepare(`
     INSERT INTO repository_records
@@ -651,6 +657,9 @@ function seedJira() {
   `);
   issues.forEach((issue, index) => {
     insert.run(ns, String(index), JSON.stringify(issue), index, updatedAt);
+  });
+  comments.forEach((comment, index) => {
+    insert.run(commentsNs, String(index), JSON.stringify(comment), index, updatedAt);
   });
 }
 
@@ -827,7 +836,7 @@ try {
     case 'pipelines':
       seedPipelines();
       break;
-    case 'jira':
+    case 'issues':
       seedJira();
       break;
     case 'architecture':
@@ -855,9 +864,9 @@ seed_sqlite_pipelines_fixture() {
   seed_sqlite_fixture "${workspace}" pipelines
 }
 
-seed_sqlite_jira_fixture() {
+seed_sqlite_issues_fixture() {
   local workspace="$1"
-  seed_sqlite_fixture "${workspace}" jira
+  seed_sqlite_fixture "${workspace}" issues
 }
 
 seed_sqlite_architecture_fixture() {

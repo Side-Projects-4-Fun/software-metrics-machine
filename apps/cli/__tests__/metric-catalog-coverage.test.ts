@@ -13,9 +13,7 @@ const NON_METRIC_CLI_COMMANDS = new Set<string>([
   'change-requests fetch-comments',
   'code codemaat-fetch',
   'code fetch-commits',
-  'jira fetch-changelog',
-  'jira fetch-comments',
-  'jira fetch-issues',
+  'issues fetch-comments',
   'pipelines fetch',
   'pipelines fetch-jobs',
   // Operational commands.

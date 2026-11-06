@@ -150,7 +150,7 @@ delegate to the skill using `SKILL.md` instructions and conventions:
 
 | Skill                     | Location                                        | When to use                                                                                                                                                 |
 | ------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **TDD**                   | `.agents/skills/tdd/SKILL.md`                   | Writing/running Vitest or Jest tests, builder pattern, coverage, Red-Green-Refactor cycle. Delegate all test authoring here.                                |
+| **TDD**                   | `.agents/skills/tdd/SKILL.md`                   | Writing/running Vitest or Jest tests, builder pattern, MSW-backed provider integration tests, coverage, Red-Green-Refactor cycle. Delegate all test authoring here. |
 | **Lint**                  | `.agents/skills/lint/SKILL.md`                  | ESLint flat config, Prettier formatting, typecheck (`tsc --noEmit`), lint-staged, resolving lint warnings/errors. Delegate all lint/format/typecheck tasks. |
 | **CLI Acceptance Tests**  | `.agents/skills/cli-acceptance-tests/SKILL.md`  | bashunit e2e tests under `apps/cli/e2e`, MSW-backed GitHub flows, cached fixture workspaces. Delegate CLI acceptance test authoring and debugging.          |
 | **Update VitePress Docs** | `.agents/skills/update-vitepress-docs/SKILL.md` | Creating/updating docs under `docs/vitepress`, CLI/dashboard parity, screenshots, sidebar config. Delegate all doc changes here.                            |
@@ -261,6 +261,11 @@ pnpm --filter @smmachine/webapp cy:run # Cypress suite in apps/webapp/cypress
 # With coverage
 pnpm --filter @smmachine/core exec vitest run --coverage
 ```
+
+Provider integration tests must use MSW (`msw` + `msw/node`): `setupServer`, `onUnhandledRequest: 'error'`, per-test
+`server.use(http.get(...))`, and `afterEach(resetHandlers)`. Do not call real Jira/GitHub/GitLab/SonarQube endpoints
+and do not gate tests behind `RUN_*_INTEGRATION_TESTS` or credential env vars. See the `tdd` skill for the canonical
+pattern.
 
 ### Linting & type checking
 

@@ -34,7 +34,7 @@ Main command groups:
 - `smm pipelines`
 - `smm code`
 - `smm architecture`
-- `smm jira`
+- `smm issues`
 - `smm sonarqube`
 - `smm engineering-health`
 - `smm metrics`

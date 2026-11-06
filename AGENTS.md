@@ -143,6 +143,7 @@ The root `tsup.config.ts` bundles the published launcher: `dist/index.cjs` (CLI)
 - Keep package families on one major in the catalog — `vitest` and `@vitest/coverage-v8` must both be `^5.1.0`; a mismatch pulls a duplicate Vitest toolchain into the lockfile
 - Prefix unused vars with `_`; if `eslint-config-next` ignores `argsIgnorePattern`, use `void paramName;` instead
 - Write tests first for new features and bug fixes (TDD); a regression fix always starts with a failing test that reproduces it
+- Integration tests that exercise a provider HTTP API MUST use MSW (`msw` + `msw/node`) with `server.listen({ onUnhandledRequest: 'error' })`; declare the exact JSON response per test with `server.use(http.get(...))`
 - Run the mandatory build verification after any change: `pnpm lint && pnpm typecheck && pnpm build && pnpm test`
 - All functions require explicit return types — derive from the called service (`Awaited<ReturnType<PipelinesService['getMetrics']>>`) rather than `unknown`, `any`, or `void`
 - Keep MCP tools read-only, redact token/credential-like fields from MCP resources
@@ -163,6 +164,7 @@ The root `tsup.config.ts` bundles the published launcher: `dist/index.cjs` (CLI)
 - Disable or weaken ESLint rules (`eslint-disable`, config changes) — fix the underlying issue instead
 - Use `unknown` as a return type when the real type is knowable; use `as unknown`/`as never` casts to bypass TypeScript
 - Use loops, conditionals, filters, or maps inside test bodies — tests must be explicit and self-contained
+- Write integration tests that call real external services, require network access, or are gated behind `RUN_*_INTEGRATION_TESTS` / credential environment variables — mock the provider with MSW instead
 - Leave lint warnings or errors unresolved — `pnpm lint` must be zero errors and zero warnings
 
 ## Quick Start

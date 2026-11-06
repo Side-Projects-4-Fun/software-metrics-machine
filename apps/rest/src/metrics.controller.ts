@@ -8,6 +8,7 @@ import {
   PipelinesService,
   ChangeRequestsService,
   SonarQubeService,
+  type IssueProvider,
 } from '@smmachine/core';
 import {
   IssueMetricsQueryDto,
@@ -323,12 +324,14 @@ export class MetricsController {
   }
 
   private async getIssueMetricsReport(filters?: IssueMetricsQueryDto): Promise<{
+    provider: IssueProvider;
     totalIssues: number;
     issues: Awaited<ReturnType<IssuesRepository['getIssues']>>;
   }> {
     const issues = await this.issuesRepository.getIssues(filters);
 
     return {
+      provider: this.issuesRepository.provider,
       totalIssues: issues.length,
       issues,
     };

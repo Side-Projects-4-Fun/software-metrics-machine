@@ -179,6 +179,27 @@ export class ConfigurationRepository implements IConfigurationRepository {
       this.getString(configData, 'jira_token') || this.getProjectEnv(repository, 'JIRA_TOKEN');
     config.jiraProject =
       this.getString(configData, 'jira_project') || this.getProjectEnv(repository, 'JIRA_PROJECT');
+
+    const issuesProvider =
+      this.getString(configData, 'issues_provider') ||
+      this.getProjectEnv(repository, 'ISSUES_PROVIDER');
+    const normalizedIssuesProvider = issuesProvider?.toLowerCase();
+    if (
+      normalizedIssuesProvider &&
+      !['jira', 'github', 'jira-csv'].includes(normalizedIssuesProvider)
+    ) {
+      this.logger?.warn(
+        `Invalid issues_provider "${issuesProvider}". Valid values: jira, github, jira-csv. Falling back to jira.`
+      );
+    }
+    config.issuesProvider =
+      normalizedIssuesProvider === 'github'
+        ? 'github'
+        : normalizedIssuesProvider === 'jira-csv'
+          ? 'jira-csv'
+          : normalizedIssuesProvider === 'jira'
+            ? 'jira'
+            : undefined;
     config.sonarUrl =
       this.getString(configData, 'sonar_url') || this.getProjectEnv(repository, 'SONAR_URL');
     config.sonarToken =
@@ -396,6 +417,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       'jira_email',
       'jira_token',
       'jira_project',
+      'issues_provider',
       'sonar_url',
       'sonar_token',
       'sonar_project',

@@ -9,7 +9,7 @@ Cursor, and other MCP-compatible clients) can read engineering metrics through a
 
 The server is **read-only**. It exposes metrics that already exist in the SMM data store and does not fetch from
 GitHub, GitLab, Jira, or SonarQube by itself. For data collection, continue to use the CLI commands such as
-`smm change-requests fetch`, `smm pipelines fetch`, `smm jira fetch`, and the SonarQube commands.
+`smm change-requests fetch`, `smm pipelines fetch`, `smm issues fetch`, and the SonarQube commands.
 
 ## When to use it
 
@@ -165,7 +165,7 @@ The MCP server exposes these tools:
 | `smm_get_change_request_metrics`            | Reads change request metrics (throughput, review time, authors, outliers).                                                                                    |
 | `smm_get_deployment_metrics`                | Reads pipeline and deployment metrics (durations, success rate, deployment frequency, jobs).                                                                  |
 | `smm_get_code_metrics`                      | Reads code churn, coupling, and pairing metrics. Supports author and file pattern filters.                                                                    |
-| `smm_get_issue_metrics`                     | Reads Jira issue metrics. Supports an optional status filter.                                                                                                 |
+| `smm_get_issue_metrics`                     | Reads issue metrics from the configured issue tracker (Jira or GitHub). Supports an optional status filter.                                                    |
 | `smm_get_quality_metrics`                   | Reads SonarQube quality metrics.                                                                                                                              |
 | `smm_get_engineering_health`                | Evaluates engineering health metrics with values, trends, targets, and recommendations.                                                                       |
 | `smm_get_dora_metrics`                      | Reads DORA and pipeline metrics with rich filters (workflow, branch, status, conclusion, event, cleaning).                                                    |

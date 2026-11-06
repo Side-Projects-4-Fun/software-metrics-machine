@@ -1,7 +1,9 @@
 import type { AxiosInstance } from 'axios';
 import axios from 'axios';
-import type { Issue } from '../../domain-types';
+import type { Issue, IssueComment } from '../../domain-types';
 import type { Logger } from '@smmachine/utils';
+import type { IIssuesClient, IssueCommentQueryOptions, IssueQueryOptions } from '../issues-client';
+import { adfToPlainText } from './adf-to-text';
 
 function toJiraDateBoundary(value: string): string {
   const match = value.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
@@ -12,29 +14,77 @@ function toJiraDateBoundary(value: string): string {
   return value;
 }
 
-export interface IJiraIssuesClient {
-  fetchIssues(options?: {
-    startDate?: string;
-    endDate?: string;
-    status?: string;
-    issueType?: string;
-    project?: string;
-  }): Promise<Issue[]>;
+function escapeJqlString(value: string): string {
+  return value.replace(/"/g, '\\"');
+}
 
-  fetchIssueChanges(issueKey: string): Promise<unknown[]>;
+type JiraIssueResponse = {
+  key: string;
+  self?: string;
+  fields?: {
+    summary?: string;
+    status?: { name?: string };
+    created?: string;
+    updated?: string;
+    assignee?: { displayName?: string } | null;
+    labels?: string[];
+    description?: unknown;
+  };
+};
 
-  fetchIssueComments(issueKey: string): Promise<unknown[]>;
+type JiraCommentResponse = {
+  id: string;
+  self?: string;
+  author?: { displayName?: string };
+  body?: unknown;
+  created?: string;
+  updated?: string;
+};
+
+type JiraCommentPage = {
+  comments?: JiraCommentResponse[];
+  total?: number;
+  startAt?: number;
+  maxResults?: number;
+};
+
+const COMMENT_PAGE_SIZE = 100;
+const COMMENT_FETCH_CONCURRENCY = 5;
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  mapper: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let nextIndex = 0;
+
+  async function worker(): Promise<void> {
+    while (nextIndex < items.length) {
+      const current = nextIndex;
+      nextIndex += 1;
+      results[current] = await mapper(items[current]);
+    }
+  }
+
+  const workers = Array.from({ length: Math.min(limit, items.length) }, () => worker());
+  await Promise.all(workers);
+
+  return results;
 }
 
 /**
- * Jira API client for Issues
- * Real implementation using Jira REST API v3
- * Endpoints utilized:
+ * Jira API client for issues and comments.
+ *
+ * Real implementation using Jira REST API v3:
  *   - GET /rest/api/3/search/jql - Search/list issues with JQL
- *   - GET /rest/api/3/issue/{issueIdOrKey} - Get single issue with changelog
  *   - GET /rest/api/3/issue/{issueIdOrKey}/comment - Get issue comments
+ *
+ * Jira has no repository-wide comment endpoint. Bulk comment fetching resolves
+ * candidate parent issues through JQL and then pages each issue's comments.
  */
-export class JiraIssuesClient implements IJiraIssuesClient {
+export class JiraIssuesClient implements IIssuesClient {
+  readonly provider = 'jira' as const;
   private axiosInstance: AxiosInstance;
   private logger: Logger;
 
@@ -47,7 +97,6 @@ export class JiraIssuesClient implements IJiraIssuesClient {
   ) {
     this.logger = logger;
 
-    // Ensure URL ends without slash for consistency
     const baseURL = this.url.endsWith('/') ? this.url.slice(0, -1) : this.url;
 
     this.axiosInstance = axios.create({
@@ -61,171 +110,222 @@ export class JiraIssuesClient implements IJiraIssuesClient {
     });
   }
 
-  async fetchIssues(options?: {
-    startDate?: string;
-    endDate?: string;
-    status?: string;
-    issueType?: string;
-    project?: string;
-  }): Promise<Issue[]> {
+  async fetchIssues(options?: IssueQueryOptions): Promise<Issue[]> {
     const project = options?.project || this.project;
+    const jqlParts: string[] = [];
+
+    if (project) {
+      jqlParts.push(`project = "${escapeJqlString(project)}"`);
+    }
+
+    if (options?.startDate) {
+      jqlParts.push(`created >= "${toJiraDateBoundary(options.startDate)}"`);
+    }
+
+    if (options?.endDate) {
+      jqlParts.push(`created <= "${toJiraDateBoundary(options.endDate)}"`);
+    }
+
+    if (options?.status) {
+      jqlParts.push(`status = "${escapeJqlString(options.status)}"`);
+    }
+
+    if (options?.issueType) {
+      jqlParts.push(`type = "${escapeJqlString(options.issueType)}"`);
+    }
+
+    if (options?.labels && options.labels.length > 0) {
+      const labels = options.labels.map((label) => `"${escapeJqlString(label)}"`).join(', ');
+      jqlParts.push(`labels in (${labels})`);
+    }
+
+    const jql = jqlParts.length > 0 ? jqlParts.join(' AND ') : '';
+    this.logger.info(`Fetching Jira issues with JQL: ${jql || '(no filters)'}`);
+
+    try {
+      return await this.searchIssues(jql);
+    } catch (error) {
+      throw this.toActionableError(error, 'fetch Jira issues');
+    }
+  }
+
+  async fetchComments(options?: IssueCommentQueryOptions): Promise<IssueComment[]> {
+    try {
+      return await this.fetchCommentsInternal(options);
+    } catch (error) {
+      throw this.toActionableError(error, 'fetch Jira comments');
+    }
+  }
+
+  private async fetchCommentsInternal(options?: IssueCommentQueryOptions): Promise<IssueComment[]> {
+    if (options?.issueKey) {
+      return this.fetchCommentsForIssue(options.issueKey);
+    }
+
+    const project = this.project;
+    const jqlParts: string[] = [];
+
+    if (project) {
+      jqlParts.push(`project = "${escapeJqlString(project)}"`);
+    }
+
+    if (options?.startDate) {
+      jqlParts.push(`updated >= "${toJiraDateBoundary(options.startDate)}"`);
+    }
+
+    if (options?.endDate) {
+      jqlParts.push(`updated <= "${toJiraDateBoundary(options.endDate)}"`);
+    }
+
+    const jql = jqlParts.length > 0 ? jqlParts.join(' AND ') : '';
+    this.logger.info(
+      `Fetching Jira comments for issues matching: ${jql || '(all issues)'} (N+1 per issue)`
+    );
+
+    const issues = await this.searchIssues(jql);
+    this.logger.info(`Resolved ${issues.length} Jira issues to scan for comments`);
+
+    const commentsPerIssue = await mapWithConcurrency(issues, COMMENT_FETCH_CONCURRENCY, (issue) =>
+      this.fetchCommentsForIssue(issue.key ?? issue.id)
+    );
+
+    const start = options?.startDate ? new Date(options.startDate).getTime() : null;
+    const end = options?.endDate ? new Date(options.endDate).getTime() : null;
+
+    return commentsPerIssue.flat().filter((comment) => {
+      const createdAt = new Date(comment.createdAt).getTime();
+      if (Number.isNaN(createdAt)) {
+        return false;
+      }
+      if (start !== null && createdAt < start) {
+        return false;
+      }
+      if (end !== null && createdAt > end) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  private async searchIssues(jql: string): Promise<Issue[]> {
     const allIssues: Issue[] = [];
     let startAt = 0;
     const maxResults = 100;
 
-    try {
-      // Build JQL query
-      const jqlParts: string[] = [];
+    while (true) {
+      this.logger.info(`Fetching Jira issues (startAt: ${startAt}, maxResults: ${maxResults})`);
 
-      if (project) {
-        jqlParts.push(`project = "${project}"`);
-      }
-
-      if (options?.startDate) {
-        jqlParts.push(`created >= "${toJiraDateBoundary(options.startDate)}"`);
-      }
-
-      if (options?.endDate) {
-        jqlParts.push(`created <= "${toJiraDateBoundary(options.endDate)}"`);
-      }
-
-      if (options?.status) {
-        jqlParts.push(`status = "${options.status}"`);
-      }
-
-      if (options?.issueType) {
-        jqlParts.push(`type = "${options.issueType}"`);
-      }
-
-      const jql = jqlParts.length > 0 ? jqlParts.join(' AND ') : ''; // Empty returns all if no filters
-
-      this.logger.info(`Fetching Jira issues with JQL: ${jql || '(no filters)'}`);
-
-      // Fetch all issues with pagination
-      while (true) {
-        this.logger.info(`Fetching Jira issues (startAt: ${startAt}, maxResults: ${maxResults})`);
-
-        const response = await this.axiosInstance.get('/rest/api/3/search/jql', {
-          params: {
-            jql,
-            startAt,
-            maxResults,
-            expand: 'changelog',
-            fields: [
-              'key',
-              'summary',
-              'status',
-              'created',
-              'updated',
-              'assignee',
-              'creator',
-              'issuetype',
-              'priority',
-              'labels',
-            ],
-          },
-        });
-
-        const { issues, total } = response.data;
-
-        if (!issues || issues.length === 0) {
-          break; // No more issues
-        }
-
-        // Keep the full Jira payload and add compatibility aliases.
-        for (const issue of issues) {
-          const domainIssue: Issue = {
-            ...issue,
-            id: issue.key,
-            key: issue.key,
-            title: issue.fields?.summary,
-            status: issue.fields?.status?.name || 'UNKNOWN',
-            createdAt: issue.fields?.created,
-            description: issue.fields?.description,
-            assignee: issue.fields?.assignee?.displayName || 'Unassigned',
-            labels: issue.fields?.labels || [],
-          };
-
-          allIssues.push(domainIssue);
-        }
-
-        // Check if there are more issues to fetch
-        if (startAt + maxResults >= total) {
-          break;
-        }
-
-        startAt += maxResults;
-      }
-
-      this.logger.info(`Fetched ${allIssues.length} Jira issues total`);
-      return allIssues;
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Failed to fetch Jira issues: ${errorMsg}`);
-
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          throw new Error('Jira authentication failed. Check email and token.');
-        } else if (error.response?.status === 404) {
-          throw new Error('Jira project not found or API endpoint not accessible.');
-        } else if (error.code === 'ECONNABORTED') {
-          throw new Error('Jira API request timeout (30s).');
-        }
-      }
-
-      throw error;
-    }
-  }
-
-  async fetchIssueChanges(issueKey: string): Promise<unknown[]> {
-    try {
-      this.logger.info(`Fetching changelog for Jira issue: ${issueKey}`);
-
-      const response = await this.axiosInstance.get(`/rest/api/3/issue/${issueKey}`, {
+      const response = await this.axiosInstance.get('/rest/api/3/search/jql', {
         params: {
-          expand: 'changelog',
+          jql,
+          startAt,
+          maxResults,
+          fields: [
+            'key',
+            'summary',
+            'status',
+            'created',
+            'updated',
+            'assignee',
+            'creator',
+            'issuetype',
+            'priority',
+            'labels',
+          ],
         },
       });
 
-      const changelog = response.data.changelog?.histories || [];
-      this.logger.info(`Fetched ${changelog.length} changelog entries for ${issueKey}`);
+      const { issues, total } = response.data as {
+        issues?: JiraIssueResponse[];
+        total?: number;
+      };
 
-      return changelog;
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Failed to fetch changelog for ${issueKey}: ${errorMsg}`);
-
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 404) {
-          throw new Error(`Jira issue ${issueKey} not found.`);
-        }
+      if (!issues || issues.length === 0) {
+        break;
       }
 
-      throw error;
+      for (const issue of issues) {
+        allIssues.push({
+          id: issue.key,
+          key: issue.key,
+          title: issue.fields?.summary ?? '',
+          status: issue.fields?.status?.name || 'UNKNOWN',
+          createdAt: issue.fields?.created ?? '',
+          description: adfToPlainText(issue.fields?.description) || undefined,
+          assignee: issue.fields?.assignee?.displayName || 'Unassigned',
+          labels: issue.fields?.labels || [],
+          provider: 'jira',
+          url: this.url ? `${this.url.replace(/\/$/, '')}/browse/${issue.key}` : undefined,
+          updatedAt: issue.fields?.updated,
+        });
+      }
+
+      if (typeof total !== 'number' || startAt + maxResults >= total) {
+        break;
+      }
+
+      startAt += maxResults;
     }
+
+    this.logger.info(`Fetched ${allIssues.length} Jira issues total`);
+    return allIssues;
   }
 
-  async fetchIssueComments(issueKey: string): Promise<unknown[]> {
-    try {
-      this.logger.info(`Fetching comments for Jira issue: ${issueKey}`);
+  private async fetchCommentsForIssue(issueKey: string): Promise<IssueComment[]> {
+    const allComments: IssueComment[] = [];
+    let startAt = 0;
 
-      const response = await this.axiosInstance.get(`/rest/api/3/issue/${issueKey}/comment`);
-
-      const comments = response.data.comments || [];
-      this.logger.info(`Fetched ${comments.length} comments for ${issueKey}`);
-
-      return comments;
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Failed to fetch comments for ${issueKey}: ${errorMsg}`);
-
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 404) {
-          throw new Error(`Jira issue ${issueKey} not found.`);
+    while (true) {
+      const response = await this.axiosInstance.get(
+        `/rest/api/3/issue/${encodeURIComponent(issueKey)}/comment`,
+        {
+          params: { startAt, maxResults: COMMENT_PAGE_SIZE },
         }
+      );
+
+      const page = response.data as JiraCommentPage;
+      const comments = page.comments ?? [];
+
+      for (const comment of comments) {
+        allComments.push({
+          id: String(comment.id),
+          issueKey,
+          author: comment.author?.displayName,
+          body: adfToPlainText(comment.body),
+          createdAt: comment.created ?? '',
+          updatedAt: comment.updated,
+          url: comment.self,
+          provider: 'jira',
+        });
       }
 
-      throw error;
+      const total = page.total ?? Number.POSITIVE_INFINITY;
+      if (comments.length === 0 || startAt + comments.length >= total) {
+        break;
+      }
+
+      startAt += comments.length;
     }
+
+    return allComments;
+  }
+
+  private toActionableError(error: unknown, action: string): Error {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    this.logger.error(`Failed to ${action}: ${errorMsg}`);
+
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        return new Error('Jira authentication failed. Check email and token.');
+      }
+      if (error.response?.status === 404) {
+        return new Error('Jira project or issue not found, or API endpoint not accessible.');
+      }
+      if (error.code === 'ECONNABORTED') {
+        return new Error('Jira API request timeout (30s).');
+      }
+    }
+
+    return error instanceof Error ? error : new Error(errorMsg);
   }
 }

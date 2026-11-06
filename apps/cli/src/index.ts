@@ -1,7 +1,7 @@
 import { createChangeRequestsCommands } from './commands/change-requests';
 import { createPipelinesCommands } from './commands/pipelines';
 import { createCodeCommands } from './commands/code';
-import { createJiraCommands } from './commands/jira';
+import { createIssuesCommands } from './commands/issues';
 import { createSonarQubeCommands } from './commands/sonarqube';
 import { createDashboardCommands } from './commands/dashboard';
 import { createToolsCommands } from './commands/tools';
@@ -29,7 +29,7 @@ export function commands(): SmmCommand {
   createChangeRequestsCommands(program);
   createPipelinesCommands(program);
   createCodeCommands(program);
-  createJiraCommands(program);
+  createIssuesCommands(program);
   createSonarQubeCommands(program);
   createDashboardCommands(program);
   createToolsCommands(program);
@@ -61,7 +61,7 @@ export function commands(): SmmCommand {
  *   - smm change-requests  Change request operations (fetch, analyze)
  *   - smm pipelines     Pipeline/workflow operations (fetch, analyze)
  *   - smm code          Code analysis operations (churn, coupling, etc.)
- *   - smm jira          Jira integration (fetch issues, changelog, comments)
+ *   - smm issues        Issue tracker operations (fetch issues and comments)
  *   - smm sonarqube     SonarQube integration (fetch quality measures)
  *   - smm dashboard     Dashboard server operations
  *   - smm tools         Utility tools (JSON merge, etc.)

@@ -463,6 +463,7 @@ pnpm --filter @smmachine/core exec vitest --watch
 - File pattern: `*.test.ts`
 - Vitest globals are enabled (`describe`, `it`, `expect` available without import)
 - Shared Vitest config lives in `vitest.base.config.ts`
+- Provider integration tests mock HTTP with MSW (`msw` + `msw/node`), never real Jira/GitHub/GitLab/SonarQube endpoints; see the `tdd` skill for the canonical setup
 
 ### Writing tests
 

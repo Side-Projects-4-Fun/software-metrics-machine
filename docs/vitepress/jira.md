@@ -28,6 +28,11 @@ To interact with the Jira API and fetch the data needed for this project, you ne
 5. Store it securely - you won't be able to see it again after leaving the page
 6. Store it in `smm_config.json` under the key `jira_token`
 
+This is the same token the issue commands use. Set `issues_provider` to `jira` (or omit it, since
+`jira` is the default) and SMM will call the Jira API with this token for `smm issues fetch` and
+`smm issues fetch-comments`. The Atlassian account behind the token needs permission to browse the
+configured `jira_project`.
+
 ### Check token is working
 
 To check if the token is working before adding it to SMM configuration, you can set temporary shell variables and then do
@@ -80,6 +85,7 @@ The Jira provider requires these fields in `smm_config.json`:
       "github_repository": "owner/repo",
       "git_repository_location": "/path/to/repo",
       "github_token": "your_github_token",
+      "issues_provider": "jira",
       "jira_url": "https://your-domain.atlassian.net",
       "jira_email": "your-email@example.com",
       "jira_token": "your_jira_api_token",
@@ -91,6 +97,7 @@ The Jira provider requires these fields in `smm_config.json`:
 
 ### Configuration parameters
 
+- **`issues_provider`**: Must be `jira` (the default) to read issues from Jira
 - **`jira_url`**: The base URL of your Jira Cloud instance (e.g., `https://your-domain.atlassian.net`)
 - **`jira_email`**: Your Jira account email
 - **`jira_token`**: Your Jira API token generated from https://id.atlassian.com/manage-profile/security/api-tokens
@@ -105,6 +112,30 @@ export OWNER_REPO_JIRA_TOKEN="your_api_token"
 export OWNER_REPO_JIRA_PROJECT="PROJ"
 ```
 
+## Using a Jira CSV export instead of the API
+
+If you cannot connect to the Jira API, export the issues from Jira and place the file in the project
+data directory:
+
+```
+<SMM_STORE_DATA_AT>/<project>/Jira.csv
+```
+
+Then set `issues_provider` to `jira-csv`:
+
+```json
+{
+  "issues_provider": "jira-csv",
+  "jira_url": "https://your-domain.atlassian.net"
+}
+```
+
+`jira_email`, `jira_token` and `jira_project` are not required in this mode. `jira_url` is optional
+and only used to build browsable issue links. Replace `Jira.csv`, then run `smm issues fetch --force`
+to refresh the cache. CSV timestamps are interpreted as UTC.
+
+See [Issue tracking providers](./issues.md#jira-csv-export-no-api-connection) for the full details.
+
 ## Fetching data
 
 Fetch issues first, then use metrics endpoints and dashboard.
@@ -114,7 +145,7 @@ Fetch issues first, then use metrics endpoints and dashboard.
 Fetch issues from your Jira project:
 
 ```bash
-smm jira fetch-issues [OPTIONS]
+smm issues fetch [OPTIONS]
 ```
 
 #### Options
@@ -122,6 +153,7 @@ smm jira fetch-issues [OPTIONS]
 - `--start-date DATE`: Start date in ISO 8601 format (YYYY-MM-DD)
 - `--end-date DATE`: End date in ISO 8601 format (YYYY-MM-DD)
 - `--status STATUS`: Filter by status (e.g., Open, In Progress, Done)
+- `--label LABELS`: Filter by comma-separated labels
 - `--force`: Force re-fetching even if data is already cached
 - `--output`: `text` or `json`
 
@@ -130,25 +162,25 @@ smm jira fetch-issues [OPTIONS]
 Fetch issues with a specific date range:
 
 ```bash
-smm jira fetch-issues --start-date 2024-01-01 --end-date 2024-03-31
+smm issues fetch --start-date 2024-01-01 --end-date 2024-03-31
 ```
 
 Fetch issues in a specific status:
 
 ```bash
-smm jira fetch-issues --status "In Progress"
+smm issues fetch --status "In Progress"
 ```
 
-### Changelog and comments commands
+### Comments
 
-The CLI currently exposes these commands:
+Fetch comments for a single issue, or every comment created inside a window:
 
 ```bash
-smm jira fetch-changelog --issue PROJ-123
-smm jira fetch-comments --issue PROJ-123
+smm issues fetch-comments --issue PROJ-123
+smm issues fetch-comments --start-date 2024-01-01 --end-date 2024-03-31
 ```
 
-These two commands currently print guidance and are not full data-fetch implementations in this Node CLI.
+See [Issue tracking providers](./issues.md) for the provider-neutral command reference.
 
 ## Data Storage
 
@@ -192,7 +224,7 @@ Combine Jira data with GitHub/GitLab data for comprehensive metrics:
 smm change-requests fetch
 smm pipelines fetch
 smm pipelines fetch-jobs
-smm jira fetch-issues
+smm issues fetch
 ```
 
 ## Troubleshooting
@@ -222,7 +254,7 @@ If no issues are returned:
 1. Check that the project key is correct
 2. Verify the date range includes issues in your project
 3. Check issue type and status filters are correct
-4. Try fetching without filters: `smm jira fetch-issues`
+4. Try fetching without filters: `smm issues fetch`
 
 ## Next Steps
 
@@ -230,4 +262,4 @@ Once you have fetched data from Jira, you can:
 
 1. Combine it with git and GitHub data for comprehensive analysis
 2. Visualize trends and patterns using dashboard and REST API
-3. Use `GET /jira/issues` for service integrations
+3. Use `GET /api/metrics/issues` for service integrations

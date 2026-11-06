@@ -12,7 +12,7 @@ C4Container
   Person(agentClient, "AI agent client")
 
   System_Ext(gitHost, "Git hosting and CI/CD", "GitHub, GitLab")
-  System_Ext(issueTracker, "Issue tracker", "Jira")
+  System_Ext(issueTracker, "Issue tracker", "Jira or GitHub")
   System_Ext(qualityPlatform, "Code quality platform", "SonarQube")
   System_Ext(gitClone, "Local git clone", "Repository checked out on disk")
 

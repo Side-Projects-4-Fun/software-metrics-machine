@@ -79,6 +79,7 @@ smm project list
       "log_level": "INFO",
       "store_logs": true,
       "timezone": "Europe/Madrid",
+      "issues_provider": "jira",
       "jira_url": "https://xxx.atlassian.net",
       "jira_email": "user@example.com",
       "jira_token": "...",
@@ -588,11 +589,13 @@ Calculate developer pairing index.
 
 ---
 
-### `smm jira` — Jira integration operations
+### `smm issues` — issue tracker operations
 
-#### `smm jira fetch-issues`
+Provider-agnostic commands for the configured issue tracker (`issues_provider`: `jira`, `github`, or `jira-csv`).
 
-Fetch issues from Jira.
+#### `smm issues fetch`
+
+Fetch issues from the configured issue tracker.
 
 ```
 --force
@@ -600,24 +603,20 @@ Fetch issues from Jira.
 --start-date <date>
 --end-date <date>
 --status <status>     filter by issue status
+--label <labels>      comma-separated labels
 --output <format>     text|json  (default: text)
 ```
 
-#### `smm jira fetch-changelog`
+#### `smm issues fetch-comments`
 
-Fetch issue changelog. Note: limited support in the current version.
-
-```
---issue <key>         specific issue key
---output <format>     text|json  (default: text)
-```
-
-#### `smm jira fetch-comments`
-
-Fetch issue comments. Note: limited support in the current version.
+Fetch comments for one issue, or every comment created inside a window.
 
 ```
---issue <key>
+--issue <key>         specific issue key; omit to fetch a window
+--start-date <date>
+--end-date <date>
+--force
+--update              incremental update
 --output <format>     text|json  (default: text)
 ```
 

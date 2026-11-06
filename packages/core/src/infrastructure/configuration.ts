@@ -101,6 +101,13 @@ export interface IConfiguration {
   jiraProject?: string;
 
   /**
+   * Issue tracker provider used by `smm issues` and `GET /api/metrics/issues`.
+   * Defaults to 'jira' when omitted. `jira-csv` reads a Jira CSV export instead
+   * of calling the Jira API.
+   */
+  issuesProvider?: 'jira' | 'github' | 'jira-csv';
+
+  /**
    * SonarQube server URL
    */
   sonarUrl?: string;
@@ -162,6 +169,7 @@ export interface ISmmProjectConfig extends JsonObject {
   jira_email?: string;
   jira_token?: string;
   jira_project?: string;
+  issues_provider?: string;
   sonar_url?: string;
   sonar_token?: string;
   sonar_project?: string;
@@ -201,6 +209,7 @@ export class Configuration implements IConfiguration {
   jiraEmail?: string;
   jiraToken?: string;
   jiraProject?: string;
+  issuesProvider?: 'jira' | 'github' | 'jira-csv';
   sonarUrl?: string;
   sonarToken?: string;
   sonarProject?: string;
@@ -261,6 +270,14 @@ export class Configuration implements IConfiguration {
 
   getJiraPath(): string {
     return path.join(this.getBaseDirectory(), 'jira');
+  }
+
+  getIssuesPath(): string {
+    return path.join(this.getBaseDirectory(), this.issuesProvider || 'jira');
+  }
+
+  getJiraCsvPath(): string {
+    return path.join(this.getBaseDirectory(), 'Jira.csv');
   }
 
   getPathFromGitProvider(): string {

@@ -68,11 +68,13 @@ export class RepositoryFactory {
       getSonarqubePath?: () => string;
       getCodeMaatPath?: () => string;
       getJiraPath?: () => string;
+      getIssuesPath?: () => string;
       getGitPath?: () => string;
       getPathFromGitProvider?: () => string;
       storeData?: string;
       gitProvider?: string;
       githubRepository?: string;
+      issuesProvider?: string;
     };
 
     if (typeof asUnknownConfig.getBaseDirectory === 'function') {
@@ -92,6 +94,12 @@ export class RepositoryFactory {
     const codemaatPath = asUnknownConfig.getCodeMaatPath?.();
     if (codemaatPath) {
       return RepositoryFactory.resolveBaseFromDomainPath(codemaatPath, 'codemaat');
+    }
+
+    const issuesPath = asUnknownConfig.getIssuesPath?.();
+    if (issuesPath) {
+      const issuesProvider = asUnknownConfig.issuesProvider || 'jira';
+      return RepositoryFactory.resolveBaseFromDomainPath(issuesPath, issuesProvider);
     }
 
     const jiraPath = asUnknownConfig.getJiraPath?.();

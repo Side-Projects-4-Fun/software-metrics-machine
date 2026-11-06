@@ -149,6 +149,8 @@ export interface PipelineRun {
 /**
  * Issue/Ticket information
  */
+export type IssueProvider = 'jira' | 'github' | 'jira-csv';
+
 export interface Issue {
   id: string;
   key?: string;
@@ -158,6 +160,21 @@ export interface Issue {
   assignee?: string;
   createdAt: string;
   labels?: string[];
+  provider?: IssueProvider;
+  url?: string;
+  updatedAt?: string;
+  closedAt?: string;
+}
+
+export interface IssueComment {
+  id: string;
+  issueKey: string;
+  author?: string;
+  body: string;
+  createdAt: string;
+  updatedAt?: string;
+  url?: string;
+  provider?: IssueProvider;
 }
 
 /**

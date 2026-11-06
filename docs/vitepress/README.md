@@ -10,7 +10,7 @@ locally, and turns it into metrics you can explore from the CLI, a REST API, or 
 - **Change requests** — volume, review times, merge patterns, comments
 - **Pipelines** — success rate, execution time, DORA deployment frequency
 - **Source code** — churn, coupling, entity ownership, pairing index
-- **Issues** — Jira issue metrics
+- **Issues** — Jira or GitHub issue metrics
 - **Quality** — SonarQube measures
 - **Engineering Health** — aggregated view across delivery, collaboration, quality, and architecture
 

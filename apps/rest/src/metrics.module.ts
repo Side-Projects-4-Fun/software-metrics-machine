@@ -1,6 +1,5 @@
 import { Module, MiddlewareConsumer, NestModule, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import * as path from 'path';
 import { MetricsController } from './metrics.controller';
 import { CodeController } from './controllers/code.controller';
 import { PipelinesController } from './controllers/pipelines.controller';
@@ -17,7 +16,6 @@ import {
   PipelinesRepository,
   PipelineFiltersRepository,
   IssuesRepository,
-  JiraIssuesClient,
   SonarqubeMeasuresClient,
   CommitTraverser,
   ConfigurationRepository,
@@ -35,6 +33,7 @@ import {
   PipelineImplementation,
   CodemaatFactory,
   ICodeMetricsRepository,
+  IssuesFactory,
   createEngineeringHealthOrchestrator,
 } from '@smmachine/core';
 import { PairingService } from '@smmachine/core/domain/code/pairing/pairing-service';
@@ -51,25 +50,6 @@ import { ArchitectureEvaluationController } from './controllers/architecture-eva
 import { SonarqubeEvaluationController } from './controllers/sonarqube-evaluation.controller';
 import { VersionController } from './controllers/version.controller';
 import { MetricsCatalogController } from './controllers/metrics-catalog.controller';
-
-function buildDataDirectories(config: Configuration): {
-  gitProviderDirectory: string;
-  jiraDirectory: string;
-  sonarqubeDirectory: string;
-  codemaatDirectory: string;
-} {
-  const baseDir = config.storeData || './outputs';
-  const gitProvider = config.gitProvider || 'github';
-  const repoSlug = (config.githubRepository || '').replace('/', '_');
-  const dataDirectory = path.join(baseDir, `${gitProvider}_${repoSlug}`);
-
-  return {
-    gitProviderDirectory: path.join(dataDirectory, gitProvider),
-    jiraDirectory: path.join(dataDirectory, 'jira'),
-    sonarqubeDirectory: path.join(dataDirectory, 'sonarqube'),
-    codemaatDirectory: path.join(dataDirectory, 'codemaat'),
-  };
-}
 
 function createLogger(config: Configuration, name: string): Logger {
   return new Logger(name, {
@@ -168,18 +148,13 @@ function createRequestTimeZoneProvider(
       inject: [Configuration, REQUEST],
     },
 
-    // Jira Client
+    // Issues (provider selected by `issues_provider`: jira or github)
     {
-      provide: JiraIssuesClient,
-      useFactory: (config: Configuration): JiraIssuesClient =>
-        new JiraIssuesClient(
-          config.jiraUrl || '',
-          config.jiraEmail || '',
-          config.jiraToken || '',
-          config.jiraProject || '',
-          createLogger(config, 'JiraIssuesClient')
-        ),
-      inject: [Configuration],
+      provide: IssuesRepository,
+      useFactory: (config: Configuration, timeZoneProvider: TimeZoneProvider): IssuesRepository =>
+        IssuesFactory.create(config, createLogger(config, 'IssuesRepository'), timeZoneProvider)
+          .issuesRepository,
+      inject: [Configuration, TimeZoneProvider],
     },
 
     // SonarQube Client
@@ -299,24 +274,6 @@ function createRequestTimeZoneProvider(
         return CodemaatFactory.create(config, createLogger(config, 'CodeMetricsRepository'));
       },
       inject: [Configuration],
-    },
-    {
-      provide: IssuesRepository,
-      useFactory: (
-        client: JiraIssuesClient,
-        config: Configuration,
-        timeZoneProvider: TimeZoneProvider
-      ): IssuesRepository => {
-        const paths = buildDataDirectories(config);
-        return new IssuesRepository(
-          client,
-          paths.jiraDirectory,
-          createLogger(config, 'IssuesRepository'),
-          timeZoneProvider,
-          config
-        );
-      },
-      inject: [JiraIssuesClient, Configuration, TimeZoneProvider],
     },
     {
       provide: SonarqubeRepository,

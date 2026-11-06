@@ -18,7 +18,7 @@ C4Context
   System(smm, "Software Metrics Machine", "Fetches software metrics from external providers, caches them locally and computes change-request, pipeline, code, issue and quality metrics")
 
   System_Ext(gitHost, "Git hosting and CI/CD", "GitHub and GitLab: pull requests, reviews, workflows and jobs")
-  System_Ext(issueTracker, "Issue tracker", "Jira: issues, status transitions and delivery data")
+  System_Ext(issueTracker, "Issue tracker", "Jira or GitHub: issues, comments and delivery data")
   System_Ext(qualityPlatform, "Code quality platform", "SonarQube: measures and component tree")
   System_Ext(gitClone, "Local git clone", "Commit history, file churn and authorship analysed with git and Code Maat")
   System_Ext(dataStore, "SMM data folder", "SMM_STORE_DATA_AT: one folder per project holding smm_config.json, cached payloads, snapshots and smm.sqlite")

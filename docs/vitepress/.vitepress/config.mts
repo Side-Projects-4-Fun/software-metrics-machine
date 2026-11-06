@@ -140,7 +140,7 @@ export default withMermaid(
               text: 'GitLab', link: '/gitlab'
             },
             {
-              text: 'Jira', link: '/jira'
+              text: 'Issue tracking', link: '/issues'
             },
             {
               text: 'SonarQube', link: '/sonarqube'

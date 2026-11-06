@@ -1,4 +1,5 @@
 export * from './github-pr-client';
+export * from './github-issues-client';
 export * from './workflow-types';
 export * from './github-workflow-client';
 export * from './github-workflow-job-client';

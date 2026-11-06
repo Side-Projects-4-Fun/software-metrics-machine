@@ -9,6 +9,7 @@ Check the diff against these rules:
 - `packages/core` and `packages/utils` stay CommonJS; imports use `@smmachine/core` / `@smmachine/utils`, never `src/` or `dist/` paths directly.
 - Data mutability boundary is respected: only CLI commands generate/persist data; REST, webapp, and MCP stay read-only.
 - Tests use builders (never inline mock objects), avoid loops/conditionals inside test bodies, and use `renderWithProviders()` / `userEvent` for webapp tests.
+- Provider integration tests use MSW (`msw/node`) with `onUnhandledRequest: 'error'`; no real external calls, network access, or `RUN_*_INTEGRATION_TESTS` gates.
 - Renames are atomic across layers (no deprecated aliases or compatibility shims).
 - Regressions have a test that reproduces the failure before the fix.
 

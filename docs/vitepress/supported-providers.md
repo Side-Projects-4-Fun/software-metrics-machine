@@ -36,7 +36,7 @@ If you are using Bitbucket, the following are currently supported:
 
 ### Jira
 
-If you are using [Jira](./jira.md), the following metrics are supported:
+If you are using [Jira](./jira.md) or [GitHub issues](./issues.md), the following metrics are supported:
 
 - Issues and issue properties via REST and CLI fetch
 - Issue filtering by status and date range

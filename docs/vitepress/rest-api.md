@@ -123,9 +123,9 @@ Common query params:
 - `top`
 - `type_churn`
 
-## Jira
+## Issue tracking
 
-- `GET /jira/issues`
+- `GET /api/metrics/issues`
 
 Common query params:
 

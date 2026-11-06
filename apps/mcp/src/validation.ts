@@ -603,7 +603,7 @@ export function buildIssueMetricsInputSchema(): JsonObject {
       ...baseMetricsProperties(),
       status: {
         type: 'string',
-        description: 'Optional Jira issue status filter (e.g. Done, In Progress).',
+        description: 'Optional issue status filter (e.g. Done, In Progress, open, closed).',
       },
     } as JsonObject,
   };

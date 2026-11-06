@@ -151,3 +151,39 @@ export interface PullRequestCommentJsonResponse {
     eyes: number;
   };
 }
+
+export type GitHubIssueLabelJsonResponse = {
+  id?: number | string;
+  name: string;
+  color?: string;
+  description?: string | null;
+};
+
+export type GitHubIssueJsonResponse = {
+  id: number;
+  number: number;
+  title: string;
+  body?: string | null;
+  state: 'open' | 'closed';
+  state_reason?: string | null;
+  html_url: string;
+  url: string;
+  comments: number;
+  created_at: string;
+  updated_at: string;
+  closed_at?: string | null;
+  assignee?: { login: string } | null;
+  labels: Array<GitHubIssueLabelJsonResponse | string>;
+  pull_request?: unknown;
+  user?: { login: string };
+};
+
+export type GitHubIssueCommentJsonResponse = {
+  id: number;
+  body?: string | null;
+  html_url: string;
+  issue_url: string;
+  created_at: string;
+  updated_at: string;
+  user?: { login: string } | null;
+};

@@ -10,8 +10,7 @@ import {
   FilterResolver,
   FileSystemSavedFiltersAdapter,
   HealthCheckService,
-  IssuesRepository,
-  JiraIssuesClient,
+  IssuesFactory,
   PairingFactory,
   PipelineEvaluationService,
   PipelineFactory,
@@ -408,23 +407,15 @@ export class McpMetricsReader {
         status: filters.status,
       },
       async () => {
-        const client = new JiraIssuesClient(
-          this.configuration.jiraUrl || '',
-          this.configuration.jiraEmail || '',
-          this.configuration.jiraToken || '',
-          this.configuration.jiraProject || '',
-          createLogger(this.configuration, 'JiraIssuesClient')
-        );
-        const repository = new IssuesRepository(
-          client,
-          this.configuration.getJiraPath(),
+        const { issuesRepository, provider } = IssuesFactory.create(
+          this.configuration,
           createLogger(this.configuration, 'IssuesRepository'),
-          this.timeZoneProvider,
-          this.configuration
+          this.timeZoneProvider
         );
-        const issues = await repository.getIssues(filters);
+        const issues = await issuesRepository.getIssues(filters);
 
         return {
+          provider,
           totalIssues: issues.length,
           issues,
         };
