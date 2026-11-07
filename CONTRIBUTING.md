@@ -31,8 +31,11 @@ Thanks for contributing. This repository is a **pnpm TypeScript monorepo** with 
 
 The workspace runs **TypeScript 7** (`tsc`, the native compiler) for builds and type-checking, with
 **TypeScript 6** installed alongside as the compiler-API compatibility package. TypeScript 7 does not ship a
-programmatic API yet, so tooling that needs one (ESLint's `@typescript-eslint/parser`, `tsup`'s DTS build,
-`ts-node`, `@nestjs/swagger`, Next.js type checking) keeps resolving `typescript` to 6.x.
+programmatic API yet, so tooling that needs one keeps resolving `typescript` to 6.x. Today that is exactly two
+consumers: ESLint's `@typescript-eslint/parser` (type-aware linting) and `tsup`'s DTS build (`dts: true` in
+`apps/cli` and `apps/mcp`). Everything else runs on TS 7 natively: Next.js type-checks by shelling out to the
+`tsc` binary when the API is missing, `dependency-cruiser` does not depend on `typescript` at all, and
+`@nestjs/swagger` only peers on it for its (unused) CLI plugin.
 
 Both packages come from the pnpm catalog in `pnpm-workspace.yaml`:
 
@@ -284,7 +287,8 @@ The `pnpm cli` command runs `tsx src/index.ts` from `apps/cli` with `SMM_DEV_MOD
 pnpm --filter @smmachine/rest dev
 ```
 
-This runs NestJS via `ts-node`. The API serves Swagger docs at `http://localhost:8000/api/docs`.
+This compiles with `tsc` (TypeScript 7 watch mode) and runs `dist/main.js` under `node --watch`, restarting on
+source changes. The API serves Swagger docs at `http://localhost:8000/api/docs`.
 
 ### Webapp development
 
@@ -442,7 +446,7 @@ The monorepo uses a mix of module systems:
 | ---------------- | --------------------------------------------------- |
 | `apps/cli`       | CommonJS (bundled by tsup for Node.js distribution) |
 | `apps/mcp`       | CommonJS (bundled by tsup)                          |
-| `apps/rest`      | CommonJS (tsc for production, ts-node for dev)      |
+| `apps/rest`      | CommonJS (tsc for production and dev watch)         |
 | `apps/webapp`    | ESM (Next.js)                                       |
 | `packages/core`  | CommonJS                                            |
 | `packages/utils` | CommonJS                                            |

@@ -44,8 +44,6 @@
     "eslint-config-prettier": "catalog:",
     "eslint-plugin-prettier": "catalog:",
     "msw": "catalog:",
-    "ts-node": "catalog:",
-    "tsconfig-paths": "catalog:",
     "tsx": "catalog:",
     "tsup": "catalog:",
     "typescript": "catalog:",

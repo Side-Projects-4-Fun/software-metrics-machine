@@ -12,7 +12,6 @@ allowBuilds:
   unrs-resolver: false
 
 catalog:
-  '@cypress/webpack-preprocessor': ^7.1.2
   '@emotion/cache': ^11.14.0
   '@emotion/react': ^11.14.0
   '@emotion/styled': ^11.14.1
@@ -81,9 +80,6 @@ catalog:
   supertest: ^7.2.2
   swagger-ui-express: ^5.0.1
   tailwindcss: ^4.3.3
-  ts-jest: ^29.1.0
-  ts-node: ^10.9.2
-  tsconfig-paths: ^4.2.0
   tsup: ^9.0.0
   tsx: ^4.23.15
   turbo: ^2.11.10

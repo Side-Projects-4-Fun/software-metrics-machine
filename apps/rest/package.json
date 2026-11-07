@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.json",
-    "dev": "PORT=8000 ts-node src/main.ts",
+    "dev": "tsc -p tsconfig.json && concurrently -k -n tsc,api \"tsc -p tsconfig.json --watch --preserveWatchOutput\" \"PORT=8000 node --watch dist/main.js\"",
     "watch": "tsc -p tsconfig.json --watch",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
@@ -35,13 +35,12 @@
     "@typescript-eslint/eslint-plugin": "catalog:",
     "@typescript-eslint/parser": "catalog:",
     "@typescript/native": "catalog:",
+    "concurrently": "catalog:",
     "eslint": "catalog:",
     "eslint-config-prettier": "catalog:",
     "eslint-plugin-prettier": "catalog:",
     "msw": "catalog:",
     "supertest": "catalog:",
-    "ts-node": "catalog:",
-    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

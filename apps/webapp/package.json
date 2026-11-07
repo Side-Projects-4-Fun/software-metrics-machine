@@ -38,7 +38,6 @@
     "recharts": "catalog:"
   },
   "devDependencies": {
-    "@cypress/webpack-preprocessor": "catalog:",
     "@smmachine/core": "workspace:*",
     "@smmachine/utils": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
@@ -58,7 +57,6 @@
     "jest-environment-jsdom": "catalog:",
     "msw": "catalog:",
     "tailwindcss": "catalog:",
-    "ts-node": "catalog:",
     "typescript": "catalog:"
   }
 }

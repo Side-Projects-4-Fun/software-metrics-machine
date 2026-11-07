@@ -44,7 +44,7 @@ and `.github/agents/` for GitHub Copilot. Shared role prompts live under `.agent
 │   │   └── fetch-codemaat.sh # Code Maat downloader shipped with the package
 │   ├── mcp/              # @smmachine/mcp — read-only MCP stdio server (CommonJS, tsup)
 │   │   └── src/              # server.ts, tools.ts, resources.ts, prompts.ts, metrics-reader.ts, redaction.ts, validation.ts
-│   ├── rest/             # @smmachine/rest — NestJS REST API (CommonJS via ts-node/tsc)
+│   ├── rest/             # @smmachine/rest — NestJS REST API (CommonJS, tsc build + tsc/node watch dev)
 │   │   └── src/              # controllers/, dtos/, filters/, middleware/, config/, logger/, utils/, metrics.module.ts
 │   └── webapp/           # @smmachine/webapp — Next.js 16 App Router dashboard (ESM)
 │       ├── app/              # Routes: dashboard/, engineering-health/, reports/, api/ (route handlers)
@@ -120,14 +120,14 @@ REST API over HTTP — it has no runtime workspace dependency on `@smmachine/cor
 
 ### Module system
 
-| Package          | Module system | Notes                                                         |
-| ---------------- | ------------- | ------------------------------------------------------------- |
-| `packages/core`  | CommonJS      | Compiled by `tsc` to `dist/`                                  |
-| `packages/utils` | CommonJS      | Compiled by `tsc` to `dist/`                                  |
-| `apps/cli`       | CommonJS      | Bundled by `tsup` to `dist/index.cjs`                         |
-| `apps/mcp`       | CommonJS      | Bundled by `tsup` to `dist/index.cjs` (binary `dist/bin.cjs`) |
-| `apps/rest`      | CommonJS      | `tsc` build for production, `ts-node` for dev                 |
-| `apps/webapp`    | ESM           | Next.js                                                       |
+| Package          | Module system | Notes                                                              |
+| ---------------- | ------------- | ------------------------------------------------------------------ |
+| `packages/core`  | CommonJS      | Compiled by `tsc` to `dist/`                                       |
+| `packages/utils` | CommonJS      | Compiled by `tsc` to `dist/`                                       |
+| `apps/cli`       | CommonJS      | Bundled by `tsup` to `dist/index.cjs`                              |
+| `apps/mcp`       | CommonJS      | Bundled by `tsup` to `dist/index.cjs` (binary `dist/bin.cjs`)      |
+| `apps/rest`      | CommonJS      | `tsc` build for production, `tsc --watch` + `node --watch` for dev |
+| `apps/webapp`    | ESM           | Next.js                                                            |
 
 The root `tsup.config.ts` bundles the published launcher: `dist/index.cjs` (CLI), `dist/rest/main.cjs` (API), and
 `dist/webapp/server.cjs` (Next.js standalone server) so `smm dashboard serve` can run the full stack from one package.

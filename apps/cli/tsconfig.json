@@ -12,10 +12,6 @@
       "@smmachine/core": ["../../packages/core/src/*"]
     }
   },
-  "ts-node": {
-    "esm": true,
-    "experimentalSpecifierResolution": "node"
-  },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "__tests__"]
 }

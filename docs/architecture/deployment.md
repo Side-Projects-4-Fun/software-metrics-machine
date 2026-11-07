@@ -39,7 +39,7 @@ C4Deployment
 
   Deployment_Node(host, "Developer machine", "pnpm + Docker") {
     Deployment_Node(pnpm, "pnpm dev", "Node.js processes") {
-      Container(restDev, "REST API", "ts-node, port 8000", "Serves metrics and configuration from the project data folder")
+      Container(restDev, "REST API", "tsc --watch + node --watch, port 8000", "Serves metrics and configuration from the project data folder")
       Container(webappDev, "Webapp", "next dev, port 3000", "Reads SMM_REST_BASE_URL http://localhost:8000")
     }
 

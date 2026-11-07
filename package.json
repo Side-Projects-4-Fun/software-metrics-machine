@@ -122,8 +122,6 @@
     "husky": "catalog:",
     "inquirer": "catalog:",
     "ora": "catalog:",
-    "ts-node": "catalog:",
-    "tsconfig-paths": "catalog:",
     "tsup": "catalog:",
     "tsx": "catalog:",
     "turbo": "catalog:",
