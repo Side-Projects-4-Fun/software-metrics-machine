@@ -1,5 +1,6 @@
 import type { Logger } from '@smmachine/utils';
-import type { Configuration, TimeZoneProvider } from '../../../infrastructure';
+import type { Configuration } from '../../../infrastructure';
+import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import type { IssueProvider } from '../../../domain-types';
 import type { IIssuesClient } from '../../../providers/issues-client';
 import { JiraIssuesClient } from '../../../providers/jira/jira-client';
@@ -25,6 +26,8 @@ export class IssuesFactory {
     logger: Logger,
     timeZoneProvider: TimeZoneProvider
   ): IssuesDependencies {
+    // Provider clients parse source data with the project timezone, while the
+    // repository keeps the caller-provided provider for filtering/grouping.
     const client = IssuesFactory.createClient(config, logger);
     const issuesRepository = new IssuesRepository(
       client,
@@ -37,7 +40,11 @@ export class IssuesFactory {
     return { issuesRepository, provider: client.provider };
   }
 
-  static createClient(config: Configuration, logger: Logger): IIssuesClient {
+  static createClient(
+    config: Configuration,
+    logger: Logger,
+    timeZoneProvider: TimeZoneProvider = new TimeZoneProvider(config.timezone || 'UTC')
+  ): IIssuesClient {
     const provider = config.issuesProvider || 'jira';
 
     if (provider === 'github') {
@@ -66,7 +73,12 @@ export class IssuesFactory {
     }
 
     if (provider === 'jira-csv') {
-      return new JiraCsvIssuesClient(config.getJiraCsvPath(), logger, config.jiraUrl);
+      return new JiraCsvIssuesClient(
+        config.getJiraCsvPath(),
+        logger,
+        timeZoneProvider,
+        config.jiraUrl
+      );
     }
 
     return new JiraIssuesClient(

@@ -110,6 +110,7 @@
     "@types/node": "catalog:",
     "@typescript-eslint/eslint-plugin": "catalog:",
     "@typescript-eslint/parser": "catalog:",
+    "@typescript/native": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "axios": "catalog:",
     "babel-plugin-react-compiler": "catalog:",

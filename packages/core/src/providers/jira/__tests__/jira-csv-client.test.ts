@@ -4,6 +4,7 @@ import * as path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { JiraCsvIssuesClient } from '../jira-csv-client';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
+import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 
 const HEADER =
   'Summary,Issue key,Issue Type,Status,Project key,Assignee,Created,Updated,Resolved,Labels,Labels,Description,Comment';
@@ -29,7 +30,12 @@ describe('JiraCsvIssuesClient', () => {
   });
 
   it('maps issues and comments from the CSV export', async () => {
-    const client = new JiraCsvIssuesClient(filePath, logger, 'https://jira.example.com');
+    const client = new JiraCsvIssuesClient(
+      filePath,
+      logger,
+      new TimeZoneProvider('UTC'),
+      'https://jira.example.com'
+    );
 
     const issues = await client.fetchIssues();
 
@@ -60,6 +66,18 @@ describe('JiraCsvIssuesClient', () => {
         provider: 'jira-csv',
       },
     ]);
+  });
+
+  it('interprets naive CSV timestamps in the project timezone', async () => {
+    const client = new JiraCsvIssuesClient(filePath, logger, new TimeZoneProvider('Europe/Madrid'));
+
+    const issues = await client.fetchIssues();
+    const comments = await client.fetchComments({ issueKey: 'KAN-1' });
+
+    // Europe/Madrid is UTC+2 in October (CEST).
+    expect(issues[0].createdAt).toBe('2026-10-09T10:15:00.000Z');
+    expect(issues[0].updatedAt).toBe('2026-10-10T07:00:00.000Z');
+    expect(comments[0].createdAt).toBe('2026-10-10T07:05:00.000Z');
   });
 
   it('filters issues by created window, status, label and type', async () => {

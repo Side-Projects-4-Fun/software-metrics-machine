@@ -1,4 +1,4 @@
-import type { SonarqubeComponentMeasure } from 'src';
+import type { SonarqubeComponentMeasure } from '../../../index';
 import type { Configuration, IRepository } from '../../../infrastructure';
 import { RepositoryFactory } from '../../../infrastructure';
 import type {

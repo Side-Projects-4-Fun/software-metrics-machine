@@ -149,7 +149,7 @@ These keys affect dashboard behavior:
 
 - `dashboard_start_date` and `dashboard_end_date`: default dashboard date range when no URL filters are provided.
 - `deployment_frequency_targets`: pipeline/job pairs used by the Insights deployment frequency chart.
-- `timezone`: configured project timezone for CLI and provider fetch behavior.
+- `timezone`: configured project timezone for CLI and provider fetch behavior. It is also used to interpret wall-clock timestamps in `jira-csv` exports.
 
 Dashboard filtering uses the browser timezone and sends it as the `timezone` query parameter. This keeps dashboard
 date-time filtering aligned with the user viewing the dashboard. See [Dashboard](./dashboard.md) for shared dashboard

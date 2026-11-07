@@ -7,10 +7,9 @@
     "rootDir": "./src",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
-    "baseUrl": "../..",
     "paths": {
-      "@smmachine/utils": ["packages/utils/src/*"],
-      "@smmachine/core": ["packages/core/src/*"]
+      "@smmachine/utils": ["../../packages/utils/src/*"],
+      "@smmachine/core": ["../../packages/core/src/*"]
     }
   },
   "ts-node": {

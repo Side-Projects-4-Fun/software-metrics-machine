@@ -141,6 +141,41 @@ export class TimeZoneProvider {
     return new Date(endOfDayUtc - offsetMinutes * 60 * 1000);
   }
 
+  /**
+   * Converts wall-clock date/time parts in the configured timezone to a UTC ISO string.
+   *
+   * Jira CSV exports contain timestamps without an offset. Callers pass the
+   * exported components and this method applies the timezone offset, including
+   * DST, before returning an ISO instant.
+   */
+  toUtcIsoFromWallTime(parts: {
+    year: number;
+    month: number;
+    day: number;
+    hours: number;
+    minutes: number;
+    seconds?: number;
+  }): string {
+    const seconds = parts.seconds ?? 0;
+    const wallTimeAsUtc = Date.UTC(
+      parts.year,
+      parts.month,
+      parts.day,
+      parts.hours,
+      parts.minutes,
+      seconds
+    );
+
+    // First guess uses the offset at the naive UTC instant; the second pass
+    // corrects the offset around DST transitions.
+    const firstGuess = new Date(wallTimeAsUtc);
+    const firstOffset = this.getUTCOffsetMinutes(firstGuess);
+    const adjusted = wallTimeAsUtc - firstOffset * 60 * 1000;
+    const secondOffset = this.getUTCOffsetMinutes(new Date(adjusted));
+
+    return new Date(wallTimeAsUtc - secondOffset * 60 * 1000).toISOString();
+  }
+
   // ---------------------------------------------------------------------------
   // Comparison helpers
   // ---------------------------------------------------------------------------

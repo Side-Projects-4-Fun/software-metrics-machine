@@ -1,3 +1,5 @@
+import type { TimeZoneProvider } from '../../infrastructure/timezone-provider';
+
 export type JiraCsvComment = {
   createdAt: string;
   author?: string;
@@ -118,10 +120,14 @@ export function parseCsv(content: string): string[][] {
 /**
  * Parses the date format used by Jira CSV exports, e.g. `09/Oct/26 12:15 PM`.
  *
- * CSV timestamps carry no timezone, so they are interpreted as UTC. ISO-like
- * values are accepted as a fallback.
+ * CSV timestamps carry no timezone. When a `TimeZoneProvider` is supplied, the
+ * wall-clock value is interpreted in that timezone; otherwise UTC is used.
+ * ISO-like values with an explicit offset are accepted as a fallback.
  */
-export function parseJiraCsvDate(value: string): string | undefined {
+export function parseJiraCsvDate(
+  value: string,
+  timeZoneProvider?: TimeZoneProvider
+): string | undefined {
   const trimmed = value.trim();
   if (!trimmed) {
     return undefined;
@@ -165,17 +171,28 @@ export function parseJiraCsvDate(value: string): string | undefined {
     return undefined;
   }
 
-  const date = new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+  const wallTimeAsUtc = new Date(Date.UTC(year, month, day, hours, minutes, seconds));
   if (
-    Number.isNaN(date.getTime()) ||
-    date.getUTCFullYear() !== year ||
-    date.getUTCMonth() !== month ||
-    date.getUTCDate() !== day
+    Number.isNaN(wallTimeAsUtc.getTime()) ||
+    wallTimeAsUtc.getUTCFullYear() !== year ||
+    wallTimeAsUtc.getUTCMonth() !== month ||
+    wallTimeAsUtc.getUTCDate() !== day
   ) {
     return undefined;
   }
 
-  return date.toISOString();
+  if (timeZoneProvider) {
+    return timeZoneProvider.toUtcIsoFromWallTime({
+      year,
+      month,
+      day,
+      hours,
+      minutes,
+      seconds,
+    });
+  }
+
+  return wallTimeAsUtc.toISOString();
 }
 
 function buildHeaderIndex(header: string[]): Map<string, number[]> {
@@ -202,7 +219,10 @@ function readCells(row: string[], header: Map<string, number[]>, name: string): 
     .filter((value) => value.length > 0);
 }
 
-function parseComment(value: string): JiraCsvComment | undefined {
+function parseComment(
+  value: string,
+  timeZoneProvider?: TimeZoneProvider
+): JiraCsvComment | undefined {
   const firstSeparator = value.indexOf(';');
   const secondSeparator = value.indexOf(';', firstSeparator + 1);
 
@@ -210,7 +230,7 @@ function parseComment(value: string): JiraCsvComment | undefined {
     return undefined;
   }
 
-  const createdAt = parseJiraCsvDate(value.slice(0, firstSeparator));
+  const createdAt = parseJiraCsvDate(value.slice(0, firstSeparator), timeZoneProvider);
   if (!createdAt) {
     return undefined;
   }
@@ -228,9 +248,14 @@ function parseComment(value: string): JiraCsvComment | undefined {
  * Maps a Jira CSV export into provider-neutral issue records.
  *
  * The export repeats `Labels` and `Comment` headers; every occurrence is read
- * so issues with multiple labels or comments are preserved.
+ * so issues with multiple labels or comments are preserved. When a
+ * `TimeZoneProvider` is supplied, timestamp columns are interpreted in that
+ * timezone.
  */
-export function parseJiraCsv(content: string): JiraCsvRecord[] {
+export function parseJiraCsv(
+  content: string,
+  timeZoneProvider?: TimeZoneProvider
+): JiraCsvRecord[] {
   const rows = parseCsv(content);
   if (rows.length === 0) {
     return [];
@@ -249,7 +274,7 @@ export function parseJiraCsv(content: string): JiraCsvRecord[] {
         .filter((label) => label.length > 0);
 
       const comments = readCells(row, header, 'Comment')
-        .map(parseComment)
+        .map((value) => parseComment(value, timeZoneProvider))
         .filter((comment): comment is JiraCsvComment => comment !== undefined);
 
       return {
@@ -259,9 +284,9 @@ export function parseJiraCsv(content: string): JiraCsvRecord[] {
         description: readCell(row, header, 'Description') || undefined,
         status: readCell(row, header, 'Status') || 'UNKNOWN',
         assignee: readCell(row, header, 'Assignee') || 'Unassigned',
-        createdAt: parseJiraCsvDate(readCell(row, header, 'Created')) ?? '',
-        updatedAt: parseJiraCsvDate(readCell(row, header, 'Updated')),
-        closedAt: parseJiraCsvDate(readCell(row, header, 'Resolved')),
+        createdAt: parseJiraCsvDate(readCell(row, header, 'Created'), timeZoneProvider) ?? '',
+        updatedAt: parseJiraCsvDate(readCell(row, header, 'Updated'), timeZoneProvider),
+        closedAt: parseJiraCsvDate(readCell(row, header, 'Resolved'), timeZoneProvider),
         labels,
         issueType: readCell(row, header, 'Issue Type') || undefined,
         projectKey: readCell(row, header, 'Project key') || undefined,

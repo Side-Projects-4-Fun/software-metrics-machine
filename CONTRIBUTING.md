@@ -27,6 +27,23 @@ Thanks for contributing. This repository is a **pnpm TypeScript monorepo** with 
 | pnpm    | `>=10.0.0` | Exact: `12.16.1` (`packageManager`)            |
 | Git     | any        |                                                |
 
+### TypeScript toolchain
+
+The workspace runs **TypeScript 7** (`tsc`, the native compiler) for builds and type-checking, with
+**TypeScript 6** installed alongside as the compiler-API compatibility package. TypeScript 7 does not ship a
+programmatic API yet, so tooling that needs one (ESLint's `@typescript-eslint/parser`, `tsup`'s DTS build,
+`ts-node`, `@nestjs/swagger`, Next.js type checking) keeps resolving `typescript` to 6.x.
+
+Both packages come from the pnpm catalog in `pnpm-workspace.yaml`:
+
+| Package              | Alias                         | Binary |
+| -------------------- | ----------------------------- | ------ |
+| `typescript`         | `npm:@typescript/typescript6` | `tsc6` |
+| `@typescript/native` | `npm:typescript@^7`           | `tsc`  |
+
+Never point `typescript` straight at 7.x — the API consumers above will break. See
+[ADR 0009](docs/adrs/0009-typescript-7-native-compiler.md).
+
 Optional:
 
 - **Docker / Docker Compose** — for local SonarQube analysis or running the full stack in containers

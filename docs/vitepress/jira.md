@@ -126,13 +126,21 @@ Then set `issues_provider` to `jira-csv`:
 ```json
 {
   "issues_provider": "jira-csv",
-  "jira_url": "https://your-domain.atlassian.net"
+  "jira_url": "https://your-domain.atlassian.net",
+  "timezone": "Europe/Madrid"
 }
 ```
 
 `jira_email`, `jira_token` and `jira_project` are not required in this mode. `jira_url` is optional
-and only used to build browsable issue links. Replace `Jira.csv`, then run `smm issues fetch --force`
-to refresh the cache. CSV timestamps are interpreted as UTC.
+and only used to build browsable issue links.
+
+> [!IMPORTANT]
+> Jira CSV timestamps do not contain a timezone. SMM interprets them in the project `timezone`
+> setting (`Europe/Madrid`, `America/New_York`, `UTC`, …) and falls back to `UTC` when `timezone` is
+> omitted. Set `timezone` to the timezone of the Jira account that produced the export; otherwise
+> issue and comment times shift by the offset and can move across day boundaries.
+
+Replace `Jira.csv`, then run `smm issues fetch --force` to refresh the cache.
 
 See [Issue tracking providers](./issues.md#jira-csv-export-no-api-connection) for the full details.
 

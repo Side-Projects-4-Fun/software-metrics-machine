@@ -22,7 +22,7 @@ and `.github/agents/` for GitHub Copilot. Shared role prompts live under `.agent
 ## Technology Stack
 
 - **Node.js**: `>=26.4.0` (`engines.node`; exact `.nvmrc` / `envvars.for.actions` = `26.12.1`); **pnpm**: `>=10.0.0` (`engines.pnpm`; `packageManager` = `pnpm@12.16.1`); Monorepo via pnpm workspaces + Turborepo
-- **TypeScript** 6.x (strict mode); **CLI**: Commander.js 15.x; **REST**: NestJS 12.x (Express, Swagger); **Webapp**: Next.js 16.x, React 19.x, MUI 9.x, Recharts 3.x, Tailwind CSS 4, Cypress 16.x e2e; **Docs**: VitePress
+- **TypeScript** 7.x native compiler (`tsc`) with TypeScript 6.x installed as the compiler-API compatibility package (`typescript` → `@typescript/typescript6`, `@typescript/native` → `typescript@7`); **CLI**: Commander.js 15.x; **REST**: NestJS 12.x (Express, Swagger); **Webapp**: Next.js 16.x, React 19.x, MUI 9.x, Recharts 3.x, Tailwind CSS 4, Cypress 16.x e2e; **Docs**: VitePress
 - **Vitest** 5.x for `apps/cli`, `apps/mcp`, `apps/rest`, `packages/core`, `packages/utils`; **Jest** 30.x for `apps/webapp` unit tests (via `next/jest`, `clearMocks: true`); **bashunit** for `apps/cli/e2e`
 - **ESLint** 9.x (flat config `eslint.config.mjs`) + Prettier, auto-fixed on commit via lint-staged
 

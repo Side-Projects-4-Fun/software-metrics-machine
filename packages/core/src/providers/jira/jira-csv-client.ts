@@ -2,6 +2,7 @@ import { readFile } from 'fs/promises';
 import type { Logger } from '@smmachine/utils';
 import type { Issue, IssueComment } from '../../domain-types';
 import type { IIssuesClient, IssueCommentQueryOptions, IssueQueryOptions } from '../issues-client';
+import { TimeZoneProvider } from '../../infrastructure/timezone-provider';
 import type { JiraCsvRecord } from './jira-csv-parser';
 import { parseJiraCsv } from './jira-csv-parser';
 
@@ -51,6 +52,7 @@ export class JiraCsvIssuesClient implements IIssuesClient {
   constructor(
     private readonly filePath: string,
     private readonly logger: Logger,
+    private readonly timeZoneProvider: TimeZoneProvider = new TimeZoneProvider('UTC'),
     private readonly jiraUrl?: string
   ) {}
 
@@ -113,7 +115,7 @@ export class JiraCsvIssuesClient implements IIssuesClient {
     try {
       this.logger.info(`Reading Jira CSV export from ${this.filePath}`);
       const content = await readFile(this.filePath, 'utf8');
-      const records = parseJiraCsv(content);
+      const records = parseJiraCsv(content, this.timeZoneProvider);
       this.logger.info(`Parsed ${records.length} Jira CSV records`);
       return records;
     } catch (error) {

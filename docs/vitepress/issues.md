@@ -35,7 +35,7 @@ without a configuration change.
 | ---------- | ------------------------ | -------------------------------------------------------------- |
 | `jira`     | Jira Cloud REST API      | `jira_url`, `jira_email`, `jira_token`, `jira_project`         |
 | `github`   | GitHub REST API          | `github_repository` (`owner/repo`), `github_token`             |
-| `jira-csv` | Jira CSV export on disk  | A `Jira.csv` export in the project data directory              |
+| `jira-csv` | Jira CSV export on disk  | A `Jira.csv` export; set `timezone`                            |
 
 Project-specific environment variables are also supported:
 
@@ -97,22 +97,39 @@ Configure the project to use the file instead of the API:
 ```json
 {
   "issues_provider": "jira-csv",
-  "jira_url": "https://your-domain.atlassian.net"
+  "jira_url": "https://your-domain.atlassian.net",
+  "timezone": "Europe/Madrid"
 }
 ```
 
 No `jira_email`, `jira_token` or `jira_project` is required for this mode. `jira_url` is optional and
-is only used to build browsable issue links.
+is only used to build browsable issue links; `timezone` is covered below.
 
 The export is read using its `Summary`, `Issue key`, `Issue Type`, `Status`, `Project key`,
 `Assignee`, `Created`, `Updated`, `Resolved`, `Labels`, `Description` and `Comment` columns.
 Repeated `Labels` and `Comment` columns are supported, which is how Jira exports multiple labels and
 comments per issue.
 
+> [!IMPORTANT]
+> Jira CSV timestamps have **no timezone**. SMM interprets every `Created`, `Updated`, `Resolved` and
+> comment timestamp in the project `timezone` setting. Set it to the timezone of the Jira account that
+> produced the export (`Europe/Madrid`, `America/New_York`, `UTC`, …). If `timezone` is omitted, SMM
+> falls back to `UTC`.
+>
+> Using the wrong timezone shifts issue and comment times by the offset and can move them across a day
+> boundary, changing date-window results.
+
+For example, the export value `09/Oct/26 12:15 PM` becomes:
+
+| Project `timezone`         | Stored instant                 |
+| -------------------------- | ------------------------------ |
+| `Europe/Madrid` (UTC+2)    | `2026-10-09T10:15:00.000Z`     |
+| `America/New_York` (UTC-4) | `2026-10-09T16:15:00.000Z`     |
+| omitted (`UTC`)            | `2026-10-09T12:15:00.000Z`     |
+
 > [!NOTE]
 > The CSV is a snapshot. After replacing the file, run `smm issues fetch --force` to refresh the
-> cache. CSV timestamps carry no timezone, so SMM interprets them as UTC. Comments are read from the
-> `Comment` columns and cached by `smm issues fetch-comments`.
+> cache. Comments are read from the `Comment` columns and cached by `smm issues fetch-comments`.
 
 ## Fetching issues
 
@@ -203,7 +220,8 @@ independent of `git_provider`.
 - Jira comment windows are resolved by first finding issues updated inside the window, then
   fetching each issue's comments.
 - The `jira-csv` provider reads a snapshot. Replacing `Jira.csv` requires `smm issues fetch --force`,
-  and CSV timestamps are interpreted as UTC because the export carries no timezone.
+  and CSV timestamps are interpreted in the project `timezone` (default `UTC`) because the export
+  carries no timezone.
 - Switching `issues_provider` requires a fresh fetch; issues and comments from different
   providers are stored in separate directories.
 

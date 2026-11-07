@@ -12,7 +12,7 @@ description: "Linting and code quality workflow for Software Metrics Machine. Co
 | ESLint | 9.x | Flat config (`eslint.config.mjs`) |
 | Prettier | — | Formatting (`.prettierrc.json`) |
 | lint-staged | — | Auto-fix staged files on commit |
-| TypeScript | 6.x | `tsc --noEmit` for type checking |
+| TypeScript | 7.x native `tsc`, 6.x for the compiler API | `tsc --noEmit` for type checking |
 
 ## Commands
 

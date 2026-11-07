@@ -132,8 +132,10 @@ The CSV provider is explicit, not an automatic fallback. If `Jira.csv` exists bu
 is `jira`, SMM still calls the Jira API. This avoids silently switching the source of truth when a
 file appears in the data directory.
 
-CSV timestamps carry no timezone; they are interpreted as UTC. The export is a snapshot, so replacing
-the file requires `smm issues fetch --force`.
+CSV timestamps carry no timezone. They are interpreted in the project `timezone` setting (for
+example `Europe/Madrid`), falling back to `UTC` when the project does not set one. This keeps CSV
+issue and comment instants aligned with the timezone used by date filters. The export is a snapshot,
+so replacing the file requires `smm issues fetch --force`.
 
 ## Interfaces at a glance
 
@@ -167,7 +169,8 @@ Read a Jira export without an API connection:
 ```json
 {
   "issues_provider": "jira-csv",
-  "jira_url": "https://your-domain.atlassian.net"
+  "jira_url": "https://your-domain.atlassian.net",
+  "timezone": "Europe/Madrid"
 }
 ```
 
@@ -266,8 +269,8 @@ decision, not a published API surface.
 - Jira changelog and GitHub timeline history remain unavailable, so derived issue metrics stay
   blocked.
 - Switching `issues_provider` requires a fresh fetch; provider caches are intentionally separate.
-- The Jira CSV provider reads a snapshot, interprets timestamps as UTC, and does not retain author
-  display names for comments (the export only carries author ids).
+- The Jira CSV provider reads a snapshot, interprets timestamps in the project `timezone` (default
+  `UTC`), and does not retain author display names for comments (the export only carries author ids).
 
 ### Neutral / follow-ups
 

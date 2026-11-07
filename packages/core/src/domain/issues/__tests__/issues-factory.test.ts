@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import * as fs from 'fs/promises';
+import * as os from 'os';
+import * as path from 'path';
 import { Configuration } from '../../../infrastructure/configuration';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
@@ -49,6 +52,41 @@ describe('IssuesFactory', () => {
 
     expect(dependencies.provider).toBe('github');
     expect(dependencies.issuesRepository.provider).toBe('github');
+  });
+
+  it('parses CSV timestamps with the project timezone, not the caller filtering timezone', async () => {
+    const storeData = await fs.mkdtemp(path.join(os.tmpdir(), 'smm-issues-factory-tz-'));
+    const projectDir = path.join(storeData, 'github_owner_repo');
+    await fs.mkdir(projectDir, { recursive: true });
+    await fs.writeFile(
+      path.join(projectDir, 'Jira.csv'),
+      [
+        'Summary,Issue key,Status,Created,Updated,Assignee,Labels,Description,Comment',
+        'Timezone test,KAN-1,To Do,09/Oct/26 12:15 PM,09/Oct/26 12:15 PM,Alice,,,',
+      ].join('\n'),
+      'utf8'
+    );
+
+    const config = new Configuration({
+      storeData,
+      githubRepository: 'owner/repo',
+      issuesProvider: 'jira-csv',
+      timezone: 'Europe/Madrid',
+    });
+
+    try {
+      const { issuesRepository } = IssuesFactory.create(
+        config,
+        logger,
+        new TimeZoneProvider('UTC')
+      );
+
+      const issues = await issuesRepository.getIssues({ forceRefresh: true });
+
+      expect(issues[0].createdAt).toBe('2026-10-09T10:15:00.000Z');
+    } finally {
+      await fs.rm(storeData, { recursive: true, force: true });
+    }
   });
 
   it('rejects the GitHub provider without a repository', () => {

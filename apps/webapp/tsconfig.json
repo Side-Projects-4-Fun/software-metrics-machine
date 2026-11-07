@@ -13,7 +13,6 @@
     "experimentalDecorators": false,
     "emitDecoratorMetadata": false,
     "types": ["jest", "@testing-library/jest-dom", "node"],
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
     },

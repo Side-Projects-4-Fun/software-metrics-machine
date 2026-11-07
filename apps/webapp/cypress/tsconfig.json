@@ -5,11 +5,9 @@
     "isolatedModules": false,
     "noEmit": true,
     "skipLibCheck": true,
-    "baseUrl": "..",
     "paths": {
-      "@/*": ["./*"]
-    },
-    "ignoreDeprecations": "6.0"
+      "@/*": ["../*"]
+    }
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts"],
   "exclude": ["node_modules"]

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseCsv, parseJiraCsv, parseJiraCsvDate } from '../jira-csv-parser';
+import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 
 const HEADER =
   'Summary,Issue key,Issue Type,Status,Project key,Assignee,Created,Updated,Resolved,Labels,Labels,Description,Comment,Comment';
@@ -31,6 +32,13 @@ describe('Jira CSV parser', () => {
     it('handles midnight and noon', () => {
       expect(parseJiraCsvDate('01/Jan/26 12:00 AM')).toBe('2026-01-01T00:00:00.000Z');
       expect(parseJiraCsvDate('01/Jan/26 12:00 PM')).toBe('2026-01-01T12:00:00.000Z');
+    });
+
+    it('interprets wall-clock values in the provided timezone', () => {
+      const madrid = new TimeZoneProvider('Europe/Madrid');
+
+      expect(parseJiraCsvDate('09/Oct/26 12:15 PM', madrid)).toBe('2026-10-09T10:15:00.000Z');
+      expect(parseJiraCsvDate('09/Jan/26 12:15 PM', madrid)).toBe('2026-01-09T11:15:00.000Z');
     });
 
     it('returns undefined for empty or invalid values', () => {

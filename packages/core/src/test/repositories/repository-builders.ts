@@ -10,7 +10,7 @@ import type {
 import type {
   PipelinesRepository,
   LoadPipelinesOptions,
-} from 'src/domain/pipelines/repositories/pipeline-repository';
+} from '../../domain/pipelines/repositories/pipeline-repository';
 
 /**
  * Builder for creating an in-memory IReadChangeRequestsRepository.
