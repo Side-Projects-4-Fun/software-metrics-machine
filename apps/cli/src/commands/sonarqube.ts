@@ -2,7 +2,7 @@ import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { SmmCommand } from './smm-command';
 import { SonarqubeMeasuresClient } from '@smmachine/core/providers/sonarqube/sonarqube-client';
-import { SonarqubeFetchMetricsRepository } from '@smmachine/core/providers/sonarqube/repositories/sonarqube-fetch-metrics-repository-json';
+import { SonarqubeFetchMetricsRepository } from '@smmachine/core/providers/sonarqube/repositories/sonarqube-fetch-metrics-repository';
 import {
   SonarqubeLocalAnalysis,
   type SonarqubeLocalAnalysisResult,

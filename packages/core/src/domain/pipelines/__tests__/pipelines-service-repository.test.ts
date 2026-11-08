@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import type { PipelineRun, PipelinesRepository } from '../..';
-import { PipelinesService } from '../..';
-import { PipelineJobBuilder, PipelineRunBuilder, PipelineStepBuilder } from '../../test/domain';
-import { PipelinesRepositoryBuilder } from '../../test/repositories/repository-builders';
-import { MockLoggerBuilder } from '../../test/infrastructure/mock-logger-builder';
-import type { Configuration } from '../../infrastructure';
-import { TimeZoneProvider } from '../../infrastructure';
-import { TestConfigurationBuilder } from '../../test/domain/configuration-builder';
+import type { PipelineRun, PipelinesRepository } from '../../..';
+import { PipelinesService } from '../../..';
+import { PipelineJobBuilder, PipelineRunBuilder, PipelineStepBuilder } from '../../../test/domain';
+import { PipelinesRepositoryBuilder } from '../../../test/repositories/repository-builders';
+import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
+import type { Configuration } from '../../../infrastructure';
+import { TimeZoneProvider } from '../../../infrastructure';
+import { TestConfigurationBuilder } from '../../../test/domain/configuration-builder';
 
 const logger = new MockLoggerBuilder().build();
 
@@ -702,7 +702,7 @@ describe('PipelinesService', () => {
   });
 
   describe('getDeploymentFrequencyWithAllIntervals edge cases', () => {
-    it('should skip jobs with neither completedAt nor startedAt', async () => {
+    it('should count a deployment when the job has only startedAt', async () => {
       const deployRuns = [
         buildDeployRun({
           id: 'release-run',
@@ -731,7 +731,14 @@ describe('PipelinesService', () => {
 
       const frequency = await pipelinesService.getDeploymentFrequencyWithAllIntervals();
 
-      expect(frequency).toEqual([]);
+      expect(frequency).toHaveLength(1);
+      expect(frequency[0]).toMatchObject({
+        pipeline: '.github/workflows/release.yml',
+        job: 'deploy-production',
+        daily_counts: 1,
+        weekly_counts: 1,
+        monthly_counts: 1,
+      });
     });
 
     it('should return an empty array when targets are configured but no deployments match', async () => {
@@ -1337,7 +1344,7 @@ describe('PipelinesService', () => {
 
       const result = await pipelinesService.getJobStepsTime();
 
-      expect(result).toEqual([{ name: 'checkout', value: 5, count: 1 }]);
+      expect(result).toEqual([{ name: 'checkout', value: 5, method: 'average', count: 1 }]);
     });
 
     it('should average durations for the same step name across different jobs and runs', async () => {
@@ -1367,7 +1374,7 @@ describe('PipelinesService', () => {
       const result = await pipelinesService.getJobStepsTime();
 
       // (4 + 6) / 2 = 5 minutes average, across 2 contributing durations
-      expect(result).toEqual([{ name: 'checkout', value: 5, count: 2 }]);
+      expect(result).toEqual([{ name: 'checkout', value: 5, method: 'average', count: 2 }]);
     });
   });
 
@@ -1527,8 +1534,8 @@ describe('PipelinesService', () => {
       const result = await pipelinesService.getJobStepsTimeByDay();
 
       expect(result).toEqual([
-        { day: '2025-01-01', steps: [{ name: 'checkout', value: 4 }] },
-        { day: '2025-01-02', steps: [{ name: 'checkout', value: 6 }] },
+        { day: '2025-01-01', steps: [{ name: 'checkout', value: 4, method: 'average' }] },
+        { day: '2025-01-02', steps: [{ name: 'checkout', value: 6, method: 'average' }] },
       ]);
     });
 
@@ -1557,7 +1564,9 @@ describe('PipelinesService', () => {
       const result = await pipelinesService.getJobStepsTimeByDay();
 
       // (4 + 6) / 2 = 5 minutes average for 'checkout' on 2025-01-01
-      expect(result).toEqual([{ day: '2025-01-01', steps: [{ name: 'checkout', value: 5 }] }]);
+      expect(result).toEqual([
+        { day: '2025-01-01', steps: [{ name: 'checkout', value: 5, method: 'average' }] },
+      ]);
     });
 
     it('should skip steps missing a name, startedAt, or completedAt', async () => {

@@ -25,8 +25,8 @@ export class PipelinesJobFetchRepository {
   constructor(
     private configuration: Configuration,
     private githubWorkflowClient: IGithubWorkflowJobClient,
-    private pipelineRunJsonRepository: IRepository<WorkflowJsonResponse>,
-    private pipelineJobsJsonRepository: IRepository<WorkflowJobJsonResponse>,
+    private pipelineRunRepository: IRepository<WorkflowJsonResponse>,
+    private pipelineJobsRepository: IRepository<WorkflowJobJsonResponse>,
     private pipelineFiltersRepository: PipelineFiltersRepository | undefined,
     private logger: Logger
   ) {
@@ -41,12 +41,12 @@ export class PipelinesJobFetchRepository {
     byDay?: boolean;
     incrementalUpdate?: boolean;
   }): Promise<WorkflowJobJsonResponse[]> {
-    const cachedJobs = await this.pipelineJobsJsonRepository.loadAll();
+    const cachedJobs = await this.pipelineJobsRepository.loadAll();
 
     if (filters?.incrementalUpdate && cachedJobs.length > 0) {
       const latestDate = this.findLatestDate(cachedJobs.map((j) => j.completed_at));
       this.logger.info(`Incremental update: fetching jobs for runs after ${latestDate}...`);
-      const cachedRuns = await this.pipelineRunJsonRepository.loadAll();
+      const cachedRuns = await this.pipelineRunRepository.loadAll();
       const startDate = this.toDateBoundary(latestDate, 'start');
       let freshJobs: WorkflowJobJsonResponse[];
 
@@ -63,7 +63,7 @@ export class PipelinesJobFetchRepository {
       }
 
       const merged = this.mergeJobsById(cachedJobs, freshJobs);
-      await this.pipelineJobsJsonRepository.saveAll(merged);
+      await this.pipelineJobsRepository.saveAll(merged);
       await this.refreshDashboardFilterOptions();
       return merged;
     }
@@ -77,7 +77,7 @@ export class PipelinesJobFetchRepository {
       this.logger.info(
         `Fetching jobs for range [${filters?.startDate || 'any'}..${filters?.endDate || 'any'}] and merging with cache...`
       );
-      const cachedRuns = await this.pipelineRunJsonRepository.loadAll();
+      const cachedRuns = await this.pipelineRunRepository.loadAll();
       let freshJobs: WorkflowJobJsonResponse[];
 
       if (filters?.byDay && isDateOnly(filters?.startDate) && isDateOnly(filters?.endDate)) {
@@ -95,7 +95,7 @@ export class PipelinesJobFetchRepository {
       }
 
       const merged = this.mergeJobsById(cachedJobs, freshJobs);
-      await this.pipelineJobsJsonRepository.saveAll(merged);
+      await this.pipelineJobsRepository.saveAll(merged);
       await this.refreshDashboardFilterOptions();
       return merged;
     }
@@ -105,7 +105,7 @@ export class PipelinesJobFetchRepository {
       return cachedJobs;
     }
 
-    const cachedRuns = await this.pipelineRunJsonRepository.loadAll();
+    const cachedRuns = await this.pipelineRunRepository.loadAll();
 
     if (filters?.byDay && isDateOnly(filters?.startDate) && isDateOnly(filters?.endDate)) {
       return this.fetchJobsByDay(
@@ -312,7 +312,7 @@ export class PipelinesJobFetchRepository {
       }
     }
 
-    const existingJobs = await this.pipelineJobsJsonRepository.loadAll();
+    const existingJobs = await this.pipelineJobsRepository.loadAll();
     const mergedJobsByKey = new Map<string, WorkflowJobJsonResponse>();
 
     for (const job of existingJobs) {
@@ -323,7 +323,7 @@ export class PipelinesJobFetchRepository {
       mergedJobsByKey.set(`${String(job.run_id)}:${String(job.id)}`, job);
     }
 
-    await this.pipelineJobsJsonRepository.saveAll(Array.from(mergedJobsByKey.values()));
+    await this.pipelineJobsRepository.saveAll(Array.from(mergedJobsByKey.values()));
     await this.refreshDashboardFilterOptions();
 
     await this.deleteFile(progressPath);

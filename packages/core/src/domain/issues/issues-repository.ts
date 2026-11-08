@@ -37,8 +37,8 @@ export interface IIssuesRepository {
  */
 export class IssuesRepository implements IIssuesRepository {
   readonly provider: IssueProvider;
-  private issuesJsonRepository: IRepository<Issue>;
-  private commentsJsonRepository: IRepository<IssueComment>;
+  private issuesRepository: IRepository<Issue>;
+  private commentsRepository: IRepository<IssueComment>;
   private timeZoneProvider: TimeZoneProvider;
 
   constructor(
@@ -50,12 +50,12 @@ export class IssuesRepository implements IIssuesRepository {
   ) {
     this.provider = issuesClient.provider;
     this.timeZoneProvider = timeZoneProvider;
-    this.issuesJsonRepository = RepositoryFactory.create<Issue>(
+    this.issuesRepository = RepositoryFactory.create<Issue>(
       `${cacheDir}/issues.json`,
       logger,
       this.config
     );
-    this.commentsJsonRepository = RepositoryFactory.create<IssueComment>(
+    this.commentsRepository = RepositoryFactory.create<IssueComment>(
       `${cacheDir}/comments.json`,
       logger,
       this.config
@@ -66,7 +66,7 @@ export class IssuesRepository implements IIssuesRepository {
    * Refresh issue data from the configured provider.
    */
   async refreshIssues(options?: IssueFilters): Promise<Issue[]> {
-    const fromCache = await this.issuesJsonRepository.loadAll();
+    const fromCache = await this.issuesRepository.loadAll();
 
     if (options?.incrementalUpdate && fromCache.length > 0) {
       const latestDate = this.findLatestDate(
@@ -82,7 +82,7 @@ export class IssuesRepository implements IIssuesRepository {
         labels: options.labels,
       });
       const merged = this.mergeIssuesById(fromCache, freshIssues);
-      await this.issuesJsonRepository.saveAll(merged);
+      await this.issuesRepository.saveAll(merged);
       return this.applyFilters(merged, options);
     }
 
@@ -101,7 +101,7 @@ export class IssuesRepository implements IIssuesRepository {
         labels: options.labels,
       });
       const merged = this.mergeIssuesById(fromCache, freshIssues);
-      await this.issuesJsonRepository.saveAll(merged);
+      await this.issuesRepository.saveAll(merged);
       return this.applyFilters(merged, options);
     }
 
@@ -118,7 +118,7 @@ export class IssuesRepository implements IIssuesRepository {
       labels: options?.labels,
     });
 
-    await this.issuesJsonRepository.saveAll(freshIssues);
+    await this.issuesRepository.saveAll(freshIssues);
 
     return this.applyFilters(freshIssues, options);
   }
@@ -138,7 +138,7 @@ export class IssuesRepository implements IIssuesRepository {
    * by comment id; `--force` replaces the cache.
    */
   async refreshComments(options?: IssueCommentFilters): Promise<IssueComment[]> {
-    const fromCache = await this.commentsJsonRepository.loadAll();
+    const fromCache = await this.commentsRepository.loadAll();
 
     if (options?.issueKey) {
       return this.refreshIssueComments(options, fromCache);
@@ -159,14 +159,14 @@ export class IssuesRepository implements IIssuesRepository {
         endDate: end,
       });
       const merged = this.mergeCommentsById(fromCache, fresh);
-      await this.commentsJsonRepository.saveAll(merged);
+      await this.commentsRepository.saveAll(merged);
       return this.applyCommentFilters(merged, options);
     }
 
     if ((start || end) && !options?.forceRefresh && fromCache.length > 0) {
       const fresh = await this.issuesClient.fetchComments({ startDate: start, endDate: end });
       const merged = this.mergeCommentsById(fromCache, fresh);
-      await this.commentsJsonRepository.saveAll(merged);
+      await this.commentsRepository.saveAll(merged);
       return this.applyCommentFilters(merged, options);
     }
 
@@ -177,7 +177,7 @@ export class IssuesRepository implements IIssuesRepository {
 
     this.logger.info(`Fetching comments from ${this.provider}...`);
     const fresh = await this.issuesClient.fetchComments({ startDate: start, endDate: end });
-    await this.commentsJsonRepository.saveAll(fresh);
+    await this.commentsRepository.saveAll(fresh);
     return this.applyCommentFilters(fresh, options);
   }
 
@@ -208,7 +208,7 @@ export class IssuesRepository implements IIssuesRepository {
       ? fromCache.filter((comment) => comment.issueKey !== issueKey)
       : fromCache;
     const merged = this.mergeCommentsById(base, fresh);
-    await this.commentsJsonRepository.saveAll(merged);
+    await this.commentsRepository.saveAll(merged);
 
     return merged.filter((comment) => comment.issueKey === issueKey);
   }

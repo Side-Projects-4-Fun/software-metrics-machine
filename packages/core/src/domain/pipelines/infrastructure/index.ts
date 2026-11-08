@@ -1,3 +1,3 @@
-export * from './pipeline-filters-repository-json';
-export * from './pipelines-repository-json';
+export * from './pipeline-filters-repository';
+export * from './pipelines-repository';
 export * from './pipelines-repository-sqlite';

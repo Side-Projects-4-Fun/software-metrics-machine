@@ -1,14 +1,14 @@
 import type { Configuration, IRepository } from '../../../infrastructure';
 import { RepositoryFactory } from '../../../infrastructure';
 import type { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
-import type { IReadChangeRequestsRepository } from '../repositories/change-requests-repository-json';
+import type { IReadChangeRequestsRepository } from '../repositories/change-requests-repository';
 import { ChangeRequestsSqliteRepository } from '../repositories/change-requests-repository-sqlite';
 import type {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
 } from '../../../providers/github/github-response-types';
-import type { ChangeRequestFilterOptions } from '../repositories/change-request-filters-repository-json';
-import { ChangeRequestFiltersRepository } from '../repositories/change-request-filters-repository-json';
+import type { ChangeRequestFilterOptions } from '../repositories/change-request-filters-repository';
+import { ChangeRequestFiltersRepository } from '../repositories/change-request-filters-repository';
 import type { Logger } from '@smmachine/utils';
 
 export class ChangeRequestFactory {
@@ -23,9 +23,9 @@ export class ChangeRequestFactory {
   static createFilters(config: Configuration, logger: Logger): ChangeRequestFiltersRepository {
     const repositories = this.createRepositories(config, logger);
     return new ChangeRequestFiltersRepository(
-      repositories.changeRequestsJsonRepository,
-      repositories.changeRequestCommentsJsonRepository,
-      repositories.changeRequestFiltersJsonRepository
+      repositories.changeRequestsRepository,
+      repositories.changeRequestCommentsRepository,
+      repositories.changeRequestFilterOptionsRepository
     );
   }
 
@@ -33,31 +33,32 @@ export class ChangeRequestFactory {
     config: Configuration,
     logger: Logger
   ): {
-    changeRequestsJsonRepository: IRepository<PullRequestJsonResponse>;
-    changeRequestCommentsJsonRepository: IRepository<PullRequestCommentJsonResponse>;
-    changeRequestFiltersJsonRepository: IRepository<ChangeRequestFilterOptions>;
+    changeRequestsRepository: IRepository<PullRequestJsonResponse>;
+    changeRequestCommentsRepository: IRepository<PullRequestCommentJsonResponse>;
+    changeRequestFilterOptionsRepository: IRepository<ChangeRequestFilterOptions>;
   } {
-    const changeRequestsJsonRepository = RepositoryFactory.create<PullRequestJsonResponse>(
+    const changeRequestsRepository = RepositoryFactory.create<PullRequestJsonResponse>(
       `${config.getPathFromGitProvider()}/prs.json`,
       logger,
       config
     );
-    const changeRequestCommentsJsonRepository =
+    const changeRequestCommentsRepository =
       RepositoryFactory.create<PullRequestCommentJsonResponse>(
         `${config.getPathFromGitProvider()}/pr-comments.json`,
         logger,
         config
       );
-    const changeRequestFiltersJsonRepository = RepositoryFactory.create<ChangeRequestFilterOptions>(
-      `${config.getPathFromGitProvider()}/pull-request-filter-options.json`,
-      logger,
-      config
-    );
+    const changeRequestFilterOptionsRepository =
+      RepositoryFactory.create<ChangeRequestFilterOptions>(
+        `${config.getPathFromGitProvider()}/pull-request-filter-options.json`,
+        logger,
+        config
+      );
 
     return {
-      changeRequestsJsonRepository,
-      changeRequestCommentsJsonRepository,
-      changeRequestFiltersJsonRepository,
+      changeRequestsRepository,
+      changeRequestCommentsRepository,
+      changeRequestFilterOptionsRepository,
     };
   }
 }

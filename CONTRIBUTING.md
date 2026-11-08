@@ -102,7 +102,7 @@ Each `packages/core/src/domain/<area>/` slice keeps the same layout: `services/`
 ### Package responsibilities
 
 - **`packages/utils`** — Logger, date formatting, JSON utilities. Zero dependencies on other workspace packages.
-- **`packages/core`** — Domain types and per-area slices (change requests, pipelines, code, issues, architecture, filters, metrics), providers (GitHub, GitLab, Jira, SonarQube, CodeMaat, git), engineering-health registry, infrastructure (configuration, SQLite/JSON repositories, migrations, timezone). Depends on `@smmachine/utils`.
+- **`packages/core`** — Domain types and per-area slices (change requests, pipelines, code, issues, architecture, filters, metrics), providers (GitHub, GitLab, Jira, SonarQube, CodeMaat, git), engineering-health registry, infrastructure (configuration, SQLite repositories, migrations, timezone). Depends on `@smmachine/utils`.
 - **`apps/cli`** — Commander.js CLI. Depends on `@smmachine/core`, `@smmachine/mcp`, and `@smmachine/utils`.
 - **`apps/rest`** — NestJS REST API. Depends on `@smmachine/core` and `@smmachine/utils`.
 - **`apps/mcp`** — Read-only MCP stdio server exposing tools, resources, and prompts. Depends on `@smmachine/core`.
@@ -177,92 +177,21 @@ is `SMM_STORE_DATA_AT`. Generic variables such as `GITHUB_TOKEN`, `JIRA_TOKEN`, 
 SMM_REST_BASE_URL=http://localhost:8000
 ```
 
-### Internal configuration (`config.internal`)
+### Storage
 
-The `Configuration` object has an `internal` property for **developer-only settings** that control internal behavior like storage backend selection. This is separate from user-facing environment variables.
+Project data is persisted in a single SQLite database (`smm.sqlite`) per `SMM_STORE_DATA_AT` directory. SQLite is the
+only storage backend — there is no configurable alternative. `RepositoryFactory.create()` always returns a
+`SqliteRepository`, and every repository under `packages/core/src` is SQLite-backed.
 
-```typescript
-// packages/core/src/infrastructure/configuration.ts
-export type StorageType = 'json' | 'sqlite';
+Provider payloads are addressed by repository **namespaces** such as `prs.json` or `issues.json`. Those strings are keys
+inside `smm.sqlite`, not files on disk; changing them would orphan existing cached data.
 
-export interface InternalConfiguration {
-  storageType: StorageType; // 'json' (default) | 'sqlite'
-}
-
-export interface IConfiguration {
-  // ... user-facing properties ...
-  internal?: InternalConfiguration;
-}
-```
-
-**Why it exists:** Some settings (like which storage backend to use) are implementation details that developers may need to switch, but shouldn't be exposed as user-facing configuration in `smm_config.json`.
-
-**How it's used:**
-
-The `RepositoryFactory` reads `config.internal?.storageType` to decide which repository implementation to create:
-
-```typescript
-// packages/core/src/infrastructure/repository-factory.ts
-static create<T>(filePath: string, logger: Logger, config: Configuration): IRepository<T> {
-  const storageType = config.internal?.storageType ?? 'json';
-  switch (storageType) {
-    case 'json':
-      return new JsonFileSystemRepository<T>(filePath, logger);
-    // Future: case 'sqlite':
-    //   return new SqliteRepository<T>(filePath, logger);
-    default:
-      throw new Error(`Unknown storage type: ${storageType}`);
-  }
-}
-```
-
-**How to set it:**
-
-In tests or factories, set `internal` on the configuration object:
-
-```typescript
-const config = {
-  // ... other config ...
-  internal: { storageType: 'json' },
-};
-```
-
-Or use the `TestConfigurationBuilder`:
+For test-only configuration objects, use `TestConfigurationBuilder`:
 
 ```typescript
 const config = new TestConfigurationBuilder()
   .withGetPathFromGitProvider('/tmp')
-  .withStorageType('json')
   .build();
-```
-
-**How to extend:**
-
-To add a new internal setting:
-
-1. Add the property to `InternalConfiguration` in `packages/core/src/infrastructure/configuration.ts`
-2. Set a default in the `Configuration` class constructor
-3. Access it via `config.internal.yourSetting` where needed
-
-```typescript
-export interface InternalConfiguration {
-  storageType: StorageType;
-  cacheStrategy: 'aggressive' | 'conservative'; // new setting
-}
-
-// In Configuration class:
-internal: InternalConfiguration = {
-  storageType: 'json',
-  cacheStrategy: 'aggressive',
-};
-```
-
-**CLI usage:**
-
-The CLI reads `SMM_STORAGE_TYPE` from the environment and applies it to the configuration. For other internal settings, you can set them via environment variables and wire them through the configuration repository:
-
-```bash
-SMM_STORAGE_TYPE=sqlite pnpm cli -- change-requests summary
 ```
 
 ## Development Workflows
@@ -418,9 +347,9 @@ architecture.
 ### Dependency graph
 
 ```
-@packages/utils  (no deps)
+@smmachine/utils  (no deps)
        ↓
-@packages/core   (depends on @smmachine/utils)
+@smmachine/core   (depends on @smmachine/utils)
        ↓
 apps/cli   apps/mcp   apps/rest
                           ↑ (HTTP/JSON)
@@ -680,7 +609,7 @@ corepack prepare pnpm@12.16.1 --activate
 
 ### SQLite data queries
 
-When using the SQLite storage backend (`SMM_STORAGE_TYPE=sqlite`), you can open the database directly with any SQLite client (e.g. `sqlite3 smm.sqlite`) to inspect or fix data issues. The database file lives in `SMM_STORE_DATA_AT`.
+The project database is SQLite (`smm.sqlite`), so you can open it directly with any SQLite client (e.g. `sqlite3 smm.sqlite`) to inspect or fix data issues. The database file lives in `SMM_STORE_DATA_AT`.
 
 **List all tables**
 

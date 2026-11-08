@@ -172,7 +172,6 @@ layer-c,layer-d,78,5`;
       gitProvider: 'github',
       githubRepository: 'owner/repo',
       gitRepositoryLocation: '/tmp/repo',
-      internal: { storageType: 'sqlite' },
     });
     const logger = new MockLoggerBuilder().build();
     const sqliteWriteRepository = CodemaatFactory.createWriteRepository(config, logger);
@@ -258,7 +257,6 @@ layer-c,layer-d,78,5`;
       gitProvider: 'github',
       githubRepository: 'owner/repo',
       gitRepositoryLocation: '/tmp/repo',
-      internal: { storageType: 'sqlite' },
     });
     const logger = new MockLoggerBuilder().build();
     const sqliteReadRepository = CodemaatFactory.create(config, logger);
@@ -322,7 +320,6 @@ layer-c,layer-d,78,5`;
       gitProvider: 'github',
       githubRepository: 'owner/repo',
       gitRepositoryLocation: '/tmp/repo',
-      internal: { storageType: 'sqlite' },
     });
     const logger = new MockLoggerBuilder().build();
     const sqliteWriteRepository = CodemaatFactory.createWriteRepository(config, logger);
@@ -446,7 +443,6 @@ layer-c,layer-d,78,5`;
         gitProvider: 'github',
         githubRepository: 'owner/repo',
         gitRepositoryLocation: '/tmp/repo',
-        internal: { storageType: 'json' },
       }),
       logger
     );
@@ -464,7 +460,6 @@ layer-c,layer-d,78,5`;
       gitProvider: 'github',
       githubRepository: 'owner/repo',
       gitRepositoryLocation: '/tmp/repo',
-      internal: { storageType: 'sqlite' },
     });
 
     expect(CodemaatFactory.create(sqliteConfig, logger)).toBeInstanceOf(

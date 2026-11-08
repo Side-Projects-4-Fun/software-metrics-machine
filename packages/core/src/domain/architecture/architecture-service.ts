@@ -219,21 +219,21 @@ export class ArchitectureService {
   }
 
   private async loadSnapshots(): Promise<ArchitectureSnapshot[]> {
-    const snapshotsJsonRepository = RepositoryFactory.create<ArchitectureSnapshot[]>(
+    const snapshotsRepository = RepositoryFactory.create<ArchitectureSnapshot[]>(
       this.snapshotRepositoryPath,
       this.logger,
       this.configuration
     );
-    return (await snapshotsJsonRepository.load()) || [];
+    return (await snapshotsRepository.load()) || [];
   }
 
   private async saveSnapshots(snapshots: ArchitectureSnapshot[]): Promise<void> {
-    const snapshotsJsonRepository = RepositoryFactory.create<ArchitectureSnapshot[]>(
+    const snapshotsRepository = RepositoryFactory.create<ArchitectureSnapshot[]>(
       this.snapshotRepositoryPath,
       this.logger,
       this.configuration
     );
-    await snapshotsJsonRepository.save(snapshots);
+    await snapshotsRepository.save(snapshots);
   }
 
   private async discoverPackages(): Promise<DiscoveredPackage[]> {

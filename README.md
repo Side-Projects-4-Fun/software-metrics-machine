@@ -43,7 +43,7 @@ This project relies on metrics that are extracted from:
 - Pipeline
   - Success rate of pipeline ✅
   - Average time to complete pipeline from start to finish ✅
-- Pull requests
+- Change requests
   - Average of change requests opened ✅
 - Git history
   - Code churn ✅
@@ -77,14 +77,17 @@ Commands:
   change-requests         Change request operations
   pipelines               Pipeline/workflow operations
   code                    Code analysis operations
-  jira                    Jira integration operations
+  issues                  Issue tracker operations
   sonarqube               SonarQube integration operations
   dashboard               Dashboard operations
   tools                   Utility tools
-  health-check            Analyze local cache data quality
+  health-check [options]  Analyze local cache data quality (missing, stale,
+                          invalid, and coverage gaps)
   mcp                     Model Context Protocol operations
-  architecture            Architecture analysis and visualization
-  engineering-health      Engineering health metrics
+  architecture            Architecture analysis and visualization data
+                          generation
+  engineering-health      Engineering health metrics (delivery, quality,
+                          collaboration, architecture)
   metrics                 Inspect the metric catalog
   filters                 Manage saved filters
   project                 Configure and manage projects

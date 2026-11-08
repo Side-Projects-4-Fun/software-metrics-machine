@@ -15,14 +15,14 @@ export type ChangeRequestFilterOptionsResult = ChangeRequestFilterOptions & {
 
 export class ChangeRequestFiltersRepository {
   constructor(
-    private changeRequestsJsonRepository: IRepository<PullRequestJsonResponse>,
-    private changeRequestCommentsJsonRepository: IRepository<PullRequestCommentJsonResponse>,
-    private changeRequestFiltersJsonRepository: IRepository<ChangeRequestFilterOptions>
+    private changeRequestsRepository: IRepository<PullRequestJsonResponse>,
+    private changeRequestCommentsRepository: IRepository<PullRequestCommentJsonResponse>,
+    private changeRequestFilterOptionsRepository: IRepository<ChangeRequestFilterOptions>
   ) {}
 
   async loadOptions(): Promise<ChangeRequestFilterOptionsResult> {
     const cachedOptions =
-      (await this.changeRequestFiltersJsonRepository.load()) || (await this.refreshOptions());
+      (await this.changeRequestFilterOptionsRepository.load()) || (await this.refreshOptions());
     return {
       ...cachedOptions,
       commenters: await this.loadCommenterOptions(),
@@ -30,7 +30,7 @@ export class ChangeRequestFiltersRepository {
   }
 
   async refreshOptions(): Promise<ChangeRequestFilterOptions> {
-    const changeRequests = await this.changeRequestsJsonRepository.loadAll();
+    const changeRequests = await this.changeRequestsRepository.loadAll();
     const authors = new Set<string>();
     const labels = new Set<string>();
 
@@ -47,12 +47,12 @@ export class ChangeRequestFiltersRepository {
       labels: this.sortedValues(labels),
     };
 
-    await this.changeRequestFiltersJsonRepository.save(options);
+    await this.changeRequestFilterOptionsRepository.save(options);
     return options;
   }
 
   private async loadCommenterOptions(): Promise<string[]> {
-    const comments = await this.changeRequestCommentsJsonRepository.loadAll();
+    const comments = await this.changeRequestCommentsRepository.loadAll();
     const commenters = new Set<string>();
 
     for (const comment of comments) {

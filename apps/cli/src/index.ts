@@ -66,6 +66,11 @@ export function commands(): SmmCommand {
  *   - smm dashboard     Dashboard server operations
  *   - smm tools         Utility tools (JSON merge, etc.)
  *   - smm mcp           MCP server operations
+ *   - smm architecture  Architecture snapshots and C4 views
+ *   - smm engineering-health  Cross-metric engineering health scorecards
+ *   - smm metrics       Inspect the metric catalog
+ *   - smm filters       Manage saved filters
+ *   - smm health-check  Analyze local cache data quality
  *   - smm project       Configure projects interactively (generates smm_config.json)
  *
  * Configuration:

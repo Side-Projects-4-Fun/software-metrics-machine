@@ -37,12 +37,10 @@ const FEATURE_LABEL: PullRequestLabelJsonResponse = {
 };
 
 function createSqliteConfig(providerDir: string): {
-  internal: { storageType: 'sqlite' };
   getPathFromGitProvider: () => string;
   getBaseDirectory: () => string;
 } {
   return {
-    internal: { storageType: 'sqlite' },
     getPathFromGitProvider: () => providerDir,
     getBaseDirectory: () => providerDir,
   };

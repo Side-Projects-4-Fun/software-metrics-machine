@@ -36,7 +36,6 @@ describe('PipelinesSqliteRepository loadPipelines', () => {
       storeData: tempDir,
       gitProvider: 'github',
       githubRepository: 'owner/repo',
-      internal: { storageType: 'sqlite' },
     });
   }
 

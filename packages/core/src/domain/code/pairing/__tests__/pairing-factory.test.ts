@@ -19,29 +19,18 @@ describe('PairingFactory', () => {
     }
   });
 
-  function createConfiguration(storageType: 'json' | 'sqlite'): Configuration {
+  function createConfiguration(): Configuration {
     tempDir = mkdtempSync(join(tmpdir(), 'smm-pairing-factory-'));
 
     return new Configuration({
       storeData: tempDir,
       gitProvider: 'github',
       githubRepository: 'owner/repo',
-      internal: { storageType },
     });
   }
 
-  it('creates a pairing service backed by SQLite storage even when legacy JSON storage is configured', async () => {
-    const service = PairingFactory.create(createConfiguration('json'), logger, timeZoneProvider);
-
-    await expect(service.getPairingIndex()).resolves.toMatchObject({
-      pairingIndexPercentage: 0,
-      totalAnalyzedCommits: 0,
-      pairedCommits: 0,
-    });
-  });
-
-  it('creates a pairing service backed by SQLite storage when storage type is sqlite', async () => {
-    const service = PairingFactory.create(createConfiguration('sqlite'), logger, timeZoneProvider);
+  it('creates a pairing service backed by SQLite storage', async () => {
+    const service = PairingFactory.create(createConfiguration(), logger, timeZoneProvider);
 
     await expect(service.getPairingIndex()).resolves.toMatchObject({
       pairingIndexPercentage: 0,

@@ -1,5 +1,5 @@
 import type { Logger } from '@smmachine/utils';
-import type { SonarqubeRepositoryJson as SonarqubeRepository } from '../../../providers/sonarqube/repositories/sonarqube-repository-json';
+import type { SonarqubeRepository } from '../../../providers/sonarqube/repositories/sonarqube-repository';
 
 export interface QualityFilters {
   metrics?: string[];

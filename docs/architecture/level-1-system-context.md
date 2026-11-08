@@ -17,7 +17,7 @@ C4Context
 
   System(smm, "Software Metrics Machine", "Fetches software metrics from external providers, caches them locally and computes change-request, pipeline, code, issue and quality metrics")
 
-  System_Ext(gitHost, "Git hosting and CI/CD", "GitHub and GitLab: pull requests, reviews, workflows and jobs")
+  System_Ext(gitHost, "Git hosting and CI/CD", "GitHub and GitLab: change requests, reviews, workflows and jobs")
   System_Ext(issueTracker, "Issue tracker", "Jira or GitHub: issues, comments and delivery data")
   System_Ext(qualityPlatform, "Code quality platform", "SonarQube: measures and component tree")
   System_Ext(gitClone, "Local git clone", "Commit history, file churn and authorship analysed with git and Code Maat")
@@ -27,11 +27,11 @@ C4Context
   Rel(teamMember, smm, "Explores dashboards and reports", "Browser")
   Rel(agentClient, smm, "Requests metrics through tools and resources", "stdio / MCP")
 
-  Rel(smm, gitHost, "Fetches pull requests, pipelines and commits", "HTTPS REST")
+  Rel(smm, gitHost, "Fetches change requests, pipelines and commits", "HTTPS REST")
   Rel(smm, issueTracker, "Fetches issues", "HTTPS REST")
   Rel(smm, qualityPlatform, "Fetches quality measures", "HTTPS REST")
   Rel(smm, gitClone, "Reads commit history and churn", "git / filesystem")
-  Rel(smm, dataStore, "Caches provider payloads and reads metrics", "JSON / SQLite")
+  Rel(smm, dataStore, "Caches provider payloads and reads metrics", "SQLite (smm.sqlite)")
 
   UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```

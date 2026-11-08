@@ -21,11 +21,9 @@ export interface IQualityMetricsRepository {
 }
 
 export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepository {
-  private measuresJsonRepository: IRepository<TimestampedStore<SonarqubeComponentMeasure>>;
-  private componentTreeJsonRepository: IRepository<
-    TimestampedStore<SonarqubeComponentTreeMeasure[]>
-  >;
-  private historicalMeasuresJsonRepository: IRepository<TimestampedStore<CodeMetric[]>>;
+  private measuresRepository: IRepository<TimestampedStore<SonarqubeComponentMeasure>>;
+  private componentTreeRepository: IRepository<TimestampedStore<SonarqubeComponentTreeMeasure[]>>;
+  private historicalMeasuresRepository: IRepository<TimestampedStore<CodeMetric[]>>;
 
   constructor(
     private sonarqubeClient: ISonarqubeMeasuresClient,
@@ -33,15 +31,19 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
     private logger: Logger
   ) {
     const cacheDir = this.configuration.getSonarqubePath();
-    this.measuresJsonRepository = RepositoryFactory.create<
-      TimestampedStore<SonarqubeComponentMeasure>
-    >(`${cacheDir}/measures.json`, logger, this.configuration);
-    this.componentTreeJsonRepository = RepositoryFactory.create<
+    this.measuresRepository = RepositoryFactory.create<TimestampedStore<SonarqubeComponentMeasure>>(
+      `${cacheDir}/measures.json`,
+      logger,
+      this.configuration
+    );
+    this.componentTreeRepository = RepositoryFactory.create<
       TimestampedStore<SonarqubeComponentTreeMeasure[]>
     >(`${cacheDir}/component-tree.json`, logger, this.configuration);
-    this.historicalMeasuresJsonRepository = RepositoryFactory.create<
-      TimestampedStore<CodeMetric[]>
-    >(`${cacheDir}/historical-measures.json`, logger, this.configuration);
+    this.historicalMeasuresRepository = RepositoryFactory.create<TimestampedStore<CodeMetric[]>>(
+      `${cacheDir}/historical-measures.json`,
+      logger,
+      this.configuration
+    );
   }
 
   /**
@@ -53,7 +55,7 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
       metrics: options?.metrics,
     });
 
-    await this.appendTimestampedEntry(this.measuresJsonRepository, metrics);
+    await this.appendTimestampedEntry(this.measuresRepository, metrics);
 
     return metrics;
   }
@@ -71,7 +73,7 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
         depth: options?.depth,
         metrics: options?.metrics,
       });
-      await this.appendTimestampedEntry(this.componentTreeJsonRepository, componentTree);
+      await this.appendTimestampedEntry(this.componentTreeRepository, componentTree);
 
       return componentTree;
     } catch (error) {
@@ -95,7 +97,7 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
     try {
       this.logger.debug(`Fetching historical measures: ${this.describeOptions(options)}`);
 
-      const fromDisk = await this.historicalMeasuresJsonRepository.load();
+      const fromDisk = await this.historicalMeasuresRepository.load();
       const cachedData = extractLatestData(fromDisk);
       const cached: CodeMetric[] = Array.isArray(cachedData) ? cachedData : [];
 
@@ -111,7 +113,7 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
             endDate: options?.endDate,
           });
           const merged = this.mergeHistoricalMeasures(cached, fresh);
-          await this.appendTimestampedEntry(this.historicalMeasuresJsonRepository, merged);
+          await this.appendTimestampedEntry(this.historicalMeasuresRepository, merged);
           return merged;
         }
       }
@@ -128,13 +130,13 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
             endDate: options?.endDate,
           });
           const merged = this.mergeHistoricalMeasures(cached, fresh);
-          await this.appendTimestampedEntry(this.historicalMeasuresJsonRepository, merged);
+          await this.appendTimestampedEntry(this.historicalMeasuresRepository, merged);
           return merged;
         }
       }
 
       const historical = await this.sonarqubeClient.fetchHistoricalMeasures(options);
-      await this.appendTimestampedEntry(this.historicalMeasuresJsonRepository, historical);
+      await this.appendTimestampedEntry(this.historicalMeasuresRepository, historical);
       return historical;
     } catch (error) {
       this.logger.error(

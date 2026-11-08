@@ -3,7 +3,7 @@ import { PipelineGitHubRunBuilder } from '../../../test/github/github-builders';
 import { InMemoryRepository } from '../../../test/repositories/in-memory-repository';
 import type { IGithubWorkflowClient } from '../../..';
 import type { WorkflowJsonResponse } from '../github-response-types';
-import { PipelinesFetchRepository } from '../pipelines-fetch-repository-json';
+import { PipelinesFetchRepository } from '../pipelines-fetch-repository';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 describe('PipelinesFetchRepository - Fetch workflows by day', () => {

@@ -1,21 +1,10 @@
 import * as path from 'path';
 
-export type StorageType = 'json' | 'sqlite';
-
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
 
 export interface JsonObject {
   [key: string]: JsonValue | undefined;
-}
-
-export interface InternalConfiguration {
-  /**
-   * Storage backend type for repository persistence.
-   * - 'json' (default): JSON files on disk
-   * - 'sqlite': SQLite database
-   */
-  storageType: StorageType;
 }
 
 export interface IConfiguration {
@@ -133,21 +122,11 @@ export interface IConfiguration {
    * IANA timezone identifier (e.g. "Europe/Madrid", "UTC")
    */
   timezone?: string;
-
-  /**
-   * Internal configuration for developer-only settings.
-   * Controls internal behavior like storage backend selection.
-   */
-  internal?: InternalConfiguration;
 }
 
 export interface ConfigurableDeploymentFrequencyTarget extends JsonObject {
   pipeline: string;
   job: string;
-}
-
-export interface ISmmInternalConfig extends JsonObject {
-  storage_type?: StorageType;
 }
 
 /**
@@ -176,7 +155,6 @@ export interface ISmmProjectConfig extends JsonObject {
   sonar_local_runner_token?: string;
   store_logs?: boolean;
   timezone?: string;
-  internal?: ISmmInternalConfig;
 }
 
 /**
@@ -216,7 +194,6 @@ export class Configuration implements IConfiguration {
   sonarLocalRunnerToken?: string;
   storeLogs?: boolean;
   timezone?: string;
-  internal: InternalConfiguration = { storageType: 'sqlite' };
 
   constructor(values: Partial<IConfiguration> = {}) {
     Object.assign(this, values);

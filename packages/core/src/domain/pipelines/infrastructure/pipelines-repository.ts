@@ -15,15 +15,15 @@ import type {
 } from '../repositories/pipeline-repository';
 import { PipelineMapToDomainRepository } from '../../../providers/github/pipeline-map-to-domain-repository';
 
-export class PipelinesRepositoryJson
+export class CachedPipelinesRepository
   extends ParseRawFiltersRepository
   implements PipelinesRepository
 {
   private mapToDomain = new PipelineMapToDomainRepository();
 
   constructor(
-    private pipelineRunJsonRepository: IRepository<WorkflowJsonResponse>,
-    private pipelineJobsJsonRepository: IRepository<WorkflowJobJsonResponse>,
+    private pipelineRunRepository: IRepository<WorkflowJsonResponse>,
+    private pipelineJobsRepository: IRepository<WorkflowJobJsonResponse>,
     protected logger: Logger,
     private tz: TimeZoneProvider
   ) {
@@ -33,10 +33,10 @@ export class PipelinesRepositoryJson
   async loadPipelines(
     options: LoadPipelinesOptions = { includeJobs: true }
   ): Promise<PipelineRun[]> {
-    const runs = await this.pipelineRunJsonRepository.loadAll();
+    const runs = await this.pipelineRunRepository.loadAll();
     const pipelineRunsFromDomain = runs.map(this.mapToDomain.mapPipelinesToDomain);
 
-    this.logger.info(`Loaded ${pipelineRunsFromDomain.length} pipeline runs from JSON repository`);
+    this.logger.info(`Loaded ${pipelineRunsFromDomain.length} pipeline runs from repository cache`);
 
     const pipelineRuns = this.filterRuns(pipelineRunsFromDomain, options);
     const selectedJobNames = this.normalizeJobNames(options.jobNames, options.jobName);
@@ -105,7 +105,7 @@ export class PipelinesRepositoryJson
   }
 
   async loadPipelineJobs(): Promise<PipelineJob[]> {
-    const jobs = await this.pipelineJobsJsonRepository.loadAll();
+    const jobs = await this.pipelineJobsRepository.loadAll();
     return jobs.map(this.mapToDomain.mapPipelineJobsToDomain);
   }
 

@@ -23,7 +23,7 @@ C4Container
     Container(mcp, "@smmachine/mcp", "TypeScript, MCP stdio server", "Read-only MCP tools, resources and prompts for agent clients")
     Container(core, "@smmachine/core", "TypeScript library, CommonJS", "Domain slices, provider clients, engineering-health registry, configuration and persistence")
     Container(utils, "@smmachine/utils", "TypeScript library, CommonJS", "Logging, JSON, date-time, duration and application-version helpers")
-    ContainerDb(store, "SMM data folder", "JSON files and SQLite (smm.sqlite)", "Per-project provider payloads, architecture snapshots, saved filters and project configuration")
+    ContainerDb(store, "SMM data folder", "SQLite (smm.sqlite)", "Per-project provider payloads, architecture snapshots, saved filters and project configuration")
   }
 
   Rel(developer, cli, "Runs commands", "shell")
@@ -44,7 +44,7 @@ C4Container
   Rel(rest, store, "Reads persisted metrics", "read-only")
   Rel(mcp, store, "Reads persisted metrics", "read-only")
 
-  Rel(core, gitHost, "Fetches pull requests, pipelines and commits", "HTTPS REST")
+  Rel(core, gitHost, "Fetches change requests, pipelines and commits", "HTTPS REST")
   Rel(core, issueTracker, "Fetches issues", "HTTPS REST")
   Rel(core, qualityPlatform, "Fetches quality measures", "HTTPS REST")
   Rel(core, gitClone, "Reads git history", "git / filesystem")

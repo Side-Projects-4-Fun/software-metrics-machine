@@ -4,8 +4,6 @@ import { join } from 'node:path';
 import { Logger } from '@smmachine/utils';
 import { afterEach, beforeEach, describe, it, expect } from 'vitest';
 import { ConfigurationRepository } from '../configuration-repository';
-import { RepositoryFactory } from '../repository-factory';
-import { SqliteRepository } from '../sqlite-repository';
 import type { ISmmProjectConfig } from '../configuration';
 
 const logger = new Logger('ConfigurationRepositoryTest', 'CRITICAL');
@@ -197,7 +195,6 @@ describe('ConfigurationRepository', () => {
           ORG_REPO_A_SONAR_PROJECT: 'sonar-project',
           ORG_REPO_A_STORE_LOGS: 'true',
           ORG_REPO_A_SMM_TIMEZONE: 'Europe/Madrid',
-          ORG_REPO_A_SMM_STORAGE_TYPE: 'sqlite',
         },
         'org/repo-a'
       );
@@ -218,7 +215,6 @@ describe('ConfigurationRepository', () => {
       expect(config.sonarProject).toBe('sonar-project');
       expect(config.storeLogs).toBe(true);
       expect(config.timezone).toBe('Europe/Madrid');
-      expect(config.internal.storageType).toBe('sqlite');
     });
 
     it('should read jira-csv from the project environment', () => {
@@ -270,7 +266,6 @@ describe('ConfigurationRepository', () => {
           SONAR_PROJECT: 'sonar-project',
           STORE_LOGS: 'true',
           SMM_TIMEZONE: 'Europe/Madrid',
-          SMM_STORAGE_TYPE: 'sqlite',
         },
         'org/repo-a'
       );
@@ -291,7 +286,6 @@ describe('ConfigurationRepository', () => {
       expect(config.sonarProject).toBeUndefined();
       expect(config.storeLogs).toBeUndefined();
       expect(config.timezone).toBe('UTC');
-      expect(config.internal.storageType).toBe('sqlite');
     });
 
     it('should use project-specific GitHub token from environment', () => {
@@ -426,7 +420,6 @@ describe('ConfigurationRepository', () => {
       const repo = createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo-b');
       const config = repo.getActiveConfiguration();
       config.sonarLocalRunnerToken = 'local-token-b';
-      config.internal.storageType = 'sqlite';
 
       repo.save();
 
@@ -436,7 +429,6 @@ describe('ConfigurationRepository', () => {
       >;
       expect(saved.projects[0].sonar_local_runner_token).toBeUndefined();
       expect(saved.projects[1].sonar_local_runner_token).toBe('local-token-b');
-      expect(saved.projects[1].internal?.storage_type).toBe('sqlite');
     });
 
     it('should throw when project not found', () => {
@@ -707,133 +699,6 @@ describe('ConfigurationRepository', () => {
       );
       const repo = createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo');
       expect(repo.getAllProjects()).toHaveLength(1);
-    });
-
-    it('should accept nested JSON configuration data', () => {
-      tempDir = mkdtempSync(join(tmpdir(), 'smm-config-repo-nested-json-'));
-      writeFileSync(
-        join(tempDir, 'smm_config.json'),
-        JSON.stringify({
-          projects: [
-            {
-              github_repository: 'org/repo',
-              git_repository_location: '/tmp/repo',
-              internal: {
-                storage_type: 'sqlite',
-              },
-            },
-          ],
-        }),
-        'utf-8'
-      );
-
-      const repo = createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo');
-
-      expect(repo.getActiveConfiguration().internal.storageType).toBe('sqlite');
-    });
-
-    it('should inherit root internal storage configuration for selected projects', () => {
-      tempDir = mkdtempSync(join(tmpdir(), 'smm-config-repo-root-internal-'));
-      writeFileSync(
-        join(tempDir, 'smm_config.json'),
-        JSON.stringify({
-          internal: {
-            storage_type: 'sqlite',
-          },
-          projects: [
-            {
-              github_repository: 'org/repo',
-              git_repository_location: '/tmp/repo',
-            },
-          ],
-        }),
-        'utf-8'
-      );
-
-      const repo = createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo');
-
-      expect(repo.getActiveConfiguration().internal.storageType).toBe('sqlite');
-      expect(
-        RepositoryFactory.create(
-          join(tempDir, 'github_org_repo', 'prs.json'),
-          new Logger('RepositoryFactoryTest'),
-          repo.getActiveConfiguration()
-        )
-      ).toBeInstanceOf(SqliteRepository);
-    });
-
-    it('should let project internal storage configuration override root internal storage', () => {
-      tempDir = mkdtempSync(join(tmpdir(), 'smm-config-repo-project-internal-'));
-      writeFileSync(
-        join(tempDir, 'smm_config.json'),
-        JSON.stringify({
-          internal: {
-            storage_type: 'sqlite',
-          },
-          projects: [
-            {
-              github_repository: 'org/repo',
-              git_repository_location: '/tmp/repo',
-              internal: {
-                storage_type: 'json',
-              },
-            },
-          ],
-        }),
-        'utf-8'
-      );
-
-      const repo = createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo');
-
-      expect(repo.getActiveConfiguration().internal.storageType).toBe('json');
-    });
-
-    it('should reject root internal storageType in JSON configuration', () => {
-      tempDir = mkdtempSync(join(tmpdir(), 'smm-config-repo-root-internal-camelcase-'));
-      writeFileSync(
-        join(tempDir, 'smm_config.json'),
-        JSON.stringify({
-          internal: {
-            storageType: 'sqlite',
-          },
-          projects: [
-            {
-              github_repository: 'org/repo',
-              git_repository_location: '/tmp/repo',
-            },
-          ],
-        }),
-        'utf-8'
-      );
-
-      expect(() =>
-        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
-      ).toThrow(/internal\.storageType is not supported.*internal\.storage_type/);
-    });
-
-    it('should reject project internal storageType in JSON configuration', () => {
-      tempDir = mkdtempSync(join(tmpdir(), 'smm-config-repo-project-internal-camelcase-'));
-      writeFileSync(
-        join(tempDir, 'smm_config.json'),
-        JSON.stringify({
-          projects: [
-            {
-              github_repository: 'org/repo',
-              git_repository_location: '/tmp/repo',
-              internal: {
-                storageType: 'sqlite',
-              },
-            },
-          ],
-        }),
-        'utf-8'
-      );
-
-      expect(() =>
-        createConfigurationRepository({ SMM_STORE_DATA_AT: tempDir }, 'org/repo')
-      ).toThrow(
-        /projects\[0\]\.internal\.storageType is not supported.*projects\[0\]\.internal\.storage_type/
-      );
     });
   });
 });

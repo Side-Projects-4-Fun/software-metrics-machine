@@ -8,7 +8,7 @@ use the SMM CLI.
 
 ## Capabilities
 
-- **Tools**: projects, metric catalog, pull requests, deployment, code, issues, quality, engineering health, DORA,
+- **Tools**: projects, metric catalog, change requests, deployment, code, issues, quality, engineering health, DORA,
   architecture snapshots/views, and full report.
 - **Resources**: project list, engineering health catalog, per-project configuration (redacted), report, engineering
   health, DORA, and architecture snapshots. Resource templates are advertised through `resources/templates/list`.

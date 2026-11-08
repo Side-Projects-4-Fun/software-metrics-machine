@@ -6,7 +6,7 @@ import {
 import { InMemoryRepository } from '../../../test/repositories/in-memory-repository';
 import type { IGithubWorkflowJobClient } from '../..';
 import type { WorkflowJobJsonResponse, WorkflowJsonResponse } from '../github-response-types';
-import { PipelinesJobFetchRepository } from '../pipelines-job-fetch-repository-json';
+import { PipelinesJobFetchRepository } from '../pipelines-job-fetch-repository';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
 describe('Fetch jobs pipeline repository - By day', () => {

@@ -7,7 +7,7 @@ import { JiraIssuesClient } from '../../../providers/jira/jira-client';
 import { JiraCsvIssuesClient } from '../../../providers/jira/jira-csv-client';
 import { GitHubIssuesClient } from '../../../providers/github/github-issues-client';
 import { GitHubRateLimitManager } from '../../../providers/github/github-rate-limit-manager';
-import { IssuesRepository } from '../issues-repository-json';
+import { IssuesRepository } from '../issues-repository';
 
 export interface IssuesDependencies {
   issuesRepository: IssuesRepository;

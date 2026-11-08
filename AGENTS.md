@@ -9,7 +9,7 @@ and `.github/agents/` for GitHub Copilot. Shared role prompts live under `.agent
 - **Change requests** (`smm change-requests *`) — change request volume, review times, merge patterns, comments
 - **Pipeline** (`smm pipelines *`) — success rates, execution times, DORA deployment frequency
 - **Code** (`smm code *`) — code churn, coupling, entity ownership, pairing index
-- **Issue** (`smm jira *`) — Jira issue metrics
+- **Issue** (`smm issues *`) — issue tracker metrics (Jira, GitHub, Jira CSV)
 - **Quality** (`smm sonarqube *`) — SonarQube quality measures
 - **Architecture** (`smm architecture *`) — persisted architecture snapshots and C4 views
 - **Engineering health** (`smm engineering-health evaluate`) — delivery, quality, collaboration and architecture scorecards
@@ -33,7 +33,6 @@ and `.github/agents/` for GitHub Copilot. Shared role prompts live under `.agent
 │   ├── cli/              # @smmachine/cli — Commander.js CLI (CommonJS, bundled by tsup)
 │   │   ├── src/
 │   │   │   ├── commands/     # One file per command group (change-requests, pipelines, code, architecture, ...)
-│   │   │   ├── factories/    # CLI-level factories (jira-factory.ts)
 │   │   │   ├── formatters/   # Terminal output formatting helpers
 │   │   │   ├── index.ts      # Command registration entry point
 │   │   │   └── screen.ts     # Interactive screen helpers
@@ -78,7 +77,7 @@ Each `packages/core/src/domain/<area>/` slice follows the same layout: `services
 `infrastructure/`, and `__tests__/`.
 
 - **`packages/utils`** — Logger, JSON helpers, date/duration formatting. Zero workspace deps.
-- **`packages/core`** — Domain types, services, providers (GitHub, GitLab, CodeMaat, SonarQube, Jira), engineering-health registry, infrastructure (`Configuration`, SQLite + JSON repositories). Depends on `@smmachine/utils`.
+- **`packages/core`** — Domain types, services, providers (GitHub, GitLab, CodeMaat, SonarQube, Jira), engineering-health registry, infrastructure (`Configuration`, SQLite repositories). Depends on `@smmachine/utils`.
 - **`apps/cli`** — Commander.js CLI. Thin layer: parses options, calls services, formats output. Depends on `@smmachine/core`, `@smmachine/mcp`, and `@smmachine/utils`.
 - **`apps/rest`** — NestJS REST API. Controllers call core services. Depends on `@smmachine/core` and `@smmachine/utils`.
 - **`apps/mcp`** — Local MCP stdio server. Read-only tools/resources, wires core services via `McpMetricsReader`. Depends on `@smmachine/core` and `@smmachine/utils`.
@@ -89,9 +88,9 @@ Each `packages/core/src/domain/<area>/` slice follows the same layout: `services
 ### Dependency graph
 
 ```
-@packages/utils  (no workspace deps)
+@smmachine/utils  (no workspace deps)
        ↓
-@packages/core   (depends on @packages/utils)
+@smmachine/core   (depends on @smmachine/utils)
        ↓
 apps/cli   apps/mcp   apps/rest
                           ↑ (HTTP/JSON)

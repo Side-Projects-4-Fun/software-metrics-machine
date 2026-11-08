@@ -5,7 +5,7 @@ import type {
   WorkflowJobJsonResponse,
   WorkflowJsonResponse,
 } from '../../../providers/github/github-response-types';
-import { PipelinesFetchRepository } from '../../../providers/github/pipelines-fetch-repository-json';
+import { PipelinesFetchRepository } from '../../../providers/github/pipelines-fetch-repository';
 import {
   GithubWorkflowClient,
   GithubWorkflowJobClient,
@@ -13,7 +13,7 @@ import {
   defaultGitlabCliRunner,
   GitHubRateLimitManager,
 } from '../../../providers';
-import { PipelinesJobFetchRepository } from '../../../providers/github/pipelines-job-fetch-repository-json';
+import { PipelinesJobFetchRepository } from '../../../providers/github/pipelines-job-fetch-repository';
 import type {
   PipelineFiltersRepository,
   PipelineFilterOptions,
@@ -21,7 +21,7 @@ import type {
 import type { Logger } from '@smmachine/utils';
 import type { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import type { PipelinesRepository } from '../repositories/pipeline-repository';
-import { PipelineFiltersRepositoryJson } from '../infrastructure/pipeline-filters-repository-json';
+import { CachedPipelineFiltersRepository } from '../infrastructure/pipeline-filters-repository';
 
 export default class PipelineFactory {
   static create(
@@ -71,41 +71,41 @@ export default class PipelineFactory {
           logger
         );
 
-    const pipelineRunJsonRepository = RepositoryFactory.create<WorkflowJsonResponse>(
+    const pipelineRunRepository = RepositoryFactory.create<WorkflowJsonResponse>(
       RepositoryFactory.getPipelineRunsRepositoryPath(config),
       logger,
       config
     );
-    const pipelineJobsJsonRepository = RepositoryFactory.create<WorkflowJobJsonResponse>(
+    const pipelineJobsRepository = RepositoryFactory.create<WorkflowJobJsonResponse>(
       RepositoryFactory.getPipelineJobsRepositoryPath(config),
       logger,
       config
     );
-    const pipelineFiltersJsonRepository = RepositoryFactory.create<PipelineFilterOptions>(
+    const pipelineFilterOptionsRepository = RepositoryFactory.create<PipelineFilterOptions>(
       `${config.getPathFromGitProvider()}/pipeline-filter-options.json`,
       logger,
       config
     );
 
     const pipelineRepository = new PipelinesSqliteRepository(config, logger, timeZoneProvider);
-    const pipelineFiltersRepository = new PipelineFiltersRepositoryJson(
-      pipelineRunJsonRepository,
-      pipelineJobsJsonRepository,
-      pipelineFiltersJsonRepository
+    const pipelineFiltersRepository = new CachedPipelineFiltersRepository(
+      pipelineRunRepository,
+      pipelineJobsRepository,
+      pipelineFilterOptionsRepository
     );
 
     const workflowRepository = new PipelinesFetchRepository(
       config,
       workflowClient,
-      pipelineRunJsonRepository,
+      pipelineRunRepository,
       pipelineFiltersRepository,
       logger
     );
     const workflowJobRepository = new PipelinesJobFetchRepository(
       config,
       workflowJobClient,
-      pipelineRunJsonRepository,
-      pipelineJobsJsonRepository,
+      pipelineRunRepository,
+      pipelineJobsRepository,
       pipelineFiltersRepository,
       logger
     );

@@ -82,7 +82,6 @@ async function readHistoricalCache(cacheDir: string): Promise<{
 
 function createConfiguration(cacheDir: string): Configuration {
   return {
-    internal: { storageType: 'sqlite' },
     getSonarqubePath: () => cacheDir,
   } as never as Configuration;
 }

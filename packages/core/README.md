@@ -1,4 +1,4 @@
-# @smm/core
+# @smmachine/core
 
 Core business logic package for Software Metrics Machine.
 
@@ -30,5 +30,5 @@ Contains the core business logic for:
 - Git repository analysis
 - Code metrics calculation
 - Deployment frequency tracking
-- Pull request analytics
+- Change request analytics
 

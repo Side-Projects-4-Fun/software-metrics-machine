@@ -24,20 +24,11 @@ import type { Configuration } from '../../infrastructure/configuration';
 export class TestConfigurationBuilder {
   private config: Record<string, unknown> = {
     getPathFromGitProvider: (): string => '/tmp',
-    internal: { storageType: 'sqlite' },
   };
 
   /** Sets the return value of `getPathFromGitProvider()` (default: `'/tmp'`). */
   withGetPathFromGitProvider(path: string): this {
     this.config.getPathFromGitProvider = (): string => path;
-    return this;
-  }
-
-  /**
-   * Sets the internal storage type (default: `'sqlite'`).
-   */
-  withStorageType(storageType: 'json' | 'sqlite'): this {
-    this.config.internal = { storageType };
     return this;
   }
 

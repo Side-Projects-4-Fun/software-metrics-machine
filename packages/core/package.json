@@ -52,7 +52,6 @@
   },
   "dependencies": {
     "axios": "catalog:",
-    "date-fns": "catalog:",
     "@smmachine/utils": "workspace:*"
   }
 }

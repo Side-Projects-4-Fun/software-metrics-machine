@@ -3,7 +3,7 @@ import {
   PipelineGitHubJobBuilder,
   PipelineGitHubRunBuilder,
 } from '../../../../test/github/github-builders';
-import { PipelinesRepositoryJson } from '../pipelines-repository-json';
+import { CachedPipelinesRepository } from '../pipelines-repository';
 import { InMemoryRepository } from '../../../../test/repositories/in-memory-repository';
 import type {
   WorkflowJobJsonResponse,
@@ -12,14 +12,14 @@ import type {
 import { MockLoggerBuilder } from '../../../../test/infrastructure/mock-logger-builder';
 import { TimeZoneProvider } from '../../../../infrastructure/timezone-provider';
 
-describe('PipelinesRepositoryJson loadPipelines', () => {
+describe('CachedPipelinesRepository loadPipelines', () => {
   const pipelineRunRepository = new InMemoryRepository<WorkflowJsonResponse>();
   const pipelineJobsRepository = new InMemoryRepository<WorkflowJobJsonResponse>();
   const logger = new MockLoggerBuilder().build();
   const timeZoneProvider = new TimeZoneProvider('UTC');
 
-  const createRepository = (): PipelinesRepositoryJson => {
-    return new PipelinesRepositoryJson(
+  const createRepository = (): CachedPipelinesRepository => {
+    return new CachedPipelinesRepository(
       pipelineRunRepository,
       pipelineJobsRepository,
       logger,

@@ -7,8 +7,8 @@ import type {
   PullRequestJsonResponse,
 } from './github-response-types';
 import type { Configuration } from '../../';
-import type { ChangeRequestFilterOptions } from '../../domain/change-requests/repositories/change-request-filters-repository-json';
-import { ChangeRequestFiltersRepository } from '../../domain/change-requests/repositories/change-request-filters-repository-json';
+import type { ChangeRequestFilterOptions } from '../../domain/change-requests/repositories/change-request-filters-repository';
+import { ChangeRequestFiltersRepository } from '../../domain/change-requests/repositories/change-request-filters-repository';
 
 export interface IPullRequestsRepository {
   fetchPRs(options?: {
@@ -26,8 +26,8 @@ export interface IPullRequestsRepository {
 }
 
 export class GitHubPullRequestsFetchRepository implements IPullRequestsRepository {
-  private pullRequestsJsonRepository: IRepository<PullRequestJsonResponse>;
-  private pullRequestCommentsJsonRepository: IRepository<PullRequestCommentJsonResponse>;
+  private pullRequestsRepository: IRepository<PullRequestJsonResponse>;
+  private pullRequestCommentsRepository: IRepository<PullRequestCommentJsonResponse>;
   private pullRequestFiltersRepository: ChangeRequestFiltersRepository;
 
   constructor(
@@ -36,26 +36,25 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
     private logger: Logger
   ) {
     const providerDir = config.getPathFromGitProvider();
-    this.pullRequestsJsonRepository = RepositoryFactory.create<PullRequestJsonResponse>(
+    this.pullRequestsRepository = RepositoryFactory.create<PullRequestJsonResponse>(
       `${providerDir}/prs.json`,
       logger,
       config
     );
-    this.pullRequestCommentsJsonRepository =
-      RepositoryFactory.create<PullRequestCommentJsonResponse>(
-        `${providerDir}/pr-comments.json`,
-        logger,
-        config
-      );
-    const pullRequestFiltersJsonRepository = RepositoryFactory.create<ChangeRequestFilterOptions>(
+    this.pullRequestCommentsRepository = RepositoryFactory.create<PullRequestCommentJsonResponse>(
+      `${providerDir}/pr-comments.json`,
+      logger,
+      config
+    );
+    const pullRequestFilterOptionsRepository = RepositoryFactory.create<ChangeRequestFilterOptions>(
       `${providerDir}/pull-request-filter-options.json`,
       logger,
       config
     );
     this.pullRequestFiltersRepository = new ChangeRequestFiltersRepository(
-      this.pullRequestsJsonRepository,
-      this.pullRequestCommentsJsonRepository,
-      pullRequestFiltersJsonRepository
+      this.pullRequestsRepository,
+      this.pullRequestCommentsRepository,
+      pullRequestFilterOptionsRepository
     );
   }
 
@@ -69,7 +68,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
     incrementalUpdate?: boolean;
     rawFilters?: string;
   }): Promise<PullRequestJsonResponse[]> {
-    const fromCache = await this.pullRequestsJsonRepository.loadAll();
+    const fromCache = await this.pullRequestsRepository.loadAll();
 
     if (options?.incrementalUpdate && fromCache.length > 0) {
       const latestDate = this.findLatestDate(fromCache.map((pr) => pr.updated_at));
@@ -80,7 +79,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
         rawFilters: options?.rawFilters,
       });
       const merged = this.mergePRs(fromCache, freshPRs);
-      await this.pullRequestsJsonRepository.saveAll(merged);
+      await this.pullRequestsRepository.saveAll(merged);
       await this.refreshFilterOptions();
       return merged;
     }
@@ -100,7 +99,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
         rawFilters: options?.rawFilters,
       });
       const merged = this.mergePRs(fromCache, freshPRs);
-      await this.pullRequestsJsonRepository.saveAll(merged);
+      await this.pullRequestsRepository.saveAll(merged);
       await this.refreshFilterOptions();
       return merged;
     }
@@ -118,7 +117,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
     });
 
     // Persist fetched data to disk so subsequent commands can reuse cached data.
-    await this.pullRequestsJsonRepository.saveAll(freshPRs);
+    await this.pullRequestsRepository.saveAll(freshPRs);
     await this.refreshFilterOptions();
 
     return freshPRs;
@@ -148,7 +147,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
     prNumber: number,
     options?: { forceRefresh?: boolean; incrementalUpdate?: boolean }
   ): Promise<PullRequestCommentJsonResponse[]> {
-    const fromCache = await this.pullRequestCommentsJsonRepository.loadAll();
+    const fromCache = await this.pullRequestCommentsRepository.loadAll();
     const cachedCommentsForPR = fromCache.filter((comment) =>
       comment.pull_request_url.includes(`/pulls/${prNumber}`)
     );
@@ -167,7 +166,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
         (comment) => !comment.pull_request_url.includes(`/pulls/${prNumber}`)
       );
       const updatedComments = otherComments.concat(merged);
-      await this.pullRequestCommentsJsonRepository.saveAll(updatedComments);
+      await this.pullRequestCommentsRepository.saveAll(updatedComments);
       return merged;
     }
 
@@ -185,7 +184,7 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
       .filter((comment) => !comment.pull_request_url.includes(`/pulls/${prNumber}`))
       .concat(freshComments);
 
-    await this.pullRequestCommentsJsonRepository.saveAll(updatedComments);
+    await this.pullRequestCommentsRepository.saveAll(updatedComments);
 
     return freshComments;
   }

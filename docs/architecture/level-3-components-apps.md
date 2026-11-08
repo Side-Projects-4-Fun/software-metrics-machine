@@ -10,23 +10,21 @@ C4Component
   title Level 3 — Components inside @smmachine/cli
 
   Person(developer, "Developer / platform engineer")
-  ContainerDb(store, "SMM data folder", "JSON / SQLite")
+  ContainerDb(store, "SMM data folder", "SQLite (smm.sqlite)")
   Container(rest, "@smmachine/rest", "REST API")
   Container(webapp, "@smmachine/webapp", "Dashboard")
   System_Ext(providerApis, "Provider APIs", "GitHub, GitLab, Jira, SonarQube")
 
   Container_Boundary(cli, "@smmachine/cli") {
     Component(index, "index.ts / SmmCommand", "Commander.js", "Builds the root program, registers command groups, wires the logger and screen helpers")
-    Component(commandGroups, "Command groups", "TypeScript", "change-requests, pipelines, code, jira, sonarqube, architecture, engineering-health, metrics, filters, project, tools, health-check and mcp")
+    Component(commandGroups, "Command groups", "TypeScript", "change-requests, pipelines, code, issues, sonarqube, architecture, engineering-health, metrics, filters, project, tools, health-check and mcp")
     Component(dashboardCommand, "dashboard serve", "TypeScript, child_process", "Spawns the bundled REST API and Next.js server and wires SMM_REST_BASE_URL")
-    Component(factories, "CLI factories", "TypeScript", "jira-factory.ts: builds the Jira client from the active Configuration")
     Component(formatters, "Formatters and screen", "TypeScript", "Table/JSON output helpers and interactive prompts")
     Component(coreServices, "@smmachine/core", "workspace package", "Domain services, provider clients and repositories")
   }
 
   Rel(developer, index, "Runs smm", "shell")
   Rel(index, commandGroups, "Delegates to", "function call")
-  Rel(commandGroups, factories, "Builds clients", "function call")
   Rel(commandGroups, coreServices, "Calls services and providers", "function call")
   Rel(commandGroups, formatters, "Renders output", "function call")
   Rel(coreServices, store, "Writes caches, snapshots and configuration", "filesystem / SQLite")
@@ -48,7 +46,7 @@ C4Component
 
   Container(webapp, "@smmachine/webapp", "Dashboard")
   Container(cli, "@smmachine/cli", "dashboard serve")
-  ContainerDb(store, "SMM data folder", "SQLite / JSON")
+  ContainerDb(store, "SMM data folder", "SQLite (smm.sqlite)")
 
   Container_Boundary(rest, "@smmachine/rest") {
     Component(main, "main.ts bootstrap", "NestJS", "Creates the Nest app, global validation pipe, exception filters, CORS and Swagger")
@@ -110,7 +108,7 @@ C4Component
   title Level 3 — Components inside @smmachine/mcp
 
   Person(agentClient, "AI agent client")
-  ContainerDb(store, "SMM data folder", "SQLite / JSON")
+  ContainerDb(store, "SMM data folder", "SQLite (smm.sqlite)")
 
   Container_Boundary(mcp, "@smmachine/mcp") {
     Component(entry, "index.ts / bin.ts", "Node.js", "Entry points for smm mcp server start and the smm-mcp binary")

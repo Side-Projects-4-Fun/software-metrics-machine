@@ -4,7 +4,7 @@ import {
   PipelineGitHubJobBuilder,
   PipelineGitHubRunBuilder,
 } from '../../../test/github/github-builders';
-import { PipelineFiltersRepositoryJson } from '../../../domain/pipelines/infrastructure/pipeline-filters-repository-json';
+import { CachedPipelineFiltersRepository } from '../../../domain/pipelines/infrastructure/pipeline-filters-repository';
 import { InMemoryRepository } from '../../../test/repositories/in-memory-repository';
 import type { WorkflowJobJsonResponse, WorkflowJsonResponse } from '../github-response-types';
 
@@ -12,7 +12,7 @@ describe('PipelineFiltersRepository', () => {
   const createRepository = async (
     runs: WorkflowJsonResponse[],
     jobs: WorkflowJobJsonResponse[]
-  ): Promise<PipelineFiltersRepositoryJson> => {
+  ): Promise<CachedPipelineFiltersRepository> => {
     const pipelineRunRepository = new InMemoryRepository<WorkflowJsonResponse>();
     const pipelineJobsRepository = new InMemoryRepository<WorkflowJobJsonResponse>();
     const pipelineFiltersRepository = new InMemoryRepository<PipelineFilterOptions>();
@@ -20,7 +20,7 @@ describe('PipelineFiltersRepository', () => {
     await pipelineRunRepository.saveAll(runs);
     await pipelineJobsRepository.saveAll(jobs);
 
-    return new PipelineFiltersRepositoryJson(
+    return new CachedPipelineFiltersRepository(
       pipelineRunRepository,
       pipelineJobsRepository,
       pipelineFiltersRepository

@@ -22,8 +22,8 @@ export class ChangeRequestsRepository
   implements IReadChangeRequestsRepository
 {
   constructor(
-    private changeRequestsJsonRepository: IRepository<PullRequestJsonResponse>,
-    private changeRequestCommentsJsonRepository: IRepository<PullRequestCommentJsonResponse>,
+    private changeRequestsRepository: IRepository<PullRequestJsonResponse>,
+    private changeRequestCommentsRepository: IRepository<PullRequestCommentJsonResponse>,
     private timeZoneProvider: TimeZoneProvider
   ) {
     super();
@@ -32,8 +32,8 @@ export class ChangeRequestsRepository
   async loadChangeRequestsWithFilters(
     filters?: ChangeRequestFilters
   ): Promise<ChangeRequestDetails[]> {
-    const fromCache = await this.changeRequestsJsonRepository.loadAll();
-    const allComments = await this.changeRequestCommentsJsonRepository.loadAll();
+    const fromCache = await this.changeRequestsRepository.loadAll();
+    const allComments = await this.changeRequestCommentsRepository.loadAll();
 
     let rawChangeRequests = fromCache;
 

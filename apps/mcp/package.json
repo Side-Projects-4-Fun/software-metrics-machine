@@ -24,15 +24,12 @@
   },
   "dependencies": {
     "@modelcontextprotocol/server": "catalog:",
-    "axios": "catalog:",
-    "date-fns": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "catalog:",
     "@smmachine/core": "workspace:*",
     "@smmachine/utils": "workspace:*",
-    "@swc/core": "catalog:",
     "@types/node": "catalog:",
     "@typescript-eslint/eslint-plugin": "catalog:",
     "@typescript-eslint/parser": "catalog:",
@@ -40,7 +37,6 @@
     "eslint": "catalog:",
     "eslint-config-prettier": "catalog:",
     "eslint-plugin-prettier": "catalog:",
-    "msw": "catalog:",
     "tsup": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",

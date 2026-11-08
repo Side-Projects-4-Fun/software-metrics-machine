@@ -10,7 +10,7 @@ C4Component
   Container(cli, "@smmachine/cli", "CLI")
   Container(rest, "@smmachine/rest", "REST API")
   Container(mcp, "@smmachine/mcp", "MCP server")
-  ContainerDb(store, "SMM data folder", "JSON / SQLite")
+  ContainerDb(store, "SMM data folder", "SQLite (smm.sqlite)")
   System_Ext(providerApis, "Provider APIs", "GitHub, GitLab, Jira, SonarQube")
   System_Ext(gitClone, "Local git clone", "Repository on disk")
 
@@ -40,7 +40,7 @@ C4Component
 
   Rel(providerClients, providerApis, "Fetches provider data", "HTTPS REST")
   Rel(providerClients, gitClone, "Reads commits and churn", "git")
-  Rel(persistence, store, "Reads and writes", "SQLite / JSON")
+  Rel(persistence, store, "Reads and writes", "SQLite (smm.sqlite)")
   Rel(config, store, "Reads smm_config.json", "filesystem")
 
   UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
@@ -53,7 +53,7 @@ Every area follows the same layout, so a new feature is added by copying the sha
 | Folder | Contents |
 |--------|----------|
 | `services/` | Pure business logic. Accept typed filters, return domain types, no I/O |
-| `repositories/` | Read repositories over the persisted data (JSON/SQLite), used by CLI, REST and MCP |
+| `repositories/` | Read repositories over the persisted data (SQLite), used by CLI, REST and MCP |
 | `factories/` | Wire configuration to repositories and services |
 | `infrastructure/` | Slice-specific adapters |
 | `__tests__/` | Vitest specs for the slice |

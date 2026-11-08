@@ -1,5 +1,5 @@
 import type { SmmCommand } from './smm-command';
-import type { IssuesRepository } from '@smmachine/core/domain/issues/issues-repository-json';
+import type { IssuesRepository } from '@smmachine/core/domain/issues/issues-repository';
 import { IssuesFactory } from '@smmachine/core/domain/issues/factories/issues-factory';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 

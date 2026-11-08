@@ -6,7 +6,7 @@ import type {
   SonarqubeComponentTreeMeasure,
   TimestampedStore,
 } from '../../../providers';
-import { SonarqubeRepositoryJson as SonarqubeRepository } from '../../../providers/sonarqube/repositories/sonarqube-repository-json';
+import { SonarqubeRepository } from '../../../providers/sonarqube/repositories/sonarqube-repository';
 import type { Logger } from '@smmachine/utils';
 
 export class SonarqubeFactory {

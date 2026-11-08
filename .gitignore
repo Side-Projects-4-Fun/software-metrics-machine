@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 .idea/
+
+# npm lockfiles are not used by the pnpm workspace (the docs site keeps its own)
+/package-lock.json
+/apps/webapp/package-lock.json
 # C extensions
 *.so
 

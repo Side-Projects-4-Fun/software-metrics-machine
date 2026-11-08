@@ -21,7 +21,6 @@ describe('CodemaatFetchRepository', () => {
       gitProvider: 'github',
       githubRepository: 'owner/repo',
       gitRepositoryLocation: '/some/path',
-      internal: { storageType: 'json' },
       ...values,
     });
   };
@@ -146,7 +145,6 @@ describe('CodemaatFetchRepository', () => {
       gitProvider: 'github',
       githubRepository: 'owner/repo',
       gitRepositoryLocation: '/tmp/repo',
-      internal: { storageType: 'sqlite' },
     });
 
     const repository = new CodemaatFetchSqliteRepository(configuration, logger);
@@ -208,7 +206,6 @@ describe('CodemaatFetchRepository', () => {
       gitProvider: 'github',
       githubRepository: 'owner/repo',
       gitRepositoryLocation: '/tmp/repo',
-      internal: { storageType: 'sqlite' },
     });
 
     const repository = new CodemaatFetchSqliteRepository(configuration, logger);

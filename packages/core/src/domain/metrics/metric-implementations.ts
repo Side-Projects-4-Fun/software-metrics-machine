@@ -8,11 +8,11 @@ import type { CodemaatService } from '../code/codemaat/codemaat-service';
 import type { ICodeMetricsRepository } from '../code/codemaat/repositories/codemaat-metrics-repository';
 import type { PairingService } from '../code/pairing/pairing-service';
 import type { SonarqubeEvaluationService } from '../code/sonarqube/sonarqube-evaluation-service';
-import type { IssuesRepository } from '../issues/issues-repository-json';
+import type { IssuesRepository } from '../issues/issues-repository';
 import type { PipelineEvaluationService } from '../pipelines/services/pipeline-evaluation-service';
 import type { PipelineImplementation } from '../pipelines/services/pipeline-implementation';
 import type { PipelinesService } from '../pipelines/services/pipelines-service';
-import type { SonarqubeRepositoryJson } from '../../providers/sonarqube/repositories/sonarqube-repository-json';
+import type { SonarqubeRepository } from '../../providers/sonarqube/repositories/sonarqube-repository';
 import type {
   ComponentsMetric,
   CouplingMetric,
@@ -53,7 +53,7 @@ export interface MetricServiceRegistry {
   PairingService: PairingService;
   BigOService: BigOService;
   CodeEvaluationService: CodeEvaluationService;
-  SonarqubeRepository: SonarqubeRepositoryJson;
+  SonarqubeRepository: SonarqubeRepository;
   SonarqubeEvaluationService: SonarqubeEvaluationService;
   ArchitectureService: ArchitectureService;
   ArchitectureEvaluationService: ArchitectureEvaluationService;

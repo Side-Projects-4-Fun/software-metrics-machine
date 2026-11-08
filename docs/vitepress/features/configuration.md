@@ -132,7 +132,6 @@ Supported project-specific environment variable suffixes are:
 - `SONAR_PROJECT`
 - `STORE_LOGS`
 - `SMM_TIMEZONE`
-- `SMM_STORAGE_TYPE`
 
 The only global environment variable used by configuration loading is `SMM_STORE_DATA_AT`. Generic variables such as
 `GITHUB_TOKEN`, `JIRA_TOKEN`, `SONAR_TOKEN`, `SMM_TIMEZONE`, or `GIT_REPOSITORY_PATH` are not used. When

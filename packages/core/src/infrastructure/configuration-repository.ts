@@ -7,7 +7,6 @@ import type {
   ISmmConfigFile,
   ISmmProjectConfig,
   JsonObject,
-  StorageType,
 } from './configuration';
 import { Configuration } from './configuration';
 import { resolveStoreDataAt } from './user-settings';
@@ -213,9 +212,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
       this.getString(configData, 'timezone') ||
       this.getProjectEnv(repository, 'SMM_TIMEZONE') ||
       'UTC';
-    config.internal = {
-      storageType: this.resolveStorageType(configData, repository),
-    };
     config.validate();
 
     return config;
@@ -284,19 +280,10 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
     const projectUpdate: Partial<ISmmProjectConfig> = {
       sonar_local_runner_token: this.configuration.sonarLocalRunnerToken,
-      internal: {
-        storage_type: this.configuration.internal?.storageType,
-      },
     };
 
     if (Array.isArray(rawConfig.projects) && rawConfig.projects[this.activeProjectIndex]) {
       Object.assign(rawConfig.projects[this.activeProjectIndex], projectUpdate);
-    } else {
-      const rootInternal = this.getJsonObject(rawConfig as JsonObject, 'internal') || {};
-      (rawConfig as JsonObject).internal = {
-        ...rootInternal,
-        storage_type: this.configuration.internal?.storageType,
-      };
     }
 
     fs.writeFileSync(this.configPath, JSON.stringify(rawConfig, null, 2), 'utf-8');
@@ -337,8 +324,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
     const obj = data as JsonObject;
 
-    this.validateInternalConfig(obj.internal, 'internal', configPath);
-
     // Validate projects field if present
     if ('projects' in obj) {
       if (!Array.isArray(obj.projects)) {
@@ -351,36 +336,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
         const project = obj.projects[i];
         this.validateProject(project, i, configPath);
       }
-    }
-  }
-
-  private validateInternalConfig(
-    internalConfig: unknown,
-    pathPrefix: string,
-    configPath: string
-  ): void {
-    if (internalConfig === undefined || internalConfig === null) {
-      return;
-    }
-
-    if (typeof internalConfig !== 'object' || Array.isArray(internalConfig)) {
-      throw new Error(
-        `smm_config.json at ${configPath}: ${pathPrefix} must be a JSON object, got ${Array.isArray(internalConfig) ? 'array' : typeof internalConfig}.`
-      );
-    }
-
-    const obj = internalConfig as JsonObject;
-    if ('storageType' in obj) {
-      throw new Error(
-        `smm_config.json at ${configPath}: ${pathPrefix}.storageType is not supported. Use ${pathPrefix}.storage_type instead.`
-      );
-    }
-
-    const storageType = obj.storage_type;
-    if (storageType !== undefined && storageType !== null && typeof storageType !== 'string') {
-      throw new Error(
-        `smm_config.json at ${configPath}: ${pathPrefix}.storage_type must be a string, got ${typeof storageType}.`
-      );
     }
   }
 
@@ -400,7 +355,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
 
     const obj = project as JsonObject;
-    this.validateInternalConfig(obj.internal, `projects[${index}].internal`, configPath);
 
     const stringFields = [
       'git_provider',
@@ -536,11 +490,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
     return typeof value === 'string' ? value : undefined;
   }
 
-  private getJsonObject(configData: JsonObject, key: string): JsonObject | undefined {
-    const value = configData[key];
-    return value !== null && typeof value === 'object' && !Array.isArray(value) ? value : undefined;
-  }
-
   private resolveStoreLogs(
     configData: JsonObject,
     repository: string | undefined
@@ -554,22 +503,5 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
 
     return this.getProjectBooleanEnv(repository, 'STORE_LOGS');
-  }
-
-  private resolveStorageType(configData: JsonObject, repository: string | undefined): StorageType {
-    const projectInternalConfig = this.getJsonObject(configData, 'internal');
-    const rootInternalConfig =
-      configData === this.rawConfig ? undefined : this.getJsonObject(this.rawConfig, 'internal');
-    const storageType =
-      this.getConfiguredStorageType(projectInternalConfig) ||
-      this.getConfiguredStorageType(rootInternalConfig) ||
-      this.getProjectEnv(repository, 'SMM_STORAGE_TYPE') ||
-      'sqlite';
-
-    return storageType as StorageType;
-  }
-
-  private getConfiguredStorageType(configData: JsonObject | undefined): string | undefined {
-    return this.getString(configData, 'storage_type');
   }
 }

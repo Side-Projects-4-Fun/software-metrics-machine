@@ -8,14 +8,14 @@ import { SqliteRepository } from './sqlite-repository';
  * Factory for creating IRepository<T> instances based on the configured storage type.
  *
  * Usage:
- *   const repo = RepositoryFactory.create<MyType>('/path/to/file.json', logger, config);
+ *   const repo = RepositoryFactory.create<MyType>('/path/to/namespace', logger, config);
  */
 export class RepositoryFactory {
   /**
    * Create a repository instance for the given configuration.
    *
-   * @param filePath - Path to the storage location. For sqlite, this path becomes the
-   * namespace inside the project database.
+   * @param filePath - Namespace path for the records in the project SQLite database.
+   * The path is not a file on disk; it identifies the namespace inside `smm.sqlite`.
    * @param logger - Logger instance
    * @returns An IRepository<T> implementation
    */

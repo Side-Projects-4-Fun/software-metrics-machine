@@ -30,9 +30,8 @@ Use this map to jump straight to the right file. Directory names below are paths
 apps/cli/src/
   index.ts                 # Commander program; registers every command group
   commands/                # change-requests, pipelines, code, architecture, engineering-health,
-                           #   filters, metrics, project, jira, sonarqube, tools, dashboard, mcp, health-check
+                           #   filters, metrics, project, issues, sonarqube, tools, dashboard, mcp, health-check
   commands/helpers/        # Shared command option parsing/formatting helpers
-  factories/               # CLI-level factories (jira-factory.ts)
   formatters/              # Terminal table/JSON output helpers
   screen.ts                # Interactive prompt helpers
 apps/cli/e2e/              # bashunit acceptance suite: run.sh, commands/, support/
@@ -357,7 +356,7 @@ docker compose up sonarqube        # SonarQube only for local code analysis
 
 #### SQLite migration maintenance
 
-When using `SMM_STORAGE_TYPE=sqlite`, migrations are tracked in `smm_schema_migrations`. To reset a failed migration:
+Project data lives in SQLite (`smm.sqlite`), and migrations are tracked in `smm_schema_migrations`. To reset a failed migration:
 
 ```sql
 DELETE FROM smm_schema_migrations WHERE migration_id = '<migration-id>';

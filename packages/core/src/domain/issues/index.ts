@@ -1,2 +1,2 @@
-export * from './issues-repository-json';
+export * from './issues-repository';
 export * from './factories/issues-factory';

@@ -9,15 +9,15 @@ import type {
   WorkflowJsonResponse,
 } from '../../../providers/github/github-response-types';
 
-export class PipelineFiltersRepositoryJson implements PipelineFiltersRepository {
+export class CachedPipelineFiltersRepository implements PipelineFiltersRepository {
   constructor(
-    private pipelineRunJsonRepository: IRepository<WorkflowJsonResponse>,
-    private pipelineJobsJsonRepository: IRepository<WorkflowJobJsonResponse>,
-    private pipelineFiltersJsonRepository: IRepository<PipelineFilterOptions>
+    private pipelineRunRepository: IRepository<WorkflowJsonResponse>,
+    private pipelineJobsRepository: IRepository<WorkflowJobJsonResponse>,
+    private pipelineFilterOptionsRepository: IRepository<PipelineFilterOptions>
   ) {}
 
   async loadOptions(query: PipelineFilterOptionsQuery = {}): Promise<PipelineFilterOptions> {
-    const cachedOptions = await this.pipelineFiltersJsonRepository.load();
+    const cachedOptions = await this.pipelineFilterOptionsRepository.load();
     const options = cachedOptions || (await this.refreshOptions());
 
     if (!query?.workflowPath) {
@@ -32,8 +32,8 @@ export class PipelineFiltersRepositoryJson implements PipelineFiltersRepository 
 
   async refreshOptions(): Promise<PipelineFilterOptions> {
     const [runs, jobs] = await Promise.all([
-      this.pipelineRunJsonRepository.loadAll(),
-      this.pipelineJobsJsonRepository.loadAll(),
+      this.pipelineRunRepository.loadAll(),
+      this.pipelineJobsRepository.loadAll(),
     ]);
 
     const workflowByPath = new Map<string, string>();
@@ -96,7 +96,7 @@ export class PipelineFiltersRepositoryJson implements PipelineFiltersRepository 
       ),
     };
 
-    await this.pipelineFiltersJsonRepository.save(options);
+    await this.pipelineFilterOptionsRepository.save(options);
     return options;
   }
 

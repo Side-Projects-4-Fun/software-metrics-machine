@@ -1,29 +1,31 @@
 /**
- * Generic repository interface for file system operations
+ * Generic persistence interface for project-scoped records.
+ *
+ * Implementations are storage-agnostic; the current backend is SQLite.
  */
 export interface IRepository<T> {
   /**
-   * Save item to file system
+   * Save item to storage
    */
   save(item: T): Promise<void>;
 
   /**
-   * Save multiple items to file system
+   * Save multiple items to storage
    */
   saveAll(items: T[]): Promise<void>;
 
   /**
-   * Load item from file system
+   * Load item from storage
    */
   load(): Promise<T | null>;
 
   /**
-   * Load multiple items from file system
+   * Load multiple items from storage
    */
   loadAll(): Promise<T[]>;
 
   /**
-   * Delete item from file system
+   * Delete item from storage
    */
   delete(): Promise<void>;
 

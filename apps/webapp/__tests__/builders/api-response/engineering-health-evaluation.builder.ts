@@ -1,9 +1,5 @@
 import type { EngineeringHealthEvaluation } from '@/server/api/engineeringHealth';
 
-export type EngineeringHealthEvaluationResponse = Awaited<
-  ReturnType<typeof import('@/server/api/engineeringHealth').engineeringHealthAPI.evaluate>
->;
-
 export class EngineeringHealthEvaluationBuilder {
   private items: EngineeringHealthEvaluation['evaluations'] = [];
   private generatedAt: string = '2026-01-01T00:00:00Z';

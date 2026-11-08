@@ -27,9 +27,9 @@ pnpm type-check
 ## Architecture
 
 Contains shared utility functions used across:
-- @smm/core
-- @smm/rest
-- @smm/cli
+- @smmachine/core
+- @smmachine/rest
+- @smmachine/cli
 
 Examples:
 - Date and time utilities

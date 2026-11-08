@@ -2,7 +2,7 @@ import * as fs from 'fs/promises';
 import * as os from 'os';
 import * as path from 'path';
 import { describe, expect, it, vi } from 'vitest';
-import { IssuesRepository } from '../../../domain/issues/issues-repository-json';
+import { IssuesRepository } from '../../../domain/issues/issues-repository';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 import { TimeZoneProvider } from '../../../infrastructure/timezone-provider';
 import type { Issue, IssueComment } from '../../../domain-types';
@@ -42,7 +42,6 @@ function createIssuesClient(overrides: Partial<IIssuesClient> = {}): IIssuesClie
 
 function createSqliteConfig(baseDir: string): Configuration {
   return {
-    internal: { storageType: 'sqlite' },
     getBaseDirectory: () => baseDir,
   } as never as Configuration;
 }

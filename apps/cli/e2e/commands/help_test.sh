@@ -8,13 +8,16 @@ function test_command_help_pages_render_successfully() {
     "change-requests"
     "pipelines"
     "code"
-    "jira"
+    "issues"
     "sonarqube"
     "dashboard"
     "tools"
     "health-check"
     "mcp"
     "architecture"
+    "engineering-health"
+    "metrics"
+    "filters"
     "project"
   )
 

@@ -13,7 +13,7 @@ import type {
   PullRequestCommentJsonResponse,
   PullRequestJsonResponse,
 } from '../../../providers/github/github-response-types';
-import type { IReadChangeRequestsRepository } from './change-requests-repository-json';
+import type { IReadChangeRequestsRepository } from './change-requests-repository';
 import {
   applyPayloadChangeRequestFilters,
   mapChangeRequestToDetails,

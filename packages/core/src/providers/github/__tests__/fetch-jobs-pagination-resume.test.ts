@@ -9,7 +9,7 @@ import {
 } from '../../../test/github/github-builders';
 import { InMemoryRepository } from '../../../test/repositories/in-memory-repository';
 import type { WorkflowJobJsonResponse, WorkflowJsonResponse } from '../github-response-types';
-import { PipelinesJobFetchRepository } from '../pipelines-job-fetch-repository-json';
+import { PipelinesJobFetchRepository } from '../pipelines-job-fetch-repository';
 import type { IGithubWorkflowJobClient } from '../workflow-types';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 

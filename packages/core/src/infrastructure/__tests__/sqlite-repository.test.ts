@@ -485,7 +485,6 @@ describe('sqlite repository implementations', () => {
         storeData: '/tmp/smm',
         gitProvider: 'github',
         githubRepository: 'owner/repo',
-        internal: { storageType: 'sqlite' },
       });
 
       const repository = RepositoryFactory.create<TestRecord>(
@@ -502,13 +501,11 @@ describe('sqlite repository implementations', () => {
         storeData: '/tmp/smm',
         gitProvider: 'github',
         githubRepository: 'owner/repo-a',
-        internal: { storageType: 'sqlite' },
       });
       const secondProject = new Configuration({
         storeData: '/tmp/smm',
         gitProvider: 'github',
         githubRepository: 'owner/repo-b',
-        internal: { storageType: 'sqlite' },
       });
 
       expect(RepositoryFactory.getSqliteDatabasePath(firstProject)).toBe(
@@ -524,7 +521,6 @@ describe('sqlite repository implementations', () => {
         storeData: '/tmp/smm',
         gitProvider: 'github',
         githubRepository: 'owner/repo',
-        internal: { storageType: 'sqlite' },
       });
 
       expect(
@@ -537,7 +533,6 @@ describe('sqlite repository implementations', () => {
         storeData: '/tmp/smm',
         gitProvider: 'github',
         githubRepository: 'owner/repo',
-        internal: { storageType: 'sqlite' },
       });
 
       expect(RepositoryFactory.getPipelineRunsSqliteNamespace(config)).toBe('github/pipeline-runs');
@@ -548,7 +543,6 @@ describe('sqlite repository implementations', () => {
       const config = new Configuration({
         storeData: '/tmp/smm',
         githubRepository: 'owner/repo',
-        internal: { storageType: 'sqlite' },
       });
 
       expect(config.getPathFromGitProvider()).toBe('/tmp/smm/github_owner_repo/github');

@@ -12,8 +12,8 @@ The REST API is strictly read-only.
 
 ## Supported data sources
 
-- **GitHub**: pull requests, pipeline runs, CI/CD jobs
-- **Jira**: issues, changelogs, comments
+- **GitHub**: change requests, pipeline runs, CI/CD jobs
+- **Jira**: issues, comments
 - **SonarQube**: quality measures, component tree, historical measures
 - **Git / CodeMaat**: code churn, coupling, entity effort, pairing index
 
@@ -63,78 +63,11 @@ See [apps/cli/README.md](../cli/README.md) for the full `smm_config.json` schema
 
 ## Endpoints
 
-### Change requests
-```
-GET /change-requests/summary
-GET /change-requests/through-time
-GET /change-requests/by-author
-GET /change-requests/review-time
-GET /change-requests/open-time
-GET /change-requests/comments
-GET /change-requests/comments-by-author
-GET /change-requests/first-comment-time
-GET /change-requests/filter-options
-```
+The authoritative endpoint list lives in the [REST API documentation](../../docs/vitepress/rest-api.md) and in the
+Swagger UI at http://localhost:8000/api/docs (OpenAPI JSON at `/api-json`).
 
-### Pipelines
-```
-GET /pipelines/summary
-GET /pipelines/by-status
-GET /pipelines/runs-duration
-GET /pipelines/runs-by
-GET /pipelines/jobs-summary
-GET /pipelines/jobs-by-status
-GET /pipelines/jobs-reruns-by-day
-GET /pipelines/jobs-time-execution
-GET /pipelines/jobs-time-execution-by-day
-GET /pipelines/jobs-steps-time
-GET /pipelines/jobs-steps-time-by-day
-GET /dora/deployment-frequency
-GET /pipelines/jobs-duration-by-workflow
-GET /pipelines/workflows
-GET /pipelines/statuses
-GET /pipelines/conclusions
-GET /pipelines/branches
-GET /pipelines/events
-GET /pipelines/jobs
-GET /pipelines/filter-options
-```
-
-### Code
-```
-GET /code/pairing-index
-GET /code/code-churn
-GET /code/coupling
-GET /code/entity-churn
-GET /code/entity-effort
-GET /code/entity-ownership
-GET /code/authors
-```
-
-### SonarQube
-```
-GET /sonarqube/component-tree
-GET /sonarqube/quality
-GET /sonarqube/measurements
-GET /sonarqube/measurements/history
-GET /sonarqube/component-tree/history
-```
-
-### Configuration and projects
-```
-GET /configuration
-GET /projects
-```
-
-### Metrics aggregates
-```
-GET /api/metrics/issues
-GET /api/metrics/pr
-GET /api/metrics/deployment
-GET /api/metrics/code
-GET /api/metrics/quality
-GET /api/metrics/report
-```
+Routes are grouped by feature (`/change-requests`, `/pipelines`, `/code`, `/sonarqube`, `/architecture`, `/filters`,
+`/projects`, `/metrics`). The legacy aggregate endpoints remain available under `/api/metrics/*`.
 
 ## Error responses
 
@@ -146,7 +79,7 @@ All errors follow a consistent format:
   "message": "Invalid date format. Expected YYYY-MM-DD",
   "error": "BadRequest",
   "timestamp": "2024-03-29T15:30:45.123Z",
-  "path": "/pull-requests/summary"
+  "path": "/change-requests/summary"
 }
 ```
 

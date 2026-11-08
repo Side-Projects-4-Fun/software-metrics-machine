@@ -1,6 +1,6 @@
 # @smmachine/webapp
 
-Next.js dashboard for Software Metrics Machine. Displays pull request, pipeline, and code metrics served by the REST API.
+Next.js dashboard for Software Metrics Machine. Displays change request, pipeline, and code metrics served by the REST API.
 
 ## Data mutability boundary
 
@@ -12,7 +12,7 @@ The webapp is strictly read-only.
 
 ## Features
 
-- **Pull request metrics**: review times, author contributions, PR trends
+- **Change request metrics**: review times, author contributions, throughput trends
 - **Pipeline metrics**: CI/CD runs, job status, deployment frequency
 - **Source code metrics**: pairing index, code churn, coupling, entity effort
 
