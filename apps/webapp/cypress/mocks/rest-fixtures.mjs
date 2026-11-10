@@ -15,6 +15,78 @@
  */
 export const REST_BASE_URL = 'http://smm-rest-stub.local';
 
+/**
+ * Minimal `GET /metrics` stub for the journeys. The real catalog lives in
+ * `packages/core/src/domain/metrics/`; this only carries the ids the screens
+ * under test look up for targets and references.
+ */
+function metric(id, label, target) {
+  return {
+    id,
+    definition: {
+      namespace: id.slice(0, id.indexOf('-')),
+      label,
+      description: `${label} metric stubbed for the Cypress journeys.`,
+      computation: {
+        evidence: 'Stubbed for the Cypress journeys.',
+        formula: 'Stubbed for the Cypress journeys.',
+        notation: id,
+      },
+      unit: 'count',
+      direction: 'neutral',
+      shape: 'scalar',
+      visibility: 'public',
+      status: 'active',
+      surfaces: {},
+    },
+    ...(target ? { target } : {}),
+  };
+}
+
+const metricCatalog = [
+  metric('cr-review-time', 'Review time', { operator: 'lt', value: 24, description: '< 24 hours' }),
+  metric('cr-open-time', 'Open time', { operator: 'lt', value: 3, description: '< 3 days' }),
+  metric('cr-summary', 'Change request summary', {
+    operator: 'custom',
+    value: 'High merge rate',
+    description: 'High merge rate',
+  }),
+  metric('cr-first-comment-time', 'First comment time', {
+    operator: 'lt',
+    value: 4,
+    description: '< 4 hours',
+  }),
+  metric('cr-comments-by-author', 'Comments by author'),
+  metric('code-pairing-index', 'Pairing index', { operator: 'gt', value: 30, description: '> 30%' }),
+  metric('code-entity-ownership', 'Entity ownership', {
+    operator: 'custom',
+    value: 'Shared ownership (< 80% single owner)',
+    description: 'Shared ownership (< 80% single owner)',
+  }),
+  metric('code-coupling', 'Coupling', { operator: 'lt', value: 30, description: '< 30% degree' }),
+  metric('pl-deployment-frequency', 'Deployment frequency', {
+    operator: 'custom',
+    value: 'Daily (Elite)',
+    description: 'Daily (Elite)',
+  }),
+  metric('pl-job-status-counts', 'Job status counts', {
+    operator: 'gt',
+    value: 90,
+    description: '> 90%',
+  }),
+  metric('pl-jobs-summary', 'Jobs summary', {
+    operator: 'custom',
+    value: '0 reruns',
+    description: '0 reruns',
+  }),
+  metric('pl-job-duration', 'Job duration', { operator: 'lt', value: 5, description: '< 5 min' }),
+  metric('pl-run-duration', 'Run duration', { operator: 'lt', value: 10, description: '< 10 min' }),
+  metric('sq-complexity', 'Complexity'),
+  metric('sq-coverage', 'Coverage'),
+  metric('sq-duplication-density', 'Duplication density'),
+  metric('sq-measurements', 'Measurements'),
+];
+
 export const PROJECT_REPOSITORY = 'acme/widgets';
 
 const dashboardFilters = {
@@ -229,6 +301,9 @@ const engineeringHealthEvaluation = {
 };
 
 export const restResponses = {
+  '/metrics': {
+    result: metricCatalog,
+  },
   '/configuration': {
     result: {
       git_provider: 'github',
