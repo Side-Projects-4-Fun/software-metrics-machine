@@ -22,9 +22,9 @@ catalog:
   '@mui/material': ^9.5.0
   '@mui/material-nextjs': ^9.5.0
   '@mui/x-date-pickers': ^9.17.0
-  '@nestjs/common': ^12.4.0
-  '@nestjs/core': ^12.4.0
-  '@nestjs/platform-express': ^12.4.0
+  '@nestjs/common': ^12.4.2
+  '@nestjs/core': ^12.4.2
+  '@nestjs/platform-express': ^12.4.2
   '@nestjs/swagger': ^12.1.1
   '@nestjs/testing': ^12.0.1
   '@tailwindcss/postcss': ^4
@@ -38,17 +38,17 @@ catalog:
   '@types/react': ^19.2.18
   '@types/react-dom': ^19.2.4
   '@types/supertest': ^7.2.1
-  '@typescript-eslint/eslint-plugin': ^8.72.1
-  '@typescript-eslint/parser': ^8.72.1
+  '@typescript-eslint/eslint-plugin': ^8.72.2
+  '@typescript-eslint/parser': ^8.72.2
   '@typescript/native': npm:typescript@^7.0.2
   '@vitest/coverage-v8': ^5.1.0
-  axios: ^1.21.0
+  axios: ^1.21.1
   babel-plugin-react-compiler: ^1.0.0
   chalk: ^6.0.0
   class-transformer: ^0.5.1
   class-validator: ^0.15.1
   commander: ^15.0.0
-  concurrently: ^10.0.6
+  concurrently: ^10.0.7
   cypress: ^16.2.0
   date-fns: ^4.4.0
   dayjs: ^1.11.23
@@ -63,7 +63,7 @@ catalog:
   jest-environment-jsdom: ^30.4.1
   mermaid: ^12.0.0
   msw: ^2.15.0
-  next: ^16.4.5
+  next: ^16.4.6
   react: 19.2.8
   react-dom: 19.2.8
   recharts: ^3.10.1
