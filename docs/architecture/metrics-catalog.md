@@ -56,7 +56,7 @@ metric identity instead of in separate prose:
 - `notation` is the compact mathematical form of the same computation, using standard operators and symbols.
 - All three fields are required and non-blank; `metric-catalog.test.ts` fails when any is empty.
 - The generated CSV has `evidence`, `formula`, and `notation` columns, and every discovery surface
-  (`smm metrics list`, `GET /metrics`, MCP `smm_list_metrics`, and the dashboard references page) renders them.
+  (`smm metrics list`, `GET /metrics`, MCP `smm_list_metrics`, and the references page) renders them.
 
 ## Discovery
 
@@ -67,7 +67,7 @@ smm metrics list --visibility internal
 ```
 
 Equivalent surfaces: `GET /metrics?namespace=eh&visibility=public`, the MCP tool `smm_list_metrics`, and the
-webapp `/dashboard/references` page (documented metrics, grouped by namespace). On
+webapp `/references` page (documented metrics, grouped by namespace). On
 every surface, omitting `visibility` means no filter (all 86 metrics); pass `public` or `internal` to narrow.
 
 ---

@@ -41,12 +41,6 @@ const resources = [
     href: 'https://side-projects-4-fun.github.io/software-metrics-machine/sonarqube.html',
     icon: '🔍',
   },
-  {
-    title: 'Resources used in SMM',
-    description: 'Learn about the resources used in SMM',
-    href: '/dashboard/references',
-    icon: '📦',
-  },
 ];
 
 export const dynamic = 'force-dynamic';
@@ -103,6 +97,18 @@ export default async function Home() {
                 >
                   API Docs
                 </a>
+                <Link
+                  href="/settings"
+                  className="px-8 py-3 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                >
+                  Settings
+                </Link>
+                <Link
+                  href="/references"
+                  className="px-8 py-3 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                >
+                  References
+                </Link>
               </div>
             </div>
 

@@ -782,7 +782,7 @@ List catalogued metrics with their stable ids and computation metadata (evidence
 --output <format>      text|json  (default: text)
 ```
 
-The same catalog is served by `GET /metrics`, the MCP tool `smm_list_metrics`, and the dashboard references page.
+The same catalog is served by `GET /metrics`, the MCP tool `smm_list_metrics`, and the references page.
 
 ---
 

@@ -978,7 +978,7 @@ export default async function EngineeringHealthPage({
           </div>
           <div className="md:col-span-3 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-3 text-slate-600">
             Metric definitions, thresholds, and supporting research references are available in{' '}
-            <Link href="/dashboard/references" className="font-medium underline underline-offset-2">
+            <Link href="/references" className="font-medium underline underline-offset-2">
               References
             </Link>
             .

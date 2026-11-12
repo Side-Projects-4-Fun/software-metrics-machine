@@ -114,7 +114,7 @@ REST API over HTTP — it has no runtime workspace dependency on `@smmachine/cor
 - **CLI Command Pattern** — `apps/cli/src/commands/` commands are thin: parse options into typed filters, call service methods, format output.
 - **Webapp Server Layer** — `apps/webapp/server/api/*.ts` is the only place that talks to the REST API; pages and components consume it through server components and route handlers.
 - **MCP Server Pattern** — Thin stdio adapter; no `MetricsOrchestrator` abstraction — compose existing core services directly inside `apps/mcp/src/metrics-reader.ts`.
-- **Metric Catalog Pattern** — `packages/core/src/domain/metrics/metric-catalog.ts` is the single source of truth for metric ids, metadata and computation; `metric-implementations.ts` binds catalog ids to services. The CLI (`smm metrics list`), REST (`GET /metrics`), MCP (`smm_list_metrics`) and dashboard references page all render the same catalog.
+- **Metric Catalog Pattern** — `packages/core/src/domain/metrics/metric-catalog.ts` is the single source of truth for metric ids, metadata and computation; `metric-implementations.ts` binds catalog ids to services. The CLI (`smm metrics list`), REST (`GET /metrics`), MCP (`smm_list_metrics`) and the references page all render the same catalog.
 - **Configuration Pattern** — All config comes from environment variables via the `Configuration` class (`packages/core/src/infrastructure/configuration.ts`).
 
 ### Module system

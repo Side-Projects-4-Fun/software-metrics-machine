@@ -38,7 +38,6 @@ The dashboard frame includes:
 - A light/dark theme toggle.
 - A print action for the current dashboard page.
 - A shortcut to the Software Metrics Machine repository.
-- A shortcut to the References & Sources page.
 
 When you select another project, the dashboard stores it in the `smm_active_project` cookie and clears stale filter query
 parameters from the current URL.
@@ -136,7 +135,7 @@ to `smm pipelines ...` commands, a `change-requests` filter to `smm change-reque
 
 ## References and targets
 
-The `/dashboard/references` page is generated from the core metric catalog (`GET /metrics`). It lists every
+The `/references` page is generated from the core metric catalog (`GET /metrics`). It lists every
 catalogued metric that carries a documented target and groups it by catalog namespace: Pipelines, Change Requests,
 Source Code, SonarQube, Architecture, Issues, and Engineering Health.
 

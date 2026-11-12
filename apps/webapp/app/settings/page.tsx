@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import Box from '@mui/material/Box';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Paper from '@mui/material/Paper';
@@ -68,32 +69,43 @@ export default function SettingsPage() {
   };
 
   return (
-    <Box sx={{ maxWidth: 760 }}>
-      <Stack spacing={3}>
-        <Box>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
-            Settings
-          </Typography>
-        </Box>
+    <div className="relative min-h-screen py-12 px-4">
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-blue-50 to-indigo-100" />
+      <div className="max-w-3xl mx-auto">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900 font-medium mb-6"
+        >
+          ← Back to Home
+        </Link>
+        <Box sx={{ maxWidth: 760 }}>
+          <Stack spacing={3}>
+            <Box>
+              <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+                Settings
+              </Typography>
+            </Box>
 
-        <Paper elevation={1} sx={{ borderRadius: 1, p: 3 }}>
-          <Stack spacing={2}>
-            <Typography variant="h6" component="h2">
-              Webapp
-            </Typography>
-            <FormControlLabel
-              control={
-              <Switch
-                checked={fetchCacheEnabled}
-                onChange={handleFetchCacheChange}
-                slotProps={{ input: { 'aria-label': 'toggle REST API cache' } }}
-              />
-              }
-              label="REST API cache"
-            />
+            <Paper elevation={1} sx={{ borderRadius: 1, p: 3 }}>
+              <Stack spacing={2}>
+                <Typography variant="h6" component="h2">
+                  Webapp
+                </Typography>
+                <FormControlLabel
+                  control={
+                  <Switch
+                    checked={fetchCacheEnabled}
+                    onChange={handleFetchCacheChange}
+                    slotProps={{ input: { 'aria-label': 'toggle REST API cache' } }}
+                  />
+                  }
+                  label="REST API cache"
+                />
+              </Stack>
+            </Paper>
           </Stack>
-        </Paper>
-      </Stack>
-    </Box>
+        </Box>
+      </div>
+    </div>
   );
 }

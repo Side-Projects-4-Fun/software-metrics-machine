@@ -69,7 +69,7 @@ MCP tool:     smm_list_metrics
 
 ## Where to see it in the dashboard
 
-Open **References & Sources** (`/dashboard/references`, book icon in the top bar). The page reads
+Open **References & Sources** (`/references`, via the **References** button on the home page). The page reads
 `GET /metrics` and shows every catalogued metric that carries a documented target, grouped by namespace. Each card
 shows the stable id, the target, the description, and the external papers, reports, and books behind it.
 

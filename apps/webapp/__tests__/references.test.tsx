@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ReferencesPage from '@/app/dashboard/references/page';
+import ReferencesPage from '@/app/references/page';
 import { MetricCatalogEntryBuilder } from './builders/api-response/metric-catalog.builder';
 import { renderWithProviders } from './utils/test-providers';
 import { suppressConsoleError } from './utils/suppress-console';

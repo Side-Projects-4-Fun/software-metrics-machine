@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import SettingsPage from '@/app/dashboard/settings/page';
+import SettingsPage from '@/app/settings/page';
 import { renderWithProviders } from './utils/test-providers';
 
 function getWebappSettingsCookie() {

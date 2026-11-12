@@ -149,3 +149,7 @@ output-shape axis has real reuse — at the presentation layer, not in computati
   non-blank, exported as CSV columns, and returned by `smm metrics list`, `GET /metrics`, MCP
   `smm_list_metrics`, and the dashboard references page/tooltips. The static-data decision is unchanged; the
   computation text is metadata on each static entry.
+
+- 2026-11-12 — The webapp references page moved from `/dashboard/references` (book icon in the dashboard top
+  bar) to a standalone `/references` route reached from the home page. The page still reads `GET /metrics`;
+  the catalog decision and the computation-metadata entries above are unchanged.

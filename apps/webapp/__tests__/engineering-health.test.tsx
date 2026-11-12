@@ -96,7 +96,7 @@ describe('EngineeringHealthPage', () => {
     expect(screen.getByText('Trend And Driver Analysis')).toBeInTheDocument();
     expect(screen.getByText('Data Confidence And References')).toBeInTheDocument();
     const referencesLink = screen.getByRole('link', { name: 'References' });
-    expect(referencesLink).toHaveAttribute('href', '/dashboard/references');
+    expect(referencesLink).toHaveAttribute('href', '/references');
     expect(screen.getByText('Report References')).toBeInTheDocument();
     expect(
       screen.getByRole('link', {
