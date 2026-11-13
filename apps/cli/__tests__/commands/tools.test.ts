@@ -3,7 +3,7 @@ import type { Command } from 'commander';
 import { commands } from '../../src';
 
 const mocks = vi.hoisted(() => ({
-  readdirSync: vi.fn(),
+  globSync: vi.fn(),
   readFileSync: vi.fn(),
   writeFileSync: vi.fn(),
 }));
@@ -12,7 +12,7 @@ vi.mock('fs', async (importActual) => {
   const actual = await importActual();
   return {
     ...actual,
-    readdirSync: mocks.readdirSync,
+    globSync: mocks.globSync,
     readFileSync: mocks.readFileSync,
     writeFileSync: mocks.writeFileSync,
   };
@@ -35,7 +35,7 @@ describe('cli: Tools Commands', () => {
     vi.stubEnv('OWNER_REPO_GITHUB_TOKEN', 'fake-token');
     vi.stubEnv('OWNER_REPO_GIT_REPOSITORY_PATH', '/tmp/repo');
 
-    mocks.readdirSync.mockReturnValue([]);
+    mocks.globSync.mockReturnValue([]);
     mocks.readFileSync.mockReturnValue('{}');
     mocks.writeFileSync.mockImplementation(() => undefined);
 
@@ -55,19 +55,19 @@ describe('cli: Tools Commands', () => {
   });
 
   describe('tools json-merge', () => {
-    it('lists inputs from the current directory via fs.readdirSync', async () => {
-      mocks.readdirSync.mockReturnValue(['a.json', 'b.json']);
+    it('lists inputs matching the default pattern via fs.globSync', async () => {
+      mocks.globSync.mockReturnValue(['a.json', 'b.json']);
       mocks.readFileSync.mockImplementation((file: unknown) =>
         file === 'a.json' ? '{"a":1}' : '{"b":2}'
       );
 
       await program.parseAsync(['tools', 'json-merge', '--output', 'out.json'], { from: 'user' });
 
-      expect(mocks.readdirSync).toHaveBeenCalledWith('.');
+      expect(mocks.globSync).toHaveBeenCalledWith('*.json');
     });
 
     it('reads each input file via fs.readFileSync and writes the merged object', async () => {
-      mocks.readdirSync.mockReturnValue(['a.json', 'b.json']);
+      mocks.globSync.mockReturnValue(['a.json', 'b.json']);
       mocks.readFileSync.mockImplementation((file: unknown) =>
         file === 'a.json' ? '{"a":1}' : '{"b":2}'
       );
@@ -84,7 +84,7 @@ describe('cli: Tools Commands', () => {
     });
 
     it('excludes the output file from the input list', async () => {
-      mocks.readdirSync.mockReturnValue(['out.json', 'a.json']);
+      mocks.globSync.mockReturnValue(['out.json', 'a.json']);
       mocks.readFileSync.mockImplementation((file: unknown) =>
         file === 'out.json' ? '{"existing":true}' : '{"a":1}'
       );
@@ -100,7 +100,7 @@ describe('cli: Tools Commands', () => {
     });
 
     it('concatenates array JSON files into a single array', async () => {
-      mocks.readdirSync.mockReturnValue(['a.json', 'b.json']);
+      mocks.globSync.mockReturnValue(['a.json', 'b.json']);
       mocks.readFileSync.mockImplementation((file: unknown) =>
         file === 'a.json' ? '[1,2]' : '[3,4]'
       );
@@ -111,7 +111,7 @@ describe('cli: Tools Commands', () => {
     });
 
     it('writes pretty-printed output when --pretty is provided', async () => {
-      mocks.readdirSync.mockReturnValue(['a.json']);
+      mocks.globSync.mockReturnValue(['a.json']);
       mocks.readFileSync.mockReturnValue('{"a":1}');
 
       await program.parseAsync(['tools', 'json-merge', '--output', 'out.json', '--pretty'], {
@@ -126,7 +126,7 @@ describe('cli: Tools Commands', () => {
     });
 
     it('writes compact output by default', async () => {
-      mocks.readdirSync.mockReturnValue(['a.json']);
+      mocks.globSync.mockReturnValue(['a.json']);
       mocks.readFileSync.mockReturnValue('{"a":1}');
 
       await program.parseAsync(['tools', 'json-merge', '--output', 'out.json'], { from: 'user' });
@@ -135,7 +135,7 @@ describe('cli: Tools Commands', () => {
     });
 
     it('does not write an output file when no JSON files are found', async () => {
-      mocks.readdirSync.mockReturnValue([]);
+      mocks.globSync.mockReturnValue([]);
 
       await program.parseAsync(['tools', 'json-merge', '--output', 'out.json'], { from: 'user' });
 
@@ -144,18 +144,19 @@ describe('cli: Tools Commands', () => {
     });
 
     it('reports the input pattern in the warning when --input is provided', async () => {
-      mocks.readdirSync.mockReturnValue([]);
+      mocks.globSync.mockReturnValue([]);
 
       await program.parseAsync(
         ['tools', 'json-merge', '--input', 'data/*.json', '--output', 'out.json'],
         { from: 'user' }
       );
 
+      expect(mocks.globSync).toHaveBeenCalledWith('data/*.json');
       expect(getOutput()).toContain('No JSON files found matching pattern: data/*.json');
     });
 
     it('defaults the output file to merged.json when --output is omitted', async () => {
-      mocks.readdirSync.mockReturnValue(['a.json']);
+      mocks.globSync.mockReturnValue(['a.json']);
       mocks.readFileSync.mockReturnValue('{"a":1}');
 
       await program.parseAsync(['tools', 'json-merge'], { from: 'user' });
@@ -164,7 +165,7 @@ describe('cli: Tools Commands', () => {
     });
 
     it('prints per-file merge status and final summary', async () => {
-      mocks.readdirSync.mockReturnValue(['a.json', 'b.json']);
+      mocks.globSync.mockReturnValue(['a.json', 'b.json']);
       mocks.readFileSync.mockImplementation((file: unknown) =>
         file === 'a.json' ? '{"a":1}' : '{"b":2}'
       );
@@ -182,7 +183,7 @@ describe('cli: Tools Commands', () => {
     });
 
     it('skips invalid JSON files and still writes merged output from valid files', async () => {
-      mocks.readdirSync.mockReturnValue(['bad.json', 'good.json']);
+      mocks.globSync.mockReturnValue(['bad.json', 'good.json']);
       mocks.readFileSync.mockImplementation((file: unknown) => {
         if (file === 'bad.json') {
           return '{"broken":';

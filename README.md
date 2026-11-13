@@ -18,7 +18,7 @@ Everything runs locally on your machine.
 Agile software development has become a dominant practice, but many teams struggle to consistently deliver high-value
 software. While story points and code maintainability metrics (like SonarQube) provide a starting point, they often
 miss crucial factors like team dynamics, waiting times, code churn, and the impact of knowledge silos. Metrics Machine
-is designed to fillin these gaps by providing a comprehensive set of metrics that reflect the health of your development
+is designed to fill in these gaps by providing a comprehensive set of metrics that reflect the health of your development
 process.
 
 > "software quality is a multi-dimensional concept, and no single metric can fully represent its various aspects" - [Morteza Zakeri et al.](https://www.sciencedirect.com/science/article/pii/S0167642325001728)

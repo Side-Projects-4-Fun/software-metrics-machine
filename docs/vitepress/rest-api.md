@@ -173,8 +173,14 @@ Returns the static metric catalog with ids, namespaces, computation metadata and
 ## Filters
 
 - `GET /filters`
+- `PUT /filters`
 
-Returns the saved filters for the active project.
+`GET /filters` returns the saved filters and reports for the active project (or, when no `project` query parameter
+is given, aggregates saved views from every configured project).
+
+`PUT /filters` replaces the saved filters and reports for the active project with the request body. It is the write
+path used by the dashboard's "save filter" and reports features; the body matches the `SavedFiltersDocument` shape
+(`{ "version": 1, "filters": [...], "reports": [...] }`).
 
 ## Projects and version
 

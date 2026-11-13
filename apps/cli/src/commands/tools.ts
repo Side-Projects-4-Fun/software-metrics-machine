@@ -32,11 +32,7 @@ export function createToolsCommands(program: SmmCommand): void {
         const inputPattern = options.input;
         const outputFile = options.output;
 
-        // For simplicity, we'll just merge files from current directory
-        // In a full implementation, use glob pattern matching
-        const files = fs
-          .readdirSync('.')
-          .filter((file) => file.endsWith('.json') && file !== outputFile);
+        const files = fs.globSync(inputPattern).filter((file) => file !== outputFile);
 
         if (files.length === 0) {
           screen.printLine(`⚠️  No JSON files found matching pattern: ${inputPattern}`);
