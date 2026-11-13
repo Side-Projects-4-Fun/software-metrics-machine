@@ -422,7 +422,7 @@ Key details:
 **What it does:**
 
 - Runs in `docs/vitepress` as the working directory.
-- Installs with `npm ci --ignore-scripts`, builds with `npm run docs:build` (Node version from `envvars.for.actions`).
+- Installs with `pnpm install --frozen-lockfile --ignore-scripts`, builds with `pnpm run docs:build` (Node and pnpm versions from `envvars.for.actions`). `docs/vitepress` is a standalone pnpm project with its own `pnpm-lock.yaml`, outside the monorepo workspace.
 - Uploads `docs/vitepress/.vitepress/dist` as Pages artifact, deploys to GitHub Pages.
 - Concurrency group `pages` ensures only one deployment at a time; in-progress runs are not cancelled.
 

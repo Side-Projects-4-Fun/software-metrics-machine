@@ -110,7 +110,7 @@ Common docs commands:
 
 ```bash
 cd docs/vitepress
-npm run docs:build
+pnpm run docs:build
 ````
 
 If dependencies are missing or the build cannot run because network access is required, report that clearly and state which files were checked manually.

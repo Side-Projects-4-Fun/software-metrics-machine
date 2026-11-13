@@ -1,0 +1,5 @@
+# Standalone pnpm project for the VitePress docs, kept outside the monorepo
+# workspace. Mirrors the esbuild build approval from the root pnpm-workspace.yaml
+# so `pnpm install --frozen-lockfile` succeeds in CI.
+allowBuilds:
+  esbuild: true

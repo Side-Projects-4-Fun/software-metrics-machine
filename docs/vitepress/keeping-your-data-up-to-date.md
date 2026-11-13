@@ -254,7 +254,7 @@ Running the update script manually works for occasional checks, but regular cade
 
 The simplest approach is a cron job. Add an entry to your user crontab (`crontab -e`) that runs the script on a schedule:
 
-```cron
+```bash
 # Run every Monday at 8:00 AM
 0 8 * * 1 /home/user/scripts/update-weekly.sh /path/to/smm-data >> /home/user/scripts/update.log 2>&1
 
@@ -266,6 +266,6 @@ The simplest approach is a cron job. Add an entry to your user crontab (`crontab
 > Redirect stdout and stderr to a log file (`>> log 2>&1`) so you can review the output later. Pipe errors to a
 > separate file if you want to monitor failures:
 >
-> ```cron
+> ```bash
 > 0 8 * * 1 /home/user/scripts/update-weekly.sh /path/to/smm-data >> /home/user/scripts/update.log 2> /home/user/scripts/update.err
 > ```
