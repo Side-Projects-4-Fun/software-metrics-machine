@@ -72,7 +72,7 @@
     "node": ">=26.4.0",
     "pnpm": ">=10.0.0"
   },
-  "packageManager": "pnpm@12.16.1",
+  "packageManager": "pnpm@12.18.0",
   "dependencies": {
     "@emotion/cache": "catalog:",
     "@emotion/react": "catalog:",
