@@ -21,11 +21,11 @@ catalog:
   '@mui/icons-material': ^9.5.0
   '@mui/material': ^9.5.0
   '@mui/material-nextjs': ^9.5.0
-  '@mui/x-date-pickers': ^9.17.0
-  '@nestjs/common': ^12.4.2
-  '@nestjs/core': ^12.4.2
-  '@nestjs/platform-express': ^12.4.2
-  '@nestjs/swagger': ^12.1.1
+  '@mui/x-date-pickers': ^9.18.0
+  '@nestjs/common': ^12.5.0
+  '@nestjs/core': ^12.5.0
+  '@nestjs/platform-express': ^12.5.0
+  '@nestjs/swagger': ^12.1.2
   '@nestjs/testing': ^12.0.1
   '@tailwindcss/postcss': ^4
   '@testing-library/dom': ^10.4.1
