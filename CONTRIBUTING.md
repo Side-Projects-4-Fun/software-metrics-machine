@@ -24,7 +24,7 @@ Thanks for contributing. This repository is a **pnpm TypeScript monorepo** with 
 | Tool    | Version    | Notes                                          |
 | ------- | ---------- | ---------------------------------------------- |
 | Node.js | `>=26.4.0` | Exact: `26.13.1` — see `.nvmrc`, use `nvm use` |
-| pnpm    | `>=10.0.0` | Exact: `12.18.0` (`packageManager`)            |
+| pnpm    | `>=10.0.0` | Exact: `12.21.0` (`packageManager`)            |
 | Git     | any        |                                                |
 
 ### TypeScript toolchain
@@ -604,7 +604,7 @@ SMM_STORE_DATA_AT=./.data smm pipelines fetch
 
 ```bash
 corepack enable
-corepack prepare pnpm@12.18.0 --activate
+corepack prepare pnpm@12.21.0 --activate
 ```
 
 ### SQLite data queries
