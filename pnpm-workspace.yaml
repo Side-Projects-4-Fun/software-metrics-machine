@@ -57,6 +57,7 @@ catalog:
   eslint-config-next: ^16.3.0
   eslint-config-prettier: ^10.1.8
   eslint-plugin-prettier: ^5.5.7
+  fast-check: ^4.10.2
   husky: ^9.1.7
   inquirer: ^14.3.0
   jest: ^30.4.2

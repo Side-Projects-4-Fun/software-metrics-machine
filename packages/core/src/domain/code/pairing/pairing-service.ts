@@ -91,9 +91,7 @@ export class PairingService implements IPairingIndexService {
     // Count paired commits (those with co-authors)
     const totalCommits = filteredCommits.length;
     const pairedCommits = filteredCommits.filter(
-      (commit) =>
-        (Array.isArray(commit.coAuthors) && commit.coAuthors.length > 0) ||
-        (Array.isArray(commit.files) && commit.files.length > 0)
+      (commit) => Array.isArray(commit.coAuthors) && commit.coAuthors.length > 0
     ).length;
 
     this.logger.info(`Total commits analyzed: ${totalCommits}`);
