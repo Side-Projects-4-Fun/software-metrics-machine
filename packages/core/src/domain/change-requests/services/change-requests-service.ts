@@ -334,7 +334,7 @@ export class ChangeRequestsService implements IChangeRequestsService {
       first_change_request: sorted.length > 0 ? this.toSummaryEntry(sorted[0]) : null,
       last_change_request:
         sorted.length > 0 ? this.toSummaryEntry(sorted[sorted.length - 1]) : null,
-      top_themes: this.extractTopThemes(changeRequests),
+      top_themes: this.extractTopThemes(changeRequests, filters?.themeWords),
       most_commented_change_request:
         sortedByComments.length > 0 && (sortedByComments[0].totalComments || 0) > 0
           ? {
@@ -567,8 +567,10 @@ export class ChangeRequestsService implements IChangeRequestsService {
   }
 
   private extractTopThemes(
-    changeRequests: ChangeRequestDetails[]
+    changeRequests: ChangeRequestDetails[],
+    themeWords?: number
   ): Array<{ text: string; value: number }> {
+    const ngramSize = this.normalizeThemeWords(themeWords);
     const ngramCounts = new Map<string, number>();
 
     for (const changeRequest of changeRequests) {
@@ -598,11 +600,9 @@ export class ChangeRequestsService implements IChangeRequestsService {
         .filter((w) => !stopWords.has(w))
         .filter((w) => !/^\d+$/.test(w));
 
-      for (let n = 1; n <= 3; n++) {
-        for (let i = 0; i <= words.length - n; i++) {
-          const ngram = words.slice(i, i + n).join(' ');
-          ngramCounts.set(ngram, (ngramCounts.get(ngram) || 0) + 1);
-        }
+      for (let i = 0; i <= words.length - ngramSize; i++) {
+        const ngram = words.slice(i, i + ngramSize).join(' ');
+        ngramCounts.set(ngram, (ngramCounts.get(ngram) || 0) + 1);
       }
     }
 
@@ -610,6 +610,14 @@ export class ChangeRequestsService implements IChangeRequestsService {
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .slice(0, 30)
       .map(([text, value]) => ({ text, value }));
+  }
+
+  private normalizeThemeWords(themeWords?: number): number {
+    if (typeof themeWords !== 'number' || !Number.isFinite(themeWords)) {
+      return 1;
+    }
+    const normalized = Math.floor(themeWords);
+    return normalized >= 1 ? normalized : 1;
   }
 
   private extractLabelSummary(

@@ -25,6 +25,7 @@
     "@mui/material": "catalog:",
     "@mui/material-nextjs": "catalog:",
     "@mui/x-date-pickers": "catalog:",
+    "csv-stringify": "catalog:",
     "dayjs": "catalog:",
     "mermaid": "catalog:",
     "next": "catalog:",

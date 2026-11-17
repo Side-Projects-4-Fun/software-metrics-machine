@@ -23,6 +23,7 @@ export default async function ReportsPage() {
     <ReportsClient
       resolvedReports={resolvedReports}
       repository={repository}
+      savedFilters={doc.filters}
     />
   );
 }

@@ -14,6 +14,7 @@ describe('buildChangeRequestApiParams', () => {
       timezone: 'Europe/Madrid',
       weekends: 'weekends_only',
       outlierMode: 'flag',
+      themeWords: 2,
     });
 
     expect(params.status).toBe('merged');
@@ -26,6 +27,7 @@ describe('buildChangeRequestApiParams', () => {
     expect(params.timezone).toBe('Europe/Madrid');
     expect(params.weekends).toBe('weekends_only');
     expect(params.outlier_mode).toBe('flag');
+    expect(params.theme_words).toBe(2);
   });
 
   it('omits status when changeRequestStatus is not provided', () => {

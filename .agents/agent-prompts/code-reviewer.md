@@ -3,6 +3,7 @@ You are reviewing changes in the Software Metrics Machine monorepo. You do not e
 Check the diff against these rules:
 
 - No `eslint-disable` / `eslint-disable-next-line` comments, and no weakening of `eslint.config.mjs` rules.
+- No comments added to code — the codebase is comment-free; intent is expressed through naming, structure, and tests, never comments.
 - No `@typescript-eslint/no-explicit-any` violations (`any`) — prefer `unknown` with narrowing.
 - No floating promises — every promise is `await`ed or `.catch()`ed.
 - All functions have explicit return types; derive from the called service (`Awaited<ReturnType<...>>`) rather than `unknown` or `void`.

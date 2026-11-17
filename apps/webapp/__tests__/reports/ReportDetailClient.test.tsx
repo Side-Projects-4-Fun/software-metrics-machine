@@ -131,4 +131,52 @@ describe('ReportDetailClient', () => {
 
     expect(container.firstChild).toBeNull();
   });
+
+  it('triggers a CSV download when the export button is clicked', async () => {
+    const createObjectURL = jest.fn(() => 'blob:export');
+    const revokeObjectURL = jest.fn();
+    Object.defineProperty(URL, 'createObjectURL', {
+      value: createObjectURL,
+      configurable: true,
+      writable: true,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      value: revokeObjectURL,
+      configurable: true,
+      writable: true,
+    });
+    const anchorClick = jest
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {});
+
+    const resolved = buildResolved();
+    resolved.report.sections = [{ section: 'pipelines', savedFilterId: 'f1' }];
+    resolved.windows[0].evaluations = {
+      'pipelines-f1': { generatedAt: '', signals: [], summary: { totalRuns: 5 } },
+    };
+    const savedFiltersMap = new Map([
+      [
+        'f1',
+        new SavedFilterBuilder()
+          .withId('f1')
+          .withName('CI Filter')
+          .withSection('pipelines')
+          .build(),
+      ],
+    ]);
+
+    renderWithProviders(
+      <ReportDetailClient resolved={resolved} savedFiltersMap={savedFiltersMap} />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /Export CSV/i }));
+
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    expect(anchorClick).toHaveBeenCalledTimes(1);
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:export');
+
+    anchorClick.mockRestore();
+    Reflect.deleteProperty(URL, 'createObjectURL');
+    Reflect.deleteProperty(URL, 'revokeObjectURL');
+  });
 });

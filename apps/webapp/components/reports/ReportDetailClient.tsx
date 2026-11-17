@@ -2,8 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { Button } from '@mui/material';
+import DownloadIcon from '@mui/icons-material/Download';
 import TimelineScroller from './TimelineScroller';
 import ReportRenderer from './ReportRenderer';
+import { downloadReportCsv } from '@/lib/report-csv';
 import type { SavedFilterEntry } from '@/components/filters/saved-filters-store';
 import type { ResolvedReport } from '@/app/reports/shared';
 
@@ -31,16 +34,28 @@ export default function ReportDetailClient({
 
   return (
     <div>
-      <div className="mb-4">
-        <Link
-          href="/reports"
-          className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 no-underline hover:text-slate-900 hover:underline"
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <Link
+            href="/reports"
+            className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 no-underline hover:text-slate-900 hover:underline"
+          >
+            &larr; Back to Reports
+          </Link>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
+            {resolved.report.name}
+          </h1>
+        </div>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<DownloadIcon fontSize="small" />}
+          onClick={() => downloadReportCsv(resolved, savedFiltersMap)}
+          className="smm-print-hide"
+          sx={{ textTransform: 'none' }}
         >
-          &larr; Back to Reports
-        </Link>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
-          {resolved.report.name}
-        </h1>
+          Export CSV
+        </Button>
       </div>
       {hasMultipleWindows && (
         <div className="sticky top-16 z-20 -mx-3 -mt-3 mb-4 bg-white/95 px-3 pb-3 pt-3 shadow-sm backdrop-blur">

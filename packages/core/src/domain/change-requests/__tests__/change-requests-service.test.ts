@@ -1108,9 +1108,8 @@ describe('ChangeRequestsService', () => {
 
       const summary = (await changeRequestsService.getSummary()).result;
 
-      expect(summary.top_themes).toEqual(
-        expect.arrayContaining([{ text: 'database migration', value: 2 }])
-      );
+      expect(summary.top_themes).toEqual(expect.arrayContaining([{ text: 'database', value: 2 }]));
+      expect(summary.top_themes).toEqual(expect.arrayContaining([{ text: 'migration', value: 2 }]));
     });
 
     it('should exclude short words (<3 chars) and numeric-only tokens from themes', async () => {
@@ -1131,6 +1130,93 @@ describe('ChangeRequestsService', () => {
       expect(summary.top_themes).toEqual(expect.arrayContaining([{ text: 'cache', value: 3 }]));
       expect(summary.top_themes.some((theme) => theme.text.includes('ok'))).toBe(false);
       expect(summary.top_themes.some((theme) => theme.text.includes('42'))).toBe(false);
+    });
+
+    it('should group themes by single words by default', async () => {
+      const changeRequest = new ChangeRequestBuilder()
+        .withId(1)
+        .withTitle('Default theme words')
+        .withCommentDetails([{ body: 'database migration database migration' }])
+        .build();
+
+      changeRequestsService = new ChangeRequestsService(
+        new ReadChangeRequestsRepositoryBuilder().withChangeRequests([changeRequest]).build(),
+        new TimeZoneProvider('UTC'),
+        logger
+      );
+
+      const summary = (await changeRequestsService.getSummary()).result;
+
+      expect(summary.top_themes).toEqual(expect.arrayContaining([{ text: 'database', value: 2 }]));
+      expect(summary.top_themes.some((theme) => theme.text === 'database migration')).toBe(false);
+    });
+
+    it('should group themes by two-word phrases when themeWords is 2', async () => {
+      const changeRequest = new ChangeRequestBuilder()
+        .withId(1)
+        .withTitle('Bigram themes')
+        .withCommentDetails([{ body: 'database migration database migration' }])
+        .build();
+
+      changeRequestsService = new ChangeRequestsService(
+        new ReadChangeRequestsRepositoryBuilder().withChangeRequests([changeRequest]).build(),
+        new TimeZoneProvider('UTC'),
+        logger
+      );
+
+      const summary = (await changeRequestsService.getSummary({ themeWords: 2 })).result;
+
+      expect(summary.top_themes).toEqual(
+        expect.arrayContaining([{ text: 'database migration', value: 2 }])
+      );
+      expect(summary.top_themes.some((theme) => theme.text === 'database')).toBe(false);
+      expect(summary.top_themes.some((theme) => theme.text === 'migration')).toBe(false);
+    });
+
+    it('should group themes by three-word phrases when themeWords is 3', async () => {
+      const changeRequest = new ChangeRequestBuilder()
+        .withId(1)
+        .withTitle('Trigram themes')
+        .withCommentDetails([{ body: 'database migration script database migration script' }])
+        .build();
+
+      changeRequestsService = new ChangeRequestsService(
+        new ReadChangeRequestsRepositoryBuilder().withChangeRequests([changeRequest]).build(),
+        new TimeZoneProvider('UTC'),
+        logger
+      );
+
+      const summary = (await changeRequestsService.getSummary({ themeWords: 3 })).result;
+
+      expect(summary.top_themes).toEqual(
+        expect.arrayContaining([{ text: 'database migration script', value: 2 }])
+      );
+    });
+
+    it('should fall back to single words for non-positive or non-finite themeWords', async () => {
+      const changeRequest = new ChangeRequestBuilder()
+        .withId(1)
+        .withTitle('Invalid theme words')
+        .withCommentDetails([{ body: 'database migration database migration' }])
+        .build();
+
+      changeRequestsService = new ChangeRequestsService(
+        new ReadChangeRequestsRepositoryBuilder().withChangeRequests([changeRequest]).build(),
+        new TimeZoneProvider('UTC'),
+        logger
+      );
+
+      const zeroSummary = (await changeRequestsService.getSummary({ themeWords: 0 })).result;
+      const negativeSummary = (await changeRequestsService.getSummary({ themeWords: -2 })).result;
+      const nanSummary = (await changeRequestsService.getSummary({ themeWords: Number.NaN }))
+        .result;
+
+      for (const summary of [zeroSummary, negativeSummary, nanSummary]) {
+        expect(summary.top_themes).toEqual(
+          expect.arrayContaining([{ text: 'database', value: 2 }])
+        );
+        expect(summary.top_themes.some((theme) => theme.text === 'database migration')).toBe(false);
+      }
     });
   });
 

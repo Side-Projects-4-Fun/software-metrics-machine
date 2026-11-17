@@ -59,7 +59,7 @@ export const METRIC_CATALOG = {
       evidence:
         'Change request records with author, labels, comments, and created/merged/closed timestamps from the git provider.',
       formula:
-        'Counts records in the selected window, totals comments and unique authors/labels, then derives first/last change request by created date, top comment themes from n-grams, most-commented change requests, top commenter, and average hours to the first comment.',
+        'Counts records in the selected window, totals comments and unique authors/labels, then derives first/last change request by created date, top comment themes from n-grams (configurable word count via theme_words), most-commented change requests, top commenter, and average hours to the first comment.',
       notation:
         'counts = |{cr ∈ CR}|; comments/CR = Σ comments ÷ |CR|; t_first = mean(t_first_comment − t_created)',
     },

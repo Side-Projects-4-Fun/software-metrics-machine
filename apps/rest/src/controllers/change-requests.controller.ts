@@ -39,7 +39,8 @@ export class ChangeRequestsController {
     @Query('labels') labels?: string,
     @Query('status') status?: ChangeRequestDetails['state'],
     @Query('weekends') weekends?: string,
-    @Query('outlier_mode') outlierMode?: string
+    @Query('outlier_mode') outlierMode?: string,
+    @Query('theme_words') themeWords?: string
   ): Promise<ChangeRequestSummaryResponse> {
     return this.changeRequestsService.getSummary(
       this.toFilters(
@@ -51,7 +52,8 @@ export class ChangeRequestsController {
         labels,
         status,
         weekends,
-        outlierMode
+        outlierMode,
+        themeWords
       )
     ) as Promise<ChangeRequestSummaryResponse>;
   }
@@ -322,9 +324,10 @@ export class ChangeRequestsController {
     labels?: string,
     status?: ChangeRequestDetails['state'],
     weekends?: string,
-    outlierMode?: string
+    outlierMode?: string,
+    themeWords?: string
   ): ChangeRequestFilters {
-    return {
+    const filters: ChangeRequestFilters = {
       startDate,
       endDate,
       authors,
@@ -334,5 +337,14 @@ export class ChangeRequestsController {
       state: status,
       cleaning: parseMetricCleaningOptions({ weekends, outlierMode }),
     };
+
+    if (themeWords !== undefined) {
+      const parsed = Number(themeWords);
+      if (Number.isFinite(parsed)) {
+        filters.themeWords = parsed;
+      }
+    }
+
+    return filters;
   }
 }

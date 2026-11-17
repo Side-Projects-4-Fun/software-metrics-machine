@@ -117,6 +117,14 @@ describe('FiltersContainer', () => {
     expect(screen.getByRole('button', { name: 'Save Filter' })).toBeEnabled();
   });
 
+  it('renders the Theme Words slider in the change-requests section', () => {
+    navigation.usePathname.mockReturnValue('/dashboard/change-requests');
+
+    renderWithProviders(<FiltersContainer repository="test/repository" />);
+
+    expect(screen.getByText('Theme Words: 1')).toBeInTheDocument();
+  });
+
   it('renders without crashing', () => {
     renderWithProviders(<FiltersContainer repository="test/repository" />);
     expect(screen.getByText('Filters')).toBeInTheDocument();

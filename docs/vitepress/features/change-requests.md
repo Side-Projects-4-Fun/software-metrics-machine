@@ -177,7 +177,7 @@ The Change Requests tab includes:
 - **Time To First Comment**: elapsed time until the first change request comment *(dashboard only)*.
 - **Change Requests by Author**: number of change requests opened by author.
 - **Most Commented Change Requests**: change requests with the most discussion, with direct links *(dashboard only)*.
-- **Top Themes in Comments**: common terms in change request comments, with links to search for each theme *(dashboard only)*.
+- **Top Themes in Comments**: common terms in change request comments grouped by the Theme Words filter (single words by default), with links to search for each theme *(dashboard only)*.
 - **Open Change Requests Through Time**: opened and closed change request volume over time.
 - **Average Days Change Requests Remain Open**: trend of how long change requests stay open.
 - **Change Request Statistics**: totals, status counts, label distribution, and summary details.
@@ -212,6 +212,7 @@ smm change-requests summary
 | Exclude commenters| Comma-separated change request commenters to exclude. | `--exclude-commenters=bot` |
 | Labels            | Filters change requests by attached labels. Multiple labels can be provided separated by commas. | `--labels=bug,enhancement` |
 | Raw filters       | Comma-separated raw filter string (e.g. `status=draft,author=john`). Parsed and merged with other flags. | `--raw-filters="status=draft,author=john"` |
+| Theme words       | Number of words to group comment themes by (default: 1). | `--theme-words=2` |
 | Output            | Defines the output format, either text or json. Defaults to text.  | `--output=json`     |
 
 ### Examples - Summary change request data

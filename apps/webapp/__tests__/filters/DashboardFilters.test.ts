@@ -84,4 +84,29 @@ describe('DashboardFilters', () => {
 
     expect(params.get('period')).toBeNull();
   });
+
+  it('round-trips themeWords through serialize and parse', () => {
+    const filters = new DashboardFiltersBuilder()
+      .withThemeWords(3)
+      .build();
+
+    const params = serializeDashboardFilters(filters);
+    expect(params.get('themeWords')).toBe('3');
+
+    const parsed = parseDashboardFilters(
+      { themeWords: '3' },
+      defaultFilters,
+    );
+    expect(parsed.themeWords).toBe(3);
+  });
+
+  it('defaults themeWords to 1 when absent', () => {
+    const parsed = parseDashboardFilters({}, defaultFilters);
+    expect(parsed.themeWords).toBe(1);
+  });
+
+  it('clamps themeWords to at least 1 for non-positive input', () => {
+    const parsed = parseDashboardFilters({ themeWords: '-4' }, defaultFilters);
+    expect(parsed.themeWords).toBe(1);
+  });
 });

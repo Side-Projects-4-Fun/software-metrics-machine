@@ -22,6 +22,7 @@ describe('ReportsClient', () => {
       <ReportsClient
         resolvedReports={[]}
         repository="owner/repo"
+        savedFilters={[]}
       />,
     );
 
@@ -41,6 +42,7 @@ describe('ReportsClient', () => {
           { report: new ReportEntryBuilder().withId('r1').withName('Report 42').build(), windows: [] },
         ]}
         repository="owner/repo"
+        savedFilters={[]}
       />,
     );
 
@@ -70,6 +72,7 @@ describe('ReportsClient', () => {
           },
         ]}
         repository="owner/repo"
+        savedFilters={[]}
       />,
     );
 
@@ -81,6 +84,7 @@ describe('ReportsClient', () => {
       <ReportsClient
         resolvedReports={[]}
         repository="owner/repo"
+        savedFilters={[]}
       />,
     );
 
@@ -101,6 +105,7 @@ describe('ReportsClient', () => {
           { report: new ReportEntryBuilder().withId('r1').withName('Report 42').build(), windows: [] },
         ]}
         repository="owner/repo"
+        savedFilters={[]}
       />,
     );
 
@@ -119,6 +124,7 @@ describe('ReportsClient', () => {
           { report: new ReportEntryBuilder().withId('r1').withName('Report 42').build(), windows: [] },
         ]}
         repository="owner/repo"
+        savedFilters={[]}
       />,
     );
 
@@ -142,6 +148,7 @@ describe('ReportsClient', () => {
           { report: new ReportEntryBuilder().withId('r1').withName('Report 42').build(), windows: [] },
         ]}
         repository="owner/repo"
+        savedFilters={[]}
       />,
     );
 
@@ -170,6 +177,7 @@ describe('ReportsClient', () => {
           { report: existingReport, windows: [] },
         ]}
         repository="owner/repo"
+        savedFilters={[]}
       />,
     );
 
@@ -194,6 +202,7 @@ describe('ReportsClient', () => {
       <ReportsClient
         resolvedReports={[{ report: existingReport, windows: [] }]}
         repository="owner/repo"
+        savedFilters={[]}
       />,
     );
 
@@ -218,6 +227,7 @@ describe('ReportsClient', () => {
           { report: reportB, windows: [] },
         ]}
         repository="owner/repo"
+        savedFilters={[]}
       />,
     );
 
@@ -237,7 +247,7 @@ describe('ReportsClient', () => {
 
   it('does not leak typed input into a new report after cancel', async () => {
     renderWithProviders(
-      <ReportsClient resolvedReports={[]} repository="owner/repo" />,
+      <ReportsClient resolvedReports={[]} repository="owner/repo" savedFilters={[]} />,
     );
 
     await userEvent.click(screen.getByRole('button', { name: /New Report/ }));
@@ -255,5 +265,43 @@ describe('ReportsClient', () => {
     const resetName = (await screen.findByLabelText('Report name')) as HTMLInputElement;
     expect(resetName.value).not.toBe('Draft Report');
     expect(resetName.value).toBeTruthy();
+  });
+
+  it('triggers a CSV download when the export icon is clicked', async () => {
+    const createObjectURL = jest.fn(() => 'blob:export');
+    const revokeObjectURL = jest.fn();
+    Object.defineProperty(URL, 'createObjectURL', {
+      value: createObjectURL,
+      configurable: true,
+      writable: true,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      value: revokeObjectURL,
+      configurable: true,
+      writable: true,
+    });
+    const anchorClick = jest
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {});
+
+    renderWithProviders(
+      <ReportsClient
+        resolvedReports={[
+          { report: new ReportEntryBuilder().withId('r1').withName('Report 42').build(), windows: [] },
+        ]}
+        repository="owner/repo"
+        savedFilters={[]}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /Export Report 42/ }));
+
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    expect(anchorClick).toHaveBeenCalledTimes(1);
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:export');
+
+    anchorClick.mockRestore();
+    Reflect.deleteProperty(URL, 'createObjectURL');
+    Reflect.deleteProperty(URL, 'revokeObjectURL');
   });
 });

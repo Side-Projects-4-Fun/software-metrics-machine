@@ -1,4 +1,5 @@
 import type { TimeZoneProvider } from '../../infrastructure/timezone-provider';
+import { parseCsvRows } from '../../infrastructure/csv';
 
 export type JiraCsvComment = {
   createdAt: string;
@@ -38,76 +39,7 @@ const MONTHS: Record<string, number> = {
 };
 
 export function parseCsv(content: string): string[][] {
-  const text = content.replace(/^\uFEFF/, '');
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let field = '';
-  let inQuotes = false;
-  let index = 0;
-
-  while (index < text.length) {
-    const char = text[index];
-
-    if (inQuotes) {
-      if (char === '"') {
-        if (text[index + 1] === '"') {
-          field += '"';
-          index += 2;
-          continue;
-        }
-        inQuotes = false;
-        index += 1;
-        continue;
-      }
-
-      if (char === '\r' && text[index + 1] === '\n') {
-        field += '\n';
-        index += 2;
-        continue;
-      }
-
-      field += char;
-      index += 1;
-      continue;
-    }
-
-    if (char === '"') {
-      inQuotes = true;
-      index += 1;
-      continue;
-    }
-
-    if (char === ',') {
-      row.push(field);
-      field = '';
-      index += 1;
-      continue;
-    }
-
-    if (char === '\r') {
-      index += 1;
-      continue;
-    }
-
-    if (char === '\n') {
-      row.push(field);
-      rows.push(row);
-      row = [];
-      field = '';
-      index += 1;
-      continue;
-    }
-
-    field += char;
-    index += 1;
-  }
-
-  if (field.length > 0 || row.length > 0) {
-    row.push(field);
-    rows.push(row);
-  }
-
-  return rows;
+  return parseCsvRows(content);
 }
 
 export function parseJiraCsvDate(

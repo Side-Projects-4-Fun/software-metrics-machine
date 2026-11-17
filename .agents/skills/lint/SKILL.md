@@ -108,7 +108,7 @@ This is enforced by the developer agent as the mandatory build verification step
 
 ## Guidelines
 
-- Never use `as any` or `@ts-ignore` unless absolutely necessary and commented
+- Never use `as any` or `@ts-ignore` — fix the underlying issue instead; never add a justifying comment
 - Use `@typescript-eslint/no-explicit-any: error` — prefer `unknown` with proper narrowing
 - Use `@typescript-eslint/no-floating-promises: error` — always `await` or `.catch()` promises
 - Warnings are NOT tolerated — resolve all warnings and errors before completing any task

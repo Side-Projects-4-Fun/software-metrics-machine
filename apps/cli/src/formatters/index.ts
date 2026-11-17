@@ -1,4 +1,5 @@
 import { formatDuration } from '@smmachine/utils';
+import { stringifyCsv } from '@smmachine/core';
 
 export interface FormatterOptions {
   format: 'json' | 'text' | 'csv';
@@ -62,12 +63,17 @@ export function formatChangeRequestMetrics(
   }
 
   if (options.format === 'csv') {
-    const lines: string[] = ['metric,value'];
-    if (data.totalChangeRequests !== undefined) lines.push(`total_prs,${data.totalChangeRequests}`);
-    if (data.leadTime?.average !== undefined) lines.push(`lead_time_days,${data.leadTime.average}`);
-    if (data.commentSummary?.total !== undefined)
-      lines.push(`total_comments,${data.commentSummary.total}`);
-    return lines.join('\n');
+    const rows: string[][] = [['metric', 'value']];
+    if (data.totalChangeRequests !== undefined) {
+      rows.push(['total_prs', String(data.totalChangeRequests)]);
+    }
+    if (data.leadTime?.average !== undefined) {
+      rows.push(['lead_time_days', String(data.leadTime.average)]);
+    }
+    if (data.commentSummary?.total !== undefined) {
+      rows.push(['total_comments', String(data.commentSummary.total)]);
+    }
+    return stringifyCsv(rows, false);
   }
 
   let output = '\n📊 Change Request Metrics\n';
@@ -108,13 +114,17 @@ export function formatDeploymentMetrics(
   }
 
   if (options.format === 'csv') {
-    const lines: string[] = ['date,deployments,success_rate'];
+    const rows: string[][] = [['date', 'deployments', 'success_rate']];
     if (data.deploymentFrequency) {
       for (const item of data.deploymentFrequency) {
-        lines.push(`${item.date},${item.value},${data.pipelineMetrics?.successRate || 'N/A'}`);
+        rows.push([
+          item.date,
+          String(item.value),
+          String(data.pipelineMetrics?.successRate || 'N/A'),
+        ]);
       }
     }
-    return lines.join('\n');
+    return stringifyCsv(rows, false);
   }
 
   let output = '\n🚀 Deployment Metrics\n';
@@ -157,15 +167,15 @@ export function formatCodeMetrics(data: CodeMetrics, options: FormatterOptions):
   }
 
   if (options.format === 'csv') {
-    const lines: string[] = ['metric,value'];
+    const rows: string[][] = [['metric', 'value']];
     if (data.pairingIndex?.pairingIndexPercentage !== undefined) {
-      lines.push(`pairing_index,${data.pairingIndex.pairingIndexPercentage}`);
+      rows.push(['pairing_index', String(data.pairingIndex.pairingIndexPercentage)]);
     }
     if (data.codeChurn?.data) {
-      lines.push(`additions,${data.codeChurn.data.additions}`);
-      lines.push(`deletions,${data.codeChurn.data.deletions}`);
+      rows.push(['additions', String(data.codeChurn.data.additions)]);
+      rows.push(['deletions', String(data.codeChurn.data.deletions)]);
     }
-    return lines.join('\n');
+    return stringifyCsv(rows, false);
   }
 
   let output = '\n💻 Code Metrics\n';
@@ -199,13 +209,13 @@ export function formatIssueMetrics(data: IssueMetrics, options: FormatterOptions
   }
 
   if (options.format === 'csv') {
-    const lines: string[] = ['key,status,priority,created_at'];
+    const rows: string[][] = [['key', 'status', 'priority', 'created_at']];
     if (data.issues) {
       for (const issue of data.issues.slice(0, 100)) {
-        lines.push(`${issue.key},${issue.status},${issue.priority || 'N/A'},${issue.createdAt}`);
+        rows.push([issue.key, issue.status, issue.priority || 'N/A', issue.createdAt]);
       }
     }
-    return lines.join('\n');
+    return stringifyCsv(rows, false);
   }
 
   let output = '\n🎫 Issue Metrics\n';
@@ -233,13 +243,13 @@ export function formatQualityMetrics(data: QualityMetrics, options: FormatterOpt
   }
 
   if (options.format === 'csv') {
-    const lines: string[] = ['metric,value'];
+    const rows: string[][] = [['metric', 'value']];
     for (const [key, value] of Object.entries(data)) {
       if (key !== 'filters') {
-        lines.push(`${key},${value}`);
+        rows.push([key, String(value)]);
       }
     }
-    return lines.join('\n');
+    return stringifyCsv(rows, false);
   }
 
   let output = '\n✅ Quality Metrics\n';
@@ -262,43 +272,45 @@ export function formatCompleteReport(data: CompleteReport, options: FormatterOpt
   }
 
   if (options.format === 'csv') {
-    const lines: string[] = ['section,metric,value'];
+    const rows: string[][] = [['section', 'metric', 'value']];
 
     if (data.changeRequests) {
-      lines.push(`Change request,total_prs,${data.changeRequests.totalChangeRequests}`);
+      rows.push(['Change request', 'total_prs', String(data.changeRequests.totalChangeRequests)]);
       if (data.changeRequests.leadTime) {
-        lines.push(`Change request,lead_time,${data.changeRequests.leadTime.average}`);
+        rows.push(['Change request', 'lead_time', String(data.changeRequests.leadTime.average)]);
       }
     }
 
     if (data.deployment) {
       if (data.deployment.pipelineMetrics?.totalRuns !== undefined) {
-        lines.push(`Deployment,total_runs,${data.deployment.pipelineMetrics.totalRuns}`);
+        rows.push(['Deployment', 'total_runs', String(data.deployment.pipelineMetrics.totalRuns)]);
       }
       if (data.deployment.pipelineMetrics?.successRate !== undefined) {
-        lines.push(
-          `Deployment,success_rate,${(data.deployment.pipelineMetrics.successRate * 100).toFixed(1)}`
-        );
+        rows.push([
+          'Deployment',
+          'success_rate',
+          (data.deployment.pipelineMetrics.successRate * 100).toFixed(1),
+        ]);
       }
     }
 
     if (data.code?.pairingIndex) {
-      lines.push(`Code,pairing_index,${data.code.pairingIndex.pairingIndexPercentage}`);
+      rows.push(['Code', 'pairing_index', String(data.code.pairingIndex.pairingIndexPercentage)]);
     }
 
     if (data.issues) {
-      lines.push(`Issues,total_issues,${data.issues.totalIssues}`);
+      rows.push(['Issues', 'total_issues', String(data.issues.totalIssues)]);
     }
 
     if (data.quality) {
       for (const [key, value] of Object.entries(data.quality)) {
         if (key !== 'filters') {
-          lines.push(`Quality,${key},${value}`);
+          rows.push(['Quality', key, String(value)]);
         }
       }
     }
 
-    return lines.join('\n');
+    return stringifyCsv(rows, false);
   }
 
   let output = '\n';

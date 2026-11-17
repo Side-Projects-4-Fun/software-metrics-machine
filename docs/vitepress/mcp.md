@@ -267,6 +267,7 @@ repository.
   "status": "open",
   "aggregateBy": "week",
   "top": 10,
+  "themeWords": 2,
   "method": "median",
   "weekends": "exclude",
   "outlierMode": "flag",
@@ -279,6 +280,7 @@ repository.
 `aggregateBy` is one of `day`, `week`, `month` (used by through-time and open-time).
 `status` is the change request state (`open`, `closed`, `merged`, `draft`).
 `top` limits the number of authors/rows returned (defaults to `10`).
+`themeWords` is the number of words to group comment themes by (n-gram size, defaults to `1`), used by `smm_get_change_request_summary` only.
 `rawFilters` is a raw provider filter string passed through to the Git provider (e.g. `status=draft,author=john`).
 `filter` is a saved filter name or id. When set, missing filter fields are filled from the saved filter.
 

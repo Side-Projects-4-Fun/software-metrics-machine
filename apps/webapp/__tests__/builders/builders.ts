@@ -321,6 +321,11 @@ export class DashboardFiltersBuilder {
     return this;
   }
 
+  withThemeWords(n: number): this {
+    this.data.themeWords = n;
+    return this;
+  }
+
   build(): DashboardFilters {
     return { ...this.data };
   }

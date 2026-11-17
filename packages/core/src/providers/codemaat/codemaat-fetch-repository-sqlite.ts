@@ -6,6 +6,7 @@ import type { Configuration } from '../../infrastructure';
 import { applySqliteMigrations } from '../../infrastructure/sqlite-migrations';
 import { openSqliteConnection } from '../../infrastructure/sqlite-connection';
 import { RepositoryFactory } from '../../infrastructure/repository-factory';
+import { detectCsvDelimiter, parseCsvRecords } from '../../infrastructure/csv';
 import { CodemaatFetchCsvRepository } from './codemaat-fetch-repository-csv';
 import type {
   CodemaatFetchOptions,
@@ -75,73 +76,8 @@ export class CodemaatFetchSqliteRepository extends CodemaatFetchCsvRepository {
     }
 
     const content = fs.readFileSync(csvPath, 'utf-8');
-    const lines = content
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
-
-    if (lines.length < 2) {
-      return [];
-    }
-
-    const delimiter = this.detectCsvDelimiter(lines[0]);
-    const headers = this.parseCsvLine(lines[0], delimiter).map((header) =>
-      header.trim().replace(/^"|"$/g, '')
-    );
-
-    const records: Array<Record<string, string>> = [];
-    for (let index = 1; index < lines.length; index += 1) {
-      const values = this.parseCsvLine(lines[index], delimiter).map((value) =>
-        value.trim().replace(/^"|"$/g, '')
-      );
-
-      const record: Record<string, string> = {};
-      for (let col = 0; col < headers.length; col += 1) {
-        record[headers[col]] = values[col] ?? '';
-      }
-
-      records.push(record);
-    }
-
-    return records;
-  }
-
-  private detectCsvDelimiter(headerLine: string): string {
-    const semicolons = (headerLine.match(/;/g) || []).length;
-    const commas = (headerLine.match(/,/g) || []).length;
-    return semicolons > commas ? ';' : ',';
-  }
-
-  private parseCsvLine(line: string, delimiter: string): string[] {
-    const values: string[] = [];
-    let current = '';
-    let inQuotes = false;
-
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-
-      if (char === '"') {
-        if (inQuotes && line[i + 1] === '"') {
-          current += '"';
-          i += 1;
-          continue;
-        }
-
-        inQuotes = !inQuotes;
-        continue;
-      }
-
-      if (!inQuotes && char === delimiter) {
-        values.push(current);
-        current = '';
-        continue;
-      }
-
-      current += char;
-    }
-
-    values.push(current);
-    return values;
+    const delimiter = detectCsvDelimiter(content.split('\n')[0] ?? '');
+    return parseCsvRecords(content, delimiter);
   }
 
   private toNumber(value: string | number | undefined): number {

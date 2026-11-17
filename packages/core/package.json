@@ -53,6 +53,8 @@
   },
   "dependencies": {
     "axios": "catalog:",
+    "csv-parse": "catalog:",
+    "csv-stringify": "catalog:",
     "@smmachine/utils": "workspace:*"
   }
 }

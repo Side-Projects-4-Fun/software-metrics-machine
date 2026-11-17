@@ -553,7 +553,7 @@ export const tools: RegisteredTool[] = [
   {
     name: 'smm_get_change_request_summary',
     description:
-      'Get a detailed change request summary (total, merged, closed, labels, top commenter, themes, first/last/most-commented, time to first comment).',
+      'Get a detailed change request summary (total, merged, closed, labels, top commenter, themes grouped by a configurable number of words, first/last/most-commented, time to first comment).',
     inputSchema: buildChangeRequestMetricsInputSchema('Change request summary filters.'),
     async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const parsed = parseChangeRequestMetricsArguments(argumentsValue);

@@ -26,6 +26,7 @@ export interface DashboardFilters {
   outlierMode?: 'include' | 'flag' | 'exclude';
   sonarqubeRemoveFolders?: boolean;
   method?: string;
+  themeWords?: number;
 }
 
 export function buildPipelineApiParams(filters: DashboardFilters): ApiParams {
@@ -81,6 +82,7 @@ export function buildChangeRequestApiParams(filters: DashboardFilters): ApiParam
     weekends: filters.weekends,
     outlier_mode: filters.outlierMode,
     method: filters.method,
+    theme_words: filters.themeWords,
   };
 }
 

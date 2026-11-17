@@ -385,6 +385,17 @@ describe('cli: Change Request Commands', () => {
       expect(getSummaryMock).toHaveBeenCalledWith(baseFilters);
     });
 
+    it('forwards theme-words to getSummary', async () => {
+      await program.parseAsync(['change-requests', 'summary', '--theme-words', '3'], {
+        from: 'user',
+      });
+
+      expect(getSummaryMock).toHaveBeenCalledWith({
+        ...baseFilters,
+        themeWords: 3,
+      });
+    });
+
     it('renders the summary text by default', async () => {
       await program.parseAsync(['change-requests', 'summary'], { from: 'user' });
 

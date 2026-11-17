@@ -361,5 +361,28 @@ describe('ChangeRequestsController', () => {
         10
       );
     });
+
+    it('maps theme_words to a numeric themeWords filter on the summary endpoint', async () => {
+      const { controller, mockChangeRequestsService } = createController({
+        getSummary: vi.fn().mockResolvedValue({ result: {} }),
+      });
+
+      await controller.summary(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        '3'
+      );
+
+      expect(mockChangeRequestsService.getSummary).toHaveBeenCalledWith(
+        expect.objectContaining({ themeWords: 3 })
+      );
+    });
   });
 });

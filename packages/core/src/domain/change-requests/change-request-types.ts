@@ -60,6 +60,7 @@ export interface ChangeRequestFilters {
   state?: ChangeRequestStatus;
   rawFilters?: string;
   cleaning?: MetricCleaningOptions;
+  themeWords?: number;
 }
 
 export interface ChangeRequestMetricOutlierItem {

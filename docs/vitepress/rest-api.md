@@ -59,6 +59,7 @@ Common query params:
 - `authors`, `exclude_authors`, `exclude_commenters`, `labels`
 - `status`
 - `aggregate_by`
+- `theme_words`
 
 ## Pipelines
 

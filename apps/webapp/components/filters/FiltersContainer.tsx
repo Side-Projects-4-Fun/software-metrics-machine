@@ -401,6 +401,14 @@ export default function FiltersContainer({ repository }: { repository: string })
               options={['average', 'median', 'p75', 'p90', 'p95', 'min', 'max']}
               onChange={(value) => updateFilter('method', value)}
             />
+            <SliderFilter
+              label="Theme Words"
+              value={filters.themeWords}
+              min={1}
+              max={5}
+              step={1}
+              onChange={(value) => updateFilter('themeWords', value)}
+            />
           </Stack>
         </Box>
       )}

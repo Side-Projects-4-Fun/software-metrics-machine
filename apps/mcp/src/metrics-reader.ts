@@ -134,6 +134,7 @@ function buildChangeRequestFiltersFromArgs(
     state: args.status as ChangeRequestFilters['state'],
     rawFilters: args.rawFilters,
     cleaning,
+    themeWords: args.themeWords,
   };
 }
 

@@ -78,6 +78,7 @@ function buildChangeRequestFilters(options: {
   rawFilters?: string;
   weekends?: string;
   outlierMode?: string;
+  themeWords?: string;
 }): ChangeRequestFilters {
   const filters: ChangeRequestFilters = {
     startDate: options.startDate,
@@ -95,6 +96,13 @@ function buildChangeRequestFilters(options: {
 
   if (options.state) {
     filters.state = options.state as ChangeRequestFilters['state'];
+  }
+
+  if (options.themeWords !== undefined && options.themeWords !== '') {
+    const themeWords = Number(options.themeWords);
+    if (Number.isFinite(themeWords)) {
+      filters.themeWords = themeWords;
+    }
   }
 
   return filters;
@@ -339,13 +347,14 @@ export function createChangeRequestsCommands(program: SmmCommand): void {
     )
     .option('--output <format>', 'Output format (text|json)', 'text')
     .option('--filter <name>', 'Apply a saved filter')
+    .option('--theme-words <number>', 'Number of words to group comment themes by (default: 1)')
     .actionWithSmm(async (options, command) => {
       const logger = command.getLogger('ChangeRequestsCommand');
       try {
         const merged = await resolveSavedFilterOptions(command, 'change-requests', options);
         screen.printLine('📊 Generating change request summary...');
         const service = createChangeRequestsService(command);
-        const filters = buildChangeRequestFilters(merged);
+        const filters = buildChangeRequestFilters({ ...merged, themeWords: options.themeWords });
         const summary = await service.getSummary(filters);
 
         if (options.output === 'json') {

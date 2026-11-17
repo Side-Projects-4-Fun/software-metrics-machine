@@ -1,5 +1,6 @@
 import { listMetricCatalogEntries } from './metric-catalog';
 import type { MetricCatalogEntry } from './metric-catalog';
+import { stringifyCsv } from '../../infrastructure/csv';
 
 export const METRIC_CATALOG_EXPORT_COLUMNS = [
   'id',
@@ -39,14 +40,6 @@ export interface MetricCatalogExportRow {
   readonly mcp: readonly string[];
 }
 
-function escapeCsvValue(value: string): string {
-  if (/[",\n\r]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-
-  return value;
-}
-
 export function toMetricCatalogExportRows(
   entries: readonly MetricCatalogEntry[] = listMetricCatalogEntries()
 ): MetricCatalogExportRow[] {
@@ -71,28 +64,24 @@ export function toMetricCatalogExportRows(
 }
 
 export function toMetricCatalogCsv(rows: readonly MetricCatalogExportRow[]): string {
-  const lines = rows.map((row) =>
-    [
-      row.id,
-      row.namespace,
-      row.label,
-      row.description,
-      row.evidence,
-      row.formula,
-      row.notation,
-      row.unit,
-      row.direction,
-      row.shape,
-      row.visibility,
-      row.status,
-      row.target,
-      row.cli.join(' | '),
-      row.rest.join(' | '),
-      row.mcp.join(' | '),
-    ]
-      .map((value) => escapeCsvValue(value))
-      .join(',')
-  );
+  const dataRows = rows.map((row) => [
+    row.id,
+    row.namespace,
+    row.label,
+    row.description,
+    row.evidence,
+    row.formula,
+    row.notation,
+    row.unit,
+    row.direction,
+    row.shape,
+    row.visibility,
+    row.status,
+    row.target,
+    row.cli.join(' | '),
+    row.rest.join(' | '),
+    row.mcp.join(' | '),
+  ]);
 
-  return [METRIC_CATALOG_EXPORT_COLUMNS.join(','), ...lines].join('\n').concat('\n');
+  return stringifyCsv([[...METRIC_CATALOG_EXPORT_COLUMNS], ...dataRows]);
 }

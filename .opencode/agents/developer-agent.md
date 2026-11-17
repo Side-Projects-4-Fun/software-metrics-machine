@@ -101,6 +101,7 @@ scripts/                   # merge-coverage.mjs, generate-metrics-catalog-docs.m
 
 ### 4. Code Quality
 
+- Never add comments to code — make the code clear through naming and structure instead; comments are forbidden in source files
 - Ensure tests are written for new features (Vitest / Jest)
 - Respect ESLint rules (`eslint.config.mjs`) — no `explicit-any`, no unused vars, no floating promises
 - Follow Prettier formatting (`.prettierrc.json`)

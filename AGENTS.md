@@ -153,7 +153,7 @@ The root `tsup.config.ts` bundles the published launcher: `dist/index.cjs` (CLI)
 
 ### NEVER DO
 
-- Use comments instead of tests to reinforce behavior
+- Add comments to code — source files stay comment-free; express intent through clear naming and structure, and encode behavior in tests, never in comments
 - Add `"type": "module"` to `packages/core` or `packages/utils`
 - Import from `src/` or `dist/` paths directly — always use the package name (`@smmachine/core`)
 - Commit secrets, tokens, or `.env` files

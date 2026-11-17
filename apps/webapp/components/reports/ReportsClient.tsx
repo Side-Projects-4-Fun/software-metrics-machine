@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Typography, IconButton } from '@mui/material';
@@ -8,6 +8,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import DownloadIcon from '@mui/icons-material/Download';
 import ReportCreator from './ReportCreator';
 import {
   saveReport,
@@ -15,12 +16,15 @@ import {
   removeReport,
   duplicateReport,
 } from '@/components/filters/saved-filters-actions';
+import { downloadReportCsv } from '@/lib/report-csv';
+import type { SavedFilterEntry } from '@/components/filters/saved-filters-store';
 import type { ReportSectionRef, ReportDateWindow, ReportEntry } from './reports-store';
 import type { ResolvedReport } from '@/app/reports/shared';
 
 interface ReportsClientProps {
   resolvedReports: ResolvedReport[];
   repository: string;
+  savedFilters: SavedFilterEntry[];
 }
 
 function formatDate(isoString: string): string {
@@ -34,11 +38,16 @@ function formatDate(isoString: string): string {
 export default function ReportsClient({
   resolvedReports,
   repository,
+  savedFilters,
 }: ReportsClientProps) {
   const router = useRouter();
   const [isCreatorOpen, setCreatorOpen] = useState(false);
   const [editingReport, setEditingReport] = useState<ReportEntry | undefined>(
     undefined,
+  );
+  const savedFiltersMap = useMemo(
+    () => new Map(savedFilters.map((f) => [f.id, f])),
+    [savedFilters],
   );
 
   const handleCreate = useCallback(
@@ -100,6 +109,13 @@ export default function ReportsClient({
     [router],
   );
 
+  const handleExport = useCallback(
+    (resolved: ResolvedReport) => {
+      downloadReportCsv(resolved, savedFiltersMap);
+    },
+    [savedFiltersMap],
+  );
+
   const sectionCount = (resolved: ResolvedReport): number =>
     resolved.report.sections?.length ?? 0;
 
@@ -151,6 +167,14 @@ export default function ReportsClient({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <IconButton
+                size="small"
+                color="primary"
+                onClick={() => handleExport(resolved)}
+                aria-label={`Export ${resolved.report.name}`}
+              >
+                <DownloadIcon fontSize="small" />
+              </IconButton>
               <IconButton
                 size="small"
                 color="primary"

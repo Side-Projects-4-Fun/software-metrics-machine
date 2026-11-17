@@ -49,6 +49,8 @@ catalog:
   class-validator: ^0.15.1
   commander: ^15.0.0
   concurrently: ^10.0.7
+  csv-parse: ^7.0.3
+  csv-stringify: ^6.9.0
   cypress: ^16.2.0
   date-fns: ^4.4.0
   dayjs: ^1.11.23

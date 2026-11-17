@@ -5,6 +5,7 @@ import {
   CodemaatService,
   GitFactory,
   PairingFactory,
+  stringifyCsv,
 } from '@smmachine/core';
 import { TimeZoneProvider } from '@smmachine/core/infrastructure/timezone-provider';
 import type { CodeChurn } from '@smmachine/core/providers/codemaat/types';
@@ -48,18 +49,11 @@ export function createCodeCommands(program: SmmCommand): void {
           }
 
           if (options.output === 'csv') {
-            const rows = ['line_number,classification,reason,content'];
+            const rows: string[][] = [['line_number', 'classification', 'reason', 'content']];
             for (const line of analysis.lines) {
-              rows.push(
-                [
-                  line.lineNumber,
-                  line.classification,
-                  line.reason,
-                  `"${line.content.replace(/"/g, '""')}"`,
-                ].join(',')
-              );
+              rows.push([String(line.lineNumber), line.classification, line.reason, line.content]);
             }
-            screen.printLine(rows.join('\n'));
+            screen.printLine(stringifyCsv(rows, false));
             return;
           }
 
@@ -91,18 +85,16 @@ export function createCodeCommands(program: SmmCommand): void {
         }
 
         if (options.output === 'csv') {
-          const rows = ['file_path,classification,score,needs_help'];
+          const rows: string[][] = [['file_path', 'classification', 'score', 'needs_help']];
           for (const file of files) {
-            rows.push(
-              [
-                `"${file.filePath.replace(/"/g, '""')}"`,
-                file.classification,
-                file.score,
-                file.needsHelp,
-              ].join(',')
-            );
+            rows.push([
+              file.filePath,
+              file.classification,
+              String(file.score),
+              String(file.needsHelp),
+            ]);
           }
-          screen.printLine(rows.join('\n'));
+          screen.printLine(stringifyCsv(rows, false));
           return;
         }
 
@@ -148,24 +140,36 @@ export function createCodeCommands(program: SmmCommand): void {
         }
 
         if (options.output === 'csv') {
-          const lines: string[] = ['section,metric,value'];
-          lines.push(`pairing,pairing_index_percentage,${summary.pairingIndexPercentage ?? 0}`);
-          lines.push(`pairing,total_analyzed_commits,${summary.totalAnalyzedCommits ?? 0}`);
-          lines.push(`pairing,paired_commits,${summary.pairedCommits ?? 0}`);
+          const rows: string[][] = [['section', 'metric', 'value']];
+          rows.push([
+            'pairing',
+            'pairing_index_percentage',
+            String(summary.pairingIndexPercentage ?? 0),
+          ]);
+          rows.push([
+            'pairing',
+            'total_analyzed_commits',
+            String(summary.totalAnalyzedCommits ?? 0),
+          ]);
+          rows.push(['pairing', 'paired_commits', String(summary.pairedCommits ?? 0)]);
 
           for (const pair of summary.topPairings || []) {
-            lines.push(`top_pair,${pair.author} + ${pair.coAuthor},${pair.pairedCommits}`);
+            rows.push([
+              'top_pair',
+              `${pair.author} + ${pair.coAuthor}`,
+              String(pair.pairedCommits),
+            ]);
           }
 
           for (const commit of summary.latestPairedCommits || []) {
-            const normalizedSubject = (commit.subject || '').replace(/,/g, ';');
-            const normalizedCoAuthors = (commit.coAuthors || []).join('|').replace(/,/g, ';');
-            lines.push(
-              `latest_paired_commit,${commit.hash.slice(0, 8)}:${normalizedSubject},${commit.author}|${normalizedCoAuthors}`
-            );
+            rows.push([
+              'latest_paired_commit',
+              `${commit.hash.slice(0, 8)}:${commit.subject || ''}`,
+              `${commit.author}|${(commit.coAuthors || []).join('|')}`,
+            ]);
           }
 
-          screen.printLine(lines.join('\n'));
+          screen.printLine(stringifyCsv(rows, false));
           return;
         }
 

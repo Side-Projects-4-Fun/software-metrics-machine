@@ -16,6 +16,7 @@ import type {
 import type { Configuration } from '../../../../infrastructure/configuration';
 import path from 'path';
 import { matchesPathPattern, normalizePatternList } from '../../../../domain/code/pattern-filters';
+import { detectCsvDelimiter, parseCsvRecords, parseCsvRows } from '../../../../infrastructure/csv';
 import type {
   AuthorChurnRecord,
   CodeMaatChurnOptions,
@@ -59,9 +60,9 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
       }
 
       const content = fs.readFileSync(csvPath, 'utf-8');
-      const lines = content.trim().split('\n');
+      const rows = parseCsvRows(content, { delimiter: ',', trim: true });
 
-      if (lines.length < 2) {
+      if (rows.length < 2) {
         return {
           data: [],
           startDate: options?.startDate,
@@ -69,7 +70,7 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
         };
       }
 
-      const header = lines[0].split(',').map((h) => h.trim().replace(/^"|"$/g, ''));
+      const header = rows[0];
 
       const dateIdx = header.indexOf('date') >= 0 ? header.indexOf('date') : header.indexOf('Date');
       const addedIdx = header.findIndex(
@@ -91,9 +92,7 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
 
       const data: CodeChurn[] = [];
 
-      for (let i = 1; i < lines.length; i++) {
-        const row = lines[i].split(',').map((v) => v.trim().replace(/^"|"$/g, ''));
-
+      for (const row of rows.slice(1)) {
         if (row.length <= Math.max(dateIdx, addedIdx, deletedIdx)) {
           continue;
         }
@@ -160,16 +159,14 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
       }
 
       const content = fs.readFileSync(csvPath, 'utf-8');
-      const lines = content.trim().split('\n');
+      const delimiter = detectCsvDelimiter(content.split('\n')[0] ?? '');
+      const rows = parseCsvRows(content, { delimiter, trim: true });
 
-      if (lines.length < 2) {
+      if (rows.length < 2) {
         return [];
       }
 
-      const delimiter = this.detectCsvDelimiter(lines[0]);
-      const header = this.parseCsvLine(lines[0], delimiter).map((h) =>
-        h.trim().replace(/^"|"$/g, '')
-      );
+      const header = rows[0];
 
       const authorIdx = header.findIndex((h) => h.toLowerCase() === 'author');
       const addedIdx = header.findIndex(
@@ -191,11 +188,7 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
 
       const data: AuthorChurnRecord[] = [];
 
-      for (let i = 1; i < lines.length; i++) {
-        const row = this.parseCsvLine(lines[i], delimiter).map((v) =>
-          v.trim().replace(/^"|"$/g, '')
-        );
-
+      for (const row of rows.slice(1)) {
         if (row.length <= Math.max(authorIdx, addedIdx, deletedIdx)) {
           continue;
         }
@@ -241,17 +234,14 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
       }
 
       const content = fs.readFileSync(csvPath, 'utf-8');
-      const lines = content.trim().split('\n');
+      const delimiter = detectCsvDelimiter(content.split('\n')[0] ?? '');
+      const rows = parseCsvRows(content, { delimiter, trim: true });
 
-      if (lines.length < 2) {
+      if (rows.length < 2) {
         return [];
       }
 
-      const delimiter = this.detectCsvDelimiter(lines[0]);
-
-      const header = this.parseCsvLine(lines[0], delimiter).map((h) =>
-        h.trim().replace(/^"|"$/g, '')
-      );
+      const header = rows[0];
 
       const file1Idx = header.findIndex(
         (h) =>
@@ -281,11 +271,7 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
 
       const coupleData: FileCoupling[] = [];
 
-      for (let i = 1; i < lines.length; i++) {
-        const row = this.parseCsvLine(lines[i], delimiter).map((v) =>
-          v.trim().replace(/^"|"$/g, '')
-        );
-
+      for (const row of rows.slice(1)) {
         if (row.length <= Math.max(file1Idx, file2Idx, couplingIdx)) {
           continue;
         }
@@ -366,44 +352,6 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
         data: await this.getLayeredCoupling(options),
       },
     ];
-  }
-
-  private detectCsvDelimiter(headerLine: string): string {
-    const semicolons = (headerLine.match(/;/g) || []).length;
-    const commas = (headerLine.match(/,/g) || []).length;
-    return semicolons > commas ? ';' : ',';
-  }
-
-  private parseCsvLine(line: string, delimiter: string): string[] {
-    const values: string[] = [];
-    let current = '';
-    let inQuotes = false;
-
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-
-      if (char === '"') {
-        if (inQuotes && line[i + 1] === '"') {
-          current += '"';
-          i += 1;
-          continue;
-        }
-
-        inQuotes = !inQuotes;
-        continue;
-      }
-
-      if (!inQuotes && char === delimiter) {
-        values.push(current);
-        current = '';
-        continue;
-      }
-
-      current += char;
-    }
-
-    values.push(current);
-    return values;
   }
 
   async analyze(options?: {
@@ -582,39 +530,8 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
     }
 
     const content = fs.readFileSync(csvPath, 'utf-8');
-    const lines = content
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0);
-
-    if (lines.length < 2) {
-      return [];
-    }
-
-    const delimiter = this.detectCsvDelimiter(lines[0]);
-    const headers = this.parseCsvLine(lines[0], delimiter).map((header) =>
-      header.trim().replace(/^"|"$/g, '')
-    );
-
-    const records: Array<Record<string, string>> = [];
-    for (let index = 1; index < lines.length; index += 1) {
-      const values = this.parseCsvLine(lines[index], delimiter).map((value) =>
-        value.trim().replace(/^"|"$/g, '')
-      );
-
-      if (values.length === 0) {
-        continue;
-      }
-
-      const record: Record<string, string> = {};
-      for (let col = 0; col < headers.length; col += 1) {
-        record[headers[col]] = values[col] ?? '';
-      }
-
-      records.push(record);
-    }
-
-    return records;
+    const delimiter = detectCsvDelimiter(content.split('\n')[0] ?? '');
+    return parseCsvRecords(content, delimiter);
   }
 
   protected toNumber(value: string | number | undefined): number {

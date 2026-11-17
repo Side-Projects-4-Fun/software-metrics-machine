@@ -300,6 +300,7 @@ describe('parseChangeRequestMetricsArguments', () => {
         outlierMode: 'flag',
         rawFilters: 'status=draft,author=john',
         filter: 'my-saved-filter',
+        themeWords: 2,
       })
     ).toEqual({
       project: 'owner/repo',
@@ -318,6 +319,7 @@ describe('parseChangeRequestMetricsArguments', () => {
       outlierMode: 'flag',
       rawFilters: 'status=draft,author=john',
       filter: 'my-saved-filter',
+      themeWords: 2,
     });
   });
 
@@ -343,6 +345,10 @@ describe('parseChangeRequestMetricsArguments', () => {
     expect(parseChangeRequestMetricsArguments({ top: 'ten' })).toEqual({});
   });
 
+  it('ignores non-number themeWords values', () => {
+    expect(parseChangeRequestMetricsArguments({ themeWords: 'two' })).toEqual({});
+  });
+
   it('builds a schema that includes change request filter properties', () => {
     const schema = buildChangeRequestMetricsInputSchema('CR filters.');
     const properties = (schema.properties ?? {}) as Record<
@@ -355,6 +361,7 @@ describe('parseChangeRequestMetricsArguments', () => {
     expect(properties.labels?.type).toBe('string');
     expect(properties.status?.type).toBe('string');
     expect(properties.top?.type).toBe('number');
+    expect(properties.themeWords?.type).toBe('number');
     expect(properties.aggregateBy?.enum).toEqual(['day', 'week', 'month']);
     expect(properties.method?.enum).toEqual([
       'average',

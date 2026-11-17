@@ -20,6 +20,7 @@ export type ChangeRequestMetricsArguments = MetricsToolArguments & {
   outlierMode?: 'include' | 'flag' | 'exclude';
   rawFilters?: string;
   filter?: string;
+  themeWords?: number;
 };
 
 export type PipelineDashboardArguments = MetricsToolArguments & {
@@ -357,6 +358,7 @@ export function parseChangeRequestMetricsArguments(
     outlierMode: readEnum(args.outlierMode, 'outlierMode', ['include', 'flag', 'exclude'] as const),
     rawFilters: readString(args.rawFilters, 'rawFilters'),
     filter: readString(args.filter, 'filter'),
+    themeWords: readNumber(args.themeWords, 'themeWords'),
   };
 }
 
@@ -1002,6 +1004,11 @@ export function buildChangeRequestMetricsInputSchema(description: string): JsonO
         type: 'string',
         description:
           'Optional saved filter name or id. When set, missing filter fields are filled from the saved filter.',
+      },
+      themeWords: {
+        type: 'number',
+        description:
+          'Optional number of words to group comment themes by (n-gram size). Defaults to 1 (single words).',
       },
     },
   };
