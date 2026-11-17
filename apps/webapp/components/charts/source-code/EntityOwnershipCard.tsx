@@ -33,7 +33,15 @@ interface TooltipPayloadEntry {
   payload?: AuthorData;
 }
 
-const AuthorTooltip = ({ active, payload, label }: { active?: boolean; payload?: TooltipPayloadEntry[]; label?: string }) => {
+const AuthorTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}) => {
   if (active && payload && payload.length) {
     const topEntity = (payload[0].payload as AuthorData)?.topEntity || '-';
     return (
@@ -51,7 +59,15 @@ const AuthorTooltip = ({ active, payload, label }: { active?: boolean; payload?:
   return null;
 };
 
-const EntityTooltip = ({ active, payload, label }: { active?: boolean; payload?: TooltipPayloadEntry[]; label?: string }) => {
+const EntityTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-3 border border-gray-300 rounded shadow">
@@ -156,8 +172,11 @@ export default function EntityOwnershipCard({ data }: { data: EntityOwnershipDat
 
     return Array.from(files.values())
       .map((file) => {
-        const topAuthor = Array.from(file.authors.values()).sort((a, b) => b.changes - a.changes)[0];
-        const ownershipPct = file.totalChanges > 0 ? (topAuthor.changes / file.totalChanges) * 100 : 0;
+        const topAuthor = Array.from(file.authors.values()).sort(
+          (a, b) => b.changes - a.changes
+        )[0];
+        const ownershipPct =
+          file.totalChanges > 0 ? (topAuthor.changes / file.totalChanges) * 100 : 0;
 
         return {
           entity: file.entity,
@@ -200,27 +219,50 @@ export default function EntityOwnershipCard({ data }: { data: EntityOwnershipDat
     }
 
     return {
-      data: Array.from(accumulator.values()).sort((a, b) => {
-        const totalChangesA = Object.keys(a).reduce((sum, key) => (typeof a[key] === 'number' ? sum + (a[key] as number) : sum), 0);
-        const totalChangesB = Object.keys(b).reduce((sum, key) => (typeof b[key] === 'number' ? sum + (b[key] as number) : sum), 0);
-        return totalChangesB - totalChangesA;
-      }).slice(0, 15),
+      data: Array.from(accumulator.values())
+        .sort((a, b) => {
+          const totalChangesA = Object.keys(a).reduce(
+            (sum, key) => (typeof a[key] === 'number' ? sum + (a[key] as number) : sum),
+            0
+          );
+          const totalChangesB = Object.keys(b).reduce(
+            (sum, key) => (typeof b[key] === 'number' ? sum + (b[key] as number) : sum),
+            0
+          );
+          return totalChangesB - totalChangesA;
+        })
+        .slice(0, 15),
       authors: Array.from(allAuthors).sort((a, b) => a.localeCompare(b)),
     };
   }, [data]);
 
   const authorColors = useMemo(() => {
     const colors = [
-      '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#a4de6c', '#d0ed57', '#83a6ed', '#8dd1e1', '#82ca9d', '#a4de6c',
-      '#d0ed57', '#ffc658', '#ff7300', '#83a6ed', '#8dd1e1',
+      '#8884d8',
+      '#82ca9d',
+      '#ffc658',
+      '#ff7300',
+      '#a4de6c',
+      '#d0ed57',
+      '#83a6ed',
+      '#8dd1e1',
+      '#82ca9d',
+      '#a4de6c',
+      '#d0ed57',
+      '#ffc658',
+      '#ff7300',
+      '#83a6ed',
+      '#8dd1e1',
     ];
     const colorMap = new Map<string, { added: string; deleted: string }>();
     byEntity.authors.forEach((author, index) => {
       const baseColor = colors[index % colors.length];
-      // Simple heuristic for lighter/darker shades
+
       colorMap.set(author, {
-        added: baseColor, // Using base color for added
-        deleted: `#${Math.min(parseInt(baseColor.slice(1), 16) + 0x333333, 0xFFFFFF).toString(16).padStart(6, '0')}`, // Lighter shade for deleted
+        added: baseColor,
+        deleted: `#${Math.min(parseInt(baseColor.slice(1), 16) + 0x333333, 0xffffff)
+          .toString(16)
+          .padStart(6, '0')}`,
       });
     });
     return colorMap;
@@ -258,7 +300,8 @@ export default function EntityOwnershipCard({ data }: { data: EntityOwnershipDat
           </p>
         ) : (
           <p className="mt-2 text-sm text-gray-600">
-            Displays lines added and deleted per author for each entity, allowing insight into contribution distribution across files.
+            Displays lines added and deleted per author for each entity, allowing insight into
+            contribution distribution across files.
           </p>
         )}
       </CardHeader>

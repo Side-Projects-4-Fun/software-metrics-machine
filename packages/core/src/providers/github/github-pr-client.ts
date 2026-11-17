@@ -22,13 +22,6 @@ export interface IGithubPrsClient {
   fetchPRComments(prNumber: number): Promise<PullRequestCommentJsonResponse[]>;
 }
 
-/**
- * GitHub API client for Pull Requests
- * Real implementation using GitHub REST API v3
- * Endpoints utilized:
- *   - GET /repos/{owner}/{repo}/pulls - List PRs with state filtering
- *   - GET /repos/{owner}/{repo}/pulls/{pull_number}/comments - Get PR comments
- */
 export class GithubPrsClient implements IGithubPrsClient {
   private readonly axiosInstance: AxiosInstance;
   private logger: Logger;
@@ -73,7 +66,6 @@ export class GithubPrsClient implements IGithubPrsClient {
     const allPRs: PullRequestJsonResponse[] = [];
 
     try {
-      // Fetch all PRs with pagination (newest first by created_at)
       while (true) {
         this.logger.info(
           `Fetching PRs page ${page} for ${this.owner}/${this.repo} (state: ${state})`
@@ -96,10 +88,9 @@ export class GithubPrsClient implements IGithubPrsClient {
         const prs = response.data;
 
         if (prs.length === 0) {
-          break; // No more pages
+          break;
         }
 
-        // Keep the full GitHub payload and add compatibility aliases.
         for (const pr of prs) {
           const prDetail: PullRequestJsonResponse = { ...pr };
 
@@ -112,7 +103,6 @@ export class GithubPrsClient implements IGithubPrsClient {
           }
         }
 
-        // Stop if we got fewer items than requested (last page)
         if (prs.length < per_page) {
           break;
         }
@@ -161,13 +151,13 @@ export class GithubPrsClient implements IGithubPrsClient {
         );
 
         if (comments.length === 0) {
-          break; // No more pages
+          break;
         }
 
         allComments = allComments.concat(comments);
 
         if (comments.length < per_page) {
-          break; // Last page
+          break;
         }
 
         page++;

@@ -59,7 +59,6 @@ export class PipelinesFetchRepository {
       return merged;
     }
 
-    // Manual date range with merge
     if (
       (options?.startDate || options?.endDate) &&
       !options?.forceRefresh &&
@@ -109,7 +108,7 @@ export class PipelinesFetchRepository {
         rawFilters: options?.rawFilters,
       });
     }
-    // Persist fetched workflows/jobs so metrics commands can run from local data.
+
     await this.pipelineRunRepository.saveAll(workflows);
     await this.refreshDashboardFilterOptions();
 
@@ -127,9 +126,6 @@ export class PipelinesFetchRepository {
   ): Promise<WorkflowJsonResponse[]> {
     const allRuns: WorkflowJsonResponse[] = [];
 
-    // For fetch, convert timezone-aware dates to UTC boundaries for the GitHub API.
-    // getStartOfDayBoundary("2025-03-15") in Europe/Madrid → 2025-03-14T23:00:00Z
-    // getEndOfDayBoundary("2025-03-15") in Europe/Madrid   → 2025-03-15T22:59:59.999Z
     const totalDays = this.countDays(startDate, endDate);
     for (let i = 0; i < totalDays; i++) {
       const dayDate = this.addDays(startDate, i);
@@ -154,9 +150,6 @@ export class PipelinesFetchRepository {
     return allRuns;
   }
 
-  /**
-   * Count the number of days between two date strings (inclusive).
-   */
   private countDays(startDate: string, endDate: string): number {
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -164,9 +157,6 @@ export class PipelinesFetchRepository {
     return Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
   }
 
-  /**
-   * Add N days to a date string and return "YYYY-MM-DD".
-   */
   private addDays(dateStr: string, days: number): string {
     const d = new Date(dateStr);
     d.setUTCDate(d.getUTCDate() + days);

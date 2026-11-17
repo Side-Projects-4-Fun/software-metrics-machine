@@ -1,19 +1,11 @@
-/**
- * URL Builder for external provider links (GitHub, GitLab, SonarQube)
- * Builds URLs based on git provider type and SonarQube configuration
- */
-
-import { DashboardGlobalConfiguration } from "../api/configuration";
+import { DashboardGlobalConfiguration } from '../api/configuration';
 
 export interface UrlBuilder {
-  // PR/MR links
   getChangeRequestsUrl(filters?: { status?: string; author?: string; label?: string }): string;
   getChangeRequestUrl(prNumber: number): string;
-  
-  // Commit links
+
   getCommitUrl(hash: string): string;
-  
-  // Pipeline/Workflow links
+
   getPipelinesUrl(filters?: { status?: string; workflow?: string }): string;
   getPipelineRunUrl(runId: string, runNumber?: number): string;
   getJobRunsUrl(
@@ -25,20 +17,29 @@ export interface UrlBuilder {
     workflowName: string,
     dateRange?: { startDate?: string; endDate?: string; timezone?: string }
   ): string;
-  
-  // SonarQube links
+
   getSonarqubeComponentUrl(componentKey: string): string;
   getSonarqubeComponentMeasuresUrl(componentKey: string, metric: string): string;
   getSonarqubeProjectMeasuresUrl(metric: string): string;
   getSonarqubeProjectUrl(): string;
 
-  getActionPerformanceForJobUrl(jobName: string, workflowName: string, granularity: 'day' | 'week' | 'month', date: string, timezone?: string): string
+  getActionPerformanceForJobUrl(
+    jobName: string,
+    workflowName: string,
+    granularity: 'day' | 'week' | 'month',
+    date: string,
+    timezone?: string
+  ): string;
 }
-
 
 type DateRange = { startDate?: string; endDate?: string; timezone?: string };
 type DateParts = { year: number; month: number; day: number };
-type DateTimeParts = DateParts & { hour: number; minute: number; second: number; millisecond: number };
+type DateTimeParts = DateParts & {
+  hour: number;
+  minute: number;
+  second: number;
+  millisecond: number;
+};
 
 const parseDateParts = (dateStr: string): DateParts | null => {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
@@ -70,14 +71,16 @@ const toUtcTimestamp = (date: DateTimeParts): number =>
     date.hour,
     date.minute,
     date.second,
-    date.millisecond,
+    date.millisecond
   );
 
 const startOfUtcDay = (date: DateParts): number =>
   toUtcTimestamp({ ...date, hour: 0, minute: 0, second: 0, millisecond: 0 });
 
 const parseDateTimeParts = (dateStr: string): DateTimeParts | null => {
-  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?(?:\.(\d{1,3}))?/.exec(dateStr);
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?(?:\.(\d{1,3}))?/.exec(
+    dateStr
+  );
   if (!match) {
     return null;
   }
@@ -93,7 +96,10 @@ const parseDateTimeParts = (dateStr: string): DateTimeParts | null => {
   };
 };
 
-const computeRange = (dateStr: string, granularity: 'day' | 'week' | 'month'): { start: number; end: number } => {
+const computeRange = (
+  dateStr: string,
+  granularity: 'day' | 'week' | 'month'
+): { start: number; end: number } => {
   const date = parseDateParts(dateStr);
   if (!date) {
     return { start: Number.NaN, end: Number.NaN };
@@ -123,9 +129,8 @@ const computeRange = (dateStr: string, granularity: 'day' | 'week' | 'month'): {
   }
 
   const monthStart = { year, month, day: 1 };
-  const nextMonthStart = month === 12
-    ? { year: year + 1, month: 1, day: 1 }
-    : { year, month: month + 1, day: 1 };
+  const nextMonthStart =
+    month === 12 ? { year: year + 1, month: 1, day: 1 } : { year, month: month + 1, day: 1 };
 
   return {
     start: startOfUtcDay(monthStart),
@@ -167,10 +172,7 @@ const buildGithubActionsMetricsFilters = (workflowName?: string, jobName?: strin
   return filters.map((filter) => encodeURIComponent(filter)).join('+');
 };
 
-const buildGithubJobMetricsQuery = (
-  filters: string,
-  dateRange?: DateRange
-): string => {
+const buildGithubJobMetricsQuery = (filters: string, dateRange?: DateRange): string => {
   if (!dateRange?.startDate || !dateRange?.endDate) {
     return `tab=jobs&filters=${filters}`;
   }
@@ -184,23 +186,16 @@ const buildGithubJobMetricsQuery = (
   return `dateRangeType=DATE_RANGE_TYPE_CUSTOM&tab=jobs&filters=${filters}&range=${start}-${end}`;
 };
 
-/**
- * Create URL builder based on git provider
- */
 export function createUrlBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
   const provider = (config.git_provider || 'github').toLowerCase();
-  
+
   if (provider.includes('gitlab')) {
     return createGitLabBuilder(config);
   }
-  
-  // Default to GitHub
+
   return createGitHubBuilder(config);
 }
 
-/**
- * GitHub URL builder
- */
 function createGitHubBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
   const [owner, repo] = config.github_repository.split('/').filter(Boolean);
   const baseUrl = `https://github.com/${owner}/${repo}`;
@@ -232,13 +227,13 @@ function createGitHubBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
     },
 
     getPipelinesUrl(filters) {
-      // If filtering by workflow, link to the specific workflow file
       if (filters?.workflow) {
-        const workflowFile = filters.workflow.endsWith('.yml') ? filters.workflow : `${filters.workflow}.yml`;
+        const workflowFile = filters.workflow.endsWith('.yml')
+          ? filters.workflow
+          : `${filters.workflow}.yml`;
         return `${baseUrl}/actions/workflows/${workflowFile}`;
       }
 
-      // Otherwise, link to actions with status filter if provided
       if (filters?.status) {
         return `${baseUrl}/actions?query=is%3A${encodeURIComponent(filters.status)}`;
       }
@@ -290,28 +285,31 @@ function createGitHubBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
         : `${config.sonar_url}/dashboard`;
     },
 
-    getActionPerformanceForJobUrl(jobName: string, workflowName: string, granularity: 'day' | 'week' | 'month', date: string, timezone?: string): string {
+    getActionPerformanceForJobUrl(
+      jobName: string,
+      workflowName: string,
+      granularity: 'day' | 'week' | 'month',
+      date: string,
+      timezone?: string
+    ): string {
       void timezone;
       const range = computeRange(date, granularity);
 
       const filterParam = buildGithubActionsMetricsFilters(workflowName, jobName);
       const url = `https://github.com/${config.github_repository.replace(/\/$/, '')}/actions/metrics/usage?dateRangeType=DATE_RANGE_TYPE_CUSTOM&tab=jobs&filters=${filterParam}&range=${range.start}-${range.end}`;
       return url;
-    }
-  }
-};
+    },
+  };
+}
 
-/**
- * GitLab URL builder
- */
 function createGitLabBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
   const [owner, repo] = config.github_repository.split('/').filter(Boolean);
   const baseUrl = config.gitlab_url || `https://gitlab.com/${owner}/${repo}`;
-  
+
   return {
     getChangeRequestsUrl(filters) {
       const params: string[] = [];
-      
+
       if (filters?.status === 'open') {
         params.push('state=opened');
       } else if (filters?.status === 'closed') {
@@ -319,45 +317,45 @@ function createGitLabBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
       } else if (filters?.status === 'merged') {
         params.push('state=merged');
       }
-      
+
       if (filters?.author) {
         params.push(`author_username=${filters.author}`);
       }
-      
+
       if (filters?.label) {
         params.push(`label_name[]=${encodeURIComponent(filters.label)}`);
       }
-      
+
       const query = params.join('&');
       return query ? `${baseUrl}/-/merge_requests?${query}` : `${baseUrl}/-/merge_requests`;
     },
-    
+
     getChangeRequestUrl(prNumber) {
       return `${baseUrl}/-/merge_requests/${prNumber}`;
     },
-    
+
     getCommitUrl(hash) {
       return `${baseUrl}/-/commit/${hash}`;
     },
-    
+
     getPipelinesUrl(filters) {
       const params: string[] = [];
-      
+
       if (filters?.status) {
         params.push(`status=${filters.status}`);
       }
       if (filters?.workflow) {
         params.push(`ref=${encodeURIComponent(filters.workflow)}`);
       }
-      
+
       const query = params.join('&');
       return query ? `${baseUrl}/-/pipelines?${query}` : `${baseUrl}/-/pipelines`;
     },
-    
+
     getPipelineRunUrl(runId) {
       return `${baseUrl}/-/pipelines/${runId}`;
     },
-    
+
     getJobRunsUrl(jobName, workflowName, dateRange) {
       const params = new URLSearchParams();
       params.set('scope[]', 'all');
@@ -388,7 +386,7 @@ function createGitLabBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
 
       return `${baseUrl}/-/jobs?${params.toString()}`;
     },
-    
+
     getSonarqubeComponentUrl(componentKey) {
       if (!config.sonar_url || !config.sonar_project) {
         return '#';
@@ -409,7 +407,7 @@ function createGitLabBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
       }
       return `${config.sonar_url}/component_measures?id=${encodeURIComponent(config.sonar_project)}&metric=${encodeURIComponent(metric)}`;
     },
-    
+
     getSonarqubeProjectUrl() {
       if (!config.sonar_url || !config.sonar_project) {
         return '#';
@@ -419,7 +417,13 @@ function createGitLabBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
         : `${config.sonar_url}/dashboard`;
     },
 
-    getActionPerformanceForJobUrl(jobName: string, workflowName: string, granularity: 'day' | 'week' | 'month', date: string, timezone?: string): string {
+    getActionPerformanceForJobUrl(
+      jobName: string,
+      workflowName: string,
+      granularity: 'day' | 'week' | 'month',
+      date: string,
+      timezone?: string
+    ): string {
       void timezone;
       const range = computeRange(date, granularity);
       const startIso = new Date(range.start).toISOString();
@@ -435,7 +439,6 @@ function createGitLabBuilder(config: DashboardGlobalConfiguration): UrlBuilder {
       params.set('created_before', endIso);
 
       return `${baseUrl}/-/jobs?${params.toString()}`;
-    }
-
+    },
   };
-};
+}

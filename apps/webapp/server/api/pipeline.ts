@@ -10,38 +10,32 @@ type MetricOutlier = {
 
 export const pipelineAPI = {
   byStatus: (params?: ApiParams) =>
-    fetchAPI<Array<{ status: string; count: number }>>(
-      '/pipelines/by-status',
-      params
-    ),
-  
+    fetchAPI<Array<{ status: string; count: number }>>('/pipelines/by-status', params),
+
   jobsByStatus: (params?: ApiParams) =>
-    fetchAPI<Array<{ Status: string; Count: number }>>(
-      '/pipelines/jobs-by-status',
-      params
-    ),
+    fetchAPI<Array<{ Status: string; Count: number }>>('/pipelines/jobs-by-status', params),
 
   jobsSummary: (params?: ApiParams) =>
-    fetchAPI<Array<{
-      workflow_name?: string;
-      job_name: string;
-      total_runs: number;
-      value: number;
-      value_formatted: string;
-      method: string;
-      success_count: number;
-      failure_count: number;
-      success_rate: number;
-      failure_rate: number;
-      rerun_count: number;
-      outliers?: MetricOutlier[];
-    }>>('/pipelines/jobs-summary', params),
+    fetchAPI<
+      Array<{
+        workflow_name?: string;
+        job_name: string;
+        total_runs: number;
+        value: number;
+        value_formatted: string;
+        method: string;
+        success_count: number;
+        failure_count: number;
+        success_rate: number;
+        failure_rate: number;
+        rerun_count: number;
+        outliers?: MetricOutlier[];
+      }>
+    >('/pipelines/jobs-summary', params),
 
   jobsRerunsByDay: (params?: ApiParams) =>
-    fetchAPI<Array<{ day: string; rerun_count: number }>>(      '/pipelines/jobs-reruns-by-day',
-      params
-    ),
-  
+    fetchAPI<Array<{ day: string; rerun_count: number }>>('/pipelines/jobs-reruns-by-day', params),
+
   summary: (params?: ApiParams) =>
     fetchAPI<{
       total_runs: number;
@@ -50,69 +44,108 @@ export const pipelineAPI = {
       in_progress: number;
       queued: number;
     }>('/pipelines/summary', params),
-  
+
   runsDuration: (params?: ApiParams) =>
-    fetchAPI<Array<{
-      workflow: string;
-      aggregation?: 'avg' | 'min' | 'max';
-      duration?: number;
-      duration_formatted?: string;
-      value?: number;
-      value_formatted?: string;
-      method?: string;
-      min_duration?: number;
-      min_duration_formatted?: string;
-      max_duration?: number;
-      max_duration_formatted?: string;
-      total_runs: number;
-      outliers?: MetricOutlier[];
-    }>>(
-      '/pipelines/runs-duration',
-      params
-    ),
+    fetchAPI<
+      Array<{
+        workflow: string;
+        aggregation?: 'avg' | 'min' | 'max';
+        duration?: number;
+        duration_formatted?: string;
+        value?: number;
+        value_formatted?: string;
+        method?: string;
+        min_duration?: number;
+        min_duration_formatted?: string;
+        max_duration?: number;
+        max_duration_formatted?: string;
+        total_runs: number;
+        outliers?: MetricOutlier[];
+      }>
+    >('/pipelines/runs-duration', params),
 
   jobsDurationByWorkflow: (params?: ApiParams) =>
-    fetchAPI<Array<{ workflow: string; jobs: Record<string, number>; jobs_formatted: Record<string, string> }>>(
-      '/pipelines/jobs-duration-by-workflow',
-      params
-    ),
-  
+    fetchAPI<
+      Array<{
+        workflow: string;
+        jobs: Record<string, number>;
+        jobs_formatted: Record<string, string>;
+      }>
+    >('/pipelines/jobs-duration-by-workflow', params),
+
   deploymentFrequency: (params?: ApiParams) =>
-    fetchAPI<Array<{ pipeline: string; job: string; days: string; weeks: string; months: string; daily_counts: number; weekly_counts: number; monthly_counts: number; commits: string; links: string }>>(
-      '/dora/deployment-frequency',
-      params
-    ),
-  
+    fetchAPI<
+      Array<{
+        pipeline: string;
+        job: string;
+        days: string;
+        weeks: string;
+        months: string;
+        daily_counts: number;
+        weekly_counts: number;
+        monthly_counts: number;
+        commits: string;
+        links: string;
+      }>
+    >('/dora/deployment-frequency', params),
+
   runsBy: (params?: ApiParams) =>
     fetchAPI<Array<{ period: string; workflow: string; runs: number }>>(
       '/pipelines/runs-by',
       params
     ),
-  
+
   jobsTimeExecution: (params?: ApiParams) =>
-    fetchAPI<Array<{ job_name: string; value: number; value_formatted: string; method: string; count: number; outliers?: MetricOutlier[] }>>(
-      '/pipelines/jobs-time-execution',
-      params
-    ),
+    fetchAPI<
+      Array<{
+        job_name: string;
+        value: number;
+        value_formatted: string;
+        method: string;
+        count: number;
+        outliers?: MetricOutlier[];
+      }>
+    >('/pipelines/jobs-time-execution', params),
 
   jobsTimeExecutionByDay: (params?: ApiParams) =>
-    fetchAPI<Array<{ day: string; value: number; value_formatted: string; method: string; count: number; outliers?: MetricOutlier[] }>>(
-      '/pipelines/jobs-time-execution-by-day',
-      params
-    ),
+    fetchAPI<
+      Array<{
+        day: string;
+        value: number;
+        value_formatted: string;
+        method: string;
+        count: number;
+        outliers?: MetricOutlier[];
+      }>
+    >('/pipelines/jobs-time-execution-by-day', params),
 
   jobStepsTime: (params?: ApiParams) =>
     fetchAPI<{
-      result: Array<{ name: string; value: number; value_formatted: string; method: string; count: number; outliers?: MetricOutlier[] }>;
+      result: Array<{
+        name: string;
+        value: number;
+        value_formatted: string;
+        method: string;
+        count: number;
+        outliers?: MetricOutlier[];
+      }>;
       total_minutes: number;
       total_minutes_formatted: string;
     }>('/pipelines/jobs-steps-time', params),
 
   jobStepsTimeByDay: (params?: ApiParams) =>
-    fetchAPI<Array<{ day: string; steps: Array<{ name: string; value: number; value_formatted: string; method: string; outliers?: MetricOutlier[] }> }>>(
-      '/pipelines/jobs-steps-time-by-day',
-      params
-    ),
+    fetchAPI<
+      Array<{
+        day: string;
+        steps: Array<{
+          name: string;
+          value: number;
+          value_formatted: string;
+          method: string;
+          outliers?: MetricOutlier[];
+        }>;
+      }>
+    >('/pipelines/jobs-steps-time-by-day', params),
 
   dashboard: (params?: ApiParams) =>
     fetchAPI<{
@@ -219,7 +252,6 @@ export const pipelineAPI = {
       };
     }>('/pipelines/evaluate', params),
 
-  // Filter option endpoints
   getFilterOptions: (params?: ApiParams) =>
     fetchAPI<{
       workflows: Array<{ name: string; path: string }>;

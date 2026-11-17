@@ -74,21 +74,6 @@ function createRequestTimeZoneProvider(
   }
 }
 
-/**
- * REST API Module
- *
- * Provides NestJS module configuration for the metrics API.
- * All providers and repositories are initialized here.
- *
- * Dependencies:
- * - ConfigurationRepository: Loads environment variables and smm_config.json
- * - GitHub Clients: Real API integration
- * - Jira Client: Issue tracking
- * - SonarQube Client: Code quality metrics
- * - Git Traverser: Local repository analysis
- * - CodeMaat Analyzer: Code churn and coupling
- * - Repositories: Data access layer
- */
 @Module({
   controllers: [
     MetricsController,
@@ -112,14 +97,12 @@ function createRequestTimeZoneProvider(
     MetricsCatalogController,
   ],
   providers: [
-    // Configuration Repository (singleton — caches project list)
     {
       provide: ConfigurationRepository,
       useFactory: (): ConfigurationRepository =>
         new ConfigurationRepository(process.env, undefined, new Logger('ConfigurationRepository')),
     },
 
-    // Configuration (request-scoped — resolved per request from ?project= query param)
     {
       provide: Configuration,
       scope: Scope.REQUEST,
@@ -135,7 +118,7 @@ function createRequestTimeZoneProvider(
             return configRepo.fromProjectConfig(projectConfig);
           }
         }
-        // Fallback: use default active configuration
+
         return configRepo.getActiveConfiguration();
       },
       inject: [ConfigurationRepository, REQUEST],
@@ -148,7 +131,6 @@ function createRequestTimeZoneProvider(
       inject: [Configuration, REQUEST],
     },
 
-    // Issues (provider selected by `issues_provider`: jira or github)
     {
       provide: IssuesRepository,
       useFactory: (config: Configuration, timeZoneProvider: TimeZoneProvider): IssuesRepository =>
@@ -157,7 +139,6 @@ function createRequestTimeZoneProvider(
       inject: [Configuration, TimeZoneProvider],
     },
 
-    // SonarQube Client
     {
       provide: SonarqubeMeasuresClient,
       useFactory: (config: Configuration): SonarqubeMeasuresClient =>
@@ -170,7 +151,6 @@ function createRequestTimeZoneProvider(
       inject: [Configuration],
     },
 
-    // Git & CodeMaat
     {
       provide: CommitTraverser,
       useFactory: (config: Configuration): CommitTraverser =>
@@ -180,7 +160,7 @@ function createRequestTimeZoneProvider(
         ),
       inject: [Configuration],
     },
-    // Repositories
+
     {
       provide: ChangeRequestsRepository,
       useFactory: (
@@ -370,7 +350,6 @@ function createRequestTimeZoneProvider(
 })
 export class MetricsModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    // Register logging middleware for all routes
     consumer.apply(LoggingMiddleware).forRoutes('*');
   }
 }

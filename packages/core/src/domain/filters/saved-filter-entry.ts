@@ -1,10 +1,8 @@
 export interface DashboardFilters {
-  // Date filters
   startDate: string;
   endDate: string;
   timezone?: string;
 
-  // Pipeline filters
   workflowSelector?: string;
   workflowStatus: string[];
   workflowConclusions: string[];
@@ -12,7 +10,6 @@ export interface DashboardFilters {
   branch: string[];
   event: string[];
 
-  // Change request filters
   authorSelect: string[];
   excludeAuthorSelect: string[];
   excludeCommenterSelect: string[];
@@ -20,11 +17,9 @@ export interface DashboardFilters {
   changeRequestStatus?: 'open' | 'closed' | 'merged' | 'draft';
   aggregateBy?: string;
 
-  // Average computation filters
   weekends: 'include' | 'exclude' | 'weekends_only';
   outlierMode: 'include' | 'flag' | 'exclude';
 
-  // Engineering health filters
   metric?: string;
   category?: string;
   compareStartDate: string;
@@ -32,17 +27,14 @@ export interface DashboardFilters {
   rawFilters: string;
   period: 'day' | 'week' | 'month';
 
-  // Source code filters
   ignorePatternFiles: string;
   includePatternFiles: string;
   authorSelectSourceCode: string[];
   topEntries: number;
   typeChurn?: string;
 
-  // Metrics filters
   aggregateMetric: string;
 
-  // SonarQube filters
   sonarqubeRemoveFolders: boolean;
 }
 

@@ -94,15 +94,6 @@ export type CodeChurnValueResult = {
   endDate?: string;
 };
 
-/**
- * Pure projection of a raw CodeChurnResult into a single-value series.
- *
- * The repository always returns raw rows ({ date, added, deleted, commits }).
- * This function selects one metric per row (added, deleted, commits, or the
- * added+deleted total) so the dashboard can plot a single `value` series.
- * Kept as a pure function so the projection logic lives in exactly one place
- * instead of being duplicated inside every repository implementation.
- */
 export function projectCodeChurnValue(
   result: CodeChurnResult,
   typeChurn?: string

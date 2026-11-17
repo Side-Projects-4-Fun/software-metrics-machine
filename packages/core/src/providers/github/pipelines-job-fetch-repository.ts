@@ -68,7 +68,6 @@ export class PipelinesJobFetchRepository {
       return merged;
     }
 
-    // Manual date range with merge
     if (
       (filters?.startDate || filters?.endDate) &&
       !filters?.forceRefresh &&
@@ -132,7 +131,6 @@ export class PipelinesJobFetchRepository {
   ): Promise<WorkflowJobJsonResponse[]> {
     const allJobs: WorkflowJobJsonResponse[] = [];
 
-    // For fetch, convert timezone-aware dates to UTC boundaries for the GitHub API.
     const totalDays = this.countDays(startDate, endDate);
     for (let i = 0; i < totalDays; i++) {
       const dayDate = this.addDays(startDate, i);
@@ -166,9 +164,6 @@ export class PipelinesJobFetchRepository {
     return allJobs;
   }
 
-  /**
-   * Count the number of days between two date strings (inclusive).
-   */
   private countDays(startDate: string, endDate: string): number {
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -176,9 +171,6 @@ export class PipelinesJobFetchRepository {
     return Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
   }
 
-  /**
-   * Add N days to a date string and return "YYYY-MM-DD".
-   */
   private addDays(dateStr: string, days: number): string {
     const d = new Date(dateStr);
     d.setUTCDate(d.getUTCDate() + days);

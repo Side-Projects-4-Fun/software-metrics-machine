@@ -1,13 +1,6 @@
 import { listMetricCatalogEntries } from './metric-catalog';
 import type { MetricCatalogEntry } from './metric-catalog';
 
-/**
- * Flattened, serialisable view of the metric catalog.
- *
- * Used by the generated documentation artifacts (JSON + CSV) so the reference
- * page and offline exports are produced from the same source as the CLI, REST
- * API, MCP server and dashboard.
- */
 export const METRIC_CATALOG_EXPORT_COLUMNS = [
   'id',
   'namespace',

@@ -162,8 +162,6 @@ function readNumber(value: unknown, fieldName: string): number | undefined {
     }
   }
 
-  // Non-numeric inputs (e.g. "ten", "all") are ignored rather than rejected so
-  // the caller can fall back to the service default.
   void fieldName;
   return undefined;
 }

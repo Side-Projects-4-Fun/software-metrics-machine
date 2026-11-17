@@ -3,15 +3,31 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClientPaginatedSortableTable } from '@/components/ui/client-paginated-sortable-table';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  CartesianGrid,
+} from 'recharts';
 import { JobStepsTimeData, JobStepsTimeByDayData } from './types';
 import { TargetInfo } from '@/components/charts/TargetInfo';
 import { formatMetricLabel, formatMetricMethod } from '@/utils/formatMetricMethod';
 
-// Generate a sequence of colors for the stacked bars
 const COLORS = [
-  '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#a4de6c', 
-  '#d0ed57', '#83a6ed', '#8dd1e1', '#82ca9d', '#a4de6c'
+  '#8884d8',
+  '#82ca9d',
+  '#ffc658',
+  '#ff8042',
+  '#a4de6c',
+  '#d0ed57',
+  '#83a6ed',
+  '#8dd1e1',
+  '#82ca9d',
+  '#a4de6c',
 ];
 
 export default function JobStepsAnalysis({
@@ -69,16 +85,21 @@ export default function JobStepsAnalysis({
           <TargetInfo metric="pl-job-steps-duration" />
         </div>
         <p className="text-sm text-gray-500">
-          {methodLabel} execution time of each step across {data[0]?.count || 0} runs.
-          Total {methodLabel.toLowerCase()} time: {totalTimeFormatted || '—'}.
+          {methodLabel} execution time of each step across {data[0]?.count || 0} runs. Total{' '}
+          {methodLabel.toLowerCase()} time: {totalTimeFormatted || '—'}.
         </p>
       </CardHeader>
       <CardContent>
-        {/* Daily Stacked Bar Chart showing step durations over time */}
+        {}
         {dataByDay && dataByDay.length > 0 && (
           <div className="mb-10">
-            <h4 className="text-sm font-semibold mb-4 text-gray-700">{methodLabel} Duration By Day</h4>
-            <div className="mb-4 flex flex-wrap items-center gap-2" aria-label="Toggle step duration bars">
+            <h4 className="text-sm font-semibold mb-4 text-gray-700">
+              {methodLabel} Duration By Day
+            </h4>
+            <div
+              className="mb-4 flex flex-wrap items-center gap-2"
+              aria-label="Toggle step duration bars"
+            >
               {data.map((step, index) => (
                 <label
                   key={step.name}
@@ -119,10 +140,7 @@ export default function JobStepsAnalysis({
             )}
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={dataByDay}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
+                <BarChart data={dataByDay} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="day" />
                   <YAxis
@@ -139,7 +157,10 @@ export default function JobStepsAnalysis({
                   />
                   <Legend />
                   {visibleSteps.map((step) => {
-                    const colorIndex = Math.max(data.findIndex((item) => item.name === step.name), 0);
+                    const colorIndex = Math.max(
+                      data.findIndex((item) => item.name === step.name),
+                      0
+                    );
                     return (
                       <Bar
                         key={step.name}
@@ -156,34 +177,10 @@ export default function JobStepsAnalysis({
           </div>
         )}
 
-        {/* Overall Proportions Stacked Bar Chart */}
-        {/* <div className="h-48 mb-6">
-          <h4 className="text-sm font-semibold mb-4 text-gray-700">Overall Time Proportion</h4>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              layout="vertical"
-              data={chartData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <XAxis type="number" hide />
-              <YAxis dataKey="name" type="category" hide />
-              <Tooltip 
-                formatter={(value: unknown, name: unknown) => [formatStepValue(Number(value) || 0, String(name)), name]}
-              />
-              {data.map((step, index) => (
-                <Bar 
-                  key={step.name} 
-                  dataKey={step.name} 
-                  stackId="a" 
-                  fill={COLORS[index % COLORS.length]} 
-                  name={step.name}
-                />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        </div> */}
+        {}
+        {}
 
-        {/* Breakdown List */}
+        {}
         <div className="overflow-x-auto">
           <ClientPaginatedSortableTable
             columns={[
@@ -215,7 +212,10 @@ export default function JobStepsAnalysis({
                 renderCell: (step: JobStepsTimeData & { _percentage: number }) => (
                   <span className="tabular-nums text-gray-600">{step._percentage.toFixed(1)}%</span>
                 ),
-                compare: (a: JobStepsTimeData & { _percentage: number }, b: JobStepsTimeData & { _percentage: number }) => a._percentage - b._percentage,
+                compare: (
+                  a: JobStepsTimeData & { _percentage: number },
+                  b: JobStepsTimeData & { _percentage: number }
+                ) => a._percentage - b._percentage,
               },
             ]}
             rows={data.map((step, index) => ({

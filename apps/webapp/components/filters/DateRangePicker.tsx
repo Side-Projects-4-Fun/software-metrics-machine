@@ -11,17 +11,13 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DateCalendar, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateCalendar, LocalizationProvider } from '@mui/x-date-pickers';
 import { PickerDay, PickerDayProps } from '@mui/x-date-pickers/PickerDay';
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from 'dayjs';
 import { useMemo, useState } from 'react';
 import { useFilters } from './FiltersContext';
 import { DashboardFilters } from './DashboardFilters';
-
-// ---------------------------------------------------------------------------
-// Shared types and helpers (presets, parsing, formatting, calendar day styling)
-// ---------------------------------------------------------------------------
 
 interface PresetRange {
   label: string;
@@ -198,12 +194,6 @@ function RangePickerDay({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Shared picker UI. Controlled component — takes ISO strings in, calls back
-// when the user applies a range. All open/close, hover, and calendar state is
-// self-contained.
-// ---------------------------------------------------------------------------
-
 interface DateRangePickerPopoverProps {
   label: string;
   startDate: string;
@@ -224,21 +214,27 @@ function DateRangePickerPopover({
   endInputLabel = 'End',
 }: DateRangePickerPopoverProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const [tempStartDate, setTempStartDate] = useState<Dayjs | null>(parseFilterDate(startDate, 'start'));
+  const [tempStartDate, setTempStartDate] = useState<Dayjs | null>(
+    parseFilterDate(startDate, 'start')
+  );
   const [tempEndDate, setTempEndDate] = useState<Dayjs | null>(parseFilterDate(endDate, 'end'));
   const [hoveredDate, setHoveredDate] = useState<Dayjs | null>(null);
   const isOpen = Boolean(anchorEl);
   const displayValue = getDisplayValue(startDate, endDate);
   const calendarValue = tempEndDate || tempStartDate || dayjs();
 
-  const activePreset = useMemo(() => presets.find((preset) => {
-    if (!startDate || !endDate) {
-      return false;
-    }
+  const activePreset = useMemo(
+    () =>
+      presets.find((preset) => {
+        if (!startDate || !endDate) {
+          return false;
+        }
 
-    const [presetStart, presetEnd] = preset.getRange();
-    return startDate === formatDate(presetStart) && endDate === formatDate(presetEnd);
-  })?.label, [endDate, startDate]);
+        const [presetStart, presetEnd] = preset.getRange();
+        return startDate === formatDate(presetStart) && endDate === formatDate(presetEnd);
+      })?.label,
+    [endDate, startDate]
+  );
 
   const openPicker = (event: React.MouseEvent<HTMLElement>) => {
     setTempStartDate(parseFilterDate(startDate, 'start'));
@@ -422,10 +418,6 @@ function DateRangePickerPopover({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Public components
-// ---------------------------------------------------------------------------
-
 export default function DateRangePicker() {
   return (
     <FilterDateRangePicker
@@ -462,12 +454,8 @@ export function FilterDateRangePicker({
       label={label}
       startDate={startDate}
       endDate={endDate}
-      onStartChange={(value) =>
-        updateFilter(startKey, value as DashboardFilters[typeof startKey])
-      }
-      onEndChange={(value) =>
-        updateFilter(endKey, value as DashboardFilters[typeof endKey])
-      }
+      onStartChange={(value) => updateFilter(startKey, value as DashboardFilters[typeof startKey])}
+      onEndChange={(value) => updateFilter(endKey, value as DashboardFilters[typeof endKey])}
       startInputLabel={startInputLabel}
       endInputLabel={endInputLabel}
     />

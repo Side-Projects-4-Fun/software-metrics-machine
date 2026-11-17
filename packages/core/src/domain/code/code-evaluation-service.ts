@@ -5,7 +5,7 @@ import type {
   CodeEvaluationSeverity,
 } from './code-evaluation-types';
 
-function calculateCrapScore(complexity: number, coverage: number): number {
+export function calculateCrapScore(complexity: number, coverage: number): number {
   const normalizedCoverage = Math.min(Math.max(coverage, 0), 100) / 100;
   const rawScore = complexity ** 2 * (1 - normalizedCoverage) ** 3 + complexity;
   return Math.round(rawScore * 10) / 10;

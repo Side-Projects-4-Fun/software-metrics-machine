@@ -73,16 +73,6 @@ async function mapWithConcurrency<T, R>(
   return results;
 }
 
-/**
- * Jira API client for issues and comments.
- *
- * Real implementation using Jira REST API v3:
- *   - GET /rest/api/3/search/jql - Search/list issues with JQL
- *   - GET /rest/api/3/issue/{issueIdOrKey}/comment - Get issue comments
- *
- * Jira has no repository-wide comment endpoint. Bulk comment fetching resolves
- * candidate parent issues through JQL and then pages each issue's comments.
- */
 export class JiraIssuesClient implements IIssuesClient {
   readonly provider = 'jira' as const;
   private axiosInstance: AxiosInstance;

@@ -75,12 +75,11 @@ const AppBar = styled(MuiAppBar, {
     marginLeft: `${totalLeft}px`,
     marginRight: `${totalRight}px`,
     transition: theme.transitions.create(['margin', 'width'], {
-      easing: open || leftOpen
-        ? theme.transitions.easing.easeOut
-        : theme.transitions.easing.sharp,
-      duration: open || leftOpen
-        ? theme.transitions.duration.enteringScreen
-        : theme.transitions.duration.leavingScreen,
+      easing: open || leftOpen ? theme.transitions.easing.easeOut : theme.transitions.easing.sharp,
+      duration:
+        open || leftOpen
+          ? theme.transitions.duration.enteringScreen
+          : theme.transitions.duration.leavingScreen,
     }),
   };
 });
@@ -131,152 +130,148 @@ export default function AppShell({
   };
 
   return (
-      <Box sx={{ display: 'flex' }}>
-        <AppBar position="fixed" open={rightOpen} leftOpen={leftOpen} sx={{ bgcolor: accentColor }}>
-          <Toolbar>
+    <Box sx={{ display: 'flex' }}>
+      <AppBar position="fixed" open={rightOpen} leftOpen={leftOpen} sx={{ bgcolor: accentColor }}>
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            aria-label="open projects panel"
+            data-testid="open-projects-panel"
+            onClick={handleLeftDrawerOpen}
+            edge="start"
+            sx={[{ mr: 2 }, leftOpen && { display: 'none' }]}
+          >
+            <FolderOpenIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+            <Link href="/" className="text-white no-underline">
+              Software Metrics Machine
+            </Link>
+            {repository && ` - ${repository}`}
+          </Typography>
+          <ThemeToggle />
+          <IconButton
+            color="inherit"
+            aria-label="print page"
+            onClick={() => window.print()}
+            edge="end"
+            sx={{ ml: 1 }}
+            className="no-print"
+          >
+            <Print />
+          </IconButton>
+          <IconButton
+            color="inherit"
+            aria-label="open repository in github"
+            component="a"
+            href="https://github.com/Side-Projects-4-Fun/software-metrics-machine"
+            target="_blank"
+            rel="noreferrer"
+            edge="end"
+            sx={{ ml: 1 }}
+          >
+            <GitHubIcon />
+          </IconButton>
+          {showFilters ? (
             <IconButton
               color="inherit"
-              aria-label="open projects panel"
-              data-testid="open-projects-panel"
-              onClick={handleLeftDrawerOpen}
-              edge="start"
+              aria-label="open drawer"
+              data-testid="open-filters-panel"
+              onClick={handleRightDrawerOpen}
+              edge="end"
               sx={[
-                { mr: 2 },
-                leftOpen && { display: 'none' },
+                {
+                  ml: 2,
+                },
+                rightOpen && { display: 'none' },
               ]}
             >
-              <FolderOpenIcon />
+              <MenuIcon />
             </IconButton>
-            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-              <Link href="/" className="text-white no-underline">
-                Software Metrics Machine
-              </Link>
-            {repository && ` - ${repository}`}
-            </Typography>
-            <ThemeToggle />
-            <IconButton
-              color="inherit"
-              aria-label="print page"
-              onClick={() => window.print()}
-              edge="end"
-              sx={{ ml: 1 }}
-              className="no-print"
-            >
-              <Print />
-            </IconButton>
-            <IconButton
-              color="inherit"
-              aria-label="open repository in github"
-              component="a"
-              href="https://github.com/Side-Projects-4-Fun/software-metrics-machine"
-              target="_blank"
-              rel="noreferrer"
-              edge="end"
-              sx={{ ml: 1 }}
-            >
-              <GitHubIcon />
-            </IconButton>
-            {showFilters ? (
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                data-testid="open-filters-panel"
-                onClick={handleRightDrawerOpen}
-                edge="end"
-                sx={[
-                  {
-                    ml: 2,
-                  },
-                  rightOpen && { display: 'none' },
-                ]}
-              >
-                <MenuIcon />
-              </IconButton>
-            ) : null}
-          </Toolbar>
-        </AppBar>
+          ) : null}
+        </Toolbar>
+      </AppBar>
 
-        {/* Left Drawer - Projects */}
-        <Drawer
-          slotProps={{ docked: { 'data-testid': 'projects-drawer' } }}
-          sx={{
+      {}
+      <Drawer
+        slotProps={{ docked: { 'data-testid': 'projects-drawer' } }}
+        sx={{
+          width: leftDrawerWidth,
+          flexShrink: 0,
+
+          pointerEvents: leftOpen ? 'auto' : 'none',
+          '& .MuiDrawer-paper': {
             width: leftDrawerWidth,
+            boxSizing: 'border-box',
+          },
+        }}
+        variant="persistent"
+        anchor="left"
+        open={leftOpen}
+      >
+        <DrawerHeader sx={{ justifyContent: 'space-between' }}>
+          <Typography variant="h6" sx={{ ml: 1 }}>
+            Projects
+          </Typography>
+          <IconButton
+            onClick={handleLeftDrawerClose}
+            aria-label="close projects panel"
+            data-testid="close-projects-panel"
+          >
+            {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+          </IconButton>
+        </DrawerHeader>
+        <Divider />
+        <Box sx={{ overflowY: 'auto' }}>
+          <ProjectsSidebar />
+        </Box>
+      </Drawer>
+
+      {}
+      <Main
+        open={rightOpen}
+        leftOpen={leftOpen}
+        showFilters={showFilters}
+        data-testid="dashboard-content"
+      >
+        <DrawerHeader />
+        {showTabs ? <DashboardTabs /> : null}
+        {children}
+      </Main>
+
+      {}
+      {showFilters ? (
+        <Drawer
+          slotProps={{ docked: { 'data-testid': 'filters-drawer' } }}
+          sx={{
+            width: drawerWidth,
             flexShrink: 0,
-            // The persistent root keeps its width while closed and the main
-            // content is pulled underneath it. Do not let it swallow clicks.
-            pointerEvents: leftOpen ? 'auto' : 'none',
+
+            pointerEvents: rightOpen ? 'auto' : 'none',
             '& .MuiDrawer-paper': {
-              width: leftDrawerWidth,
+              width: drawerWidth,
               boxSizing: 'border-box',
             },
           }}
           variant="persistent"
-          anchor="left"
-          open={leftOpen}
+          anchor="right"
+          open={rightOpen}
         >
-          <DrawerHeader sx={{ justifyContent: 'space-between' }}>
-            <Typography variant="h6" sx={{ ml: 1 }}>Projects</Typography>
+          <DrawerHeader>
             <IconButton
-              onClick={handleLeftDrawerClose}
-              aria-label="close projects panel"
-              data-testid="close-projects-panel"
+              onClick={handleRightDrawerClose}
+              aria-label="close filters panel"
+              data-testid="close-filters-panel"
             >
               {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
             </IconButton>
           </DrawerHeader>
           <Divider />
-          <Box sx={{ overflowY: 'auto' }}>
-            <ProjectsSidebar />
+          <Box sx={{ p: 2, overflowY: 'auto' }}>
+            <FiltersContainer repository={repository} />
           </Box>
         </Drawer>
-
-        {/* Main Content */}
-        <Main
-          open={rightOpen}
-          leftOpen={leftOpen}
-          showFilters={showFilters}
-          data-testid="dashboard-content"
-        >
-          <DrawerHeader />
-          {showTabs ? <DashboardTabs /> : null}
-          {children}
-        </Main>
-
-        {/* Right Drawer - Filters */}
-        {showFilters ? (
-          <Drawer
-            slotProps={{ docked: { 'data-testid': 'filters-drawer' } }}
-            sx={{
-              width: drawerWidth,
-              flexShrink: 0,
-              // The closed drawer root still occupies 410px and the main
-              // content extends beneath it (marginRight: -410px). Without this
-              // guard the root intercepts clicks on the last cards.
-              pointerEvents: rightOpen ? 'auto' : 'none',
-              '& .MuiDrawer-paper': {
-                width: drawerWidth,
-                boxSizing: 'border-box',
-              },
-            }}
-            variant="persistent"
-            anchor="right"
-            open={rightOpen}
-          >
-            <DrawerHeader>
-              <IconButton
-                onClick={handleRightDrawerClose}
-                aria-label="close filters panel"
-                data-testid="close-filters-panel"
-              >
-                {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-              </IconButton>
-            </DrawerHeader>
-            <Divider />
-            <Box sx={{ p: 2, overflowY: 'auto' }}>
-              <FiltersContainer repository={repository} />
-            </Box>
-          </Drawer>
-        ) : null}
-      </Box>
+      ) : null}
+    </Box>
   );
 }

@@ -2,10 +2,6 @@ import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ConfigurationRepository } from '@smmachine/core';
 
-/**
- * Projects REST Controller
- * Provides endpoints for listing available projects from smm_config.json
- */
 @ApiTags('Projects')
 @Controller()
 export class ProjectsController {

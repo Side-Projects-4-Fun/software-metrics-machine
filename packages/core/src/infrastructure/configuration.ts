@@ -8,119 +8,50 @@ export interface JsonObject {
 }
 
 export interface IConfiguration {
-  /**
-   * Git provider (github, gitlab)
-   */
   gitProvider?: string;
 
-  /**
-   * GitHub API token for authentication
-   */
   githubToken?: string;
 
-  /**
-   * GitLab API token for authentication
-   */
   gitlabToken?: string;
 
-  /**
-   * GitLab instance URL (e.g. https://gitlab.example.com).
-   * Defaults to https://gitlab.com when omitted.
-   */
   gitlabUrl?: string;
 
-  /**
-   * GitHub repository in format owner/repo
-   */
   githubRepository?: string;
 
-  /**
-   * Path to store data
-   */
   storeData: string;
 
-  /**
-   * Git repository location (local path)
-   */
   gitRepositoryLocation?: string;
 
-  /**
-   * Target workflows and jobs for deployment frequency
-   */
   deploymentFrequencyTargets?: ConfigurableDeploymentFrequencyTarget[];
 
-  /**
-   * Main branch name
-   */
   mainBranch?: string;
 
-  /**
-   * Dashboard start date
-   */
   dashboardStartDate?: string;
 
-  /**
-   * Dashboard end date
-   */
   dashboardEndDate?: string;
 
-  /**
-   * Log level (DEBUG, INFO, WARN, ERROR, CRITICAL)
-   */
   loggingLevel: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL';
 
-  /**
-   * Jira URL
-   */
   jiraUrl?: string;
 
-  /**
-   * Jira email
-   */
   jiraEmail?: string;
 
-  /**
-   * Jira API token for authentication
-   */
   jiraToken?: string;
 
-  /**
-   * Jira project key
-   */
   jiraProject?: string;
 
-  /**
-   * Issue tracker provider used by `smm issues` and `GET /api/metrics/issues`.
-   * Defaults to 'jira' when omitted. `jira-csv` reads a Jira CSV export instead
-   * of calling the Jira API.
-   */
   issuesProvider?: 'jira' | 'github' | 'jira-csv';
 
-  /**
-   * SonarQube server URL
-   */
   sonarUrl?: string;
 
-  /**
-   * SonarQube authentication token
-   */
   sonarToken?: string;
 
-  /**
-   * SonarQube project key
-   */
   sonarProject?: string;
 
-  /**
-   * SonarQube local analysis runner token (generated and persisted by local analysis)
-   */
   sonarLocalRunnerToken?: string;
 
   storeLogs?: boolean;
 
-  /**
-   * IANA timezone identifier (e.g. "Europe/Madrid", "UTC")
-   */
   timezone?: string;
 }
 
@@ -129,9 +60,6 @@ export interface ConfigurableDeploymentFrequencyTarget extends JsonObject {
   job: string;
 }
 
-/**
- * Shape of a single project entry in smm_config.json
- */
 export interface ISmmProjectConfig extends JsonObject {
   git_provider?: string;
   github_token?: string;
@@ -157,19 +85,11 @@ export interface ISmmProjectConfig extends JsonObject {
   timezone?: string;
 }
 
-/**
- * Shape of smm_config.json with multi-project support
- */
 export interface ISmmConfigFile extends JsonObject {
   github_token?: string;
   projects?: ISmmProjectConfig[];
 }
 
-/**
- * Runtime configuration values.
- *
- * Loading and persistence belong to ConfigurationRepository.
- */
 export class Configuration implements IConfiguration {
   gitProvider?: string;
   githubToken?: string;

@@ -26,14 +26,6 @@ import type {
   ICodeMetricsRepository,
 } from '../../../../domain/code/codemaat/repositories/codemaat-metrics-repository';
 
-/**
- * Combines Git and CodeMaat providers with code metrics domain logic
- * Handles:
- * - Analyzing commits from git repository
- * - Calculating pairing index
- * - Loading code churn metrics
- * - Analyzing file coupling
- */
 export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
   protected logger: Logger;
   protected dataDir: string;
@@ -57,7 +49,6 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
           (options?.endDate ? ` to ${options.endDate}` : '')
       );
 
-      // Check if file exists
       if (!fs.existsSync(csvPath)) {
         this.logger.warn(`Code churn file not found: ${csvPath}`);
         return {
@@ -78,10 +69,8 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
         };
       }
 
-      // Parse header
       const header = lines[0].split(',').map((h) => h.trim().replace(/^"|"$/g, ''));
 
-      // Find column indices
       const dateIdx = header.indexOf('date') >= 0 ? header.indexOf('date') : header.indexOf('Date');
       const addedIdx = header.findIndex(
         (h) => h.toLowerCase().includes('added') || h.toLowerCase().includes('insertions')
@@ -100,14 +89,13 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
         };
       }
 
-      // Parse data rows
       const data: CodeChurn[] = [];
 
       for (let i = 1; i < lines.length; i++) {
         const row = lines[i].split(',').map((v) => v.trim().replace(/^"|"$/g, ''));
 
         if (row.length <= Math.max(dateIdx, addedIdx, deletedIdx)) {
-          continue; // Skip malformed rows
+          continue;
         }
 
         const date = row[dateIdx];
@@ -115,14 +103,13 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
         const deleted = parseInt(row[deletedIdx], 10);
 
         if (isNaN(added) || isNaN(deleted)) {
-          continue; // Skip rows with non-numeric values
+          continue;
         }
         const commits = commitsIdx >= 0 ? parseInt(row[commitsIdx], 10) || 0 : 1;
 
         const startDate = options?.startDate ? this.toDateOnly(options.startDate) : undefined;
         const endDate = options?.endDate ? this.toDateOnly(options.endDate) : undefined;
 
-        // CodeMaat churn rows are daily, so datetime filters are applied at day precision.
         if (startDate && date < startDate) {
           continue;
         }
@@ -248,7 +235,6 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
 
       this.logger.info(`Reading file coupling from ${csvPath}`);
 
-      // Check if file exists
       if (!fs.existsSync(csvPath)) {
         this.logger.warn(`File coupling CSV not found: ${csvPath}`);
         return [];
@@ -263,12 +249,10 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
 
       const delimiter = this.detectCsvDelimiter(lines[0]);
 
-      // Parse header
       const header = this.parseCsvLine(lines[0], delimiter).map((h) =>
         h.trim().replace(/^"|"$/g, '')
       );
 
-      // Find column indices — support multiple header conventions
       const file1Idx = header.findIndex(
         (h) =>
           h.toLowerCase() === 'entity' ||
@@ -295,7 +279,6 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
         return [];
       }
 
-      // Parse data rows
       const coupleData: FileCoupling[] = [];
 
       for (let i = 1; i < lines.length; i++) {
@@ -304,7 +287,7 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
         );
 
         if (row.length <= Math.max(file1Idx, file2Idx, couplingIdx)) {
-          continue; // Skip malformed rows
+          continue;
         }
 
         const entity = row[file1Idx];
@@ -400,7 +383,6 @@ export class CodeMaatMetricsCsvRepository implements ICodeMetricsRepository {
       const char = line[i];
 
       if (char === '"') {
-        // Handle escaped quote
         if (inQuotes && line[i + 1] === '"') {
           current += '"';
           i += 1;

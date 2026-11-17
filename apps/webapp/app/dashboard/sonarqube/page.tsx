@@ -28,12 +28,9 @@ function unwrapResult<T>(data: T | ResultWrapper<T>): T {
   return data;
 }
 
-function metricValue(
-  measures: SonarqubeComponentMeasure['measures'] = [],
-  metric: string,
-): number {
+function metricValue(measures: SonarqubeComponentMeasure['measures'] = [], metric: string): number {
   const measure = measures.find(
-    (item) => item.key === metric || item.metric === metric || item.name === metric,
+    (item) => item.key === metric || item.metric === metric || item.name === metric
   );
 
   if (!measure) {
@@ -59,31 +56,34 @@ export default async function SonarqubePage({
 
   try {
     const apiParams = buildSonarqubeApiParams(filters);
-    const [tree, measResult, historyResult, componentTreeHistoryResult, evaluationResult] = await Promise.all([
-      sonarqubeAPI.componentTree(apiParams),
-      sonarqubeAPI.loadMeasurements(apiParams),
-      sonarqubeAPI.loadMeasurementHistory(apiParams),
-      sonarqubeAPI.loadComponentTreeHistory(apiParams),
-      sonarqubeAPI.evaluate(apiParams),
-    ]);
+    const [tree, measResult, historyResult, componentTreeHistoryResult, evaluationResult] =
+      await Promise.all([
+        sonarqubeAPI.componentTree(apiParams),
+        sonarqubeAPI.loadMeasurements(apiParams),
+        sonarqubeAPI.loadMeasurementHistory(apiParams),
+        sonarqubeAPI.loadComponentTreeHistory(apiParams),
+        sonarqubeAPI.evaluate(apiParams),
+      ]);
     evaluation = evaluationResult;
     measurements = ensureArray<SonarqubeMeasurement>(
       unwrapResult(measResult as SonarqubeMeasurement[] | ResultWrapper<SonarqubeMeasurement[]>)
     );
     measurementHistory = ensureArray<SonarqubeMeasurementHistoryEntry>(
-      unwrapResult(historyResult as SonarqubeMeasurementHistoryEntry[] | ResultWrapper<SonarqubeMeasurementHistoryEntry[]>)
+      unwrapResult(
+        historyResult as
+          SonarqubeMeasurementHistoryEntry[] | ResultWrapper<SonarqubeMeasurementHistoryEntry[]>
+      )
     );
     componentTreeHistory = ensureArray<SonarqubeComponentTreeHistoryEntry>(
       unwrapResult(
-        componentTreeHistoryResult as SonarqubeComponentTreeHistoryEntry[] | ResultWrapper<SonarqubeComponentTreeHistoryEntry[]>
+        componentTreeHistoryResult as
+          SonarqubeComponentTreeHistoryEntry[] | ResultWrapper<SonarqubeComponentTreeHistoryEntry[]>
       )
     );
     const treeData = ensureArray<SonarqubeComponentMeasure>(
       unwrapResult(tree as SonarqubeComponentMeasure[] | ResultWrapper<SonarqubeComponentMeasure[]>)
     );
 
-    // Assuming the first component in the tree is the main project component
-    // for which we want to display top-level metrics
     if (treeData.length > 0) {
       mainComponentMeasures = treeData[0].measures || [];
     }
@@ -137,10 +137,30 @@ export default async function SonarqubePage({
         </div>
       ) : null}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <SonarqubeStatCard title="Reliability Rating" value={reliabilityRating} color="#22c55e" metric="sq-reliability-rating" />
-        <SonarqubeStatCard title="Security Rating" value={securityRating} color="#f97316" metric="sq-security-rating" />
-        <SonarqubeStatCard title="Maintainability Rating" value={maintainabilityRating} color="#0ea5e9" metric="sq-maintainability-rating" />
-        <SonarqubeStatCard title="Duplication Density" value={duplicationDensity} color="#f43f5e" metric="sq-duplication-density" />
+        <SonarqubeStatCard
+          title="Reliability Rating"
+          value={reliabilityRating}
+          color="#22c55e"
+          metric="sq-reliability-rating"
+        />
+        <SonarqubeStatCard
+          title="Security Rating"
+          value={securityRating}
+          color="#f97316"
+          metric="sq-security-rating"
+        />
+        <SonarqubeStatCard
+          title="Maintainability Rating"
+          value={maintainabilityRating}
+          color="#0ea5e9"
+          metric="sq-maintainability-rating"
+        />
+        <SonarqubeStatCard
+          title="Duplication Density"
+          value={duplicationDensity}
+          color="#f43f5e"
+          metric="sq-duplication-density"
+        />
       </div>
       <SonarqubeMeasurementsTabbedCard measurements={measurements} history={measurementHistory} />
       <div className="grid grid-cols-1 gap-6">

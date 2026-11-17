@@ -39,13 +39,6 @@ function isWithinWindow(value: string | undefined, start?: string, end?: string)
   return true;
 }
 
-/**
- * File-backed Jira issue source.
- *
- * Reads the CSV export users place at `<project data dir>/Jira.csv`. It
- * implements the same contract as the Jira API client, so the repository,
- * CLI, REST API and MCP server do not need a file-specific path.
- */
 export class JiraCsvIssuesClient implements IIssuesClient {
   readonly provider = 'jira-csv' as const;
 
@@ -69,8 +62,7 @@ export class JiraCsvIssuesClient implements IIssuesClient {
           options?.startDate,
           options?.endDate
         );
-        // Incremental fetches use the latest cached updatedAt as `startDate`.
-        // Include issues updated in that window even when they were created earlier.
+
         const updatedInWindow = options?.startDate
           ? isWithinWindow(record.updatedAt ?? record.createdAt, options.startDate, options.endDate)
           : false;

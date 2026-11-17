@@ -1,27 +1,16 @@
-/**
- * Core Domain Types
- * Migrated from: api/src/software_metrics_machine/core/code_types.py
- */
-
 import type { PipelineStep } from './domain';
 
-/**
- * Represents a Git commit
- */
 export interface Commit {
   author: string;
   msg: string;
   hash: string;
-  timestamp: string | Date; // ISO format or Date object
+  timestamp: string | Date;
   email?: string;
   subject?: string;
   coAuthors?: string[];
   files?: CodeChange[];
 }
 
-/**
- * Represents a code change/diff
- */
 export interface CodeChange {
   path: string;
   additions: number;
@@ -29,9 +18,6 @@ export interface CodeChange {
   status: 'added' | 'modified' | 'deleted' | 'renamed';
 }
 
-/**
- * Pairing index calculation result
- */
 export interface PairingIndexResult {
   pairingIndexPercentage: number;
   totalAnalyzedCommits: number;
@@ -54,18 +40,12 @@ export interface PairedCommitSummary {
   subject: string;
 }
 
-/**
- * Traverser result for commit analysis
- */
 export interface TraverserResult {
   totalAnalyzedCommits: number;
   pairedCommits: number;
   commits: Commit[];
 }
 
-/**
- * Change request user information
- */
 export interface ChangeRequestUser {
   login: string;
   id: number;
@@ -76,35 +56,13 @@ export interface ChangeRequestLabel {
   description?: string;
 }
 
-// export interface ChangeRequest {
-//   id: number;
-//   number: number;
-//   title: string;
-//   body?: string;
-//   author: ChangeRequestUser;
-//   url: string;
-//   createdAt: string; // ISO format
-//   updatedAt: string;
-//   closedAt?: string;
-//   mergedAt?: string;
-//   state: 'open' | 'closed' | 'merged' | 'draft';
-//   additions?: number;
-//   deletions?: number;
-//   filesChanged?: number;
-//   labels?: ChangeRequestLabel[];
-//   comments?: number;
-// }
-
-/**
- * Detailed change request for analytics
- */
 export interface ChangeRequestDetails {
   id: number;
   number: number;
   title: string;
-  createdAt: string; // ISO format
+  createdAt: string;
   updatedAt: string;
-  mergedAt?: string; // null if not merged
+  mergedAt?: string;
   closedAt?: string;
   author: ChangeRequestUser;
   labels: ChangeRequestLabel[];
@@ -113,16 +71,13 @@ export interface ChangeRequestDetails {
   comments: number;
 }
 
-/**
- * CI/CD Pipeline run information
- */
 export interface PipelineJob {
   id: string;
   runId: string;
   name: string;
-  startedAt: string; // ISO format
+  startedAt: string;
   completedAt?: string;
-  conclusion: string; // success, failure, cancelled, skipped, timed_out
+  conclusion: string;
   status: string;
   durationSeconds?: number;
   steps?: PipelineStep[];
@@ -133,9 +88,9 @@ export interface PipelineRun {
   runAttempt: number;
   number: number;
   name: string;
-  status: string; // completed, in_progress, queued
+  status: string;
   conclusion?: string;
-  createdAt: string; // ISO format
+  createdAt: string;
   updatedAt: string;
   startedAt?: string;
   completedAt?: string;
@@ -146,9 +101,6 @@ export interface PipelineRun {
   durationSeconds?: number;
 }
 
-/**
- * Issue/Ticket information
- */
 export type IssueProvider = 'jira' | 'github' | 'jira-csv';
 
 export interface Issue {
@@ -177,9 +129,6 @@ export interface IssueComment {
   provider?: IssueProvider;
 }
 
-/**
- * Code metric measurement
- */
 export interface CodeMetric {
   name: string;
   value: number;

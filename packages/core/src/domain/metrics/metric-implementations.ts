@@ -37,11 +37,6 @@ import type {
 } from '../../engineering-health/adapters/quality';
 import type { CatalogMetricId } from './metric-catalog';
 
-/**
- * Runtime types that back the catalog. Adding a service here makes its public
- * methods addressable by `METRIC_IMPLEMENTATIONS`; it does not change the
- * catalog itself.
- */
 export interface MetricServiceRegistry {
   ChangeRequestsService: ChangeRequestsService;
   ChangeRequestEvaluationService: ChangeRequestEvaluationService;
@@ -74,10 +69,6 @@ export interface MetricServiceRegistry {
   ComponentsMetric: ComponentsMetric;
 }
 
-/**
- * A valid service/method pair. `method` is narrowed to the public members of
- * the service selected by `service`, so a typo in either name fails the build.
- */
 export type MetricMethodReference = {
   [TService in keyof MetricServiceRegistry]: {
     readonly service: TService;
@@ -85,15 +76,7 @@ export type MetricMethodReference = {
   };
 }[keyof MetricServiceRegistry];
 
-/**
- * Maps every catalog ID to the service method that produces it.
- *
- * The mapping is declarative and type-checked; nothing is discovered at
- * runtime. `Record<MetricId, ...>` also makes an incomplete map a compile
- * error.
- */
 export const METRIC_IMPLEMENTATIONS = {
-  // Change requests
   'cr-summary': { service: 'ChangeRequestsService', method: 'getSummary' },
   'cr-metrics': { service: 'ChangeRequestsService', method: 'getMetrics' },
   'cr-throughput': { service: 'ChangeRequestsService', method: 'getThroughTime' },
@@ -108,7 +91,6 @@ export const METRIC_IMPLEMENTATIONS = {
   'cr-label-summary': { service: 'ChangeRequestsService', method: 'getLabelSummaries' },
   'cr-evaluation': { service: 'ChangeRequestEvaluationService', method: 'evaluate' },
 
-  // Pipelines
   'pl-summary': { service: 'PipelineImplementation', method: 'dashboard' },
   'pl-status-counts': { service: 'PipelineImplementation', method: 'dashboard' },
   'pl-job-status-counts': { service: 'PipelineImplementation', method: 'dashboard' },
@@ -128,7 +110,6 @@ export const METRIC_IMPLEMENTATIONS = {
   'pl-lead-time': { service: 'PipelineImplementation', method: 'dashboard' },
   'pl-evaluation': { service: 'PipelineEvaluationService', method: 'evaluate' },
 
-  // Code
   'code-big-o': { service: 'BigOService', method: 'listFiles' },
   'code-summary': { service: 'PairingService', method: 'getPairingIndex' },
   'code-churn': { service: 'CodemaatService', method: 'getCodeChurn' },
@@ -163,7 +144,6 @@ export const METRIC_IMPLEMENTATIONS = {
   },
   'code-evaluation': { service: 'CodeEvaluationService', method: 'evaluate' },
 
-  // Quality
   'sq-coverage': { service: 'SonarqubeRepository', method: 'loadAll' },
   'sq-maintainability-rating': { service: 'SonarqubeRepository', method: 'loadAll' },
   'sq-reliability-rating': { service: 'SonarqubeEvaluationService', method: 'evaluate' },
@@ -186,7 +166,6 @@ export const METRIC_IMPLEMENTATIONS = {
   },
   'sq-evaluation': { service: 'SonarqubeEvaluationService', method: 'evaluate' },
 
-  // Architecture
   'arch-snapshot': { service: 'ArchitectureService', method: 'listSnapshots' },
   'arch-summary': { service: 'ArchitectureService', method: 'getSnapshot' },
   'arch-view': { service: 'ArchitectureService', method: 'getView' },
@@ -197,11 +176,9 @@ export const METRIC_IMPLEMENTATIONS = {
   'arch-confidence-health': { service: 'ArchitectureEvaluationService', method: 'evaluate' },
   'arch-evaluation': { service: 'ArchitectureEvaluationService', method: 'evaluate' },
 
-  // Issues
   'issue-total': { service: 'IssuesRepository', method: 'getIssues' },
   'issue-list': { service: 'IssuesRepository', method: 'getIssues' },
 
-  // Engineering health
   'deployment-frequency': { service: 'DeploymentFrequencyMetric', method: 'calculate' },
   'lead-time': { service: 'LeadTimeMetric', method: 'calculate' },
   'pipeline-duration': { service: 'PipelineDurationMetric', method: 'calculate' },
@@ -224,10 +201,6 @@ type Equal<TLeft, TRight> =
     : false;
 type Expect<TValue extends true> = TValue;
 
-/**
- * Compile-time guarantee that the implementation map and the catalog have the
- * same keys. A missing or orphan binding makes this type fail to resolve.
- */
 export type MetricImplementationCoverage = Expect<
   Equal<keyof typeof METRIC_IMPLEMENTATIONS, CatalogMetricId>
 >;

@@ -5,7 +5,18 @@ import Box from '@mui/material/Box';
 import { Tab, Tabs } from '@mui/material';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClientPaginatedSortableTable } from '@/components/ui/client-paginated-sortable-table';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Scatter, ComposedChart } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Scatter,
+  ComposedChart,
+} from 'recharts';
 import { ensureArray } from '@/server/utils/chartData';
 import { JobsDurationByWorkflowItem, RunsByDayData, RunsDurationData } from './types';
 import { useLinkBuilder } from '@/components/providers/LinkBuilderContext';
@@ -40,15 +51,38 @@ interface JobBreakdownRow {
   [key: string]: number | string | Record<string, string> | undefined;
 }
 
-// Stable palette for up to 20 jobs
 const JOB_COLORS = [
-  '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6',
-  '#8b5cf6', '#14b8a6', '#f97316', '#ec4899', '#84cc16',
-  '#06b6d4', '#a855f7', '#eab308', '#22c55e', '#f43f5e',
-  '#0ea5e9', '#d946ef', '#fb923c', '#4ade80', '#38bdf8',
+  '#6366f1',
+  '#10b981',
+  '#f59e0b',
+  '#ef4444',
+  '#3b82f6',
+  '#8b5cf6',
+  '#14b8a6',
+  '#f97316',
+  '#ec4899',
+  '#84cc16',
+  '#06b6d4',
+  '#a855f7',
+  '#eab308',
+  '#22c55e',
+  '#f43f5e',
+  '#0ea5e9',
+  '#d946ef',
+  '#fb923c',
+  '#4ade80',
+  '#38bdf8',
 ];
 
-function DurationTooltip({ active, payload, label }: { active?: boolean; payload?: TooltipPayloadEntry[]; label?: string }) {
+function DurationTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}) {
   if (active && payload && payload.length) {
     const row = (payload[0] as { payload?: DurationRangeRow } | undefined)?.payload;
     return (
@@ -67,15 +101,27 @@ function DurationTooltip({ active, payload, label }: { active?: boolean; payload
   return null;
 }
 
-function JobBreakdownTooltip({ active, payload, label }: { active?: boolean; payload?: TooltipPayloadEntry[]; label?: string }) {
+function JobBreakdownTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}) {
   if (active && payload && payload.length) {
-    const row = (payload[0] as { payload?: JobBreakdownRow & { _jobs_formatted?: Record<string, string> } } | undefined)?.payload;
+    const row = (
+      payload[0] as
+        { payload?: JobBreakdownRow & { _jobs_formatted?: Record<string, string> } } | undefined
+    )?.payload;
     return (
       <div className="bg-white p-3 border border-gray-300 rounded shadow">
         <p className="font-semibold">{label}</p>
         {payload.map((entry, index: number) => (
           <p key={index} style={{ color: entry.color }} className="text-sm">
-            {entry.name}: {row?._jobs_formatted?.[String(entry.dataKey || '')] ?? String(entry.value ?? '')}
+            {entry.name}:{' '}
+            {row?._jobs_formatted?.[String(entry.dataKey || '')] ?? String(entry.value ?? '')}
           </p>
         ))}
       </div>
@@ -102,12 +148,12 @@ export default function PipelineRunsDurationCard({
 
   const sortedDailyRuns = useMemo(
     () => [...ensureArray<RunsByDayData>(runsByDay)].sort((a, b) => a.day.localeCompare(b.day)),
-    [runsByDay],
+    [runsByDay]
   );
 
   const sourceData = useMemo(
     () => ensureArray<RunsDurationData>(dataByAggregation.avg || []),
-    [dataByAggregation],
+    [dataByAggregation]
   );
 
   const durationTickMap = useMemo(() => {
@@ -120,22 +166,21 @@ export default function PipelineRunsDurationCard({
     return map;
   }, [sourceData]);
 
-  // Min-Max range chart data (existing)
   const durationRangeData: DurationRangeRow[] = useMemo(
-    () => sourceData.map((item) => ({
-      workflow: item.workflow,
-      min: item.min_duration,
-      max: item.max_duration,
-      range: Math.max(0, item.max_duration - item.min_duration),
-      avg: item.value,
-      avg_duration_formatted: item.value_formatted,
-      min_duration_formatted: item.min_duration_formatted,
-      max_duration_formatted: item.max_duration_formatted,
-    })),
-    [sourceData],
+    () =>
+      sourceData.map((item) => ({
+        workflow: item.workflow,
+        min: item.min_duration,
+        max: item.max_duration,
+        range: Math.max(0, item.max_duration - item.min_duration),
+        avg: item.value,
+        avg_duration_formatted: item.value_formatted,
+        min_duration_formatted: item.min_duration_formatted,
+        max_duration_formatted: item.max_duration_formatted,
+      })),
+    [sourceData]
   );
 
-  // Job breakdown: one row per workflow, each job is a key with its avg duration
   const { jobBreakdownData, allJobNames } = useMemo(() => {
     const rows = ensureArray<JobsDurationByWorkflowItem>(jobsDurationByWorkflow);
     const jobBreakdownData: JobBreakdownRow[] = rows.map((row) => ({
@@ -143,8 +188,7 @@ export default function PipelineRunsDurationCard({
       ...row.jobs,
       _jobs_formatted: row.jobs_formatted,
     }));
-    
-    // Collect unique job names that exist across all workflows
+
     const jobSet = new Set<string>();
     for (const row of jobBreakdownData) {
       for (const key of Object.keys(row)) {
@@ -192,12 +236,14 @@ export default function PipelineRunsDurationCard({
         </Box>
         {activeTab === 'duration' && (
           <p className="mt-2 text-sm text-gray-600">
-            Min-Max duration range in minutes for each workflow, with average marked as a point. Click workflow names below to view runs.
+            Min-Max duration range in minutes for each workflow, with average marked as a point.
+            Click workflow names below to view runs.
           </p>
         )}
         {activeTab === 'job-breakdown' && (
           <p className="mt-2 text-sm text-gray-600">
-            {methodLabel} duration of each job per workflow, stacked to show the total pipeline runtime composition.
+            {methodLabel} duration of each job per workflow, stacked to show the total pipeline
+            runtime composition.
           </p>
         )}
         {activeTab === 'daily-runs' && (
@@ -220,7 +266,13 @@ export default function PipelineRunsDurationCard({
                 />
                 <Tooltip content={<DurationTooltip />} />
                 <Legend />
-                <Bar dataKey="min" stackId="r" fill="rgba(0,0,0,0)" stroke="rgba(0,0,0,0)" legendType="none" />
+                <Bar
+                  dataKey="min"
+                  stackId="r"
+                  fill="rgba(0,0,0,0)"
+                  stroke="rgba(0,0,0,0)"
+                  legendType="none"
+                />
                 <Bar dataKey="range" stackId="r" fill="#93c5fd" name="Min-Max Range" />
                 <Scatter dataKey="avg" fill="#1d4ed8" name={avgDurationLabel} />
               </ComposedChart>
@@ -290,7 +342,10 @@ export default function PipelineRunsDurationCard({
         {activeTab === 'job-breakdown' && (
           <>
             {allJobNames.length > 0 && (
-              <div className="mb-4 flex flex-wrap items-center gap-2" aria-label="Toggle job breakdown jobs">
+              <div
+                className="mb-4 flex flex-wrap items-center gap-2"
+                aria-label="Toggle job breakdown jobs"
+              >
                 {allJobNames.map((name, index) => (
                   <label
                     key={name}
@@ -333,7 +388,10 @@ export default function PipelineRunsDurationCard({
             <ResponsiveContainer width="100%" height={Math.max(300, jobBreakdownData.length * 60)}>
               <BarChart data={jobBreakdownData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" tickFormatter={(value) => formatDurationMinutes(Number(value) || 0)} />
+                <XAxis
+                  type="number"
+                  tickFormatter={(value) => formatDurationMinutes(Number(value) || 0)}
+                />
                 <YAxis type="category" dataKey="workflow" width={180} />
                 <Tooltip content={<JobBreakdownTooltip />} />
                 <Legend />

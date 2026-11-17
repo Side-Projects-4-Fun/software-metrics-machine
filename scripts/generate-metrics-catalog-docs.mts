@@ -1,15 +1,3 @@
-/**
- * Generates the metric catalog documentation artifacts from the core catalog.
- *
- * Output (committed to the repository so the docs site builds without the
- * monorepo toolchain):
- *   - docs/vitepress/public/metrics-catalog.csv  (rendered by the docs table and
- *     served as the public download)
- *
- * Usage:
- *   pnpm docs:metrics         # regenerate the artifacts
- *   pnpm docs:metrics:check   # fail when the committed artifacts are stale
- */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

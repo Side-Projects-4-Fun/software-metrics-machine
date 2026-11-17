@@ -85,10 +85,6 @@ export interface IChangeRequestsService {
   >;
 }
 
-/**
- * ChangeRequestsService provides analytics on change requests.
- * Calculates lead time, review speed, and other change request metrics.
- */
 export class ChangeRequestsService implements IChangeRequestsService {
   private tz: TimeZoneProvider;
 
@@ -100,9 +96,6 @@ export class ChangeRequestsService implements IChangeRequestsService {
     this.tz = timeZoneProvider;
   }
 
-  /**
-   * Get overall change request metrics for the given filters.
-   */
   async getMetrics(
     filters?: ChangeRequestFilters,
     method: MetricMethod = 'average'
@@ -172,16 +165,12 @@ export class ChangeRequestsService implements IChangeRequestsService {
     };
   }
 
-  /**
-   * Get change request metrics grouped by month.
-   */
   async getMetricsByMonth(
     filters?: ChangeRequestFilters,
     method: MetricMethod = 'average'
   ): Promise<ChangeRequestsByTimeframe[]> {
     const changeRequests = await this.filterChangeRequests(filters);
 
-    // Group change requests by month
     const byMonth = new Map<string, ChangeRequestDetails[]>();
 
     for (const changeRequest of changeRequests) {
@@ -194,7 +183,6 @@ export class ChangeRequestsService implements IChangeRequestsService {
       byMonth.get(monthKey)!.push(changeRequest);
     }
 
-    // Calculate metrics for each month
     const result: ChangeRequestsByTimeframe[] = [];
     const months = Array.from(byMonth.keys()).sort((a, b) => a.localeCompare(b));
 
@@ -212,20 +200,16 @@ export class ChangeRequestsService implements IChangeRequestsService {
     return result;
   }
 
-  /**
-   * Get change request metrics grouped by week.
-   */
   async getMetricsByWeek(
     filters?: ChangeRequestFilters,
     method: MetricMethod = 'average'
   ): Promise<ChangeRequestsByTimeframe[]> {
     const changeRequests = await this.filterChangeRequests(filters);
 
-    // Group change requests by week (only merged ones)
     const byWeek = new Map<string, ChangeRequestDetails[]>();
 
     for (const changeRequest of changeRequests) {
-      if (!changeRequest.mergedAt) continue; // Only count merged for weekly view
+      if (!changeRequest.mergedAt) continue;
 
       const mergedDate = new Date(changeRequest.mergedAt);
       const weekKey = this.getWeekKey(mergedDate);
@@ -236,7 +220,6 @@ export class ChangeRequestsService implements IChangeRequestsService {
       byWeek.get(weekKey)!.push(changeRequest);
     }
 
-    // Calculate metrics for each week
     const result: ChangeRequestsByTimeframe[] = [];
     const weeks = Array.from(byWeek.keys()).sort((a, b) => a.localeCompare(b));
 
@@ -254,9 +237,6 @@ export class ChangeRequestsService implements IChangeRequestsService {
     return result;
   }
 
-  /**
-   * Get summary statistics for each label.
-   */
   async getLabelSummaries(filters?: ChangeRequestFilters): Promise<LabelSummary[]> {
     const changeRequests = await this.filterChangeRequests(filters);
 
@@ -523,9 +503,6 @@ export class ChangeRequestsService implements IChangeRequestsService {
       .sort((a, b) => a.period.localeCompare(b.period));
   }
 
-  /**
-   * Filter change requests by the provided criteria.
-   */
   private async filterChangeRequests(
     filters?: ChangeRequestFilters
   ): Promise<ChangeRequestDetails[]> {
@@ -538,10 +515,10 @@ export class ChangeRequestsService implements IChangeRequestsService {
       ? new Date(changeRequest.mergedAt)
       : changeRequest.closedAt
         ? new Date(changeRequest.closedAt)
-        : new Date(); // Use current time if still open
+        : new Date();
 
     const diffMs = closed.getTime() - created.getTime();
-    return Math.ceil(diffMs / (1000 * 60 * 60 * 24)); // Convert to days
+    return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
   }
 
   private getMonthKey(date: Date): string {
@@ -621,7 +598,6 @@ export class ChangeRequestsService implements IChangeRequestsService {
         .filter((w) => !stopWords.has(w))
         .filter((w) => !/^\d+$/.test(w));
 
-      // unigrams, bigrams, trigrams
       for (let n = 1; n <= 3; n++) {
         for (let i = 0; i <= words.length - n; i++) {
           const ngram = words.slice(i, i + n).join(' ');
@@ -642,7 +618,6 @@ export class ChangeRequestsService implements IChangeRequestsService {
     const labelToChangeRequests = new Map<string, number>();
 
     for (const changeRequest of changeRequests) {
-      // Count each label at most once per change request.
       const uniqueLabels = new Set(
         (changeRequest.labels || [])
           .map((label) => (label.name || '').trim())

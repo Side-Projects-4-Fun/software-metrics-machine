@@ -3,7 +3,11 @@
 import { fetchAPI, fetchPutAPI } from '@/server/api';
 import type { SavedFilterEntry, DashboardSection } from './saved-filters-store';
 import type { DashboardFilters } from './DashboardFilters';
-import type { ReportEntry, ReportSectionRef, ReportDateWindow } from '@/components/reports/reports-store';
+import type {
+  ReportEntry,
+  ReportSectionRef,
+  ReportDateWindow,
+} from '@/components/reports/reports-store';
 
 type SavedFiltersDocument = {
   version: 1;
@@ -25,9 +29,7 @@ async function readDocument(options?: ReadDocumentOptions): Promise<SavedFilters
         reports: Array.isArray(data.reports) ? data.reports : [],
       };
     }
-  } catch {
-    // fall through
-  }
+  } catch {}
   return { version: 1, filters: [], reports: [] };
 }
 
@@ -42,7 +44,7 @@ export async function getSavedFilters(): Promise<SavedFilterEntry[]> {
 
 export async function getSavedFiltersBySection(
   section: DashboardSection,
-  repository?: string,
+  repository?: string
 ): Promise<SavedFilterEntry[]> {
   const doc = await readDocument();
   return doc.filters
@@ -55,10 +57,12 @@ export async function saveSavedFilter(
   pathname: string,
   name: string,
   filters: DashboardFilters,
-  repository: string,
+  repository: string
 ): Promise<SavedFilterEntry> {
   const normalizedName = name.trim();
-  if (!normalizedName) {throw new Error('Filter name is required.');}
+  if (!normalizedName) {
+    throw new Error('Filter name is required.');
+  }
 
   const doc = await readDocument();
   const existingNames = doc.filters
@@ -68,7 +72,9 @@ export async function saveSavedFilter(
   let finalName = normalizedName;
   if (existingNames.includes(finalName)) {
     let suffix = 2;
-    while (existingNames.includes(`${normalizedName} (${suffix})`)) {suffix += 1;}
+    while (existingNames.includes(`${normalizedName} (${suffix})`)) {
+      suffix += 1;
+    }
     finalName = `${normalizedName} (${suffix})`;
   }
 
@@ -110,21 +116,23 @@ export async function saveReport(
   repository: string,
   startDateOverride?: string,
   endDateOverride?: string,
-  dateWindows?: ReportDateWindow[],
+  dateWindows?: ReportDateWindow[]
 ): Promise<ReportEntry> {
   const normalizedName = name.trim();
-  if (!normalizedName) { throw new Error('Sprint report name is required.'); }
+  if (!normalizedName) {
+    throw new Error('Sprint report name is required.');
+  }
 
   const doc = await readDocument();
   const reports = doc.reports ?? [];
-  const existingNames = reports
-    .filter((r) => r.repository === repository)
-    .map((r) => r.name);
+  const existingNames = reports.filter((r) => r.repository === repository).map((r) => r.name);
 
   let finalName = normalizedName;
   if (existingNames.includes(finalName)) {
     let suffix = 2;
-    while (existingNames.includes(`${normalizedName} (${suffix})`)) { suffix += 1; }
+    while (existingNames.includes(`${normalizedName} (${suffix})`)) {
+      suffix += 1;
+    }
     finalName = `${normalizedName} (${suffix})`;
   }
 
@@ -151,15 +159,19 @@ export async function updateReport(
   repository: string,
   startDateOverride?: string,
   endDateOverride?: string,
-  dateWindows?: ReportDateWindow[],
+  dateWindows?: ReportDateWindow[]
 ): Promise<ReportEntry> {
   const normalizedName = name.trim();
-  if (!normalizedName) { throw new Error('Sprint report name is required.'); }
+  if (!normalizedName) {
+    throw new Error('Sprint report name is required.');
+  }
 
   const doc = await readDocument();
   const reports = doc.reports ?? [];
   const existing = reports.find((r) => r.id === id);
-  if (!existing) { throw new Error('Report not found.'); }
+  if (!existing) {
+    throw new Error('Report not found.');
+  }
 
   existing.name = normalizedName;
   existing.sections = sections;
@@ -182,7 +194,9 @@ export async function duplicateReport(id: string): Promise<ReportEntry> {
   const doc = await readDocument();
   const reports = doc.reports ?? [];
   const existing = reports.find((r) => r.id === id);
-  if (!existing) { throw new Error('Report not found.'); }
+  if (!existing) {
+    throw new Error('Report not found.');
+  }
 
   const baseName = existing.name;
   const existingNames = reports
@@ -193,7 +207,9 @@ export async function duplicateReport(id: string): Promise<ReportEntry> {
   let finalName = copyName;
   if (existingNames.includes(finalName)) {
     let suffix = 2;
-    while (existingNames.includes(`${baseName} (copy ${suffix})`)) { suffix += 1; }
+    while (existingNames.includes(`${baseName} (copy ${suffix})`)) {
+      suffix += 1;
+    }
     finalName = `${baseName} (copy ${suffix})`;
   }
 
@@ -206,7 +222,7 @@ export async function duplicateReport(id: string): Promise<ReportEntry> {
     endDateOverride: existing.endDateOverride,
     dateWindows:
       existing.dateWindows && existing.dateWindows.length > 0
-        ? JSON.parse(JSON.stringify(existing.dateWindows)) as ReportDateWindow[]
+        ? (JSON.parse(JSON.stringify(existing.dateWindows)) as ReportDateWindow[])
         : undefined,
     createdAt: new Date().toISOString(),
   };

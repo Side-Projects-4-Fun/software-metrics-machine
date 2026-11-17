@@ -15,7 +15,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
-    // Listen for theme changes from ThemeContext
     const handleThemeChange = () => {
       const isDark = document.documentElement.classList.contains('dark');
       setMuiTheme(
@@ -27,10 +26,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       );
     };
 
-    // Initial setup
     handleThemeChange();
 
-    // Listen for changes to the dark class
     const observer = new MutationObserver(handleThemeChange);
     observer.observe(document.documentElement, {
       attributes: true,

@@ -1,9 +1,5 @@
 import type { MetricCleaningOptions, MetricMethod, MetricOutlier } from '../metric-samples';
 
-/**
- * Pipeline-related domain types for deployment frequency and metrics
- */
-
 export interface PipelineJobConclusion {
   status: 'success' | 'failure' | 'cancelled' | 'skipped' | 'timed_out';
   count: number;
@@ -22,7 +18,7 @@ export interface PipelineJob {
   id: string;
   runId: string;
   name: string;
-  startedAt: string; // ISO format
+  startedAt: string;
   completedAt?: string;
   conclusion: string;
   status: string;
@@ -34,9 +30,9 @@ export interface PipelineRun {
   id: string;
   number: number;
   name: string;
-  status: string; // completed, in_progress, queued
-  conclusion?: string; // success, failure, etc.
-  createdAt: string; // ISO format
+  status: string;
+  conclusion?: string;
+  createdAt: string;
   updatedAt: string;
   startedAt?: string;
   completedAt?: string;
@@ -44,7 +40,7 @@ export interface PipelineRun {
   branch: string;
   event?: string;
   commit?: string;
-  path: string; // workflow file path
+  path: string;
   jobs?: PipelineJob[];
 }
 
@@ -52,13 +48,13 @@ export interface PipelineFilters {
   startDate?: string;
   endDate?: string;
   targetBranch?: string;
-  event?: string; // push, pull_request, etc.
+  event?: string;
   workflowPath?: string;
-  status?: string; // completed, in_progress, queued
-  conclusion?: string; // success, failure, cancelled, skipped
+  status?: string;
+  conclusion?: string;
   jobName?: string;
   jobConclusion?: string;
-  includeDefined?: boolean; // Only .yml/.yaml files
+  includeDefined?: boolean;
   rawFilters?: string;
   cleaning?: MetricCleaningOptions;
   method?: MetricMethod;
@@ -82,7 +78,7 @@ export interface PipelineMetrics {
   totalRuns: number;
   successfulRuns: number;
   failedRuns: number;
-  successRate: number; // percentage
+  successRate: number;
   value: number;
   method: MetricMethod;
   outliers?: PipelineMetricOutlier[];
@@ -118,10 +114,6 @@ export interface PipelineDurationRow {
   durationMinutes: number;
   timestamp: string;
 }
-
-// ──────────────────────────────────────────
-// Dashboard types (replaces REST DTOs)
-// ──────────────────────────────────────────
 
 export interface PipelineDashboardSummary {
   total_runs: number;

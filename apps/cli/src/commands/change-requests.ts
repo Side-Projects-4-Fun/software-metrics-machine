@@ -244,27 +244,12 @@ export function formatChangeRequestSummary(summary: ChangeRequestSummary): strin
   return lines.join('\n');
 }
 
-/**
- * Change Requests Command Group
- *
- * Provides CLI commands for change request operations matching Python CLI functionality.
- *
- * Commands:
- *   smm change-requests fetch       Fetch change requests from GitHub
- *   smm change-requests summary     View change request summary statistics
- *   smm change-requests by-month    View change request metrics by month
- *   smm change-requests by-week     View change request metrics by week
- */
 export function createChangeRequestsCommands(program: SmmCommand): void {
   const changeRequestsGroup = program
     .subcommand('change-requests')
     .description('Change request operations');
   const screen = program.getScreen();
 
-  /**
-   * smm change-requests fetch [options]
-   * Fetch change requests from GitHub
-   */
   changeRequestsGroup
     .subcommand('fetch')
     .description('Fetch change requests from the configured Git provider')
@@ -336,10 +321,6 @@ export function createChangeRequestsCommands(program: SmmCommand): void {
       }
     });
 
-  /**
-   * smm change-requests summary [options]
-   * View change request summary statistics
-   */
   changeRequestsGroup
     .subcommand('summary')
     .description('View change request summary statistics')
@@ -380,10 +361,6 @@ export function createChangeRequestsCommands(program: SmmCommand): void {
       }
     });
 
-  /**
-   * smm change-requests by-month [options]
-   * View change request metrics grouped by month
-   */
   changeRequestsGroup
     .subcommand('by-month')
     .description('View change request metrics grouped by month')
@@ -417,10 +394,6 @@ export function createChangeRequestsCommands(program: SmmCommand): void {
       }
     });
 
-  /**
-   * smm change-requests by-week [options]
-   * View change request metrics grouped by week
-   */
   changeRequestsGroup
     .subcommand('by-week')
     .description('View change request metrics grouped by week')
@@ -454,10 +427,6 @@ export function createChangeRequestsCommands(program: SmmCommand): void {
       }
     });
 
-  /**
-   * smm change-requests through-time [options]
-   * View change requests opened and closed through time
-   */
   changeRequestsGroup
     .subcommand('through-time')
     .description('View change requests opened and closed through time (daily/weekly/monthly)')
@@ -499,10 +468,6 @@ export function createChangeRequestsCommands(program: SmmCommand): void {
       }
     });
 
-  /**
-   * smm change-requests by-author [options]
-   * View change requests grouped by author
-   */
   changeRequestsGroup
     .subcommand('by-author')
     .description('View change requests grouped by author')
@@ -542,10 +507,6 @@ export function createChangeRequestsCommands(program: SmmCommand): void {
       }
     });
 
-  /**
-   * smm change-requests review-time [options]
-   * View review time by author with selectable statistical method
-   */
   changeRequestsGroup
     .subcommand('review-time')
     .description('View review time (days) by author')
@@ -604,10 +565,6 @@ export function createChangeRequestsCommands(program: SmmCommand): void {
       }
     });
 
-  /**
-   * smm change-requests open-time [options]
-   * View change request open time by period with selectable statistical method
-   */
   changeRequestsGroup
     .subcommand('open-time')
     .description('View change request open time (days) aggregated by day/week/month')
@@ -666,10 +623,6 @@ export function createChangeRequestsCommands(program: SmmCommand): void {
       }
     });
 
-  /**
-   * smm change-requests comments [options]
-   * View comments per change request with selectable statistical method
-   */
   changeRequestsGroup
     .subcommand('comments')
     .description('View number of comments per change request with selectable statistical method')

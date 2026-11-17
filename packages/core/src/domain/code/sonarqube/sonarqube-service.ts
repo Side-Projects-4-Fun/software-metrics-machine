@@ -20,7 +20,6 @@ export class SonarQubeService {
   async getQualityMetrics(_filters?: unknown): Promise<unknown> {
     this.logger.info('Fetching SonarQube quality metrics...');
     try {
-      // Apply any necessary filtering logic here based on the provided filters
       return await this.sonarqubeRepository.loadAll();
     } catch (error) {
       this.logger.error('Error fetching SonarQube metrics:', error);

@@ -1,17 +1,5 @@
 import type { CatalogMetricId } from './metric-catalog';
 
-/**
- * Curated reference metadata for catalogued metric families.
- *
- * Identity lives in `metric-catalog.ts`; this module holds the published
- * benchmarks and the external papers, reports and books behind them. Keeping
- * the evidence separate keeps the identity table readable while still making
- * the catalog the single source for ids.
- *
- * Only families with a documented benchmark appear here. Metrics without a
- * published reference keep their catalog entry and simply omit this block.
- */
-
 export type MetricReferenceTargetOperator = 'lt' | 'lte' | 'gt' | 'gte' | 'eq' | 'custom';
 
 export interface MetricReferenceTarget {

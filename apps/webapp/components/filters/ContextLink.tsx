@@ -12,20 +12,14 @@ interface ContextLinkProps {
   className?: string;
 }
 
-/**
- * A wrapper around next/link that automatically appends the current 
- * dashboard filters (from FiltersContext) to the URL query string,
- * optionally allowing specific filters to be overridden.
- */
 export function ContextLink({ href, filterOverrides, children, className }: ContextLinkProps) {
   const { filters } = useFilters();
 
   const finalHref = useMemo(() => {
-    // Clone current filters and apply overrides
     const newFilters = { ...filters, ...filterOverrides } as DashboardFilters;
     const params = serializeDashboardFilters(newFilters);
     const queryString = params.toString();
-    
+
     return queryString ? `${href}?${queryString}` : href;
   }, [filters, filterOverrides, href]);
 

@@ -46,9 +46,6 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
     );
   }
 
-  /**
-   * Get quality metrics
-   */
   async fetchQualityMetrics(options?: { metrics?: string[] }): Promise<SonarqubeComponentMeasure> {
     this.logger.info('Fetching quality metrics from SonarQube...');
     const metrics = await this.sonarqubeClient.fetchComponentMeasures({
@@ -118,7 +115,6 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
         }
       }
 
-      // Manual date range with merge
       if ((options?.startDate || options?.endDate) && !options?.forceRefresh) {
         if (cached.length > 0) {
           this.logger.info(
@@ -158,10 +154,6 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
     return new Date(Math.max(...timestamps)).toISOString();
   }
 
-  /**
-   * Formats fetch options for debug logging. When no options are provided the
-   * call is expected: the client falls back to default metrics and date ranges.
-   */
   private describeOptions(options: unknown): string {
     if (options === undefined) {
       return 'no options provided — defaults will be applied';
@@ -194,7 +186,6 @@ export class SonarqubeFetchMetricsRepository implements IQualityMetricsRepositor
     if (raw && Array.isArray((raw as unknown as { entries?: unknown }).entries)) {
       store = raw as TimestampedStore<T>;
     } else if (raw) {
-      // Legacy format: migrate old data as first entry
       store = { entries: [{ fetchedAt: new Date(0).toISOString(), data: raw as unknown as T }] };
     } else {
       store = { entries: [] };

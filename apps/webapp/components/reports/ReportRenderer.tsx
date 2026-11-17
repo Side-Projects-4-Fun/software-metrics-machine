@@ -23,7 +23,7 @@ interface ReportRendererProps {
   evaluations: Record<string, unknown>;
   errors: Record<string, string>;
   windowLabel?: string;
-  /** Effective dates from the active window or report overrides. */
+
   effectiveStartDate: string;
   effectiveEndDate: string;
 }
@@ -41,15 +41,31 @@ function formatDate(iso: string): string {
 function renderEvaluationCard(section: EvaluatableSection, data: unknown) {
   switch (section) {
     case 'pipelines':
-      return <PipelineEvaluationCard data={data as Parameters<typeof PipelineEvaluationCard>[0]['data']} />;
+      return (
+        <PipelineEvaluationCard
+          data={data as Parameters<typeof PipelineEvaluationCard>[0]['data']}
+        />
+      );
     case 'change-requests':
-      return <ChangeRequestEvaluationCard data={data as Parameters<typeof ChangeRequestEvaluationCard>[0]['data']} />;
+      return (
+        <ChangeRequestEvaluationCard
+          data={data as Parameters<typeof ChangeRequestEvaluationCard>[0]['data']}
+        />
+      );
     case 'source-code':
       return <CodeEvaluationCard data={data as Parameters<typeof CodeEvaluationCard>[0]['data']} />;
     case 'architecture':
-      return <ArchitectureEvaluationCard data={data as Parameters<typeof ArchitectureEvaluationCard>[0]['data']} />;
+      return (
+        <ArchitectureEvaluationCard
+          data={data as Parameters<typeof ArchitectureEvaluationCard>[0]['data']}
+        />
+      );
     case 'sonarqube':
-      return <SonarqubeEvaluationCard data={data as Parameters<typeof SonarqubeEvaluationCard>[0]['data']} />;
+      return (
+        <SonarqubeEvaluationCard
+          data={data as Parameters<typeof SonarqubeEvaluationCard>[0]['data']}
+        />
+      );
     default:
       return null;
   }
@@ -64,10 +80,10 @@ export default function ReportRenderer({
   effectiveStartDate,
   effectiveEndDate,
 }: ReportRendererProps) {
-  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(
-    new Set(),
-  );
-  const allCollapsed = report.sections.length > 0 && report.sections.every((s) => collapsedSections.has(`${s.section}-${s.savedFilterId}`));
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+  const allCollapsed =
+    report.sections.length > 0 &&
+    report.sections.every((s) => collapsedSections.has(`${s.section}-${s.savedFilterId}`));
 
   const toggleSection = useCallback((sectionKey: string) => {
     setCollapsedSections((prev) => {
@@ -103,12 +119,7 @@ export default function ReportRenderer({
       <CardHeader className="pb-2">
         <div className="flex items-center justify-end">
           {report.sections.length > 0 && (
-            <Button
-              size="small"
-              variant="text"
-              onClick={toggleAll}
-              sx={{ textTransform: 'none' }}
-            >
+            <Button size="small" variant="text" onClick={toggleAll} sx={{ textTransform: 'none' }}>
               {allCollapsed ? 'Expand All' : 'Collapse All'}
             </Button>
           )}
@@ -181,10 +192,7 @@ export default function ReportRenderer({
                       color: 'text.primary',
                     }}
                   >
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ fontWeight: 600 }}
-                    >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                       {EVALUATABLE_SECTION_LABELS[ref.section]}
                       {saved && ` — ${saved.name}`}
                     </Typography>
@@ -201,11 +209,7 @@ export default function ReportRenderer({
                       className="smm-print-hide"
                       aria-label={`Open ${EVALUATABLE_SECTION_LABELS[ref.section]} in dashboard`}
                     >
-                      <IconButton
-                        size="small"
-                        component="span"
-                        tabIndex={-1}
-                      >
+                      <IconButton size="small" component="span" tabIndex={-1}>
                         <OpenInNewIcon fontSize="small" />
                       </IconButton>
                     </Link>
@@ -215,7 +219,11 @@ export default function ReportRenderer({
                     onClick={() => toggleSection(sectionKey)}
                     aria-label={`Toggle ${EVALUATABLE_SECTION_LABELS[ref.section]}`}
                   >
-                    {isCollapsed ? <ExpandMoreIcon fontSize="small" /> : <ExpandLessIcon fontSize="small" />}
+                    {isCollapsed ? (
+                      <ExpandMoreIcon fontSize="small" />
+                    ) : (
+                      <ExpandLessIcon fontSize="small" />
+                    )}
                   </IconButton>
                 </Box>
                 {error && (

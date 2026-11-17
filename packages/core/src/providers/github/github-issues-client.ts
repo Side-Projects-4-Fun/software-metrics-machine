@@ -58,17 +58,6 @@ function extractIssueNumber(value: string): string | undefined {
   return match ? match[1] : undefined;
 }
 
-/**
- * GitHub API client for issues and issue comments.
- *
- * Endpoints:
- *   - GET /repos/{owner}/{repo}/issues
- *   - GET /repos/{owner}/{repo}/issues/{number}/comments
- *   - GET /repos/{owner}/{repo}/issues/comments (repository-wide)
- *
- * GitHub returns pull requests from the `/issues` endpoint. Every entry that
- * carries a `pull_request` field is filtered out.
- */
 export class GitHubIssuesClient implements IIssuesClient {
   readonly provider = 'github' as const;
   private readonly axiosInstance: AxiosInstance;

@@ -1,12 +1,5 @@
 import { Logger } from '@smmachine/utils';
 
-/**
- * MCP servers communicate over stdio: stdout is the JSON-RPC transport channel
- * and must remain free of log output. The SMM Logger writes through console.*,
- * which by default writes to stdout for info/debug levels. Redirecting those
- * streams to stderr keeps logs visible in the MCP client output panel without
- * corrupting JSON-RPC messages.
- */
 let consoleRedirected = false;
 
 export function redirectConsoleToStderr(): void {
@@ -15,7 +8,6 @@ export function redirectConsoleToStderr(): void {
   }
   consoleRedirected = true;
 
-  // Preserve a reference so the redirect can be re-applied safely in tests.
   const originalInfo = Reflect.get(console, 'info').bind(console) as (...args: unknown[]) => void;
   const originalLog = Reflect.get(console, 'log').bind(console) as (...args: unknown[]) => void;
 
@@ -26,7 +18,6 @@ export function redirectConsoleToStderr(): void {
     process.stderr.write(formatLine(args))
   );
 
-  // Keep references so consumers that need the originals can access them.
   Reflect.set(console, '__smmOriginalInfo', originalInfo);
   Reflect.set(console, '__smmOriginalLog', originalLog);
 }
@@ -47,16 +38,6 @@ function formatLine(args: unknown[]): string {
   return `${text}\n`;
 }
 
-/**
- * Runtime MCP log level. The MCP server is quiet by default (CRITICAL) and
- * enables transport/operation/tool/resource/prompt logs when the CLI `--debug`
- * flag is passed via `smm --debug mcp server start`.
- *
- * Level priority:
- *   1. Explicit `debug: true` passed via configureMcpLogging (from the CLI --debug flag)
- *   2. DEBUG env var (for standalone smm-mcp usage, e.g. MCP client configs)
- *   3. Default CRITICAL (quiet, matching the rest of the SMM CLI)
- */
 let mcpLogLevel = resolveInitialLogLevel();
 
 function resolveInitialLogLevel(): 'DEBUG' | 'INFO' | 'CRITICAL' {
@@ -95,8 +76,6 @@ function applyLogLevel(level: 'DEBUG' | 'INFO' | 'CRITICAL'): void {
   promptLogger.setLevel(level);
 }
 
-// Initialize the loggers with the initial level. The SMM Logger defaults to
-// INFO when constructed with a string level.
 export const transportLogger = new Logger('SmmMcpServer', mcpLogLevel);
 export const operationLogger = new Logger('SmmMcpOperation', mcpLogLevel);
 export const toolLogger = new Logger('SmmMcpTool', mcpLogLevel);

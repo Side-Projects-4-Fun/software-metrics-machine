@@ -21,10 +21,6 @@ import type {
   CodeAuthorsResponse,
 } from '../dtos';
 
-/**
- * Code Metrics REST Controller
- * Provides endpoints for code quality and analysis metrics
- */
 @ApiTags('Code Metrics')
 @Controller()
 export class CodeController {

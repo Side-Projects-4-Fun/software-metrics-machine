@@ -87,7 +87,6 @@ export class DeploymentFrequencyService {
       return [];
     }
 
-    // Determine the start and end dates from the deployments
     const sortedDays = Array.from(allDays.keys()).sort((a, b) => a.localeCompare(b));
     const firstDayStr = sortedDays[0];
     const lastDayStr = sortedDays[sortedDays.length - 1];
@@ -96,7 +95,6 @@ export class DeploymentFrequencyService {
     const [startYear, startMonth, startDay] = firstDayStr.split('-').map(Number);
     const [endYear, endMonth, endDay] = lastDayStr.split('-').map(Number);
 
-    // Use midday to avoid daylight saving time boundary issues when incrementing.
     const firstDate = new Date(Date.UTC(startYear, startMonth - 1, startDay, 12, 0, 0));
     const endDate = new Date(Date.UTC(endYear, endMonth - 1, endDay, 12, 0, 0));
 
@@ -121,7 +119,6 @@ export class DeploymentFrequencyService {
           links: '',
         });
 
-        // Move to the next day
         currentDate.setUTCDate(currentDate.getUTCDate() + 1);
       }
     }

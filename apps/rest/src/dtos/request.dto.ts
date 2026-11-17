@@ -20,9 +20,6 @@ function normalizeArrayQueryParam(value: unknown): string[] | undefined {
     .filter(Boolean);
 }
 
-/**
- * Base DTO for common query parameters
- */
 export class BaseQueryDto {
   @ApiPropertyOptional({ description: 'Start date or datetime in ISO 8601 format' })
   @IsOptional()
@@ -40,14 +37,8 @@ export class BaseQueryDto {
   timezone?: string;
 }
 
-/**
- * Change Request Metrics Query DTO
- */
 export class ChangeRequestMetricsQueryDto extends BaseQueryDto {}
 
-/**
- * Deployment Metrics Query DTO
- */
 export class DeploymentMetricsQueryDto extends BaseQueryDto {
   @ApiPropertyOptional({
     enum: ['day', 'week', 'month'],
@@ -59,9 +50,6 @@ export class DeploymentMetricsQueryDto extends BaseQueryDto {
   frequency?: 'day' | 'week' | 'month' = 'week';
 }
 
-/**
- * Code Metrics Query DTO
- */
 export class CodeMetricsQueryDto extends BaseQueryDto {
   @ApiPropertyOptional({
     type: [String],
@@ -74,9 +62,6 @@ export class CodeMetricsQueryDto extends BaseQueryDto {
   selectedAuthors?: string[];
 }
 
-/**
- * Issue Metrics Query DTO
- */
 export class IssueMetricsQueryDto extends BaseQueryDto {
   @ApiPropertyOptional({ description: 'Filter by issue status' })
   @IsOptional()
@@ -84,9 +69,6 @@ export class IssueMetricsQueryDto extends BaseQueryDto {
   status?: string;
 }
 
-/**
- * Quality Metrics Query DTO
- */
 export class QualityMetricsQueryDto {
   @ApiPropertyOptional({
     type: [String],
@@ -100,9 +82,6 @@ export class QualityMetricsQueryDto {
   measures?: string[];
 }
 
-/**
- * SonarQube Component Tree Query DTO
- */
 export class ComponentTreeQueryDto {
   @ApiPropertyOptional({
     type: String,
@@ -171,9 +150,6 @@ export class ComponentTreeQueryDto {
   remove_folders?: boolean;
 }
 
-/**
- * Full Report Query DTO
- */
 export class FullReportQueryDto extends BaseQueryDto {
   @ApiPropertyOptional({
     type: [String],

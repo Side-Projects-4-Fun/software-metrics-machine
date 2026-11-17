@@ -2,9 +2,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import type { INestApplication } from '@nestjs/common';
 import { getApplicationVersion } from '@smmachine/utils';
 
-/**
- * Configure Swagger/OpenAPI documentation for the REST API
- */
 export function setupSwagger(app: INestApplication): void {
   const config = new DocumentBuilder()
     .setTitle('Software Metrics Machine API')

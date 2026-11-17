@@ -91,8 +91,6 @@ function normalizeUrl(url: string): string {
   return url.replace(/\/$/, '');
 }
 
-// ─── Class ───────────────────────────────────────────────────────────────────
-
 export class SonarqubeLocalAnalysis {
   private readonly logger: Logger;
   private readonly localDataFilePath: string;
@@ -283,7 +281,6 @@ export class SonarqubeLocalAnalysis {
 
     const networkSettings = (inspect.NetworkSettings ?? {}) as Record<string, unknown>;
 
-    // Host-mapped port
     const ports = (networkSettings.Ports ?? {}) as Record<
       string,
       Array<Record<string, unknown>> | null
@@ -305,7 +302,6 @@ export class SonarqubeLocalAnalysis {
       throw new Error(`Could not resolve SonarQube host port for "${containerName}".`);
     }
 
-    // Container-internal IP
     const networks = (networkSettings.Networks ?? {}) as Record<string, unknown>;
     const networkEntries = Object.values(networks) as Array<Record<string, unknown>>;
     const containerIp = String((networkEntries[0] ?? {}).IPAddress ?? '').trim();
@@ -470,8 +466,6 @@ export class SonarqubeLocalAnalysis {
 
     return newPassword;
   }
-
-  // ── Token management ──────────────────────────────────────────────────────
 
   async getToken(hostUrl: string, username: string, password: string): Promise<string> {
     if (

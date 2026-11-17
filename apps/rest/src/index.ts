@@ -1,8 +1,3 @@
-/**
- * Main entry point for the REST API package
- * Exports all public modules and components
- */
-
 export { MetricsController } from './metrics.controller';
 export { SonarqubeController } from './controllers/sonarqube.controller';
 export { MetricsModule } from './metrics.module';

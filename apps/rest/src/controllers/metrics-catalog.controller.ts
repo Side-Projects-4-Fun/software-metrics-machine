@@ -11,12 +11,6 @@ import {
   type MetricVisibility,
 } from '@smmachine/core';
 
-/**
- * Metrics Catalog REST Controller
- *
- * Exposes the static metric catalog. It has no data dependencies, so it works
- * even when no project or datastore is configured.
- */
 @ApiTags('Metrics')
 @Controller()
 export class MetricsCatalogController {

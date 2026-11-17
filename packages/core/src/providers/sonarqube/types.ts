@@ -10,8 +10,8 @@ export interface CodeMetric {
 export interface SonarqubeComponentTreeMeasure {
   key: string;
   name: string;
-  type?: string; // Legacy or some API versions
-  qualifier?: string; // SonarQube API returns this (FIL, DIR, TRK, etc.)
+  type?: string;
+  qualifier?: string;
   measures: CodeMetric[];
 }
 
@@ -49,7 +49,7 @@ export function extractLatestData<T>(raw: TimestampedStore<T> | null): T | null 
   if (Array.isArray(rawRecord.entries) && rawRecord.entries.length > 0) {
     return rawRecord.entries[rawRecord.entries.length - 1].data;
   }
-  // Legacy format (not wrapped in TimestampedStore)
+
   if (!rawRecord.entries) {
     return raw as unknown as T;
   }

@@ -58,9 +58,6 @@ export class PipelinesService implements IPipelinesService {
       return (completedAt - startedAt) / (1000 * 60);
     }
 
-    // Do not fall back to run-level startedAt/completedAt because completedAt
-    // is typically mapped from updated_at (last record update) rather than the
-    // actual run completion time, producing wildly incorrect durations.
     return null;
   }
 
@@ -77,9 +74,6 @@ export class PipelinesService implements IPipelinesService {
     return this.tz.getIntervalKey(dateString, interval);
   }
 
-  /**
-   * Get overall pipeline metrics for the given filters.
-   */
   async getMetrics(
     filters?: PipelineFilters,
     method: MetricMethod = 'average'
@@ -93,7 +87,6 @@ export class PipelinesService implements IPipelinesService {
     const successRate =
       completedRuns.length > 0 ? (successful.length / completedRuns.length) * 100 : 0;
 
-    // Calculate average duration
     const cleanedDurations = this.cleanPipelineSamples(
       this.extractDurationSamples(runs),
       filters?.cleaning
@@ -117,10 +110,6 @@ export class PipelinesService implements IPipelinesService {
     };
   }
 
-  /**
-   * Get deployment frequency with all intervals (daily, weekly, monthly) grouped by day.
-   * Returns data in the format expected by the frontend.
-   */
   async getDeploymentFrequency(
     interval: 'day' | 'week' | 'month',
     filters?: PipelineFilters
@@ -224,7 +213,6 @@ export class PipelinesService implements IPipelinesService {
       return [];
     }
 
-    // Determine the start and end dates from the deployments
     const sortedDays = Array.from(allDays.keys()).sort((a, b) => a.localeCompare(b));
     const firstDayStr = sortedDays[0];
     const lastDayStr = sortedDays[sortedDays.length - 1];
@@ -233,7 +221,6 @@ export class PipelinesService implements IPipelinesService {
     const [startYear, startMonth, startDay] = firstDayStr.split('-').map(Number);
     const [endYear, endMonth, endDay] = lastDayStr.split('-').map(Number);
 
-    // Use midday to avoid daylight saving time boundary issues when incrementing.
     const firstDate = new Date(Date.UTC(startYear, startMonth - 1, startDay, 12, 0, 0));
     const endDate = new Date(Date.UTC(endYear, endMonth - 1, endDay, 12, 0, 0));
 
@@ -258,7 +245,6 @@ export class PipelinesService implements IPipelinesService {
           links: '',
         });
 
-        // Move to the next day
         currentDate.setUTCDate(currentDate.getUTCDate() + 1);
       }
     }
@@ -266,9 +252,6 @@ export class PipelinesService implements IPipelinesService {
     return result;
   }
 
-  /**
-   * Get metrics aggregated by job name.
-   */
   async getJobMetrics(
     filters?: PipelineFilters,
     method: MetricMethod = 'average'
@@ -326,11 +309,9 @@ export class PipelinesService implements IPipelinesService {
       }
     }
 
-    // Calculate average durations and success rates
     const result: JobMetrics[] = [];
 
     for (const metrics of jobMetricsMap.values()) {
-      // Extract durations for this job
       const durationSamples: Array<MetricSample<PipelineMetricOutlierItem>> = [];
       for (const run of runs) {
         if (run.path !== metrics.workflowName) {
@@ -363,9 +344,6 @@ export class PipelinesService implements IPipelinesService {
     return result.sort((a, b) => b.totalRuns - a.totalRuns);
   }
 
-  /**
-   * Get rerun counts grouped by day.
-   */
   async getJobRerunsByDay(
     filters?: PipelineFilters
   ): Promise<Array<{ day: string; rerun_count: number }>> {
@@ -391,9 +369,6 @@ export class PipelinesService implements IPipelinesService {
       .sort((a, b) => a.day.localeCompare(b.day));
   }
 
-  /**
-   * Get average duration of steps for a job.
-   */
   async getJobStepsTime(
     filters?: PipelineFilters,
     method: MetricMethod = 'average'
@@ -408,7 +383,6 @@ export class PipelinesService implements IPipelinesService {
   > {
     const runs = await this.filterRuns(filters);
 
-    // Group durations by step name
     const stepDurations = new Map<string, Array<MetricSample<PipelineMetricOutlierItem>>>();
 
     for (const run of runs) {
@@ -453,9 +427,6 @@ export class PipelinesService implements IPipelinesService {
     return result;
   }
 
-  /**
-   * Get average duration of steps for a job, grouped by day.
-   */
   async getJobStepsTimeByDay(
     filters?: PipelineFilters,
     method: MetricMethod = 'average'
@@ -472,7 +443,6 @@ export class PipelinesService implements IPipelinesService {
   > {
     const runs = await this.filterRuns(filters);
 
-    // day -> stepName -> durations
     const dayStepDurations = new Map<
       string,
       Map<string, Array<MetricSample<PipelineMetricOutlierItem>>>
@@ -553,9 +523,6 @@ export class PipelinesService implements IPipelinesService {
     return this.configuration.getDeploymentFrequencyTargets();
   }
 
-  /**
-   * Filter runs by the provided criteria.
-   */
   private async filterRuns(filters?: PipelineFilters): Promise<PipelineRun[]> {
     if (!filters) {
       return this.loadCachedWorkflowsWithJobs();
@@ -673,7 +640,7 @@ export class PipelinesService implements IPipelinesService {
   private calculateJobDuration(job: PipelineJob): number {
     const started = new Date(job.startedAt).getTime();
     const completed = new Date(job.completedAt!).getTime();
-    return (completed - started) / (1000 * 60); // Convert to minutes
+    return (completed - started) / (1000 * 60);
   }
 
   private toRunSample(run: PipelineRun, value: number): MetricSample<PipelineMetricOutlierItem> {

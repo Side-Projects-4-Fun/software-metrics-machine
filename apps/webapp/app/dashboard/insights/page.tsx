@@ -1,11 +1,24 @@
 import Card from '@mui/material/Card';
-import { DashboardFilters, defaultFilters, parseDashboardFilters } from "@/components/filters/DashboardFilters";
+import {
+  DashboardFilters,
+  defaultFilters,
+  parseDashboardFilters,
+} from '@/components/filters/DashboardFilters';
 import { CardContent, CardHeader } from '@mui/material';
 import { sourceCodeAPI, pipelineAPI, changeRequestAPI, ApiParams } from '@/server/api';
 import { DeploymentFrequency } from '@/components/charts/DeploymentFrequency';
 import { Recommendations } from '@/components/charts/Recommendations';
 import { ContextLink } from '@/components/filters/ContextLink';
-import { ReviewTimeItem, DeploymentFrequencyPoint, DeploymentFrequencyResponseItem, JobsSummaryItem, PairingIndex, PipelineSummary, ChangeRequestSummary, ResultWrapper } from './insights-types';
+import {
+  ReviewTimeItem,
+  DeploymentFrequencyPoint,
+  DeploymentFrequencyResponseItem,
+  JobsSummaryItem,
+  PairingIndex,
+  PipelineSummary,
+  ChangeRequestSummary,
+  ResultWrapper,
+} from './insights-types';
 import { buildChangeRequestApiParams } from '@/server/utils/apiParams';
 
 function unwrapResult<T>(data: T | ResultWrapper<T>): T {
@@ -20,7 +33,10 @@ function buildSourceCodeApiParams(filters: DashboardFilters): ApiParams {
     start_date: filters.startDate,
     end_date: filters.endDate,
     timezone: filters.timezone,
-    authors: filters.authorSelect && filters.authorSelect.length > 0 ? filters.authorSelect.join(',') : undefined,
+    authors:
+      filters.authorSelect && filters.authorSelect.length > 0
+        ? filters.authorSelect.join(',')
+        : undefined,
   };
 }
 
@@ -31,7 +47,9 @@ function buildPipelineApiParams(filters: DashboardFilters): ApiParams {
     timezone: filters.timezone,
     workflow_path: filters.workflowSelector,
     status: filters.workflowStatus?.length ? filters.workflowStatus.join(',') : undefined,
-    conclusion: filters.workflowConclusions?.length ? filters.workflowConclusions.join(',') : undefined,
+    conclusion: filters.workflowConclusions?.length
+      ? filters.workflowConclusions.join(',')
+      : undefined,
     job_name: filters.jobSelector?.length ? filters.jobSelector.join(',') : undefined,
     branch: filters.branch?.length ? filters.branch.join(',') : undefined,
     event: filters.event?.length ? filters.event.join(',') : undefined,
@@ -39,7 +57,9 @@ function buildPipelineApiParams(filters: DashboardFilters): ApiParams {
   };
 }
 
-function extractDate(value?: { created?: string; createdAt?: string; created_at?: string } | string | null): string | null {
+function extractDate(
+  value?: { created?: string; createdAt?: string; created_at?: string } | string | null
+): string | null {
   const formatDate = (rawDate: string): string | null => {
     const parsed = new Date(rawDate);
     if (Number.isNaN(parsed.getTime())) {
@@ -74,7 +94,7 @@ export default async function InsightsSection({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const filters = parseDashboardFilters(await searchParams ?? {}, defaultFilters);
+  const filters = parseDashboardFilters((await searchParams) ?? {}, defaultFilters);
 
   let pairingIndex: PairingIndex | null = null;
   let pipelineSummary: PipelineSummary | null = null;
@@ -99,38 +119,38 @@ export default async function InsightsSection({
     const pairingData = unwrapResult(pairing as PairingIndex | ResultWrapper<PairingIndex>);
     const pipelineData = unwrapResult(pipeline as PipelineSummary | ResultWrapper<PipelineSummary>);
     const deploymentResult = unwrapResult(
-      deployment as DeploymentFrequencyResponseItem[] | ResultWrapper<DeploymentFrequencyResponseItem[]>
+      deployment as
+        DeploymentFrequencyResponseItem[] | ResultWrapper<DeploymentFrequencyResponseItem[]>
     );
-    const deploymentData = Array.isArray(deploymentResult) ? deploymentResult
-      .map((d: DeploymentFrequencyResponseItem): DeploymentFrequencyPoint => {
-        const dateStr = d.days || 'Unknown';
-        // Extract month from date (YYYY-MM-DD -> YYYY-MM)
-        const month = dateStr !== 'Unknown' ? dateStr.substring(0, 7) : 'Unknown';
-        const pipeline = d.pipeline || 'Deployment pipeline';
-        const job = d.job || 'Deployment job';
-        return {
-          pipeline,
-          job,
-          target_label: `${pipeline} / ${job}`,
-          date: dateStr,
-          week_label: d.weeks || 'Unknown',
-          month_label: d.months || month,
-          month: month,
-          day_count: d.daily_counts || 0,
-          week_count: d.weekly_counts || 0,
-          month_count: d.monthly_counts || 0,
-        };
-      })
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    const deploymentData = Array.isArray(deploymentResult)
+      ? deploymentResult
+          .map((d: DeploymentFrequencyResponseItem): DeploymentFrequencyPoint => {
+            const dateStr = d.days || 'Unknown';
+
+            const month = dateStr !== 'Unknown' ? dateStr.substring(0, 7) : 'Unknown';
+            const pipeline = d.pipeline || 'Deployment pipeline';
+            const job = d.job || 'Deployment job';
+            return {
+              pipeline,
+              job,
+              target_label: `${pipeline} / ${job}`,
+              date: dateStr,
+              week_label: d.weeks || 'Unknown',
+              month_label: d.months || month,
+              month: month,
+              day_count: d.daily_counts || 0,
+              week_count: d.weekly_counts || 0,
+              month_count: d.monthly_counts || 0,
+            };
+          })
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       : [];
 
     pairingIndex = pairingData || null;
     pipelineSummary = pipelineData || null;
     prSummary = prData;
     deploymentFrequency = deploymentData;
-    const jobsResult = unwrapResult(
-      jobs as JobsSummaryItem[] | ResultWrapper<JobsSummaryItem[]>
-    );
+    const jobsResult = unwrapResult(jobs as JobsSummaryItem[] | ResultWrapper<JobsSummaryItem[]>);
     jobsSummary = Array.isArray(jobsResult)
       ? jobsResult.map((job: JobsSummaryItem): JobsSummaryItem => ({
           workflow_name: job.workflow_name,
@@ -147,7 +167,6 @@ export default async function InsightsSection({
         }))
       : [];
 
-
     const reviewTimeResult = unwrapResult(
       reviewTimeRaw as ReviewTimeItem[] | ResultWrapper<ReviewTimeItem[]>
     );
@@ -159,7 +178,6 @@ export default async function InsightsSection({
           method: item.method,
         }))
       : [];
-
   } catch (error) {
     console.error('Error fetching insights:', error);
     pairingIndex = null;
@@ -174,7 +192,7 @@ export default async function InsightsSection({
   const pipelineLastDataPoint = extractDate(pipelineSummary?.last_run);
   const prFirstDataPoint = extractDate(prSummary?.first_change_request);
   const prLastDataPoint = extractDate(prSummary?.last_change_request);
-  
+
   return (
     <div className="space-y-6">
       <Recommendations
@@ -200,29 +218,29 @@ export default async function InsightsSection({
             <CardContent>Team collaboration metric</CardContent>
           </CardHeader>
           <CardContent>
-            <ContextLink
-              href="/dashboard/source-code"
-              className="group block cursor-pointer"
-            >
+            <ContextLink href="/dashboard/source-code" className="group block cursor-pointer">
               <div className="text-4xl font-bold group-hover:text-blue-600 transition-colors">
                 {pairingIndex?.pairing_index_percentage?.toFixed(2) || 0}%
               </div>
               <p className="text-sm text-muted-foreground mt-2 group-hover:text-gray-900 transition-colors">
-                {pairingIndex?.paired_commits || 0} of {pairingIndex?.total_analyzed_commits || 0} commits
+                {pairingIndex?.paired_commits || 0} of {pairingIndex?.total_analyzed_commits || 0}{' '}
+                commits
               </p>
             </ContextLink>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader title="Pipeline Runs">
-          </CardHeader>
+          <CardHeader title="Pipeline Runs"></CardHeader>
           <CardContent>
             <div className="text-4xl font-bold">{pipelineSummary?.total_runs || 0}</div>
             <div className="grid grid-cols-3 gap-2 mt-4 text-sm">
               <ContextLink
                 href="/dashboard/pipelines"
-                filterOverrides={{ workflowConclusions: ['success'], workflowStatus: ['completed'] }}
+                filterOverrides={{
+                  workflowConclusions: ['success'],
+                  workflowStatus: ['completed'],
+                }}
                 className="text-green-600 font-semibold cursor-pointer hover:text-green-800 hover:underline transition-colors"
               >
                 ✓ Success
@@ -249,27 +267,28 @@ export default async function InsightsSection({
         </Card>
 
         <Card>
-          <CardHeader title="Change Requests">
-          </CardHeader>
+          <CardHeader title="Change Requests"></CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold">{prSummary?.total_change_requests || prSummary?.total || 0}</div>
+            <div className="text-4xl font-bold">
+              {prSummary?.total_change_requests || prSummary?.total || 0}
+            </div>
             <div className="grid grid-cols-3 gap-2 mt-4 text-sm">
-              <ContextLink 
-                href="/dashboard/change-requests" 
+              <ContextLink
+                href="/dashboard/change-requests"
                 filterOverrides={{ changeRequestStatus: 'merged' }}
                 className="text-green-600 font-semibold cursor-pointer hover:text-green-800 hover:underline transition-colors"
               >
                 {prSummary?.merged_change_requests || prSummary?.merged || 0} Merged
               </ContextLink>
-              <ContextLink 
-                href="/dashboard/change-requests" 
+              <ContextLink
+                href="/dashboard/change-requests"
                 filterOverrides={{ changeRequestStatus: 'closed' }}
                 className="text-gray-600 font-semibold cursor-pointer hover:text-gray-800 hover:underline transition-colors"
               >
                 {prSummary?.closed_change_requests || prSummary?.closed || 0} Closed
               </ContextLink>
-              <ContextLink 
-                href="/dashboard/change-requests" 
+              <ContextLink
+                href="/dashboard/change-requests"
                 filterOverrides={{ changeRequestStatus: 'open' }}
                 className="text-blue-600 font-semibold cursor-pointer hover:text-blue-800 hover:underline transition-colors"
               >

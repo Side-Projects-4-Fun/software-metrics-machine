@@ -1,4 +1,3 @@
-// Re-export all API modules for backward compatibility
 export { sourceCodeAPI } from './api/sourceCode';
 export { pipelineAPI } from './api/pipeline';
 export { changeRequestAPI } from './api/changeRequest';

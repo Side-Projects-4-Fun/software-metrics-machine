@@ -2,7 +2,16 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ClientPaginatedSortableTable } from '@/components/ui/client-paginated-sortable-table';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import { JobSummaryData, JobRerunsByDayData } from './types';
 import { TargetInfo } from '@/components/charts/TargetInfo';
 import { useLinkBuilder } from '@/components/providers/LinkBuilderContext';
@@ -73,7 +82,7 @@ export default function JobsRerunCard({ data, dataByDay }: JobsRerunCardProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Summary Stats */}
+        {}
         <div className="grid grid-cols-2 gap-4">
           <div className="rounded-md border p-3 bg-gray-50">
             <div className="text-sm text-gray-600">Total reruns</div>
@@ -85,7 +94,7 @@ export default function JobsRerunCard({ data, dataByDay }: JobsRerunCardProps) {
           </div>
         </div>
 
-        {/* Time Series Chart */}
+        {}
         {dataByDay && dataByDay.length > 0 && (
           <div>
             <h3 className="text-sm font-medium mb-3 text-gray-700">Reruns by Day</h3>
@@ -109,11 +118,13 @@ export default function JobsRerunCard({ data, dataByDay }: JobsRerunCardProps) {
           </div>
         )}
 
-        {/* Jobs Table */}
+        {}
         <div>
           <div className="flex items-baseline gap-2 mb-3">
             <h3 className="text-sm font-medium text-gray-700">Jobs Summary</h3>
-            <span className="text-xs text-gray-400">Failure rate = (failed / total runs) × 100</span>
+            <span className="text-xs text-gray-400">
+              Failure rate = (failed / total runs) × 100
+            </span>
           </div>
           <ClientPaginatedSortableTable
             columns={columns}

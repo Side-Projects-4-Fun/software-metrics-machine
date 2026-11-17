@@ -1,4 +1,4 @@
-import { defaultFilters, parseDashboardFilters } from "@/components/filters/DashboardFilters";
+import { defaultFilters, parseDashboardFilters } from '@/components/filters/DashboardFilters';
 import { sonarqubeAPI, sourceCodeAPI } from '@/server/api';
 import type { SonarqubeComponentMeasure } from '@/server/api/sonarqube';
 import { buildSonarqubeApiParams, buildSourceCodeApiParams } from '@/server/utils/apiParams';
@@ -21,10 +21,13 @@ import {
   EntityOwnershipData,
   LayeredCouplingData,
 } from '@/components/charts/source-code/types';
-import { LatestPairedCommitsCard } from "@/components/charts/source-code/LatestPairedCommitsCard";
+import { LatestPairedCommitsCard } from '@/components/charts/source-code/LatestPairedCommitsCard';
 import { TopPairingsCard } from '@/components/charts/source-code/TopPairingsCard';
 import { BigOAnalysisCard } from '@/components/charts/source-code/BigOAnalysisCard';
-import type { BigOFileSummary as BigOFileSummaryResponse, CodeEvaluation } from '@/server/api/sourceCode';
+import type {
+  BigOFileSummary as BigOFileSummaryResponse,
+  CodeEvaluation,
+} from '@/server/api/sourceCode';
 import CodeEvaluationCard from '@/components/charts/source-code/CodeEvaluationCard';
 
 type ResultWrapper<T> = {
@@ -52,12 +55,9 @@ function unwrapResult<T>(data: T | ResultWrapper<T>): T {
   return data;
 }
 
-function metricValue(
-  measures: SonarqubeComponentMeasure['measures'] = [],
-  metric: string,
-): number {
+function metricValue(measures: SonarqubeComponentMeasure['measures'] = [], metric: string): number {
   const measure = measures.find(
-    (item) => item.key === metric || item.metric === metric || item.name === metric,
+    (item) => item.key === metric || item.metric === metric || item.name === metric
   );
   const numeric = Number(measure?.value ?? 0);
 
@@ -88,10 +88,12 @@ export default async function SourceCodePage({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const resolvedSearchParams = await searchParams ?? {};
+  const resolvedSearchParams = (await searchParams) ?? {};
   const filters = parseDashboardFilters(resolvedSearchParams, defaultFilters);
   const bigOSearchParam = resolvedSearchParams.big_o_search;
-  const bigOSearch = Array.isArray(bigOSearchParam) ? bigOSearchParam[0] ?? '' : bigOSearchParam ?? '';
+  const bigOSearch = Array.isArray(bigOSearchParam)
+    ? (bigOSearchParam[0] ?? '')
+    : (bigOSearchParam ?? '');
   let entityChurn: EntityChurnData[] = [];
   let coupling: CouplingData[] = [];
   let layeredCoupling: LayeredCouplingData[] = [];
@@ -117,7 +119,18 @@ export default async function SourceCodePage({
       metrics: 'complexity,coverage',
       remove_folders: 'true',
     };
-    const [sourceCodeEval, churn, couplingData, layeredCouplingData, effort, churnOverTime, ownership, pairing, bigO, sonarqubeTree] = await Promise.all([
+    const [
+      sourceCodeEval,
+      churn,
+      couplingData,
+      layeredCouplingData,
+      effort,
+      churnOverTime,
+      ownership,
+      pairing,
+      bigO,
+      sonarqubeTree,
+    ] = await Promise.all([
       sourceCodeAPI.evaluate(apiParams),
       sourceCodeAPI.entityChurn(apiParams),
       sourceCodeAPI.coupling(apiParams),
@@ -130,30 +143,48 @@ export default async function SourceCodePage({
       sonarqubeAPI.componentTree(sonarqubeParams),
     ]);
     evaluation = sourceCodeEval;
-    // Handle both direct array responses and wrapped responses
-    entityChurn = ensureArray<EntityChurnData>(unwrapResult(churn as EntityChurnData[] | ResultWrapper<EntityChurnData[]>));
-    coupling = ensureArray<CouplingData>(unwrapResult(couplingData as CouplingData[] | ResultWrapper<CouplingData[]>));
-    layeredCoupling = ensureArray<LayeredCouplingData>(
-      unwrapResult(layeredCouplingData as LayeredCouplingData[] | ResultWrapper<LayeredCouplingData[]>)
+
+    entityChurn = ensureArray<EntityChurnData>(
+      unwrapResult(churn as EntityChurnData[] | ResultWrapper<EntityChurnData[]>)
     );
-    entityEffort = ensureArray<EntityEffortData>(unwrapResult(effort as EntityEffortData[] | ResultWrapper<EntityEffortData[]>));
-    codeChurn = ensureArray<CodeChurnData>(unwrapResult(churnOverTime as CodeChurnData[] | ResultWrapper<CodeChurnData[]>));
-    entityOwnership = ensureArray<EntityOwnershipData>(unwrapResult(ownership as EntityOwnershipData[] | ResultWrapper<EntityOwnershipData[]>));
-    bigOFiles = ensureArray<BigOFileSummaryResponse>(unwrapResult(bigO as BigOFileSummaryResponse[] | ResultWrapper<BigOFileSummaryResponse[]>));
+    coupling = ensureArray<CouplingData>(
+      unwrapResult(couplingData as CouplingData[] | ResultWrapper<CouplingData[]>)
+    );
+    layeredCoupling = ensureArray<LayeredCouplingData>(
+      unwrapResult(
+        layeredCouplingData as LayeredCouplingData[] | ResultWrapper<LayeredCouplingData[]>
+      )
+    );
+    entityEffort = ensureArray<EntityEffortData>(
+      unwrapResult(effort as EntityEffortData[] | ResultWrapper<EntityEffortData[]>)
+    );
+    codeChurn = ensureArray<CodeChurnData>(
+      unwrapResult(churnOverTime as CodeChurnData[] | ResultWrapper<CodeChurnData[]>)
+    );
+    entityOwnership = ensureArray<EntityOwnershipData>(
+      unwrapResult(ownership as EntityOwnershipData[] | ResultWrapper<EntityOwnershipData[]>)
+    );
+    bigOFiles = ensureArray<BigOFileSummaryResponse>(
+      unwrapResult(bigO as BigOFileSummaryResponse[] | ResultWrapper<BigOFileSummaryResponse[]>)
+    );
     crapMetrics = ensureArray<SonarqubeComponentMeasure>(
-      unwrapResult(sonarqubeTree as SonarqubeComponentMeasure[] | ResultWrapper<SonarqubeComponentMeasure[]>)
+      unwrapResult(
+        sonarqubeTree as SonarqubeComponentMeasure[] | ResultWrapper<SonarqubeComponentMeasure[]>
+      )
     )
       .filter(isFileComponent)
       .map(toCrapMetricData)
       .filter((item) => item.complexity > 0);
-    const pairingData = unwrapResult(pairing as PairingIndexResponse | ResultWrapper<PairingIndexResponse>);
+    const pairingData = unwrapResult(
+      pairing as PairingIndexResponse | ResultWrapper<PairingIndexResponse>
+    );
     topPairings = Array.isArray(pairingData?.top_pairs) ? pairingData.top_pairs.slice(0, 10) : [];
     latestPairedCommits = Array.isArray(pairingData?.latest_paired_commits)
       ? pairingData.latest_paired_commits.slice(0, 20)
       : [];
   } catch (error) {
     console.error('Error fetching source code data:', error);
-    // Set empty arrays on error
+
     entityChurn = [];
     coupling = [];
     layeredCoupling = [];

@@ -11,67 +11,26 @@ import type {
 import { Configuration } from './configuration';
 import { resolveStoreDataAt } from './user-settings';
 
-/**
- * Repository interface for accessing project configurations.
- * Provides a single source of truth for configuration data across the application.
- */
 export interface IConfigurationRepository {
-  /**
-   * Returns the active Configuration instance for the current project.
-   */
   getActiveConfiguration(): Configuration;
 
-  /**
-   * Creates a Configuration directly from a project entry.
-   */
   fromProjectConfig(projectConfig: ISmmProjectConfig): Configuration;
 
-  /**
-   * Returns all project configurations from smm_config.json.
-   */
   getAllProjects(): ISmmProjectConfig[];
 
-  /**
-   * Returns just the github_repository identifiers for all projects.
-   */
   getAllProjectNames(): string[];
 
-  /**
-   * Finds a project configuration by github_repository.
-   * @param repository - The github_repository value to find (e.g. "owner/repo")
-   * @returns The project config if found, undefined otherwise
-   */
   getProjectByRepository(repository: string): ISmmProjectConfig | undefined;
 
-  /**
-   * Alias for getProjectByRepository — finds a project by its name (github_repository).
-   * @param name - The github_repository value to find
-   */
   getProjectByName(name: string): ISmmProjectConfig | undefined;
 
-  /**
-   * Finds a project configuration by index.
-   * @param index - The zero-based index of the project
-   * @returns The project config if the index is valid, undefined otherwise
-   */
   getProjectByIndex(index: number): ISmmProjectConfig | undefined;
 
-  /**
-   * Returns the root-level default GitHub token from smm_config.json.
-   */
   getDefaultGithubToken(): string | undefined;
 
-  /**
-   * Persists changes to the active project configuration.
-   */
   save(): void;
 }
 
-/**
- * Implementation of IConfigurationRepository that reads from smm_config.json.
- *
- * Requires the multi-project format { projects: [...] }.
- */
 export class ConfigurationRepository implements IConfigurationRepository {
   private configuration: Configuration;
   private projects: ISmmProjectConfig[];
@@ -311,10 +270,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
     return parsed as ISmmConfigFile;
   }
 
-  /**
-   * Validates the structure of smm_config.json against the expected schema.
-   * Throws descriptive errors if the structure does not comply.
-   */
   private validateConfig(data: unknown, configPath: string): void {
     if (data === null || data === undefined || typeof data !== 'object' || Array.isArray(data)) {
       throw new Error(
@@ -324,7 +279,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
     const obj = data as JsonObject;
 
-    // Validate projects field if present
     if ('projects' in obj) {
       if (!Array.isArray(obj.projects)) {
         throw new Error(
@@ -339,9 +293,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  /**
-   * Validates a single project entry within smm_config.json.
-   */
   private validateProject(project: unknown, index: number, configPath: string): void {
     if (
       project === null ||
@@ -392,7 +343,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
       }
     }
 
-    // Validate store_logs is boolean if present
     if (
       'store_logs' in obj &&
       obj.store_logs !== undefined &&
@@ -403,7 +353,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
       );
     }
 
-    // Validate deployment_frequency_targets is array of objects with pipeline/job strings
     if ('deployment_frequency_targets' in obj && obj.deployment_frequency_targets !== undefined) {
       if (!Array.isArray(obj.deployment_frequency_targets)) {
         throw new Error(
@@ -443,7 +392,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
       return this.rawConfig.projects;
     }
 
-    // No config file or missing projects array
     return [];
   }
 

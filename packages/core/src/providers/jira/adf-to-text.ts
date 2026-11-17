@@ -50,13 +50,6 @@ function flattenNode(node: AdfNode): string {
   return children.map(flattenNode).join(separator);
 }
 
-/**
- * Flattens Atlassian Document Format into plain text.
- *
- * Jira REST API v3 returns comment bodies as ADF documents instead of strings.
- * This helper keeps the domain `IssueComment.body` provider-neutral without
- * pulling in a full ADF renderer.
- */
 export function adfToPlainText(value: unknown): string {
   if (typeof value === 'string') {
     return value;

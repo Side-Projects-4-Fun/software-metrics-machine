@@ -1,9 +1,5 @@
 import type { MetricCatalogSource } from './metric-catalog';
 
-/**
- * Outlier detection is a cross-cutting analysis, not a catalogued metric
- * family, so its explanation and sources live with the webapp.
- */
 export const OUTLIER_REFERENCE: {
   target: string;
   description: string;
@@ -19,8 +15,7 @@ export const OUTLIER_REFERENCE: {
       url: 'https://doi.org/10.1109/TSE.2012.70',
     },
     {
-      label:
-        'Rahman & Devanbu (2013) — How, and Why, Process Metrics Are Better (ICSE)',
+      label: 'Rahman & Devanbu (2013) — How, and Why, Process Metrics Are Better (ICSE)',
       url: 'https://scholar.google.com/scholar?q=How+and+Why+Process+Metrics+Are+Better+Rahman+Devanbu+ICSE+2013',
     },
     {

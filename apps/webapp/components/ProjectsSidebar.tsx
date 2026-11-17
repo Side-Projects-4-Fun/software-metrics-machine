@@ -12,7 +12,6 @@ export default function ProjectsSidebar() {
   const { projects, activeProject, selectProject } = useProjects();
 
   const handleProjectClick = (projectName: string) => {
-    // Switch project and drop stale filter params from the current URL.
     selectProject(projectName);
 
     const nextUrl = new URL(window.location.href);
@@ -35,11 +34,7 @@ export default function ProjectsSidebar() {
             onClick={() => handleProjectClick(project.github_repository)}
           >
             <ListItemIcon>
-              {isActive ? (
-                <CheckCircleIcon color="primary" />
-              ) : (
-                <FolderIcon />
-              )}
+              {isActive ? <CheckCircleIcon color="primary" /> : <FolderIcon />}
             </ListItemIcon>
             <ListItemText
               primary={project.github_repository}

@@ -2,22 +2,10 @@ import * as fs from 'fs';
 import type { SmmCommand } from './smm-command';
 type JsonObject = Record<string, unknown>;
 
-/**
- * Tools Command Group
- *
- * Provides CLI utility commands matching Python CLI functionality.
- *
- * Commands:
- *   smm tools json-merge   Merge multiple JSON files
- */
 export function createToolsCommands(program: SmmCommand): void {
   const toolsGroup = program.subcommand('tools').description('Utility tools');
   const screen = program.getScreen();
 
-  /**
-   * smm tools json-merge [options]
-   * Merge multiple JSON files into one
-   */
   toolsGroup
     .subcommand('json-merge')
     .description('Merge multiple JSON files into one')

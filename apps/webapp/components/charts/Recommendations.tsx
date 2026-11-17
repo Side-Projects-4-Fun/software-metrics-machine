@@ -99,7 +99,6 @@ export function Recommendations({
   const recommendations = useMemo(() => {
     const recs: Recommendation[] = [];
 
-    // --- Pairing Index ---
     if (pairingIndex) {
       const target = pairingTarget;
       const value = pairingIndex.pairing_index_percentage;
@@ -128,7 +127,6 @@ export function Recommendations({
       }
     }
 
-    // --- Pipeline Success Rate ---
     if (jobsSummary && jobsSummary.length > 0) {
       const target = jobsSuccessTarget;
       const overallSuccessRate =
@@ -139,7 +137,9 @@ export function Recommendations({
           .filter((job) => job.success_rate < 90)
           .sort((a, b) => a.success_rate - b.success_rate);
         const affectedJobsMessage = formatTopItems(
-          affectedJobs.length > 0 ? affectedJobs : [...jobsSummary].sort((a, b) => a.success_rate - b.success_rate),
+          affectedJobs.length > 0
+            ? affectedJobs
+            : [...jobsSummary].sort((a, b) => a.success_rate - b.success_rate),
           (job) => `${formatPipelineJob(job, selectedWorkflow)} (${job.success_rate.toFixed(1)}%)`
         );
         recs.push({
@@ -150,9 +150,15 @@ export function Recommendations({
           severity: 'warning',
           currentValue: `${overallSuccessRate.toFixed(1)}%`,
           targetValue: target,
-          contextItems: (affectedJobs.length > 0 ? affectedJobs : [...jobsSummary].sort((a, b) => a.success_rate - b.success_rate))
+          contextItems: (affectedJobs.length > 0
+            ? affectedJobs
+            : [...jobsSummary].sort((a, b) => a.success_rate - b.success_rate)
+          )
             .slice(0, 3)
-            .map((job) => `${formatPipelineJob(job, selectedWorkflow)} - ${job.success_rate.toFixed(1)}% success`),
+            .map(
+              (job) =>
+                `${formatPipelineJob(job, selectedWorkflow)} - ${job.success_rate.toFixed(1)}% success`
+            ),
           href: '/dashboard/pipelines',
           hrefLabel: 'View Pipelines',
         });
@@ -169,7 +175,6 @@ export function Recommendations({
       }
     }
 
-    // --- Job Reruns ---
     if (jobsSummary && jobsSummary.length > 0) {
       const target = rerunsTarget;
       const totalReruns = jobsSummary.reduce((sum, j) => sum + j.rerun_count, 0);
@@ -192,19 +197,20 @@ export function Recommendations({
           targetValue: target,
           contextItems: rerunJobs
             .slice(0, 3)
-            .map((job) => `${formatPipelineJob(job, selectedWorkflow)} - ${job.rerun_count} reruns`),
+            .map(
+              (job) => `${formatPipelineJob(job, selectedWorkflow)} - ${job.rerun_count} reruns`
+            ),
           href: '/dashboard/pipelines',
           hrefLabel: 'View Pipelines',
         });
       }
     }
 
-    // --- Average Job Duration ---
     if (jobsSummary && jobsSummary.length > 0) {
       const target = jobDurationTarget;
-      const avgDuration =
-        jobsSummary.reduce((sum, j) => sum + j.value, 0) / jobsSummary.length;
-      const avgDurationFormatted = jobsSummary[0]?.value_formatted || `${avgDuration.toFixed(1)} min`;
+      const avgDuration = jobsSummary.reduce((sum, j) => sum + j.value, 0) / jobsSummary.length;
+      const avgDurationFormatted =
+        jobsSummary[0]?.value_formatted || `${avgDuration.toFixed(1)} min`;
 
       if (avgDuration > 5) {
         const slowJobs = jobsSummary
@@ -212,7 +218,8 @@ export function Recommendations({
           .sort((a, b) => b.value - a.value);
         const slowJobsMessage = formatTopItems(
           slowJobs.length > 0 ? slowJobs : [...jobsSummary].sort((a, b) => b.value - a.value),
-          (job) => `${formatPipelineJob(job, selectedWorkflow)} (${job.value_formatted || `${job.value.toFixed(1)} min`})`
+          (job) =>
+            `${formatPipelineJob(job, selectedWorkflow)} (${job.value_formatted || `${job.value.toFixed(1)} min`})`
         );
         recs.push({
           id: 'job-duration-high',
@@ -222,20 +229,24 @@ export function Recommendations({
           severity: 'warning',
           currentValue: avgDurationFormatted,
           targetValue: target,
-          contextItems: (slowJobs.length > 0 ? slowJobs : [...jobsSummary].sort((a, b) => b.value - a.value))
+          contextItems: (slowJobs.length > 0
+            ? slowJobs
+            : [...jobsSummary].sort((a, b) => b.value - a.value)
+          )
             .slice(0, 3)
-            .map((job) => `${formatPipelineJob(job, selectedWorkflow)} - ${job.value_formatted || `${job.value.toFixed(1)} min`} avg`),
+            .map(
+              (job) =>
+                `${formatPipelineJob(job, selectedWorkflow)} - ${job.value_formatted || `${job.value.toFixed(1)} min`} avg`
+            ),
           href: '/dashboard/pipelines',
           hrefLabel: 'View Pipelines',
         });
       }
     }
 
-    // --- Change Request Review Time ---
     if (reviewTime && reviewTime.length > 0) {
       const target = reviewTimeTarget;
-      const reviewDays =
-        reviewTime.reduce((sum, a) => sum + a.value, 0) / reviewTime.length;
+      const reviewDays = reviewTime.reduce((sum, a) => sum + a.value, 0) / reviewTime.length;
       const reviewTimeDataFormatted = reviewTime[0]?.value_formatted || `${reviewDays.toFixed(1)}d`;
 
       if (reviewDays > 1) {
@@ -263,7 +274,6 @@ export function Recommendations({
       }
     }
 
-    // --- Open Change Requests ---
     if (prSummary && prSummary.open > 0) {
       const target = openTimeTarget;
       recs.push({
@@ -279,13 +289,9 @@ export function Recommendations({
       });
     }
 
-    // --- Deployment Frequency ---
     if (deploymentFrequency && deploymentFrequency.length > 0) {
       const target = deploymentTarget;
-      const totalDailyDeployments = deploymentFrequency.reduce(
-        (sum, d) => sum + d.day_count,
-        0
-      );
+      const totalDailyDeployments = deploymentFrequency.reduce((sum, d) => sum + d.day_count, 0);
 
       if (totalDailyDeployments === 0) {
         const deploymentTargetsMessage = formatTopItems(
@@ -307,13 +313,13 @@ export function Recommendations({
       }
     }
 
-    // --- General Guidance ---
     if (recs.length === 0 || (recs.length > 0 && recs.every((r) => r.severity === 'success'))) {
       recs.push({
         id: 'general-explore',
         metric: 'general',
         title: 'Explore Deeper Insights',
-        message: 'Your metrics look healthy! Consider diving into code churn, entity coupling, and ownership data to identify potential hotspots before they become issues.',
+        message:
+          'Your metrics look healthy! Consider diving into code churn, entity coupling, and ownership data to identify potential hotspots before they become issues.',
         severity: 'info',
         href: '/dashboard/source-code',
         hrefLabel: 'View Source Code',

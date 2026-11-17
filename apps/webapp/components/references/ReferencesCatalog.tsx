@@ -135,7 +135,7 @@ function MetricReferenceCard({ entry }: { entry: MetricCatalogEntry }) {
         display: 'flex',
         flexDirection: 'column',
         transition: 'box-shadow 0.2s',
-        // Keep anchored cards clear of the sticky dashboard tab bar.
+
         scrollMarginTop: { xs: 104, sm: 112 },
         '&:hover': {
           boxShadow: 2,

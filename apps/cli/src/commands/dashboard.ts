@@ -107,22 +107,10 @@ function terminateServices(services: ServiceProcess[]): void {
   }
 }
 
-/**
- * Dashboard Command Group
- *
- * Provides CLI commands for dashboard operations matching Python CLI functionality.
- *
- * Commands:
- *   smm dashboard serve    Start the dashboard server
- */
 export function createDashboardCommands(program: SmmCommand): void {
   const dashboardGroup = program.subcommand('dashboard').description('Dashboard operations');
   const screen = program.getScreen();
 
-  /**
-   * smm dashboard serve [options]
-   * Start the dashboard server
-   */
   dashboardGroup
     .subcommand('serve')
     .description('Start bundled REST API and dashboard webapp servers')

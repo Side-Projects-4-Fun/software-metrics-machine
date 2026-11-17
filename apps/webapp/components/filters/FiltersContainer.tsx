@@ -1,17 +1,21 @@
 'use client';
 
-import { Box, Paper, Typography, Divider, Button, Stack, FormControlLabel } from "@mui/material";
-import { useFilters } from "@/components/filters/FiltersContext";
-import { usePathname } from "next/navigation";
-import DateRangePicker, { FilterDateRangePicker } from "@/components/filters/DateRangePicker";
-import SelectFilter from "@/components/filters/SelectFilter";
-import MultiSelectFilter from "@/components/filters/MultiSelectFilter";
-import TextInputFilter from "@/components/filters/TextInputFilter";
-import SliderFilter from "@/components/filters/SliderFilter";
-import { DashboardFilters } from "@/components/filters/DashboardFilters";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { pipelineAPI, changeRequestAPI, sourceCodeAPI } from "@/server/api";
-import { DashboardSection, dashboardSectionFromPathname, SavedFilterEntry } from './saved-filters-store';
+import { Box, Paper, Typography, Divider, Button, Stack, FormControlLabel } from '@mui/material';
+import { useFilters } from '@/components/filters/FiltersContext';
+import { usePathname } from 'next/navigation';
+import DateRangePicker, { FilterDateRangePicker } from '@/components/filters/DateRangePicker';
+import SelectFilter from '@/components/filters/SelectFilter';
+import MultiSelectFilter from '@/components/filters/MultiSelectFilter';
+import TextInputFilter from '@/components/filters/TextInputFilter';
+import SliderFilter from '@/components/filters/SliderFilter';
+import { DashboardFilters } from '@/components/filters/DashboardFilters';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { pipelineAPI, changeRequestAPI, sourceCodeAPI } from '@/server/api';
+import {
+  DashboardSection,
+  dashboardSectionFromPathname,
+  SavedFilterEntry,
+} from './saved-filters-store';
 import SavedFiltersSection from './SavedFiltersSection';
 
 interface WorkflowOption {
@@ -56,16 +60,8 @@ const SECTION_FILTER_KEYS: Record<DashboardSection, (keyof DashboardFilters)[]> 
     'topEntries',
     'typeChurn',
   ],
-  architecture: [
-    'ignorePatternFiles',
-    'includePatternFiles',
-  ],
-  sonarqube: [
-    'ignorePatternFiles',
-    'includePatternFiles',
-    'sonarqubeRemoveFolders',
-    'topEntries',
-  ],
+  architecture: ['ignorePatternFiles', 'includePatternFiles'],
+  sonarqube: ['ignorePatternFiles', 'includePatternFiles', 'sonarqubeRemoveFolders', 'topEntries'],
   'engineering-health': [
     'metric',
     'category',
@@ -96,17 +92,12 @@ const ENGINEERING_HEALTH_METRICS = [
   'components',
 ];
 
-const ENGINEERING_HEALTH_CATEGORIES = [
-  'delivery',
-  'quality',
-  'collaboration',
-  'architecture',
-];
+const ENGINEERING_HEALTH_CATEGORIES = ['delivery', 'quality', 'collaboration', 'architecture'];
 
 function areFiltersEqualForSection(
   left: DashboardFilters,
   right: DashboardFilters,
-  section: DashboardSection,
+  section: DashboardSection
 ): boolean {
   const keys = [...COMMON_FILTER_KEYS, ...SECTION_FILTER_KEYS[section]];
 
@@ -129,7 +120,6 @@ export default function FiltersContainer({ repository }: { repository: string })
   const [authorSourceCodeOptions, setAuthorSourceCodeOptions] = useState<string[]>([]);
   const [labelOptions, setLabelOptions] = useState<string[]>([]);
 
-  // Fetch all filter options on component mount
   useEffect(() => {
     const fetchFilterOptions = async () => {
       try {
@@ -143,9 +133,9 @@ export default function FiltersContainer({ repository }: { repository: string })
         }));
 
         setWorkflowOptions([
-          ...pipelineOptions.workflows
+          ...(pipelineOptions.workflows
             .map((w: WorkflowOption) => w.path || w.name)
-            .filter(Boolean) as string[],
+            .filter(Boolean) as string[]),
         ]);
         setStatusOptions(
           pipelineOptions.statuses.length > 0
@@ -185,11 +175,12 @@ export default function FiltersContainer({ repository }: { repository: string })
     fetchFilterOptions();
   }, [pathname]);
 
-  // Fetch jobs when workflow changes (only in pipelines section)
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const params = filters.workflowSelector ? { workflow_path: filters.workflowSelector } : undefined;
+        const params = filters.workflowSelector
+          ? { workflow_path: filters.workflowSelector }
+          : undefined;
         const options = await pipelineAPI.getFilterOptions(params).catch(() => ({ jobs: [] }));
         setJobOptions(options.jobs.map((j) => j.name).filter(Boolean) as string[]);
       } catch (error) {
@@ -222,13 +213,15 @@ export default function FiltersContainer({ repository }: { repository: string })
   }, []);
 
   const selectedSavedFilterName = useMemo(
-    () => savedFilters.find((entry) => areFiltersEqualForSection(entry.filters, filters, activeSection))?.name,
-    [activeSection, filters, savedFilters],
+    () =>
+      savedFilters.find((entry) => areFiltersEqualForSection(entry.filters, filters, activeSection))
+        ?.name,
+    [activeSection, filters, savedFilters]
   );
 
   const selectedSavedFilter = useMemo(
     () => savedFilters.find((entry) => entry.name === selectedSavedFilterName),
-    [savedFilters, selectedSavedFilterName],
+    [savedFilters, selectedSavedFilterName]
   );
 
   const handleResetFilters = useCallback(() => {
@@ -262,19 +255,17 @@ export default function FiltersContainer({ repository }: { repository: string })
 
       <Divider sx={{ mb: 2 }} />
 
-      {/* Date Range - Always Show */}
+      {}
       <Box sx={{ mb: 3 }}>
         <DateRangePicker />
       </Box>
 
       <Divider sx={{ mb: 2 }} />
 
-      {/* Insights Tab - Date Range Only */}
-      {activeSection === 'insights' && (
-        <Box sx={{ mb: 3 }} />
-      )}
+      {}
+      {activeSection === 'insights' && <Box sx={{ mb: 3 }} />}
 
-      {/* Pipelines Tab - Pipeline Filters */}
+      {}
       {activeSection === 'pipelines' && (
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
@@ -343,7 +334,7 @@ export default function FiltersContainer({ repository }: { repository: string })
         </Box>
       )}
 
-      {/* Change Request Tab - Change Request Filters */}
+      {}
       {activeSection === 'change-requests' && (
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
@@ -378,7 +369,9 @@ export default function FiltersContainer({ repository }: { repository: string })
               label="Status"
               value={filters.changeRequestStatus}
               options={['open', 'closed', 'merged', 'draft']}
-              onChange={(value) => updateFilter('changeRequestStatus', value as 'open' | 'closed' | 'merged' | 'draft')}
+              onChange={(value) =>
+                updateFilter('changeRequestStatus', value as 'open' | 'closed' | 'merged' | 'draft')
+              }
             />
             <SelectFilter
               label="Aggregate By"
@@ -412,8 +405,7 @@ export default function FiltersContainer({ repository }: { repository: string })
         </Box>
       )}
 
-
-      {/* Source Code / SonarQube Tab - Source Code-like Filters */}
+      {}
       {(activeSection === 'source-code' || activeSection === 'architecture') && (
         <Box sx={{ mb: 3 }}>
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
@@ -434,26 +426,26 @@ export default function FiltersContainer({ repository }: { repository: string })
             />
             {activeSection === 'source-code' && (
               <>
-            <MultiSelectFilter
-              label="Authors (Source Code)"
-              values={filters.authorSelectSourceCode}
-              options={authorSourceCodeOptions}
-              onChange={(values) => updateFilter('authorSelectSourceCode', values)}
-            />
-            <SelectFilter
-              label="Type Churn"
-              value={filters.typeChurn}
-              options={['added', 'deleted']}
-              onChange={(value) => updateFilter('typeChurn', value)}
-            />
-            <SliderFilter
-              label="Top Entries"
-              value={filters.topEntries}
-              onChange={(value) => updateFilter('topEntries', value)}
-              min={MIN_TOP_ENTRIES}
-              max={TOP_ENTRIES_MAX}
-              step={STEP}
-            />
+                <MultiSelectFilter
+                  label="Authors (Source Code)"
+                  values={filters.authorSelectSourceCode}
+                  options={authorSourceCodeOptions}
+                  onChange={(values) => updateFilter('authorSelectSourceCode', values)}
+                />
+                <SelectFilter
+                  label="Type Churn"
+                  value={filters.typeChurn}
+                  options={['added', 'deleted']}
+                  onChange={(value) => updateFilter('typeChurn', value)}
+                />
+                <SliderFilter
+                  label="Top Entries"
+                  value={filters.topEntries}
+                  onChange={(value) => updateFilter('topEntries', value)}
+                  min={MIN_TOP_ENTRIES}
+                  max={TOP_ENTRIES_MAX}
+                  step={STEP}
+                />
               </>
             )}
           </Stack>
@@ -487,7 +479,8 @@ export default function FiltersContainer({ repository }: { repository: string })
                   checked={filters.sonarqubeRemoveFolders}
                   onChange={(e) => updateFilter('sonarqubeRemoveFolders', e.target.checked)}
                   sx={{ cursor: 'pointer' }}
-                />}
+                />
+              }
               label="Remove Folders"
             />
             <SliderFilter
@@ -543,7 +536,9 @@ export default function FiltersContainer({ repository }: { repository: string })
               label="Period"
               value={filters.period}
               options={['day', 'week', 'month']}
-              onChange={(value) => updateFilter('period', (value as 'day' | 'week' | 'month') || 'week')}
+              onChange={(value) =>
+                updateFilter('period', (value as 'day' | 'week' | 'month') || 'week')
+              }
             />
             <SelectFilter
               label="Weekends"
@@ -557,20 +552,18 @@ export default function FiltersContainer({ repository }: { repository: string })
               label="Outliers"
               value={filters.outlierMode}
               options={['include', 'flag', 'exclude']}
-              onChange={(value) => updateFilter('outlierMode', value as 'include' | 'flag' | 'exclude')}
+              onChange={(value) =>
+                updateFilter('outlierMode', value as 'include' | 'flag' | 'exclude')
+              }
             />
           </Stack>
         </Box>
       )}
 
-      {/* Action Buttons */}
+      {}
       <Stack direction="column" spacing={2} sx={{ mt: 2 }}>
         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-          <Button
-            variant="contained"
-            size="small"
-            onClick={handleResetFilters}
-          >
+          <Button variant="contained" size="small" onClick={handleResetFilters}>
             Reset Filters
           </Button>
         </Box>

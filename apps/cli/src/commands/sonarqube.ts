@@ -71,15 +71,6 @@ async function fetchLocalAnalysisMetrics(
   screen.printLine('✅ Local SonarQube metrics have been fetched');
 }
 
-/**
- * SonarQube Command Group
- *
- * Provides CLI commands for SonarQube integration matching Python CLI functionality.
- *
- * Commands:
- *   smm sonarqube fetch-measures   Fetch quality measures from SonarQube
- *   smm sonarqube fetch-component-tree   Fetch component tree from SonarQube
- */
 export function createSonarQubeCommands(program: SmmCommand): void {
   const screen = program.getScreen();
   const sonarqubeGroup = program
@@ -137,7 +128,7 @@ export function createSonarQubeCommands(program: SmmCommand): void {
             : undefined,
           scannerToken: options.scannerToken,
         });
-        // wait to give sonarqube time to process the changes and make metrics available before fetching
+
         screen.printLine('Waiting for SonarQube to process analysis results...');
         await new Promise((resolve) => setTimeout(resolve, 120_000));
         await fetchLocalAnalysisMetrics(result, command);
@@ -147,10 +138,6 @@ export function createSonarQubeCommands(program: SmmCommand): void {
       }
     });
 
-  /**
-   * smm sonarqube fetch-measures [options]
-   * Fetch quality measures from SonarQube
-   */
   sonarqubeGroup
     .subcommand('fetch-measures')
     .description('Fetch quality measures from SonarQube')
@@ -201,10 +188,6 @@ export function createSonarQubeCommands(program: SmmCommand): void {
       }
     });
 
-  /**
-   * smm sonarqube fetch-component-tree [options]
-   * Fetch component tree with metrics from SonarQube
-   */
   sonarqubeGroup
     .subcommand('fetch-component-tree')
     .description('Fetch component tree with metrics from SonarQube')
@@ -272,10 +255,6 @@ export function createSonarQubeCommands(program: SmmCommand): void {
       }
     });
 
-  /**
-   * smm sonarqube fetch-historical-measures [options]
-   * Fetch historical measures from SonarQube and optionally store as JSON
-   */
   sonarqubeGroup
     .subcommand('fetch-historical-measures')
     .description('Fetch historical measures from SonarQube')

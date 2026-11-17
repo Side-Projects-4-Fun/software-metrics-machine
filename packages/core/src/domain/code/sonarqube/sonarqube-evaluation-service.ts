@@ -327,7 +327,6 @@ export class SonarqubeEvaluationService {
     warningThreshold: number,
     criticalThreshold: number
   ): SonarqubeEvaluationSeverity {
-    // SonarQube ratings are 1-5 where 1=best, 5=worst
     if (rating >= criticalThreshold) {
       return 'critical';
     }

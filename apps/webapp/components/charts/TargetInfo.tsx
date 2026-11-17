@@ -7,13 +7,12 @@ import { formatMetricNotation } from '@/lib/metrics/metric-catalog';
 import type { MetricCatalogSource } from '@/lib/metrics/metric-catalog';
 
 interface TargetInfoProps {
-  /** Catalogued metric id, e.g. `cr-review-time`. */
   metric?: string;
-  /** Explicit target for cross-cutting explanations without a catalog entry. */
+
   target?: string;
-  /** Explicit description paired with `target`. */
+
   description?: string;
-  /** Explicit sources paired with `target` and `description`. */
+
   sources?: MetricCatalogSource[];
 }
 

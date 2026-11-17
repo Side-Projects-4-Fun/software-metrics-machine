@@ -1,14 +1,3 @@
-/**
- * Static catalog of every metric type exposed by the application.
- *
- * Identity rules:
- * - An ID names a metric family, not a single number. Statistical method,
- *   aggregation period, and scope are parameters of that family.
- * - IDs are public API: never rename one. Deprecate it and point `replacedBy`
- *   at its successor instead.
- * - IDs are explicit strings and are never derived from class, file, or
- *   command names.
- */
 import { METRIC_REFERENCES } from './metric-references';
 import type {
   MetricReference,
@@ -37,11 +26,10 @@ export interface MetricSurfaces {
 }
 
 export interface MetricComputation {
-  /** How the underlying evidence is identified: source records and fields used. */
   readonly evidence: string;
-  /** How the identified evidence is reduced into the reported value(s). */
+
   readonly formula: string;
-  /** Compact mathematical notation for the computation. */
+
   readonly notation: string;
 }
 
@@ -60,9 +48,6 @@ export interface MetricDefinition {
 }
 
 export const METRIC_CATALOG = {
-  // ─────────────────────────────────────────────────────────────────────────
-  // Change requests
-  // ─────────────────────────────────────────────────────────────────────────
   'cr-summary': {
     namespace: 'cr',
     label: 'Change request summary',
@@ -346,9 +331,6 @@ export const METRIC_CATALOG = {
     },
   },
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Pipelines
-  // ─────────────────────────────────────────────────────────────────────────
   'pl-summary': {
     namespace: 'pl',
     label: 'Pipeline summary',
@@ -661,9 +643,6 @@ export const METRIC_CATALOG = {
     },
   },
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Code
-  // ─────────────────────────────────────────────────────────────────────────
   'code-big-o': {
     namespace: 'code',
     label: 'Big O complexity',
@@ -1031,9 +1010,6 @@ export const METRIC_CATALOG = {
     },
   },
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Quality (SonarQube)
-  // ─────────────────────────────────────────────────────────────────────────
   'sq-coverage': {
     namespace: 'sq',
     label: 'Coverage',
@@ -1337,9 +1313,6 @@ export const METRIC_CATALOG = {
     },
   },
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Architecture
-  // ─────────────────────────────────────────────────────────────────────────
   'arch-snapshot': {
     namespace: 'arch',
     label: 'Architecture snapshot',
@@ -1512,9 +1485,6 @@ export const METRIC_CATALOG = {
     },
   },
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Issues (Jira)
-  // ─────────────────────────────────────────────────────────────────────────
   'issue-total': {
     namespace: 'issue',
     label: 'Issue count',
@@ -1554,9 +1524,6 @@ export const METRIC_CATALOG = {
     surfaces: {},
   },
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Engineering health
-  // ─────────────────────────────────────────────────────────────────────────
   'deployment-frequency': {
     namespace: 'eh',
     label: 'Deployment frequency',
@@ -1854,9 +1821,9 @@ export type CatalogMetricId = keyof typeof METRIC_CATALOG;
 export interface MetricCatalogEntry {
   readonly id: CatalogMetricId;
   readonly definition: MetricDefinition;
-  /** Documented benchmark, when the family has a published target. */
+
   readonly target?: MetricReferenceTarget;
-  /** External papers, reports and books backing the benchmark. */
+
   readonly sources?: readonly MetricReferenceSource[];
 }
 

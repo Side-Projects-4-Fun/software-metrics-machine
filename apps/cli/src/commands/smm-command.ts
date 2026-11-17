@@ -1,4 +1,4 @@
-import { Command } from 'commander';
+import { Command, type OptionValues } from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
 import {
@@ -17,12 +17,6 @@ type GlobalCliOptions = {
   project?: string;
 };
 
-/**
- * Shared CLI command base class.
- *
- * It ensures child commands are instances of SmmCommand and exposes
- * utility helpers for global option access.
- */
 export class SmmCommand extends Command {
   private configurationRepository?: ConfigurationRepository;
   private screen?: Screen;
@@ -35,16 +29,20 @@ export class SmmCommand extends Command {
     return this.command(nameAndArgs) as SmmCommand;
   }
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  actionWithSmm(handler: (...args: any[]) => void | Promise<void>): this {
-    return this.action(async (...args: any[]) => {
+  actionWithSmm(
+    handler: (options: OptionValues, command: SmmCommand) => void | Promise<void>
+  ): this;
+  actionWithSmm(
+    handler: (name: string, options: OptionValues, command: SmmCommand) => void | Promise<void>
+  ): this;
+  actionWithSmm(handler: (...args: unknown[]) => void | Promise<void>): this {
+    return this.action(async (...args: unknown[]) => {
       const smmCommand = args[args.length - 1] as SmmCommand;
       await smmCommand.autoMigrateIfNeeded();
       smmCommand.getConfigurationRepository();
       return await handler(...args);
     });
   }
-  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   private async autoMigrateIfNeeded(): Promise<void> {
     if (!resolveStoreDataAt(process.env)) {

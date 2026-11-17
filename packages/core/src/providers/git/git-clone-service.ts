@@ -5,41 +5,24 @@ import type { Configuration } from '../../infrastructure';
 import type { Logger } from '@smmachine/utils';
 
 export interface GitCloneResult {
-  /** The absolute path that now holds a cloned repository. */
   repositoryPath: string;
-  /** `true` when a clone was performed, `false` when the repository was already present. */
+
   cloned: boolean;
-  /** Remote URL used for the clone. Empty when no clone was performed. */
+
   cloneUrl: string;
 }
 
-/**
- * Describes how to build a clone URL for a single git provider.
- *
- * Each registered provider knows how to read its base URL and token from the active
- * configuration. New providers are added by appending an entry to
- * {@link GIT_CLONE_PROVIDERS} — no changes to {@link GitCloneService} are required.
- */
 export interface GitCloneProvider {
-  /** Provider identifier, matching the `git_provider` configuration key (lowercase). */
   id: string;
-  /**
-   * Resolves the base URL for the provider from the active configuration, without a
-   * trailing slash. For self-hosted providers this may read an instance URL field.
-   */
+
   resolveBaseUrl(configuration: Configuration): string;
-  /** Returns the provider authentication token from the configuration, or undefined. */
+
   resolveToken(configuration: Configuration): string | undefined;
 }
 
 const GITHUB_DEFAULT_BASE = 'https://github.com';
 const GITLAB_DEFAULT_BASE = 'https://gitlab.com';
 
-/**
- * Registry of supported git providers for cloning.
- *
- * Add new providers here to teach the clone flow about them.
- */
 export const GIT_CLONE_PROVIDERS: GitCloneProvider[] = [
   {
     id: 'github',
@@ -54,27 +37,12 @@ export const GIT_CLONE_PROVIDERS: GitCloneProvider[] = [
   },
 ];
 
-/**
- * Clones a git repository from the configured provider into a local path.
- *
- * The clone URL is derived from the active project configuration using the registered
- * providers in {@link GIT_CLONE_PROVIDERS}. Authentication uses the provider token when
- * available, embedded in the clone URL so the clone works for private repositories.
- * Tokens are never logged.
- */
 export class GitCloneService {
   constructor(
     private configuration: Configuration,
     private logger: Logger
   ) {}
 
-  /**
-   * Clones the repository into {@link targetPath} when that path is not already a git
-   * repository. The parent directory of {@link targetPath} is created when missing.
-   *
-   * @returns the clone result. When the path already holds a git repository no clone is
-   *   performed and `cloned` is `false`.
-   */
   async cloneInto(targetPath: string): Promise<GitCloneResult> {
     const absolutePath = path.resolve(targetPath);
 

@@ -84,10 +84,6 @@ type PipelineOutlierItem = {
   jobName?: string;
 };
 
-/**
- * Pipeline Metrics REST Controller
- * Provides endpoints for CI/CD pipeline metrics and analysis
- */
 @ApiTags('Pipeline Metrics')
 @Controller()
 export class PipelinesController {
@@ -267,7 +263,6 @@ export class PipelinesController {
   ): Promise<PipelineJobsDurationByWorkflowResponse> {
     const runs = await this.loadRunsWithFilters({ ...query, includeJobs: true });
 
-    // Map: workflow -> job name -> list of durations
     const grouped = new Map<string, Map<string, number[]>>();
 
     for (const run of runs) {
@@ -286,7 +281,6 @@ export class PipelinesController {
       }
     }
 
-    // Return one row per workflow with each job's avg duration as a key
     return Array.from(grouped.entries())
       .map(([workflow, jobMap]) => {
         const jobs: Record<string, number> = {};
@@ -571,8 +565,6 @@ export class PipelinesController {
       workflowPath: query.workflow_path,
     });
   }
-
-  // ========== PRIVATE HELPERS ==========
 
   private toServiceFilters(query: PipelineFiltersQuery): {
     startDate?: string;

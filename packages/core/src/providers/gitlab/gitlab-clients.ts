@@ -91,13 +91,6 @@ type GitlabFetchOptions = {
   rawFilters?: string;
 };
 
-/**
- * GitLab provider backed by the official GitLab CLI.
- *
- * It calls `glab api` instead of depending on direct HTTP credentials here. The
- * returned payloads are normalized to the cache schemas already consumed by the
- * GitHub dashboards and domain services.
- */
 export class GitlabMrClient implements IGithubPrsClient {
   private readonly encodedProjectId: string;
   private readonly rawFiltersParser = new RawFiltersParser();

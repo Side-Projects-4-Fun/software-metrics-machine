@@ -18,12 +18,6 @@ export interface IPairingIndexService {
   }): Promise<PairingIndexResult>;
 }
 
-/**
- * PairingIndex calculates the percentage of commits that have co-authors.
- * This metric helps identify pair programming practices.
- *
- * Formula: (paired_commits / total_analyzed_commits) * 100
- */
 export class PairingService implements IPairingIndexService {
   private tz: TimeZoneProvider;
 
@@ -50,7 +44,6 @@ export class PairingService implements IPairingIndexService {
     const excludeAuthorsStr = options?.excludeAuthors;
     const minShared = options?.minShared ?? 0;
 
-    // Parse additional authors from string
     if (includeAuthorsStr) {
       const parsed = includeAuthorsStr
         .split(',')
@@ -59,7 +52,6 @@ export class PairingService implements IPairingIndexService {
       selectedAuthors = [...selectedAuthors, ...parsed];
     }
 
-    // Parse excluded authors
     let excludedList: Set<string> = new Set();
     if (excludeAuthorsStr) {
       excludedList = new Set(
@@ -74,21 +66,17 @@ export class PairingService implements IPairingIndexService {
       this.logger.info(`Filtering commits to authors: ${selectedAuthors.join(', ')}`);
     }
 
-    // Load all commits
     const allCommits = await this.commitsRepository.loadAll();
 
-    // Filter by date range
     let filteredCommits = allCommits;
     if (startDate || endDate) {
       filteredCommits = this.filterByDateRange(allCommits, startDate, endDate);
     }
 
-    // Filter by authors
     if (selectedAuthors.length > 0 || excludedList.size > 0) {
       filteredCommits = this.filterByAuthors(filteredCommits, selectedAuthors, excludedList);
     }
 
-    // Count paired commits (those with co-authors)
     const totalCommits = filteredCommits.length;
     const pairedCommits = filteredCommits.filter(
       (commit) => Array.isArray(commit.coAuthors) && commit.coAuthors.length > 0
@@ -106,7 +94,7 @@ export class PairingService implements IPairingIndexService {
     }
 
     const index = (pairedCommits / totalCommits) * 100;
-    const pairingIndex = Math.round(index * 100) / 100; // Round to 2 decimal places
+    const pairingIndex = Math.round(index * 100) / 100;
     const topPairings = this.calculateTopPairings(filteredCommits, minShared);
     const latestPairedCommits = this.getLatestPairedCommits(filteredCommits);
 

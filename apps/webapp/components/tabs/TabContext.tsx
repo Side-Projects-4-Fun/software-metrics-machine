@@ -31,23 +31,20 @@ export default function DashboardTabs() {
     <Box
       data-testid="dashboard-tabs-bar"
       sx={{
-        // Keep the tabs reachable while the page scrolls. They slide under the
-        // fixed app bar and stop right beneath it.
         position: 'sticky',
-        // Matches the fixed AppBar (MUI Toolbar heights: 56px, 64px at sm+).
+
         top: { xs: 56, sm: 64 },
-        // The app bar sits at zIndex.appBar, so stay one below it and above content.
+
         zIndex: theme.zIndex.appBar - 1,
         bgcolor: 'background.default',
         borderBottom: 1,
         borderColor: 'divider',
-        // Bleed across the main container padding so scrolled cards cannot
-        // peek out beside the tab strip. Theme spacing 3 === the Main padding.
+
         mx: -3,
         px: 3,
         width: 'auto',
         mb: 3,
-        // Tabs are hidden in print, so drop the strip's own chrome there too.
+
         '@media print': {
           position: 'static',
           borderBottom: 0,

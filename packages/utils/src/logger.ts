@@ -85,9 +85,7 @@ export class Logger {
     try {
       mkdirSync(dirname(this.filePath), { recursive: true });
       appendFileSync(this.filePath, `${line}\n`, 'utf8');
-    } catch {
-      // Logging should never make the main application fail.
-    }
+    } catch {}
   }
 
   private write(
@@ -110,13 +108,11 @@ export class Logger {
   }
 
   debug(message: string, data?: unknown): void {
-    // eslint-disable-next-line no-console
-    this.write('DEBUG', message, data, console.info);
+    this.write('DEBUG', message, data, Reflect.get(console, 'info'));
   }
 
   info(message: string, data?: unknown): void {
-    // eslint-disable-next-line no-console
-    this.write('INFO', message, data, console.log);
+    this.write('INFO', message, data, Reflect.get(console, 'log'));
   }
 
   warn(message: string, data?: unknown): void {

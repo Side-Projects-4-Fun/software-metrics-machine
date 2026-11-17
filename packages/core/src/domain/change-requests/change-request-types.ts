@@ -1,14 +1,5 @@
 import type { MetricCleaningOptions, MetricMethod, MetricOutlier } from '../metric-samples';
 
-/**
- * Change request-related domain types for analytics.
- *
- * A "change request" is the provider-neutral term for what GitHub calls a "pull
- * request" and GitLab calls a "merge request". Provider clients keep their own
- * naming (e.g. `PullRequestJsonResponse`); the domain layer always uses the
- * terms defined here.
- */
-
 export interface ChangeRequestLabel {
   name: string;
   description?: string;
@@ -26,9 +17,9 @@ export interface ChangeRequestDetails {
   number: number;
   title: string;
   description?: string;
-  createdAt: string; // ISO format
+  createdAt: string;
   updatedAt: string;
-  mergedAt?: string; // null if not merged
+  mergedAt?: string;
   closedAt?: string;
   author: ChangeRequestUser;
   labels: ChangeRequestLabel[];

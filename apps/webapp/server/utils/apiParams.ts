@@ -28,9 +28,6 @@ export interface DashboardFilters {
   method?: string;
 }
 
-/**
- * Convert pipeline section filters to API parameters
- */
 export function buildPipelineApiParams(filters: DashboardFilters): ApiParams {
   return {
     start_date: filters.startDate,
@@ -38,7 +35,9 @@ export function buildPipelineApiParams(filters: DashboardFilters): ApiParams {
     timezone: filters.timezone,
     workflow_path: filters.workflowSelector,
     status: filters.workflowStatus?.length ? filters.workflowStatus.join(',') : undefined,
-    conclusion: filters.workflowConclusions?.length ? filters.workflowConclusions.join(',') : undefined,
+    conclusion: filters.workflowConclusions?.length
+      ? filters.workflowConclusions.join(',')
+      : undefined,
     job_name: filters.jobSelector?.length ? filters.jobSelector.join(',') : undefined,
     branch: filters.branch?.length ? filters.branch.join(',') : undefined,
     event: filters.event?.length ? filters.event.join(',') : undefined,
@@ -49,9 +48,6 @@ export function buildPipelineApiParams(filters: DashboardFilters): ApiParams {
   };
 }
 
-/**
- * Convert source code section filters to API parameters
- */
 export function buildSourceCodeApiParams(filters: DashboardFilters): ApiParams {
   return {
     start_date: filters.startDate,
@@ -67,9 +63,6 @@ export function buildSourceCodeApiParams(filters: DashboardFilters): ApiParams {
   };
 }
 
-/**
- * Convert change request section filters to API parameters
- */
 export function buildChangeRequestApiParams(filters: DashboardFilters): ApiParams {
   return {
     start_date: filters.startDate,
@@ -91,9 +84,6 @@ export function buildChangeRequestApiParams(filters: DashboardFilters): ApiParam
   };
 }
 
-/**
- * Convert SonarQube section filters to API parameters
- */
 export function buildSonarqubeApiParams(filters: DashboardFilters): ApiParams {
   return {
     ignore_files: filters.ignorePatternFiles || undefined,
@@ -102,9 +92,6 @@ export function buildSonarqubeApiParams(filters: DashboardFilters): ApiParams {
   };
 }
 
-/**
- * Batch export for easy access to all builders
- */
 export const apiParamBuilders = {
   pipeline: buildPipelineApiParams,
   sourceCode: buildSourceCodeApiParams,

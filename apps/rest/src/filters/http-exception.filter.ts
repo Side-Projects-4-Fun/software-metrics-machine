@@ -23,10 +23,6 @@ function extractErrorMessage(exceptionResponse: string | object, exception: Http
   return exception.message;
 }
 
-/**
- * Global exception filter for all HTTP exceptions
- * Provides consistent error response format
- */
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new SmmLogger('HttpExceptionFilter', 'CRITICAL');
@@ -55,9 +51,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
   }
 }
 
-/**
- * Catch-all exception filter for unhandled exceptions
- */
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new SmmLogger('AllExceptionsFilter', 'CRITICAL');

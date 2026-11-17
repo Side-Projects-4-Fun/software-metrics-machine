@@ -25,7 +25,6 @@ export function commands(): SmmCommand {
     .option('--debug', 'Enable debug logging')
     .option('--project <name>', 'Select active project by name (github_repository)');
 
-  // Register command groups
   createChangeRequestsCommands(program);
   createPipelinesCommands(program);
   createCodeCommands(program);
@@ -41,7 +40,6 @@ export function commands(): SmmCommand {
   createFiltersCommands(program);
   createProjectCommands(program);
 
-  // Global help
   program
     .subcommand('help')
     .description('Show help information')
@@ -51,73 +49,9 @@ export function commands(): SmmCommand {
   return program;
 }
 
-/**
- * Software Metrics Machine - CLI
- *
- * Command-line interface for metrics operations.
- * Provides commands for accessing metrics from various data sources.
- *
- * Available command groups:
- *   - smm change-requests  Change request operations (fetch, analyze)
- *   - smm pipelines     Pipeline/workflow operations (fetch, analyze)
- *   - smm code          Code analysis operations (churn, coupling, etc.)
- *   - smm issues        Issue tracker operations (fetch issues and comments)
- *   - smm sonarqube     SonarQube integration (fetch quality measures)
- *   - smm dashboard     Dashboard server operations
- *   - smm tools         Utility tools (JSON merge, etc.)
- *   - smm mcp           MCP server operations
- *   - smm architecture  Architecture snapshots and C4 views
- *   - smm engineering-health  Cross-metric engineering health scorecards
- *   - smm metrics       Inspect the metric catalog
- *   - smm filters       Manage saved filters
- *   - smm health-check  Analyze local cache data quality
- *   - smm project       Configure projects interactively (generates smm_config.json)
- *
- * Configuration:
- *   Set SMM_STORE_DATA_AT environment variable to point to the data directory
- *   that holds smm_config.json:
- *
- *   export SMM_STORE_DATA_AT=/path/to/data-dir
- *
- *   When SMM_STORE_DATA_AT is unset, the data directory is resolved from the
- *   store_data_at value saved in the user settings file
- *   ($XDG_CONFIG_HOME/smm/config.json, falling back to ~/.config/smm/config.json).
- *   Run `smm project configure` once to save a default data directory.
- *
- *   JSON configuration format:
- *   {
- *     "git_provider": "github",
- *     "github_token": "your_token",
- *     "github_repository": "owner/repo",
- *     "git_repository_location": "/path/to/repo",
- *     "deployment_frequency_targets": [
- *       { "pipeline": ".github/workflows/ci.yml", "job": "delivery" }
- *     ],
- *     "main_branch": "main",
- *     "jira_url": "https://your-org.atlassian.net",
- *     "jira_token": "your_token",
- *     "jira_project": "PROJECT",
- *     "jira_email": "your@email.com",
- *     "sonar_url": "https://sonarcloud.io",
- *     "sonar_token": "your_token",
- *     "sonar_project": "project_key",
- *     "log_level": "INFO",
- *     "dashboard_start_date": "2024-01-01",
- *     "dashboard_end_date": "2024-12-31"
- *   }
- *
- *   Alternatively, you can use project-specific environment variables:
- *   uppercase github_repository, replace non-alphanumeric characters with
- *   underscores, and append the setting name:
- *   BLA_123_GITHUB_TOKEN, BLA_123_JIRA_TOKEN, BLA_123_SMM_TIMEZONE
- *   for github_repository "bla/123".
- *
- *   SMM_STORE_DATA_AT is the only global configuration environment variable.
- */
 export async function main(): Promise<void> {
   const program = commands();
 
-  // Default action if no command provided
   if (!process.argv.slice(2).length) {
     program.outputHelp();
     return;

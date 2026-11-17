@@ -10,12 +10,6 @@ import {
 import { ComponentTreeQueryDto, QualityMetricsQueryDto } from '../dtos/index';
 import { ErrorResponse } from '../dtos/response.dto';
 
-/**
- * SonarQube API Controller
- *
- * Exposes SonarQube endpoints through REST API.
- * Delegates to SonarqubeMeasuresClient for business logic.
- */
 @ApiTags('SonarQube')
 @Controller('sonarqube')
 export class SonarqubeController {
@@ -23,17 +17,6 @@ export class SonarqubeController {
 
   constructor(private sonarqubeRepository: SonarqubeRepository) {}
 
-  /**
-   * GET /api/measures/component_tree
-   * Retrieve component tree metrics from SonarQube
-   *
-   * Query Parameters:
-   * - component: Component key to fetch tree for (defaults to configured project)
-   * - depth: Depth of tree traversal (-1 for all depths, default: -1)
-   * - metrics: SonarQube metrics to include (e.g., complexity, cognitive_complexity)
-   *
-   * Example: GET /api/measures/component_tree?component=my:project&depth=-1&metrics=complexity,cognitive_complexity
-   */
   @Get('component-tree')
   @ApiOperation({ summary: 'Get component tree with metrics' })
   @ApiQuery({
@@ -126,16 +109,6 @@ export class SonarqubeController {
     }
   }
 
-  /**
-   * GET /api/metrics/quality
-   * Retrieve quality metrics from SonarQube
-   *
-   * Query Parameters:
-   * - measures: Specific metrics to retrieve (can be repeated)
-   *   Available: coverage, complexity, sqale_rating, duplicated_lines_density, ncloc, vulnerability_rating
-   *
-   * Example: GET /api/metrics/quality?measures=coverage&measures=complexity
-   */
   @Get('quality')
   @ApiOperation({ summary: 'Get code quality metrics' })
   @ApiQuery({ name: 'measures', required: false, type: [String], example: 'coverage' })
@@ -166,12 +139,6 @@ export class SonarqubeController {
     }
   }
 
-  /**
-   * GET /sonarqube/measurements
-   * Retrieve all measurements from SonarQube
-   *
-   * Example: GET /sonarqube/measurements
-   */
   @Get('measurements')
   @ApiOperation({ summary: 'Get all SonarQube measurements' })
   @ApiOkResponse({
@@ -199,10 +166,6 @@ export class SonarqubeController {
     }
   }
 
-  /**
-   * GET /sonarqube/measurements/history
-   * Retrieve all timestamped measurement entries
-   */
   @Get('measurements/history')
   @ApiOperation({ summary: 'Get all timestamped SonarQube measurement entries' })
   @ApiOkResponse({
@@ -225,10 +188,6 @@ export class SonarqubeController {
     }
   }
 
-  /**
-   * GET /sonarqube/component-tree/history
-   * Retrieve all timestamped component tree entries
-   */
   @Get('component-tree/history')
   @ApiOperation({ summary: 'Get timestamped SonarQube component tree entries' })
   @ApiOkResponse({

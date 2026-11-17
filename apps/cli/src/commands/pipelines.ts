@@ -151,7 +151,6 @@ function toPeriodKey(inputPeriod: string, period: RunsByPeriod): string {
     return `${year}-${month}`;
   }
 
-  // ISO week, grouped by UTC date.
   const utcDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
   const dayOfWeek = utcDate.getUTCDay() || 7;
   utcDate.setUTCDate(utcDate.getUTCDate() + 4 - dayOfWeek);
@@ -609,10 +608,6 @@ export function createPipelinesCommands(program: SmmCommand): void {
       }
     });
 
-  /**
-   * smm pipelines jobs-by-status [options]
-   * View jobs grouped by status
-   */
   pipelinesGroup
     .subcommand('jobs-by-status')
     .description('View pipeline jobs grouped by status')
@@ -704,7 +699,6 @@ export function createPipelinesCommands(program: SmmCommand): void {
               `Total Deployments: ${item.daily_counts} (daily), ${item.weekly_counts} (weekly), ${item.monthly_counts} (monthly)`
             );
 
-            // DORA rating
             let rating = 'Low';
             if (options.period === 'day' && item.daily_counts >= 1) {
               rating = 'Elite';
@@ -722,10 +716,6 @@ export function createPipelinesCommands(program: SmmCommand): void {
       }
     });
 
-  /**
-   * smm pipelines lead-time [options]
-   * Calculate lead time for changes (DORA metric)
-   */
   pipelinesGroup
     .subcommand('lead-time')
     .description('Calculate lead time for changes (DORA metric)')
@@ -761,15 +751,12 @@ export function createPipelinesCommands(program: SmmCommand): void {
           screen.printLine('\n=== Lead Time for Changes (DORA) ===\n');
           screen.printLine(`Lead Time: ${formatDuration(summary.value, 'minutes')}`);
 
-          // DORA rating
           let rating = 'Low';
           if (leadTimeHours < 24) {
             rating = 'Elite';
           } else if (leadTimeHours < 168) {
-            // 1 week
             rating = 'High';
           } else if (leadTimeHours < 720) {
-            // 1 month
             rating = 'Medium';
           }
           screen.printLine(`\n📈 DORA Rating: ${rating}`);

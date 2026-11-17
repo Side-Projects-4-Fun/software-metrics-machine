@@ -6,25 +6,11 @@ import { HttpExceptionFilter, AllExceptionsFilter } from './filters/http-excepti
 import { setupSwagger } from './config/swagger.config';
 import { SmmNestLogger } from './logger/smm-nest-logger';
 
-/**
- * Software Metrics Machine - REST API Server
- *
- * Exposes metrics through HTTP endpoints.
- *
- * Features:
- * - Comprehensive metrics from GitHub, Jira, SonarQube, Git, CodeMaat
- * - Global error handling with consistent response format
- * - Request/response validation using DTOs
- * - Swagger/OpenAPI documentation at /api/docs
- * - Request logging and monitoring
- * - CORS support
- */
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(MetricsModule);
   app.useLogger(new SmmNestLogger('Bootstrap'));
   const logger = new SmmNestLogger('SoftwareMetricsMachine');
 
-  // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -45,16 +31,13 @@ async function bootstrap(): Promise<void> {
     })
   );
 
-  // Global exception filters (order matters: specific to general)
   app.useGlobalFilters(new HttpExceptionFilter(), new AllExceptionsFilter());
 
-  // Enable CORS
   app.enableCors({
     origin: process.env.CORS_ORIGIN || '*',
     credentials: true,
   });
 
-  // Setup Swagger/OpenAPI documentation
   setupSwagger(app);
 
   const port = process.env.PORT || 3000;

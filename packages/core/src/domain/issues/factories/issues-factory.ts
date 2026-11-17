@@ -14,20 +14,12 @@ export interface IssuesDependencies {
   provider: IssueProvider;
 }
 
-/**
- * The only place that selects an issue-tracker vendor.
- *
- * Keeping provider selection here means the CLI, REST API and MCP server all
- * read from the same configured source without duplicating branching.
- */
 export class IssuesFactory {
   static create(
     config: Configuration,
     logger: Logger,
     timeZoneProvider: TimeZoneProvider
   ): IssuesDependencies {
-    // Provider clients parse source data with the project timezone, while the
-    // repository keeps the caller-provided provider for filtering/grouping.
     const client = IssuesFactory.createClient(config, logger);
     const issuesRepository = new IssuesRepository(
       client,

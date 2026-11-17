@@ -309,8 +309,6 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
         );
       `);
 
-      // Add fetched_at column to any pre-existing legacy tables that lack it,
-      // before creating indexes on that column.
       CODEMAAT_TABLES.forEach((tableName) => {
         if (!tableExists(db, tableName)) {
           return;
@@ -389,9 +387,6 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
   {
     id: '004_rename_provider_specific_tables',
     up: (db: DatabaseSync): void => {
-      // Rename GitHub-centric pipeline tables to provider-neutral names.
-      // SQLite does not support renaming indexes, so old indexes are dropped
-      // and the new indexes (created by migration 001 with IF NOT EXISTS) take over.
       renameTableIfExists(db, 'workflow_runs', 'pipeline_runs', [
         'idx_workflow_runs_namespace_position',
         'idx_workflow_runs_created_at',
@@ -409,7 +404,6 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
         'idx_workflow_jobs_completed_at',
       ]);
 
-      // Rename GitHub-centric pull request tables to provider-neutral names.
       renameTableIfExists(db, 'pull_requests', 'change_requests', [
         'idx_pull_requests_namespace_position',
         'idx_pull_requests_number',
@@ -431,9 +425,6 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
   {
     id: '005_rename_change_request_comment_columns',
     up: (db: DatabaseSync): void => {
-      // Rename the last GitHub-centric column names in the change_request_comments
-      // table to provider-neutral names. SQLite (>=3.25) supports ALTER TABLE RENAME
-      // COLUMN, so we rename in place and recreate the affected index.
       if (
         tableExists(db, 'change_request_comments') &&
         columnExists(db, 'change_request_comments', 'pull_request_number')
@@ -452,10 +443,6 @@ const APP_SQLITE_MIGRATIONS: SqliteMigration[] = [
         );
       }
 
-      // Recreate the index with the new column name. The old index
-      // (idx_change_request_comments_pr_number) referenced pull_request_number and
-      // is automatically updated by SQLite to track the renamed column, but its name
-      // is misleading, so drop it and create the correctly-named index.
       db.exec('DROP INDEX IF EXISTS idx_change_request_comments_pr_number');
       db.exec(`
         CREATE INDEX IF NOT EXISTS idx_change_request_comments_change_request_number
@@ -558,20 +545,14 @@ function renameTableIfExists(
   newName: string,
   oldIndexes: string[]
 ): void {
-  // If the old table doesn't exist (fresh database where migration 001 already
-  // created the new-named table), there is nothing to migrate.
   if (!tableExists(db, oldName)) {
     return;
   }
 
-  // Drop old indexes — SQLite ALTER TABLE RENAME preserves indexes but keeps their
-  // original names, which would be misleading. We recreate the indexes with new names below.
   for (const indexName of oldIndexes) {
     db.exec(`DROP INDEX IF EXISTS ${indexName}`);
   }
 
-  // If the new table somehow already exists (e.g. partially migrated), drop the old
-  // table and keep the new one. The new indexes are created by migration 001.
   if (tableExists(db, newName)) {
     db.exec(`DROP TABLE ${oldName}`);
     return;
@@ -579,9 +560,6 @@ function renameTableIfExists(
 
   db.exec(`ALTER TABLE ${oldName} RENAME TO ${newName}`);
 
-  // Recreate indexes with the new names. On fresh databases migration 001 already
-  // created these (IF NOT EXISTS), so this is a no-op. On migrated databases the
-  // old indexes were dropped above and migration 001 won't re-run, so we recreate them here.
   createIndexesForRenamedTable(db, newName);
 }
 
@@ -643,12 +621,6 @@ function createIndexesForRenamedTable(db: DatabaseSync, tableName: string): void
   }
 
   if (tableName === 'change_request_comments') {
-    // When this function is called from migration 004 (renameTableIfExists),
-    // the table was just renamed from pull_request_comments and still has the
-    // original column name pull_request_number. Migration 005 will rename that
-    // column to change_request_number and recreate this index. On a fresh
-    // database, migration 001 already created the column as change_request_number
-    // and this index with IF NOT EXISTS is a no-op.
     const numberColumn = columnExists(db, 'change_request_comments', 'change_request_number')
       ? 'change_request_number'
       : 'pull_request_number';

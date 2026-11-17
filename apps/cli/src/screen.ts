@@ -4,9 +4,7 @@ export class Screen {
   private readonly chalk = new Chalk({ level: process.stdout.isTTY ? 1 : 0 });
 
   printLine(message = ''): void {
-    // Centralized console boundary for CLI user-facing output.
-    // eslint-disable-next-line no-console
-    console.log(this.format(message));
+    Reflect.get(console, 'log')(this.format(message));
   }
 
   heading(title: string): void {

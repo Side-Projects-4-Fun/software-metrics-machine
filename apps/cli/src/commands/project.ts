@@ -44,14 +44,6 @@ type ProjectMiscAnswers = {
   store_logs: boolean;
 };
 
-/**
- * Resolves the SMM data directory.
- *
- * Uses the environment variable when set, otherwise the default data directory
- * saved in the user settings file. When neither is available it prompts the
- * user for a directory, sets the environment variable for the rest of the
- * process, and remembers that a new default should be persisted.
- */
 async function resolveStoreDataDir(
   screen: Screen
 ): Promise<{ dataDir: string; prompted: boolean }> {
@@ -82,10 +74,6 @@ async function resolveStoreDataDir(
   return { dataDir, prompted: true };
 }
 
-/**
- * Loads the current smm_config.json when present. Invalid JSON and non-object
- * config files raise descriptive errors.
- */
 function loadConfigFile(dataDir: string): {
   config: ISmmConfigFile;
   projects: ISmmProjectConfig[];
@@ -111,11 +99,6 @@ function loadConfigFile(dataDir: string): {
   return { config, projects: Array.isArray(config.projects) ? config.projects : [] };
 }
 
-/**
- * Asks which project the user wants to configure. Returns the matching existing
- * project (undefined for a brand new project) and its index in the projects
- * array (-1 when creating a new project).
- */
 async function selectTargetProject(
   projects: ISmmProjectConfig[]
 ): Promise<{ existing: ISmmProjectConfig | undefined; existingIndex: number }> {
@@ -314,13 +297,6 @@ function systemTimezone(): string {
   }
 }
 
-/**
- * Builds the project configuration from wizard answers.
- *
- * Optional fields only overwrite existing values when the user provided a
- * non-empty answer. This allows updating a project without wiping tokens that
- * were left blank.
- */
 function buildProjectConfig(
   core: ProjectCoreAnswers,
   integrations: ProjectIntegrationAnswers,
@@ -402,21 +378,11 @@ function writeConfigFile(dataDir: string, config: ISmmConfigFile): string {
   return configPath;
 }
 
-/**
- * Derives the local clone path for a repository when the user did not provide one.
- *
- * The repository is cloned under `{dataDir}/repos/{owner}_{repo}` to keep it next to
- * the SMM data directory without clobbering any user-provided path.
- */
 function deriveClonePath(dataDir: string, githubRepository: string): string {
   const repoSlug = githubRepository.replace('/', '_');
   return path.join(dataDir, 'repos', repoSlug);
 }
 
-/**
- * Builds a Configuration from the wizard core answers so the clone service can derive
- * the provider URL and token before the project is persisted.
- */
 function buildCloneConfiguration(core: ProjectCoreAnswers, dataDir: string): Configuration {
   return new Configuration({
     storeData: dataDir,
@@ -428,12 +394,6 @@ function buildCloneConfiguration(core: ProjectCoreAnswers, dataDir: string): Con
   });
 }
 
-/**
- * When the user left `git_repository_location` empty, clones the repository using the
- * provider and repository gathered during the wizard and returns the resulting path.
- *
- * When the user provided a path, it is returned unchanged and no clone is performed.
- */
 async function cloneRepositoryIfNeeded(
   core: ProjectCoreAnswers,
   existing: ISmmProjectConfig | undefined,
@@ -574,22 +534,12 @@ type DeleteConfirmAnswers = {
   confirm: boolean;
 };
 
-/**
- * Builds the unique identity string for a project entry, in the form
- * `provider/repository` (e.g. `github/acme/widgets`). This is the key used to
- * disambiguate projects that share the same repository across providers.
- */
 function projectIdentity(project: ISmmProjectConfig): string {
   const provider = project.git_provider || 'unknown';
   const repository = project.github_repository || '(unnamed)';
   return `${provider}/${repository}`;
 }
 
-/**
- * Prompts the user to select which project to delete from the configured list.
- * Choices are shown as `provider/repository` so two projects sharing the same
- * repository across different providers remain distinguishable.
- */
 async function selectProjectToDelete(
   projects: ISmmProjectConfig[]
 ): Promise<{ existing: ISmmProjectConfig | undefined; existingIndex: number }> {
@@ -630,13 +580,6 @@ async function confirmDeletion(identity: string): Promise<boolean> {
   return confirm;
 }
 
-/**
- * Deletes a project from smm_config.json. Non-interactive mode requires both
- * `--provider` and `--repository` so two projects sharing the same repository
- * across different providers cannot collide. Confirmation is required unless
- * `--yes` is passed. Only the configuration entry is removed; cached data under
- * the project data directory is left untouched.
- */
 async function deleteProject(command: SmmCommand, options: DeleteOptions): Promise<void> {
   const screen = command.getScreen();
   const configuredDataDir = resolveStoreDataAt(process.env);
@@ -719,17 +662,6 @@ async function deleteProject(command: SmmCommand, options: DeleteOptions): Promi
   );
 }
 
-/**
- * Project Command Group
- *
- * Provides commands to configure and manage projects without editing
- * smm_config.json by hand.
- *
- * Commands:
- *   smm project configure   Interactively create or update a project
- *   smm project list        List configured projects
- *   smm project delete      Delete a project from smm_config.json
- */
 export function createProjectCommands(program: SmmCommand): void {
   const projectGroup = program.subcommand('project').description('Configure and manage projects');
 

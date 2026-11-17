@@ -37,13 +37,6 @@ const MONTHS: Record<string, number> = {
   dec: 11,
 };
 
-/**
- * Parses a Jira CSV export into rows of cells.
- *
- * Supports quoted fields, escaped quotes (`""`) and embedded newlines. The
- * export contains duplicate headers (`Labels`, `Comment`), so callers must
- * address columns by index rather than by object keys.
- */
 export function parseCsv(content: string): string[][] {
   const text = content.replace(/^\uFEFF/, '');
   const rows: string[][] = [];
@@ -117,13 +110,6 @@ export function parseCsv(content: string): string[][] {
   return rows;
 }
 
-/**
- * Parses the date format used by Jira CSV exports, e.g. `09/Oct/26 12:15 PM`.
- *
- * CSV timestamps carry no timezone. When a `TimeZoneProvider` is supplied, the
- * wall-clock value is interpreted in that timezone; otherwise UTC is used.
- * ISO-like values with an explicit offset are accepted as a fallback.
- */
 export function parseJiraCsvDate(
   value: string,
   timeZoneProvider?: TimeZoneProvider
@@ -244,14 +230,6 @@ function parseComment(
   };
 }
 
-/**
- * Maps a Jira CSV export into provider-neutral issue records.
- *
- * The export repeats `Labels` and `Comment` headers; every occurrence is read
- * so issues with multiple labels or comments are preserved. When a
- * `TimeZoneProvider` is supplied, timestamp columns are interpreted in that
- * timezone.
- */
 export function parseJiraCsv(
   content: string,
   timeZoneProvider?: TimeZoneProvider

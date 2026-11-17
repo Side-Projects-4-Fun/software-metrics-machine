@@ -25,15 +25,6 @@ import {
   MetricsFullReportResponse,
 } from './dtos';
 
-/**
- * Metrics API Controller
- *
- * Exposes all metrics through REST endpoints.
- *
- * Each endpoint supports date filtering via query parameters:
- * - startDate: ISO 8601 date or datetime
- * - endDate: ISO 8601 date or datetime
- */
 @ApiTags('Metrics')
 @Controller('')
 export class MetricsController {
@@ -49,10 +40,6 @@ export class MetricsController {
     private pairingService: PairingIndexService
   ) {}
 
-  /**
-   * GET /api/metrics/issues
-   * Retrieve issue metrics from Jira
-   */
   @Get('api/metrics/issues')
   @ApiOperation({ summary: 'Get issue metrics' })
   @ApiQuery({ name: 'status', required: false, type: String, example: 'Done' })
@@ -80,10 +67,6 @@ export class MetricsController {
     }
   }
 
-  /**
-   * GET /api/metrics/change-requests
-   * Retrieve change request metrics
-   */
   @Get('api/metrics/change-requests')
   @ApiOperation({ summary: 'Get change request metrics' })
   @ApiQuery({ name: 'startDate', required: false, type: String, example: '2024-01-01T08:30:00Z' })
@@ -132,10 +115,6 @@ export class MetricsController {
     }
   }
 
-  /**
-   * GET /api/metrics/deployment
-   * Retrieve deployment/pipeline metrics
-   */
   @Get('api/metrics/deployment')
   @ApiOperation({ summary: 'Get deployment metrics' })
   @ApiQuery({ name: 'frequency', required: false, enum: ['day', 'week', 'month'] })
@@ -165,10 +144,6 @@ export class MetricsController {
     }
   }
 
-  /**
-   * GET /api/metrics/code
-   * Retrieve code metrics
-   */
   @Get('api/metrics/code')
   @ApiOperation({ summary: 'Get code metrics' })
   @ApiQuery({ name: 'selectedAuthors', required: false, type: [String] })
@@ -196,10 +171,6 @@ export class MetricsController {
     }
   }
 
-  /**
-   * GET /api/metrics/quality
-   * Retrieve quality metrics from SonarQube
-   */
   @Get('api/metrics/quality')
   @ApiOperation({ summary: 'Get quality metrics' })
   @ApiQuery({ name: 'measures', required: false, type: [String] })
@@ -223,10 +194,6 @@ export class MetricsController {
     }
   }
 
-  /**
-   * GET /api/metrics/report
-   * Retrieve complete metrics report
-   */
   @Get('api/metrics/report')
   @ApiOperation({ summary: 'Get complete metrics report' })
   @ApiOkResponse({ description: 'Complete metrics report', type: Object })

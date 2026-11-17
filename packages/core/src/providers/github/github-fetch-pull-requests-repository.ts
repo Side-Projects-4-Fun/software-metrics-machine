@@ -58,9 +58,6 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
     );
   }
 
-  /**
-   * Refresh PR data from GitHub
-   */
   async fetchPRs(options?: {
     startDate?: string;
     endDate?: string;
@@ -84,7 +81,6 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
       return merged;
     }
 
-    // Manual date range with merge
     if (
       (options?.startDate || options?.endDate) &&
       !options?.forceRefresh &&
@@ -116,7 +112,6 @@ export class GitHubPullRequestsFetchRepository implements IPullRequestsRepositor
       rawFilters: options?.rawFilters,
     });
 
-    // Persist fetched data to disk so subsequent commands can reuse cached data.
     await this.pullRequestsRepository.saveAll(freshPRs);
     await this.refreshFilterOptions();
 

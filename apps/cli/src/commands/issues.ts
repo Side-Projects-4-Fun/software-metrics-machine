@@ -35,23 +35,10 @@ function parseLabels(value?: string): string[] | undefined {
   return labels.length > 0 ? labels : undefined;
 }
 
-/**
- * Issues Command Group
- *
- * Provider-agnostic commands for the configured issue tracker
- * (`issues_provider`: jira or github).
- *
- * Commands:
- *   smm issues fetch            Fetch issues
- *   smm issues fetch-comments   Fetch comments for one issue or a creation window
- */
 export function createIssuesCommands(program: SmmCommand): void {
   const issuesGroup = program.subcommand('issues').description('Issue tracker operations');
   const screen = program.getScreen();
 
-  /**
-   * smm issues fetch [options]
-   */
   issuesGroup
     .subcommand('fetch')
     .description('Fetch issues from the configured issue tracker')
@@ -92,12 +79,6 @@ export function createIssuesCommands(program: SmmCommand): void {
       }
     });
 
-  /**
-   * smm issues fetch-comments [options]
-   *
-   * With `--issue`, fetch comments for that issue. Without it, fetch every
-   * comment created inside the requested window.
-   */
   issuesGroup
     .subcommand('fetch-comments')
     .description('Fetch issue comments for one issue or a creation window')

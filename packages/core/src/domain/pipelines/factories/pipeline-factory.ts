@@ -37,7 +37,6 @@ export default class PipelineFactory {
     const [githubOwner, githubRepo] = config.githubRepository!.split('/');
     const isGitlab = config.gitProvider?.toLowerCase() === 'gitlab';
 
-    // Shared rate limit manager across all GitHub API clients
     const rateLimitManager = new GitHubRateLimitManager(logger);
 
     const workflowClient = isGitlab

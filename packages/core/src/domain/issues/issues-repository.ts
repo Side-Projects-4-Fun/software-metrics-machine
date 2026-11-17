@@ -27,14 +27,6 @@ export interface IIssuesRepository {
   getComments(filters?: IssueCommentFilters): Promise<IssueComment[]>;
 }
 
-/**
- * Combines a provider-neutral issue client with caching and filtering.
- *
- * Handles:
- * - Fetching issues and comments from the configured provider
- * - Caching both collections locally
- * - Merging incremental updates by id
- */
 export class IssuesRepository implements IIssuesRepository {
   readonly provider: IssueProvider;
   private issuesRepository: IRepository<Issue>;
@@ -62,9 +54,6 @@ export class IssuesRepository implements IIssuesRepository {
     );
   }
 
-  /**
-   * Refresh issue data from the configured provider.
-   */
   async refreshIssues(options?: IssueFilters): Promise<Issue[]> {
     const fromCache = await this.issuesRepository.loadAll();
 
@@ -123,20 +112,10 @@ export class IssuesRepository implements IIssuesRepository {
     return this.applyFilters(freshIssues, options);
   }
 
-  /**
-   * Get issues with optional filters.
-   */
   async getIssues(filters?: IssueFilters): Promise<Issue[]> {
     return this.refreshIssues(filters);
   }
 
-  /**
-   * Refresh comments from the configured provider.
-   *
-   * With `issueKey`, only that issue's comments are fetched. Without it, every
-   * comment created inside the requested window is fetched. `--update` merges
-   * by comment id; `--force` replaces the cache.
-   */
   async refreshComments(options?: IssueCommentFilters): Promise<IssueComment[]> {
     const fromCache = await this.commentsRepository.loadAll();
 
@@ -181,9 +160,6 @@ export class IssuesRepository implements IIssuesRepository {
     return this.applyCommentFilters(fresh, options);
   }
 
-  /**
-   * Get comments with optional filters.
-   */
   async getComments(filters?: IssueCommentFilters): Promise<IssueComment[]> {
     return this.refreshComments(filters);
   }

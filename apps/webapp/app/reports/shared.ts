@@ -35,15 +35,13 @@ export async function fetchSavedFiltersDocument(): Promise<SavedFiltersDocument>
         reports: Array.isArray(data.reports) ? data.reports : [],
       };
     }
-  } catch {
-    // fall through
-  }
+  } catch {}
   return { version: 1, filters: [], reports: [] };
 }
 
 function buildEvaluateParams(
   section: EvaluatableSection,
-  filters: DashboardFilters,
+  filters: DashboardFilters
 ): Record<string, string | number | undefined> {
   switch (section) {
     case 'pipelines':
@@ -64,7 +62,7 @@ function buildEvaluateParams(
 
 async function evaluateSection(
   section: EvaluatableSection,
-  filters: DashboardFilters,
+  filters: DashboardFilters
 ): Promise<unknown> {
   const params = buildEvaluateParams(section, filters);
 
@@ -93,11 +91,6 @@ export interface ResolvedReport {
   windows: ResolvedReportWindow[];
 }
 
-/**
- * Returns the date windows to evaluate for a report.
- * If dateWindows is set, use it. Otherwise, use a single window
- * from startDateOverride/endDateOverride (or null if none).
- */
 function getEffectiveWindows(report: ReportEntry): (ReportDateWindow | null)[] {
   if (report.dateWindows && report.dateWindows.length > 0) {
     return report.dateWindows;
@@ -111,7 +104,7 @@ function getEffectiveWindows(report: ReportEntry): (ReportDateWindow | null)[] {
 async function resolveWindow(
   report: ReportEntry,
   savedFiltersById: Map<string, SavedFilterEntry>,
-  window: ReportDateWindow | null,
+  window: ReportDateWindow | null
 ): Promise<Omit<ResolvedReportWindow, 'window'> & { window: ReportDateWindow | null }> {
   const evaluations: Record<string, unknown> = {};
   const errors: Record<string, string> = {};
@@ -149,7 +142,7 @@ async function resolveWindow(
         const message = err instanceof Error ? err.message : 'Evaluation failed.';
         errors[sectionKey] = message;
       }
-    }),
+    })
   );
 
   return { window, evaluations, errors };
@@ -157,11 +150,11 @@ async function resolveWindow(
 
 export async function resolveReport(
   report: ReportEntry,
-  savedFiltersById: Map<string, SavedFilterEntry>,
+  savedFiltersById: Map<string, SavedFilterEntry>
 ): Promise<ResolvedReport> {
   const windows = getEffectiveWindows(report);
   const resolvedWindows = await Promise.all(
-    windows.map((w) => resolveWindow(report, savedFiltersById, w)),
+    windows.map((w) => resolveWindow(report, savedFiltersById, w))
   );
 
   return { report, windows: resolvedWindows };
@@ -169,11 +162,9 @@ export async function resolveReport(
 
 export async function resolveReports(
   reports: ReportEntry[],
-  savedFilters: SavedFilterEntry[],
+  savedFilters: SavedFilterEntry[]
 ): Promise<ResolvedReport[]> {
   const savedFiltersById = new Map(savedFilters.map((f) => [f.id, f]));
 
-  return Promise.all(
-    reports.map((report) => resolveReport(report, savedFiltersById)),
-  );
+  return Promise.all(reports.map((report) => resolveReport(report, savedFiltersById)));
 }

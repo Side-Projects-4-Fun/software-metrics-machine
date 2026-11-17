@@ -55,7 +55,6 @@ export class GithubWorkflowClient implements IGithubWorkflowClient {
 
     try {
       if (options?.byDay && isDateOnly(options?.startDate) && isDateOnly(options?.endDate)) {
-        // Fetch workflows day by day
         const days = this.generateDayRange(options.startDate, options.endDate);
         this.logger.info(`Fetching workflows by day: ${days.length} day(s)`);
 
@@ -64,7 +63,6 @@ export class GithubWorkflowClient implements IGithubWorkflowClient {
           allRuns.push(...dayRuns);
         }
       } else {
-        // Fetch workflows with original behavior (all at once)
         const dayRuns = await this.fetchWorkflowsForDay(
           options?.startDate,
           options?.endDate,
@@ -114,7 +112,7 @@ export class GithubWorkflowClient implements IGithubWorkflowClient {
       const runs = response.runs;
 
       if (!runs || runs.length === 0) {
-        break; // No more runs
+        break;
       }
 
       for (const run of runs) {

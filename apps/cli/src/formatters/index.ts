@@ -1,7 +1,3 @@
-/**
- * Output Formatters for CLI
- */
-
 import { formatDuration } from '@smmachine/utils';
 
 export interface FormatterOptions {
@@ -57,9 +53,6 @@ interface CompleteReport {
   quality?: QualityMetrics;
 }
 
-/**
- * Format pull request metrics for output
- */
 export function formatChangeRequestMetrics(
   data: ChangeRequestMetrics,
   options: FormatterOptions
@@ -77,7 +70,6 @@ export function formatChangeRequestMetrics(
     return lines.join('\n');
   }
 
-  // Text format (default)
   let output = '\n📊 Change Request Metrics\n';
   output += '═══════════════════════════════════════\n';
   output += `Total change requests: ${data.totalChangeRequests || 'N/A'}\n`;
@@ -107,9 +99,6 @@ export function formatChangeRequestMetrics(
   return output;
 }
 
-/**
- * Format deployment metrics for output
- */
 export function formatDeploymentMetrics(
   data: DeploymentMetrics,
   options: FormatterOptions
@@ -128,7 +117,6 @@ export function formatDeploymentMetrics(
     return lines.join('\n');
   }
 
-  // Text format (default)
   let output = '\n🚀 Deployment Metrics\n';
   output += '═══════════════════════════════════════\n';
 
@@ -163,9 +151,6 @@ export function formatDeploymentMetrics(
   return output;
 }
 
-/**
- * Format code metrics for output
- */
 export function formatCodeMetrics(data: CodeMetrics, options: FormatterOptions): string {
   if (options.format === 'json') {
     return JSON.stringify(data, null, 2);
@@ -183,7 +168,6 @@ export function formatCodeMetrics(data: CodeMetrics, options: FormatterOptions):
     return lines.join('\n');
   }
 
-  // Text format (default)
   let output = '\n💻 Code Metrics\n';
   output += '═══════════════════════════════════════\n';
 
@@ -209,9 +193,6 @@ export function formatCodeMetrics(data: CodeMetrics, options: FormatterOptions):
   return output;
 }
 
-/**
- * Format issue metrics for output
- */
 export function formatIssueMetrics(data: IssueMetrics, options: FormatterOptions): string {
   if (options.format === 'json') {
     return JSON.stringify(data, null, 2);
@@ -227,7 +208,6 @@ export function formatIssueMetrics(data: IssueMetrics, options: FormatterOptions
     return lines.join('\n');
   }
 
-  // Text format (default)
   let output = '\n🎫 Issue Metrics\n';
   output += '═══════════════════════════════════════\n';
   output += `Total Issues: ${data.totalIssues || 'N/A'}\n`;
@@ -247,9 +227,6 @@ export function formatIssueMetrics(data: IssueMetrics, options: FormatterOptions
   return output;
 }
 
-/**
- * Format quality metrics for output
- */
 export function formatQualityMetrics(data: QualityMetrics, options: FormatterOptions): string {
   if (options.format === 'json') {
     return JSON.stringify(data, null, 2);
@@ -265,7 +242,6 @@ export function formatQualityMetrics(data: QualityMetrics, options: FormatterOpt
     return lines.join('\n');
   }
 
-  // Text format (default)
   let output = '\n✅ Quality Metrics\n';
   output += '═══════════════════════════════════════\n';
 
@@ -280,9 +256,6 @@ export function formatQualityMetrics(data: QualityMetrics, options: FormatterOpt
   return output;
 }
 
-/**
- * Format complete report for output
- */
 export function formatCompleteReport(data: CompleteReport, options: FormatterOptions): string {
   if (options.format === 'json') {
     return JSON.stringify(data, null, 2);
@@ -291,7 +264,6 @@ export function formatCompleteReport(data: CompleteReport, options: FormatterOpt
   if (options.format === 'csv') {
     const lines: string[] = ['section,metric,value'];
 
-    // Add change request metrics
     if (data.changeRequests) {
       lines.push(`Change request,total_prs,${data.changeRequests.totalChangeRequests}`);
       if (data.changeRequests.leadTime) {
@@ -299,7 +271,6 @@ export function formatCompleteReport(data: CompleteReport, options: FormatterOpt
       }
     }
 
-    // Add deployment metrics
     if (data.deployment) {
       if (data.deployment.pipelineMetrics?.totalRuns !== undefined) {
         lines.push(`Deployment,total_runs,${data.deployment.pipelineMetrics.totalRuns}`);
@@ -311,17 +282,14 @@ export function formatCompleteReport(data: CompleteReport, options: FormatterOpt
       }
     }
 
-    // Add code metrics
     if (data.code?.pairingIndex) {
       lines.push(`Code,pairing_index,${data.code.pairingIndex.pairingIndexPercentage}`);
     }
 
-    // Add issue metrics
     if (data.issues) {
       lines.push(`Issues,total_issues,${data.issues.totalIssues}`);
     }
 
-    // Add quality metrics
     if (data.quality) {
       for (const [key, value] of Object.entries(data.quality)) {
         if (key !== 'filters') {
@@ -333,7 +301,6 @@ export function formatCompleteReport(data: CompleteReport, options: FormatterOpt
     return lines.join('\n');
   }
 
-  // Text format (default)
   let output = '\n';
   output += '╔════════════════════════════════════════════════════════╗\n';
   output += '║                    Software Metrics Machine            ║\n';
@@ -350,27 +317,22 @@ export function formatCompleteReport(data: CompleteReport, options: FormatterOpt
     }
   }
 
-  // Change Requests
   if (data.changeRequests) {
     output += '\n' + formatChangeRequestMetrics(data.changeRequests, { format: 'text' });
   }
 
-  // Deployment
   if (data.deployment) {
     output += '\n' + formatDeploymentMetrics(data.deployment, { format: 'text' });
   }
 
-  // Code
   if (data.code) {
     output += '\n' + formatCodeMetrics(data.code, { format: 'text' });
   }
 
-  // Issues
   if (data.issues) {
     output += '\n' + formatIssueMetrics(data.issues, { format: 'text' });
   }
 
-  // Quality
   if (data.quality) {
     output += '\n' + formatQualityMetrics(data.quality, { format: 'text' });
   }
@@ -380,9 +342,6 @@ export function formatCompleteReport(data: CompleteReport, options: FormatterOpt
   return output;
 }
 
-/**
- * Format error messages
- */
 export function formatError(error: Error | string, options: { verbose?: boolean } = {}): string {
   const message = error instanceof Error ? error.message : String(error);
   const stack = error instanceof Error ? error.stack : '';
@@ -394,16 +353,10 @@ export function formatError(error: Error | string, options: { verbose?: boolean 
   return `❌ Error: ${message}`;
 }
 
-/**
- * Format success message
- */
 export function formatSuccess(message: string): string {
   return `✓ ${message}`;
 }
 
-/**
- * Format spinner/loading message
- */
 export function formatLoading(message: string): string {
   return `⏳ ${message}`;
 }

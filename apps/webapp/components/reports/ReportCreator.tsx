@@ -20,7 +20,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import SavedFilterSelect from './SavedFilterSelect';
 import { StandaloneDateRangePicker } from '@/components/filters/DateRangePicker';
-import type { EvaluatableSection, ReportSectionRef, ReportDateWindow, ReportEntry } from './reports-store';
+import type {
+  EvaluatableSection,
+  ReportSectionRef,
+  ReportDateWindow,
+  ReportEntry,
+} from './reports-store';
 import {
   EVALUATABLE_SECTIONS,
   EVALUATABLE_SECTION_LABELS,
@@ -52,7 +57,7 @@ interface ReportCreatorProps {
     sections: ReportSectionRef[],
     startDateOverride?: string,
     endDateOverride?: string,
-    dateWindows?: ReportDateWindow[],
+    dateWindows?: ReportDateWindow[]
   ) => Promise<void>;
   existingReport?: ReportEntry;
 }
@@ -64,24 +69,28 @@ function addDays(dateStr: string, days: number): string {
 }
 
 function formatShort(iso: string): string {
-  if (!iso) { return ''; }
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  if (!iso) {
+    return '';
+  }
+  return new Date(iso).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 }
 
 function generateWindows(
   baseStart: string,
   baseEnd: string,
   interval: WindowInterval,
-  count: number,
+  count: number
 ): ReportDateWindow[] {
   const days = INTERVAL_DAYS[interval];
   const windows: ReportDateWindow[] = [];
 
-  // Compute the most recent window
   let currentStart = baseStart;
   let currentEnd = baseEnd;
 
-  // If only one date is set, compute the other
   if (currentStart && !currentEnd) {
     currentEnd = addDays(currentStart, days);
   } else if (!currentStart && currentEnd) {
@@ -94,7 +103,7 @@ function generateWindows(
       endDate: currentEnd || '',
       label: `${formatShort(currentStart || '')} – ${formatShort(currentEnd || '')}`,
     });
-    // Move backward
+
     currentStart = currentStart ? addDays(currentStart, -days) : '';
     currentEnd = currentEnd ? addDays(currentEnd, -days) : '';
   }
@@ -104,12 +113,7 @@ function generateWindows(
 
 type ReportFormProps = Omit<ReportCreatorProps, 'open'>;
 
-function ReportForm({
-  repository,
-  onClose,
-  onSave,
-  existingReport,
-}: ReportFormProps) {
+function ReportForm({ repository, onClose, onSave, existingReport }: ReportFormProps) {
   const initialSelections: Record<EvaluatableSection, string[]> = {
     pipelines: [],
     'change-requests': [],
@@ -123,40 +127,41 @@ function ReportForm({
     }
   }
 
-  const hasDateWindows =
-    !!existingReport && (existingReport.dateWindows?.length ?? 0) > 0;
+  const hasDateWindows = !!existingReport && (existingReport.dateWindows?.length ?? 0) > 0;
 
   const [name, setName] = useState(() => existingReport?.name || defaultReportName());
   const [startDate, setStartDate] = useState(() => existingReport?.startDateOverride ?? '');
   const [endDate, setEndDate] = useState(() => existingReport?.endDateOverride ?? '');
-  const [selections, setSelections] = useState<Record<EvaluatableSection, string[]>>(
-    initialSelections,
-  );
+  const [selections, setSelections] =
+    useState<Record<EvaluatableSection, string[]>>(initialSelections);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [multiWindow, setMultiWindow] = useState(hasDateWindows);
   const [windowInterval, setWindowInterval] = useState<WindowInterval>(
-    hasDateWindows ? 'manual' : 'weekly',
+    hasDateWindows ? 'manual' : 'weekly'
   );
   const [windowCount, setWindowCount] = useState(4);
-  const [manualWindows, setManualWindows] = useState<
-    Array<{ startDate: string; endDate: string }>
-  >(() =>
-    hasDateWindows
-      ? (existingReport?.dateWindows ?? []).map((w) => ({
-          startDate: w.startDate,
-          endDate: w.endDate,
-        }))
-      : [],
+  const [manualWindows, setManualWindows] = useState<Array<{ startDate: string; endDate: string }>>(
+    () =>
+      hasDateWindows
+        ? (existingReport?.dateWindows ?? []).map((w) => ({
+            startDate: w.startDate,
+            endDate: w.endDate,
+          }))
+        : []
   );
 
   const autoPreview = useMemo(() => {
-    if (!multiWindow || !startDate) { return []; }
+    if (!multiWindow || !startDate) {
+      return [];
+    }
     return generateWindows(startDate, endDate, windowInterval, windowCount);
   }, [multiWindow, startDate, endDate, windowInterval, windowCount]);
 
   const previewWindows = useMemo(() => {
-    if (!multiWindow) { return []; }
+    if (!multiWindow) {
+      return [];
+    }
     if (windowInterval === 'manual') {
       return manualWindows.map((w) => ({
         startDate: w.startDate,
@@ -210,7 +215,7 @@ function ReportForm({
         sections,
         startDate.trim() || undefined,
         endDate.trim() || undefined,
-        activeDateWindows,
+        activeDateWindows
       );
       onClose();
     } catch (err) {
@@ -244,10 +249,7 @@ function ReportForm({
 
           <FormControlLabel
             control={
-              <Switch
-                checked={multiWindow}
-                onChange={(_, checked) => setMultiWindow(checked)}
-              />
+              <Switch checked={multiWindow} onChange={(_, checked) => setMultiWindow(checked)} />
             }
             label="Multi-window timeline"
           />
@@ -264,12 +266,11 @@ function ReportForm({
                   onChange={(e) => {
                     const next = e.target.value as WindowInterval;
                     if (next === 'manual' && windowInterval !== 'manual') {
-                      // Seed manual windows from current auto preview
                       setManualWindows(
                         autoPreview.map((w) => ({
                           startDate: w.startDate,
                           endDate: w.endDate,
-                        })),
+                        }))
                       );
                     }
                     setWindowInterval(next);
@@ -294,7 +295,9 @@ function ReportForm({
                     value={windowCount}
                     onChange={(e) => {
                       const n = parseInt(e.target.value, 10);
-                      if (n >= 1 && n <= 52) { setWindowCount(n); }
+                      if (n >= 1 && n <= 52) {
+                        setWindowCount(n);
+                      }
                     }}
                     slotProps={{ htmlInput: { min: 1, max: 52, style: { width: 60 } } }}
                   />
@@ -316,8 +319,8 @@ function ReportForm({
                         onChange={(e) =>
                           setManualWindows((prev) =>
                             prev.map((mw, j) =>
-                              j === i ? { ...mw, startDate: e.target.value } : mw,
-                            ),
+                              j === i ? { ...mw, startDate: e.target.value } : mw
+                            )
                           )
                         }
                         slotProps={{ inputLabel: { shrink: true } }}
@@ -330,9 +333,7 @@ function ReportForm({
                         value={w.endDate}
                         onChange={(e) =>
                           setManualWindows((prev) =>
-                            prev.map((mw, j) =>
-                              j === i ? { ...mw, endDate: e.target.value } : mw,
-                            ),
+                            prev.map((mw, j) => (j === i ? { ...mw, endDate: e.target.value } : mw))
                           )
                         }
                         slotProps={{ inputLabel: { shrink: true } }}
@@ -341,9 +342,7 @@ function ReportForm({
                       <IconButton
                         size="small"
                         color="error"
-                        onClick={() =>
-                          setManualWindows((prev) => prev.filter((_, j) => j !== i))
-                        }
+                        onClick={() => setManualWindows((prev) => prev.filter((_, j) => j !== i))}
                         aria-label={`Remove window ${i + 1}`}
                       >
                         <DeleteIcon fontSize="small" />
@@ -354,10 +353,7 @@ function ReportForm({
                     size="small"
                     startIcon={<AddIcon />}
                     onClick={() =>
-                      setManualWindows((prev) => [
-                        ...prev,
-                        { startDate: '', endDate: '' },
-                      ])
+                      setManualWindows((prev) => [...prev, { startDate: '', endDate: '' }])
                     }
                   >
                     Add window
@@ -419,11 +415,7 @@ function ReportForm({
         <Button onClick={onClose} disabled={saving}>
           Cancel
         </Button>
-        <Button
-          onClick={handleSave}
-          variant="contained"
-          disabled={!hasSelection || saving}
-        >
+        <Button onClick={handleSave} variant="contained" disabled={!hasSelection || saving}>
           {saving ? 'Saving...' : existingReport ? 'Update Report' : 'Save Report'}
         </Button>
       </DialogActions>

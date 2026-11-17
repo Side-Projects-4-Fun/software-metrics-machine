@@ -31,11 +31,10 @@ export class FiltersController {
       if (projectConfig) {
         return this.readDocument(this.configRepository.fromProjectConfig(projectConfig));
       }
-      // Unknown project — fall back to the request-scoped configuration
+
       return this.readDocument(this.config);
     }
 
-    // No project given — aggregate saved views from every configured project
     const documents = await Promise.all(
       this.configRepository
         .getAllProjects()

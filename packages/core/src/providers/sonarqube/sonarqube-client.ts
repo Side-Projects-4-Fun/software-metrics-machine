@@ -19,14 +19,6 @@ export interface ISonarqubeMeasuresClient {
   }): Promise<SonarqubeComponentTreeMeasure[]>;
 }
 
-/**
- * SonarQube API client for Code Quality Metrics
- * Real implementation using SonarQube Web API
- * Endpoints utilized:
- *   - GET /api/measures/component - Get current component measures
- *   - GET /api/measures/search_history - Get historical measures over time
- * Auth: SonarCloud (sonarcloud.io) uses ?token= query param; self-hosted uses HTTP Basic.
- */
 export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
   private axiosInstance: AxiosInstance;
   private logger: Logger;
@@ -40,7 +32,6 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
   ) {
     this.logger = logger;
 
-    // Ensure URL ends without slash for consistency
     const baseURL = this.url.endsWith('/') ? this.url.slice(0, -1) : this.url;
     this.isSonarCloud = baseURL === 'https://sonarcloud.io';
 
@@ -118,7 +109,6 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
     endDate?: string;
   }): Promise<CodeMetric[]> {
     try {
-      // Default metrics if not specified
       const metrics = options?.metrics || ['sqale_rating', 'coverage', 'duplicated_lines_density'];
 
       this.logger.info(
@@ -127,10 +117,6 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
           (options?.endDate ? ` to ${options.endDate}` : '')
       );
 
-      // Pagination applies to the number of measures for each metric: every page
-      // returns one history entry per analysis for each requested metric, so we
-      // loop over pages until the reported total of analyses is covered and merge
-      // the per-metric history across pages.
       const historyByMetric = new Map<string, CodeMetric[]>();
       const metricOrder: string[] = [];
       let pageIndex = 1;
@@ -145,7 +131,7 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
             ...(options?.startDate && { from: options.startDate }),
             ...(options?.endDate && { to: options.endDate }),
             p: pageIndex,
-            ps: 100, // Max 100 results per page
+            ps: 100,
           },
         });
 
@@ -175,7 +161,6 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
           }
         }
 
-        // When the API does not return a paging object, treat the response as a single page.
         if (!paging) {
           break;
         }
@@ -185,7 +170,6 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
         pageIndex += 1;
       } while (pageIndex <= Math.ceil(totalAnalyses / pageSize));
 
-      // Flatten merged history keeping the original metric-first ordering.
       const flatMeasures = metricOrder.flatMap((metric) => historyByMetric.get(metric) ?? []);
 
       if (flatMeasures.length === 0) {
@@ -225,7 +209,7 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
   }): Promise<SonarqubeComponentTreeMeasure[]> {
     try {
       const component = options?.component || this.projectKey;
-      const depth = options?.depth ?? -1; // -1 means all depths
+      const depth = options?.depth ?? -1;
       const metrics = options?.metrics || [
         'complexity',
         'cognitive_complexity',
@@ -262,7 +246,6 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
           throw new Error(`Component ${component} not found in SonarQube.`);
         }
 
-        // The base component is repeated on every page — keep only the first one.
         if (!baseComponent) {
           baseComponent = pageBase;
         }
@@ -270,12 +253,9 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
         const pageComponents: SonarqubeComponentTreeMeasure[] = components || [];
         allComponents.push(...pageComponents);
 
-        // When the API does not return a paging object, treat the response as a single page.
         total = paging?.total ?? allComponents.length;
         pageIndex += 1;
 
-        // Guard against an inconsistent server that reports a total larger than
-        // the sum of returned pages but stops returning components.
         if (pageComponents.length === 0) {
           break;
         }

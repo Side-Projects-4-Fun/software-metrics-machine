@@ -1,14 +1,3 @@
-/**
- * Duration formatting for chart tooltips, axis tick formatters, and evaluation cards.
- *
- * This is a self-contained utility (no @smmachine/utils import) because
- * it runs in the browser. The webapp must not import any Node.js-dependent
- * packages.
- *
- * For all other duration displays, the REST API provides pre-formatted
- * strings via `_formatted` fields in the response.
- */
-
 export type DurationUnit = 'minutes' | 'hours' | 'days';
 
 const MINUTES_PER_UNIT: Record<DurationUnit, number> = {
@@ -17,15 +6,6 @@ const MINUTES_PER_UNIT: Record<DurationUnit, number> = {
   days: 1440,
 };
 
-/**
- * Format a duration value into a human-readable string.
- *
- * The output unit is chosen automatically based on the magnitude:
- * - Less than 1 minute  → "< 1 min"
- * - 1–59 minutes         → "X min"
- * - 1–23 hours           → "Xh Ym" (or "Xh" if on the hour)
- * - 1+ days              → "Xd Yh" (or "Xd" if on the day)
- */
 export function formatDuration(value: number, unit: DurationUnit): string {
   const totalMinutes = value * MINUTES_PER_UNIT[unit];
 
@@ -60,9 +40,6 @@ export function formatDuration(value: number, unit: DurationUnit): string {
   return remainingHours === 0 ? `${days}d` : `${days}d ${remainingHours}h`;
 }
 
-/**
- * Convenience wrapper for formatting minutes (used by pipeline chart components).
- */
 export function formatDurationMinutes(value: number): string {
   return formatDuration(value, 'minutes');
 }

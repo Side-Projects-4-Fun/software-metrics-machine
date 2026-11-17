@@ -1,13 +1,3 @@
-/**
- * Response DTOs for API endpoints
- * Define the structure of all API responses
- *
- * Filter types are imported from @smmachine/core to keep a single
- * source of truth shared across CLI, REST API, and domain logic.
- * Domain types (ChangeRequestDetails, ChangeRequestMetrics, PipelineRun, etc.) are also
- * imported directly for use as response shapes.
- */
-
 import type {
   ChangeRequestDetails,
   PipelineFilterOptions,
@@ -22,9 +12,6 @@ import type {
   PipelineMetricOutlier,
   IssueProvider,
 } from '@smmachine/core';
-
-// Types defined in core but not re-exported through the public API,
-// so we define them locally.
 
 export interface PairingIndexResult {
   pairingIndexPercentage: number;
@@ -82,10 +69,6 @@ export interface ConfigurationResponse {
     sonar_project: string | null;
   };
 }
-
-// ──────────────────────────────────────────
-// Change Request endpoints
-// ──────────────────────────────────────────
 
 export interface ChangeRequestSummaryResponse {
   result: {
@@ -160,10 +143,6 @@ export type ChangeRequestFilterOptionsResponse = {
   labels: string[];
   commenters: string[];
 };
-
-// ──────────────────────────────────────────
-// Pipeline endpoints
-// ──────────────────────────────────────────
 
 export interface PipelineSummaryResponse {
   total_runs: number;
@@ -386,10 +365,6 @@ export interface ChangeRequestEvaluationResponse {
   };
 }
 
-// ──────────────────────────────────────────
-// Code endpoints
-// ──────────────────────────────────────────
-
 export interface CodePairingIndexResponse {
   pairing_index_percentage: number;
   total_analyzed_commits: number;
@@ -484,16 +459,6 @@ export type CodeEntityOwnershipHistoryResponse = Array<{
   data: CodeEntityOwnershipResponse;
 }>;
 
-// ──────────────────────────────────────────
-// SonarQube endpoints
-// ──────────────────────────────────────────
-// These already return typed promises in the controller,
-// no additional DTOs needed. Types are imported from core.
-
-// ──────────────────────────────────────────
-// Orchestrator / Metrics endpoints
-// ──────────────────────────────────────────
-
 export interface MetricsIssueResponse {
   provider: IssueProvider;
   totalIssues: number;
@@ -561,10 +526,6 @@ export interface MetricsFullReportResponse {
   issues: MetricsIssueResponse;
   quality: MetricsQualityResponse;
 }
-
-// ──────────────────────────────────────────
-// Generic error response
-// ──────────────────────────────────────────
 
 export class ErrorResponse {
   statusCode!: number;

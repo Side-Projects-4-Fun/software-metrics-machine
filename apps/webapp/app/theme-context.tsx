@@ -37,23 +37,14 @@ const subscribeToHydration = () => () => {};
 const getHydratedSnapshot = () => true;
 const getHydratedServerSnapshot = () => false;
 
-/**
- * `false` during the server render and the hydration pass, `true` afterwards.
- * It lets the provider render the stored/system preference only once the markup
- * is hydrated, so the toggle text cannot mismatch the server HTML.
- */
 function useHydrated(): boolean {
-  return useSyncExternalStore(
-    subscribeToHydration,
-    getHydratedSnapshot,
-    getHydratedServerSnapshot,
-  );
+  return useSyncExternalStore(subscribeToHydration, getHydratedSnapshot, getHydratedServerSnapshot);
 }
 
 export function ThemeContextProvider({ children }: { children: React.ReactNode }) {
   const hydrated = useHydrated();
   const [storedTheme, setStoredTheme] = useState<Theme>(() =>
-    typeof window === 'undefined' ? 'light' : getPreferredTheme(),
+    typeof window === 'undefined' ? 'light' : getPreferredTheme()
   );
   const theme: Theme = hydrated ? storedTheme : 'light';
 
@@ -70,11 +61,7 @@ export function ThemeContextProvider({ children }: { children: React.ReactNode }
     });
   };
 
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {

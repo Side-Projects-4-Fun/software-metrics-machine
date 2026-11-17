@@ -51,100 +51,98 @@ export default async function Home() {
   const versionResponse = await versionAPI.getVersion();
   const applicationVersion = versionResponse.result.version;
 
-    return (
-      <AppProviders {...providerData}>
-        <div className="relative min-h-screen py-12 px-4">
-          {/* Fixed background layer to prevent scroll jank */}
-          <div className="fixed inset-0 -z-10 bg-gradient-to-br from-blue-50 to-indigo-100" />
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center space-y-8 mb-16">
-              <h1 className="text-5xl font-bold text-gray-900">
-                <Link href="/" className="inline-block">
-                  Software Metrics Machine
-                </Link>
-              </h1>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Analyze your repository&apos;s health with comprehensive metrics for source code,
-                CI/CD pipelines, and change requests.
-              </p>
-              <div className="flex gap-4 justify-center flex-wrap">
-                <Link
-                  href="/dashboard"
-                  className="px-8 py-3 text-white rounded-lg transition-opacity hover:opacity-90 font-semibold"
-                  style={{ backgroundColor: DASHBOARD_ACCENT_COLOR }}
-                >
-                  View Dashboard
-                </Link>
-                <Link
-                  href="/reports"
-                  className="px-8 py-3 text-white rounded-lg transition-opacity hover:opacity-90 font-semibold"
-                  style={{ backgroundColor: REPORTS_ACCENT_COLOR }}
-                >
-                  View Reports
-                </Link>
-                <Link
-                  href="/engineering-health"
-                  className="px-8 py-3 text-white rounded-lg transition-opacity hover:opacity-90 font-semibold"
-                  style={{ backgroundColor: ENGINEERING_HEALTH_ACCENT_COLOR }}
-                >
-                  Engineering Health
-                </Link>
+  return (
+    <AppProviders {...providerData}>
+      <div className="relative min-h-screen py-12 px-4">
+        {}
+        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-blue-50 to-indigo-100" />
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center space-y-8 mb-16">
+            <h1 className="text-5xl font-bold text-gray-900">
+              <Link href="/" className="inline-block">
+                Software Metrics Machine
+              </Link>
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Analyze your repository&apos;s health with comprehensive metrics for source code,
+              CI/CD pipelines, and change requests.
+            </p>
+            <div className="flex gap-4 justify-center flex-wrap">
+              <Link
+                href="/dashboard"
+                className="px-8 py-3 text-white rounded-lg transition-opacity hover:opacity-90 font-semibold"
+                style={{ backgroundColor: DASHBOARD_ACCENT_COLOR }}
+              >
+                View Dashboard
+              </Link>
+              <Link
+                href="/reports"
+                className="px-8 py-3 text-white rounded-lg transition-opacity hover:opacity-90 font-semibold"
+                style={{ backgroundColor: REPORTS_ACCENT_COLOR }}
+              >
+                View Reports
+              </Link>
+              <Link
+                href="/engineering-health"
+                className="px-8 py-3 text-white rounded-lg transition-opacity hover:opacity-90 font-semibold"
+                style={{ backgroundColor: ENGINEERING_HEALTH_ACCENT_COLOR }}
+              >
+                Engineering Health
+              </Link>
+              <a
+                href={`${apiBaseUrl}/api/docs`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-8 py-3 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+              >
+                API Docs
+              </a>
+              <Link
+                href="/settings"
+                className="px-8 py-3 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+              >
+                Settings
+              </Link>
+              <Link
+                href="/references"
+                className="px-8 py-3 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+              >
+                References
+              </Link>
+            </div>
+          </div>
+
+          <div className="mb-16">
+            <div className="mb-4 text-center text-sm font-medium text-gray-600">
+              Version {applicationVersion}
+            </div>
+            <SavedFiltersOverview />
+          </div>
+
+          {}
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-gray-900">Learn More</h2>
+              <p className="text-gray-600 mt-2">Explore additional resources and documentation</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {resources.map((resource) => (
                 <a
-                  href={`${apiBaseUrl}/api/docs`}
+                  key={resource.title}
+                  href={resource.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-8 py-3 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                  className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
                 >
-                  API Docs
+                  <div className="text-4xl mb-3">{resource.icon}</div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{resource.title}</h3>
+                  <p className="text-gray-600">{resource.description}</p>
                 </a>
-                <Link
-                  href="/settings"
-                  className="px-8 py-3 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
-                >
-                  Settings
-                </Link>
-                <Link
-                  href="/references"
-                  className="px-8 py-3 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
-                >
-                  References
-                </Link>
-              </div>
-            </div>
-
-            <div className="mb-16">
-              <div className="mb-4 text-center text-sm font-medium text-gray-600">
-                Version {applicationVersion}
-              </div>
-              <SavedFiltersOverview />
-            </div>
-
-            {/* Resources Section */}
-            <div className="space-y-8">
-              <div className="text-center">
-                <h2 className="text-3xl font-bold text-gray-900">Learn More</h2>
-                <p className="text-gray-600 mt-2">Explore additional resources and documentation</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {resources.map((resource) => (
-                  <a
-                    key={resource.title}
-                    href={resource.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
-                  >
-                    <div className="text-4xl mb-3">{resource.icon}</div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                      {resource.title}
-                    </h3>
-                    <p className="text-gray-600">{resource.description}</p>
-                  </a>
-                ))}
-              </div>
+              ))}
             </div>
           </div>
         </div>
-      </AppProviders>
-    );
+      </div>
+    </AppProviders>
+  );
 }

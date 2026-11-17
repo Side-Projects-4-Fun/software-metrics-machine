@@ -12,13 +12,6 @@ type PayloadRow = {
 
 type RecordLike = Record<string, unknown>;
 
-/**
- * SQLite-backed implementation of IRepository.
- *
- * Pipeline runs and jobs are persisted into normalized tables with the original
- * provider payload retained for compatibility with the existing domain mappers.
- * Other repository namespaces use a small generic payload table.
- */
 export class SqliteRepository<T> implements IRepository<T> {
   constructor(
     private readonly dbPath: string,

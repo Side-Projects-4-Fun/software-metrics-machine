@@ -3,10 +3,6 @@ import { ApiTags } from '@nestjs/swagger';
 import { Configuration } from '@smmachine/core';
 import { ConfigurationResponse } from '../dtos';
 
-/**
- * Configuration REST Controller
- * Provides endpoints for system configuration retrieval
- */
 @ApiTags('Configuration')
 @Controller()
 export class ConfigurationController {

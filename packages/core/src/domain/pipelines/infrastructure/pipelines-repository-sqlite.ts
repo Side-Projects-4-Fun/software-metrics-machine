@@ -389,12 +389,6 @@ export class PipelinesSqliteRepository
       .filter((item) => item.length > 0);
   }
 
-  /**
-   * Apply weekends-only filter in-memory.
-   * All other filters (status, conclusion, branch, event, date range, workflowPath)
-   * are already handled by the SQL WHERE clause in loadPayloadRows.
-   * Sorting is also handled by SQL ORDER BY.
-   */
   private applyWeekendsFilter(runs: PipelineRun[], options: LoadPipelinesOptions): PipelineRun[] {
     if (!options.weekends) {
       return runs;
