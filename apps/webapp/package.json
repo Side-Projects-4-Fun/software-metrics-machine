@@ -9,6 +9,7 @@
     "type-check": "tsc --noEmit && tsc --noEmit -p cypress/tsconfig.json",
     "test": "jest",
     "test:coverage": "jest --coverage",
+    "test:mutation": "stryker run",
     "watch": "next dev",
     "clean": "rm -rf .next",
     "cy:open": "cypress open",
@@ -36,6 +37,9 @@
   "devDependencies": {
     "@smmachine/core": "workspace:*",
     "@smmachine/utils": "workspace:*",
+    "@stryker-mutator/core": "catalog:",
+    "@stryker-mutator/jest-runner": "catalog:",
+    "@stryker-mutator/typescript-checker": "catalog:",
     "@tailwindcss/postcss": "catalog:",
     "@testing-library/dom": "catalog:",
     "@testing-library/jest-dom": "catalog:",

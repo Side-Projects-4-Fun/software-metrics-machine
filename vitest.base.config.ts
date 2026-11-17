@@ -14,7 +14,7 @@ export default defineConfig({
     pool: 'forks',
     fileParallelism: false,
     include: ['./**/__tests__/**/*.test.ts'],
-    exclude: ['node_modules', 'dist', '.idea', '*.js', 'tmp', 'docs'],
+    exclude: ['node_modules', 'dist', '.idea', '*.js', 'tmp', 'docs', '.stryker-tmp'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],

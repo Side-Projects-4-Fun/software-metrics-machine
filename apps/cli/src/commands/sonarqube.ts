@@ -18,7 +18,7 @@ type SonarqubeOrchestratorOptions = {
 function createSonarqubeOrchestrator(
   options: SonarqubeOrchestratorOptions = {},
   command: SmmCommand
-): SonarqubeLocalAnalysis {
+): SonarqubeFetchMetricsRepository {
   const config = command.getConfiguration();
   const logger = command.getLogger('SonarQubeCommand');
   const token = options.useLocalAnalysisToken

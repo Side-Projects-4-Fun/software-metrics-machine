@@ -18,6 +18,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:ci": "vitest run",
+    "test:mutation": "stryker run",
     "clean": "rm -rf dist",
     "lint": "eslint .",
     "type-check": "tsc --noEmit"
@@ -30,6 +31,9 @@
     "@modelcontextprotocol/client": "catalog:",
     "@smmachine/core": "workspace:*",
     "@smmachine/utils": "workspace:*",
+    "@stryker-mutator/core": "catalog:",
+    "@stryker-mutator/typescript-checker": "catalog:",
+    "@stryker-mutator/vitest-runner": "catalog:",
     "@types/node": "catalog:",
     "@typescript-eslint/eslint-plugin": "catalog:",
     "@typescript-eslint/parser": "catalog:",

@@ -23,6 +23,19 @@
         "package.json"
       ]
     },
+    "test:mutation": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "inputs": [
+        "src/**/*.ts",
+        "**/*.{test,spec}.ts",
+        "stryker.config.*",
+        "vitest.config.*",
+        "jest.config.*",
+        "tsconfig.json",
+        "package.json"
+      ]
+    },
     "watch": {
       "cache": false,
       "persistent": true

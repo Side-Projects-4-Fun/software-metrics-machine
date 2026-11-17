@@ -27,8 +27,8 @@ const config: Config = {
 
   testPathIgnorePatterns: [
     '/node_modules/',
-    '<rootDir>/__tests__/builders/',
-    '<rootDir>/__tests__/utils/',
+    '__tests__/builders/',
+    '__tests__/utils/',
   ],
 };
 

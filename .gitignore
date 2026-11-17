@@ -239,6 +239,12 @@ tests/e2e/target
 
 mutants/
 
+# Stryker mutation testing
+.stryker-tmp/
+stryker-setup-*.js
+packages/*/reports/
+apps/*/reports/
+
 sonar_data/
 sonar_extensions/
 sonar_logs/

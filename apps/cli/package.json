@@ -24,6 +24,7 @@
     "test": "vitest --watch=false",
     "test:coverage": "vitest run --coverage",
     "test:ci": "vitest run ./__tests__",
+    "test:mutation": "stryker run",
     "test:e2e": "pnpm run build && bash e2e/run.sh",
     "clean": "rm -rf dist",
     "lint": "eslint ."
@@ -37,6 +38,9 @@
     "@smmachine/core": "workspace:*",
     "@smmachine/utils": "workspace:*",
     "@smmachine/mcp": "workspace:*",
+    "@stryker-mutator/core": "catalog:",
+    "@stryker-mutator/typescript-checker": "catalog:",
+    "@stryker-mutator/vitest-runner": "catalog:",
     "@types/node": "catalog:",
     "@typescript-eslint/eslint-plugin": "catalog:",
     "@typescript-eslint/parser": "catalog:",

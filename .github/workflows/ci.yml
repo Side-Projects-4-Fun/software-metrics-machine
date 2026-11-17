@@ -88,6 +88,50 @@ jobs:
       - name: Run tests
         run: pnpm run test
 
+  mutation:
+    name: Mutation Testing
+    runs-on: ubuntu-latest
+    needs: build-typescript
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set Environment Variables
+        uses: tw3lveparsecs/github-actions-setvars@23da06e2c4d5804d2082ecf4d79b83a2338fb419 # v0.2
+        with:
+          envFilePath: ./envvars.for.actions
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --ignore-scripts
+
+      - name: Run mutation testing
+        # Sequential per workspace to keep Stryker's own per-package
+        # concurrency from oversubscribing the runner. The mutation score is
+        # reported only; there is no threshold gate yet.
+        run: pnpm exec turbo run test:mutation --concurrency=1
+
+      - name: Upload mutation reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: stryker-reports
+          path: |
+            packages/*/reports
+            apps/*/reports
+          retention-days: 7
+          if-no-files-found: ignore
+
   cli-acceptance:
     name: CLI Acceptance
     runs-on: ubuntu-latest

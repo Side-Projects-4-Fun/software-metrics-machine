@@ -11,6 +11,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:ci": "vitest run",
+    "test:mutation": "stryker run",
     "clean": "rm -rf dist",
     "lint": "eslint ."
   },
@@ -29,6 +30,9 @@
     "@smmachine/core": "workspace:*",
     "@smmachine/utils": "workspace:*",
     "@nestjs/testing": "catalog:",
+    "@stryker-mutator/core": "catalog:",
+    "@stryker-mutator/typescript-checker": "catalog:",
+    "@stryker-mutator/vitest-runner": "catalog:",
     "@types/express": "catalog:",
     "@types/node": "catalog:",
     "@types/supertest": "catalog:",
