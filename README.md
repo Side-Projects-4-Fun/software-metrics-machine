@@ -96,6 +96,11 @@ Commands:
 
 The official documentation is hosted at [github pages](https://side-projects-4-fun.github.io/software-metrics-machine/getting-started.html).
 
+## Security
+
+Security issues should be reported privately, not through public GitHub issues. Supported versions and the full
+reporting process are documented in [SECURITY.md](SECURITY.md).
+
 ## References
 
 This project uses other tools to extract the metrics, and is inspired by other works in the field of software metrics.

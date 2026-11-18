@@ -3,13 +3,14 @@ export const baseConfig = {
   checkers: ['typescript'],
   coverageAnalysis: 'perTest',
   reporters: ['html', 'clear-text', 'progress'],
-  concurrency: 4,
   timeoutFactor: 2,
   timeoutMS: 30000,
   tempDirName: '.stryker-tmp',
   cleanTempDir: true,
   ignoreStatic: true,
   inPlace: true,
+  incremental: true,
+  incrementalFile: 'reports/stryker-incremental.json',
 };
 
 export const vitestMutate = ['src/**/*.ts', '!src/**/__tests__/**', '!src/**/*.d.ts'];

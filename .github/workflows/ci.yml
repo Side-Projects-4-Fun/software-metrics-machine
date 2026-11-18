@@ -89,9 +89,32 @@ jobs:
         run: pnpm run test
 
   mutation:
-    name: Mutation Testing
+    name: Mutation Testing (${{ matrix.package }})
     runs-on: ubuntu-latest
     needs: build-typescript
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: utils
+            path: packages/utils
+            filter: "@smmachine/utils"
+          - package: core
+            path: packages/core
+            filter: "@smmachine/core"
+          - package: cli
+            path: apps/cli
+            filter: "@smmachine/cli"
+          - package: mcp
+            path: apps/mcp
+            filter: "@smmachine/mcp"
+          - package: rest
+            path: apps/rest
+            filter: "@smmachine/rest"
+          - package: webapp
+            path: apps/webapp
+            filter: "@smmachine/webapp"
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -115,20 +138,29 @@ jobs:
       - name: Install dependencies
         run: pnpm install --ignore-scripts
 
+      - name: Restore Stryker incremental report
+        # Incremental mode reuses results for files whose content and tests
+        # did not change, so repeat runs only test the affected mutants.
+        uses: actions/cache@v6
+        with:
+          path: ${{ matrix.path }}/reports/stryker-incremental.json
+          key: stryker-${{ runner.os }}-${{ matrix.package }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            stryker-${{ runner.os }}-${{ matrix.package }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            stryker-${{ runner.os }}-${{ matrix.package }}-
+
       - name: Run mutation testing
-        # Sequential per workspace to keep Stryker's own per-package
-        # concurrency from oversubscribing the runner. The mutation score is
-        # reported only; there is no threshold gate yet.
-        run: pnpm exec turbo run test:mutation --concurrency=1
+        # One workspace per runner so packages mutate in parallel and Stryker
+        # can size its worker pool to the runner instead of oversubscribing it.
+        # The mutation score is reported only; there is no threshold gate yet.
+        run: pnpm exec turbo run test:mutation --filter="${{ matrix.filter }}"
 
       - name: Upload mutation reports
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: stryker-reports
-          path: |
-            packages/*/reports
-            apps/*/reports
+          name: stryker-reports-${{ matrix.package }}
+          path: ${{ matrix.path }}/reports
           retention-days: 7
           if-no-files-found: ignore
 
