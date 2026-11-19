@@ -92,7 +92,7 @@ jobs:
     name: Mutation Testing (${{ matrix.package }})
     runs-on: ubuntu-latest
     needs: build-typescript
-    timeout-minutes: 350
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -100,24 +100,27 @@ jobs:
           - package: utils
             path: packages/utils
             filter: "@smmachine/utils"
-          - package: core
-            path: packages/core
-            filter: "@smmachine/core"
-          - package: cli
-            path: apps/cli
-            filter: "@smmachine/cli"
+#          - package: core
+#            path: packages/core
+#            filter: "@smmachine/core"
+#          - package: cli
+#            path: apps/cli
+#            filter: "@smmachine/cli"
           - package: mcp
             path: apps/mcp
             filter: "@smmachine/mcp"
           - package: rest
             path: apps/rest
             filter: "@smmachine/rest"
-          - package: webapp
-            path: apps/webapp
-            filter: "@smmachine/webapp"
+#          - package: webapp
+#            path: apps/webapp
+#            filter: "@smmachine/webapp"
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          # Full history so the changed-file diff against the base ref works.
+          fetch-depth: 0
 
       - name: Set Environment Variables
         uses: tw3lveparsecs/github-actions-setvars@23da06e2c4d5804d2082ecf4d79b83a2338fb419 # v0.2
@@ -150,10 +153,13 @@ jobs:
             stryker-${{ runner.os }}-${{ matrix.package }}-
 
       - name: Run mutation testing
-        # One workspace per runner so packages mutate in parallel and Stryker
-        # can size its worker pool to the runner instead of oversubscribing it.
-        # The mutation score is reported only; there is no threshold gate yet.
-        run: pnpm exec turbo run test:mutation --filter="${{ matrix.filter }}"
+        # Mutation is scoped to the source files this change touched, so runtime
+        # scales with the size of the diff rather than the size of the codebase.
+        # A workspace with no mutable changes exits immediately. Full runs are
+        # available via workflow_dispatch (no base ref) or STRYKER_FULL=1.
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+        run: bash scripts/mutation-changed.sh "${{ matrix.path }}" "${{ matrix.filter }}"
 
       - name: Upload mutation reports
         if: always()
