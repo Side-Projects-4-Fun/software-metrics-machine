@@ -34,6 +34,8 @@ const Main = styled('main', {
   showFilters?: boolean;
 }>(({ theme, showFilters }) => ({
   flexGrow: 1,
+  minWidth: 0,
+  maxWidth: '100%',
   padding: theme.spacing(3),
   transition: theme.transitions.create('margin', {
     easing: theme.transitions.easing.sharp,

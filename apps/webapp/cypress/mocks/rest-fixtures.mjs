@@ -141,6 +141,35 @@ const sprintReport = {
   createdAt: '2025-03-02T09:00:00.000Z',
 };
 
+const quarterWindows = [
+  { startDate: '2025-01-06', endDate: '2025-01-12', label: 'Week 1' },
+  { startDate: '2025-01-13', endDate: '2025-01-19', label: 'Week 2' },
+  { startDate: '2025-01-20', endDate: '2025-01-26', label: 'Week 3' },
+  { startDate: '2025-01-27', endDate: '2025-02-02', label: 'Week 4' },
+  { startDate: '2025-02-03', endDate: '2025-02-09', label: 'Week 5' },
+  { startDate: '2025-02-10', endDate: '2025-02-16', label: 'Week 6' },
+  { startDate: '2025-02-17', endDate: '2025-02-23', label: 'Week 7' },
+  { startDate: '2025-02-24', endDate: '2025-03-02', label: 'Week 8' },
+  { startDate: '2025-03-03', endDate: '2025-03-09', label: 'Week 9' },
+  { startDate: '2025-03-10', endDate: '2025-03-16', label: 'Week 10' },
+  { startDate: '2025-03-17', endDate: '2025-03-23', label: 'Week 11' },
+  { startDate: '2025-03-24', endDate: '2025-03-30', label: 'Week 12' },
+];
+
+const multiWindowReport = {
+  id: 'report-quarter-windows',
+  name: 'Quarterly Windows',
+  repository: PROJECT_REPOSITORY,
+  sections: [
+    {
+      section: 'change-requests',
+      savedFilterId: savedChangeRequestFilter.id,
+    },
+  ],
+  dateWindows: quarterWindows,
+  createdAt: '2025-04-01T09:00:00.000Z',
+};
+
 const engineeringHealthEvaluation = {
   generatedAt: '2025-04-01T08:30:00.000Z',
   evaluations: [
@@ -332,7 +361,7 @@ export const restResponses = {
   '/filters': {
     version: 1,
     filters: [savedChangeRequestFilter],
-    reports: [sprintReport],
+    reports: [sprintReport, multiWindowReport],
   },
   '/code/pairing-index': {
     pairing_index_percentage: 62.5,

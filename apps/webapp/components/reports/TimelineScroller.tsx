@@ -50,8 +50,12 @@ export default function TimelineScroller({
   );
 
   return (
-    <div className="overflow-x-auto pb-2" onKeyDown={handleKeyDown}>
-      <div className="flex items-center gap-2 min-w-max">
+    <div
+      className="w-full min-w-0 overflow-x-auto pb-2"
+      onKeyDown={handleKeyDown}
+      data-testid="report-timeline-scroller"
+    >
+      <div className="flex w-max items-center gap-2">
         {windows.map((window, index) => {
           const isActive = index === activeIndex;
           const label = formatWindowLabel(window);
@@ -72,6 +76,8 @@ export default function TimelineScroller({
                 }
               }}
               onClick={() => onSelect(index)}
+              data-testid="report-timeline-window"
+              data-active={isActive ? 'true' : 'false'}
               className={`flex shrink-0 flex-col items-center rounded-xl border px-4 py-2 text-sm font-medium transition-colors ${
                 isActive
                   ? 'border-blue-500 bg-blue-600 text-white shadow-sm'
