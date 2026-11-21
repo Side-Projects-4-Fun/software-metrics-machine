@@ -45,7 +45,7 @@ catalog:
   '@typescript-eslint/eslint-plugin': ^8.73.0
   '@typescript-eslint/parser': ^8.73.0
   '@typescript/native': npm:typescript@^7.0.2
-  '@vitest/coverage-v8': ^5.1.0
+  '@vitest/coverage-v8': ^5.1.1
   axios: ^1.21.1
   babel-plugin-react-compiler: ^1.0.0
   chalk: ^6.0.0
@@ -73,7 +73,7 @@ catalog:
   next: ^16.4.6
   react: 19.3.1
   react-dom: 19.3.1
-  recharts: ^3.10.1
+  recharts: ^3.11.0
   reflect-metadata: ^0.2.2
   rimraf: ^6.1.4
   rxjs: ^7.8.2
@@ -82,9 +82,9 @@ catalog:
   tailwindcss: ^4.3.3
   tsup: ^9.0.0
   tsx: ^4.23.15
-  turbo: ^2.11.11
+  turbo: ^2.11.13
   typescript: npm:@typescript/typescript6@^6.0.2
-  vitest: ^5.1.0
+  vitest: ^5.1.1
   zod: ^4.6.7
 
 linkWorkspacePackages: true
