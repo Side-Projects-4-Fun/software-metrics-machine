@@ -58,7 +58,7 @@ catalog:
   cypress: ^16.2.0
   date-fns: ^4.4.0
   dayjs: ^1.11.23
-  dependency-cruiser: ^18.8.0
+  dependency-cruiser: ^18.9.0
   eslint: ^9.39.5
   eslint-config-next: ^16.3.0
   eslint-config-prettier: ^10.1.8
