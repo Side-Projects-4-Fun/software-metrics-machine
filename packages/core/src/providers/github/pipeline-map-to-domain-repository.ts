@@ -17,6 +17,8 @@ export class PipelineMapToDomainRepository {
       completedAt: run.updated_at,
       runAttempt: Number(run.run_attempt || 1),
       branch: run.head_branch,
+      commit: run.head_sha,
+      commitTimestamp: run.head_commit?.timestamp,
       path: run.path,
     };
   }

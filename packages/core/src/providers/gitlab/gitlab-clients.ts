@@ -528,6 +528,7 @@ export class GitlabPipelineClient implements IGithubWorkflowClient, IGithubWorkf
     return {
       ...run,
       commit: run.head_sha,
+      commitTimestamp: run.head_commit?.timestamp,
       jobs: [],
       number: Number(run.run_number),
       createdAt: run.created_at,

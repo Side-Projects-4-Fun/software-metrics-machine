@@ -595,13 +595,21 @@ export class McpMetricsReader {
           this.timeZoneProvider
         );
 
+        const pipelineImplementation = new PipelineImplementation(
+          pipelineArtifacts.pipelineRepository,
+          this.configuration.getDeploymentFrequencyTargets(),
+          createLogger(this.configuration, 'DoraPipelineImplementation'),
+          this.timeZoneProvider
+        );
+
         operationLogger.debug(
           'getDoraMetrics: fetching deployment frequency, pipeline and job metrics'
         );
-        const [deploymentFrequency, pipelineMetrics, jobMetrics] = await Promise.all([
+        const [deploymentFrequency, pipelineMetrics, jobMetrics, leadTime] = await Promise.all([
           deploymentFrequencyService.getDeploymentFrequencyWithAllIntervals(baseFilters),
           pipelinesService.getMetrics(baseFilters),
           pipelinesService.getJobMetrics(baseFilters),
+          pipelineImplementation.getLeadTime(baseFilters),
         ]);
 
         const doraRating = computeDoraRating(
@@ -620,6 +628,7 @@ export class McpMetricsReader {
           timestamp: new Date().toISOString(),
           deploymentFrequency,
           doraRating,
+          leadTime,
           pipelineMetrics,
           jobMetrics,
           filters: baseFilters,

@@ -722,6 +722,8 @@ export function createPipelinesCommands(program: SmmCommand): void {
     .option('--start-date <date>', 'Start date (YYYY-MM-DD)')
     .option('--end-date <date>', 'End date (YYYY-MM-DD)')
     .option('--raw-filters <filters>', 'Raw Provider filters string')
+    .option('--pipeline <path>', 'Limit to a single deployment target pipeline')
+    .option('--job <name>', 'Limit to a single deployment target job')
     .option('--output <format>', 'Output format (text|json)', 'text')
     .option(
       '--weekends <mode>',
@@ -741,15 +743,45 @@ export function createPipelinesCommands(program: SmmCommand): void {
         screen.printLine('⏱️  Calculating lead time for changes...');
         const { pipelineImplementation } = createPipelineDependencies(command);
 
-        const { summary } = await pipelineImplementation.dashboard(buildPipelineFilters(merged));
-
-        const leadTimeHours = summary.value / 60;
+        const results = await pipelineImplementation.getLeadTime(
+          buildPipelineFilters({ ...merged, workflow: options.pipeline })
+        );
 
         if (options.output === 'json') {
-          screen.printLine(JSON.stringify({ leadTime: leadTimeHours }, null, 2));
-        } else {
-          screen.printLine('\n=== Lead Time for Changes (DORA) ===\n');
-          screen.printLine(`Lead Time: ${formatDuration(summary.value, 'minutes')}`);
+          screen.printLine(
+            JSON.stringify(
+              {
+                leadTime: results.map((result) => ({
+                  pipeline: result.pipeline,
+                  job: result.job,
+                  leadTimeHours: Math.round((result.value / 60) * 100) / 100,
+                  leadTimeMinutes: result.value,
+                  deployments: result.count,
+                  method: result.method,
+                })),
+              },
+              null,
+              2
+            )
+          );
+          return;
+        }
+
+        screen.printLine('\n=== Lead Time for Changes (DORA) ===\n');
+
+        if (results.length === 0) {
+          screen.printLine(
+            'No successful deployments found for the configured deployment targets.'
+          );
+          return;
+        }
+
+        results.forEach((result) => {
+          const leadTimeHours = result.value / 60;
+
+          screen.printLine(`Target: ${result.job} (${result.pipeline})`);
+          screen.printLine(`Lead Time: ${formatDuration(result.value, 'minutes')}`);
+          screen.printLine(`Deployments: ${result.count}`);
 
           let rating = 'Low';
           if (leadTimeHours < 24) {
@@ -759,8 +791,8 @@ export function createPipelinesCommands(program: SmmCommand): void {
           } else if (leadTimeHours < 720) {
             rating = 'Medium';
           }
-          screen.printLine(`\n📈 DORA Rating: ${rating}`);
-        }
+          screen.printLine(`📈 DORA Rating: ${rating}\n`);
+        });
       } catch (error) {
         logger.error('Failed to calculate lead time', error);
         process.exit(1);

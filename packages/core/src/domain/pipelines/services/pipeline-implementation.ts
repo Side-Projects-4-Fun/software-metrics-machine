@@ -15,6 +15,7 @@ import type {
   PipelineMetricOutlier,
   PipelineFilters,
   PipelineDashboard,
+  PipelineLeadTimeResult,
 } from '../pipeline-types';
 import { normalizeMatrixJobName } from '../matrix-job-name';
 
@@ -53,6 +54,81 @@ export class PipelineImplementation {
       job_steps_time: this.computeJobStepsTime(runs, cleaning, method),
       job_steps_time_by_day: this.computeJobStepsTimeByDay(runs, cleaning, method),
     };
+  }
+
+  async getLeadTime(filters: PipelineFilters): Promise<PipelineLeadTimeResult[]> {
+    const cleaning = filters.cleaning || parseMetricCleaningOptions({});
+    const method: MetricMethod = filters.method || 'average';
+
+    const targets = this.resolveLeadTimeTargets(filters);
+    const results: PipelineLeadTimeResult[] = [];
+
+    for (const target of targets) {
+      const runs = await this.pipelinesRepo.loadPipelines({
+        includeJobs: true,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        weekends: filters.cleaning?.weekends,
+        workflowPath: target.pipeline,
+        jobName: target.job,
+        jobConclusion: 'success',
+        conclusion: 'success',
+        status: 'completed',
+        targetBranch: filters.targetBranch,
+        event: filters.event,
+        rawFilters: filters.rawFilters,
+      });
+
+      const samples: Array<MetricSample<PipelineMetricOutlierItem>> = [];
+      for (const run of runs) {
+        if (!run.commitTimestamp) {
+          continue;
+        }
+        const commitTimestamp = new Date(run.commitTimestamp).getTime();
+        for (const job of run.jobs || []) {
+          const completedTimestamp = new Date(job.completedAt || job.startedAt || '').getTime();
+          if (!Number.isFinite(completedTimestamp) || completedTimestamp <= 0) {
+            continue;
+          }
+          const minutes = (completedTimestamp - commitTimestamp) / (1000 * 60);
+          if (minutes < 0) {
+            continue;
+          }
+          samples.push({
+            value: minutes,
+            timestamp: job.completedAt || job.startedAt || run.createdAt,
+            item: { runId: String(run.id), workflowName: run.path, jobName: job.name },
+          });
+        }
+      }
+
+      const cleaned = cleanMetricSamples(samples, cleaning);
+      const value =
+        cleaned.samples.length > 0
+          ? Math.round(computeMetricSamples(cleaned.samples, method) * 100) / 100
+          : 0;
+
+      results.push({
+        pipeline: target.pipeline,
+        job: target.job,
+        value,
+        method,
+        count: cleaned.samples.length,
+        outliers:
+          cleaning.outlierMode === 'flag' || cleaning.outlierMode === 'exclude'
+            ? (cleaned.outliers as PipelineMetricOutlier[])
+            : undefined,
+      });
+    }
+
+    return results;
+  }
+
+  private resolveLeadTimeTargets(filters: PipelineFilters): DeploymentFrequencyTarget[] {
+    if (filters.workflowPath && filters.jobName) {
+      return [{ pipeline: filters.workflowPath, job: filters.jobName }];
+    }
+    return this.deploymentTargets;
   }
 
   private pickRunSummaryFields(run: PipelineRun): {

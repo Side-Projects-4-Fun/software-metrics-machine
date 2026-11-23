@@ -107,7 +107,7 @@ every surface, omitting `visibility` means no filter (all 86 metrics); pass `pub
 | `pl-reruns-by-day`             | Reruns by day                | Rerun count per day                                                                                              | REST `jobs-reruns-by-day`                                           |
 | `pl-jobs-duration-by-workflow` | Duration matrix              | Job duration grouped by workflow                                                                                 | REST `jobs-duration-by-workflow`                                    |
 | `pl-deployment-frequency`      | Deployment frequency (DORA)  | Deployments per day/week/month                                                                                   | CLI `deployment-frequency` · `GET /dora/deployment-frequency` · MCP |
-| `pl-lead-time`                 | Lead time for changes (DORA) | Time from commit to deploy, minutes                                                                              | CLI `lead-time`                                                     |
+| `pl-lead-time`                 | Lead time for changes (DORA) | Time from code commit to successful deploy, minutes (per deployment target) | CLI `lead-time`                                                     |
 | `pl-evaluation`                | Pipeline signals             | `duration_top_job`, `stability_worst_job`, `rerun_analysis`, `slowest_workflow`, `job_overview`                  | `GET /pipelines/evaluate` · MCP                                     |
 
 ## 3. Code (`code-`)

@@ -4,6 +4,11 @@ export type WorkflowJsonResponse = {
   node_id: string;
   head_branch: string;
   head_sha: string;
+  head_commit?: {
+    id?: string;
+    timestamp?: string;
+    message?: string;
+  };
   path: string;
   display_title: string;
   run_number: string;

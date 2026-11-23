@@ -322,7 +322,11 @@ function test_pipelines_lead_time_renders_cached_average() {
     --weekends exclude \
     --outlier-mode flag
 
-  assert_smm_output_contains '"leadTime": 0.25'
+  assert_smm_output_contains '"pipeline": ".github/workflows/deploy.yml"'
+  assert_smm_output_contains '"job": "deploy"'
+  assert_smm_output_contains '"leadTimeMinutes": 15'
+  assert_smm_output_contains '"leadTimeHours": 0.25'
+  assert_smm_output_contains '"deployments": 1'
   assert_smm_success
 }
 

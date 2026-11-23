@@ -470,6 +470,8 @@ smm pipelines lead-time
 |--------------|---------------------------------------------------------------------|--------------------------|
 | Start date   | Filter by created after this date.                                  | `--start-date=2025-01-01`     |
 | End date     | Filter by created before this date.                                 | `--end-date=2025-12-31`     |
+| Pipeline     | Limit to a single deployment target pipeline.                       | `--pipeline=.github/workflows/deploy.yml` |
+| Job          | Limit to a single deployment target job.                            | `--job=deploy`     |
 | Raw Filters  | Provider-specific raw filters. See your provider's API docs.        | `--raw-filters=status=completed`     |
 | Output       | Output format (`text` or `json`).                                    | `--output=json`     |
 | Weekends     | Include, exclude, or isolate weekend samples.                        | `--weekends=exclude` |

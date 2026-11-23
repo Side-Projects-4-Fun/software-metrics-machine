@@ -122,17 +122,39 @@ export class LeadTimeMetric extends TargetScopedDeliveryMetric {
   readonly category = 'delivery' as const;
 
   async calculate(input?: MetricCalculationInput): Promise<EngineeringHealthMetricValue> {
-    const dashboard = await this.dependencies.pipelineImplementation.dashboard(
+    const results = await this.dependencies.pipelineImplementation.getLeadTime(
       toPipelineFilters(input)
     );
 
+    if (results.length === 0) {
+      return {
+        value: null,
+        unit: 'minutes',
+        direction: 'lower_is_better',
+        details: { deployments: 0 },
+      };
+    }
+
+    const totalDeployments = results.reduce((sum, result) => sum + result.count, 0);
+    const weightedValue =
+      totalDeployments > 0
+        ? results.reduce((sum, result) => sum + result.value * result.count, 0) / totalDeployments
+        : 0;
+
     return {
-      value: dashboard.summary.value,
+      value: Math.round(weightedValue * 100) / 100,
       unit: 'minutes',
       direction: 'lower_is_better',
+      sampleSize: totalDeployments,
       details: {
-        totalRuns: dashboard.summary.total_runs,
-        method: dashboard.summary.method,
+        deployments: totalDeployments,
+        method: results[0].method,
+        targets: results.map((result) => ({
+          pipeline: result.pipeline,
+          job: result.job,
+          value: result.value,
+          count: result.count,
+        })),
       },
     };
   }

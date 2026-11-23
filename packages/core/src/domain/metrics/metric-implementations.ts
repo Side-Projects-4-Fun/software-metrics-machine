@@ -107,7 +107,7 @@ export const METRIC_IMPLEMENTATIONS = {
     service: 'PipelinesService',
     method: 'getDeploymentFrequencyWithAllIntervals',
   },
-  'pl-lead-time': { service: 'PipelineImplementation', method: 'dashboard' },
+  'pl-lead-time': { service: 'PipelineImplementation', method: 'getLeadTime' },
   'pl-evaluation': { service: 'PipelineEvaluationService', method: 'evaluate' },
 
   'code-big-o': { service: 'BigOService', method: 'listFiles' },

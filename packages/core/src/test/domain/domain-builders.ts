@@ -243,6 +243,11 @@ export class PipelineRunBuilder {
     return this;
   }
 
+  withCommitTimestamp(commitTimestamp: string | undefined): PipelineRunBuilder {
+    this.run.commitTimestamp = commitTimestamp;
+    return this;
+  }
+
   withCreatedAt(createdAt: string): PipelineRunBuilder {
     this.run.createdAt = createdAt;
     return this;

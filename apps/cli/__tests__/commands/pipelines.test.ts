@@ -10,6 +10,7 @@ describe('cli: Pipelines Commands', () => {
   let fetchPipelinesMock: ReturnType<typeof vi.fn>;
   let fetchJobsMock: ReturnType<typeof vi.fn>;
   let dashboardMock: ReturnType<typeof vi.spyOn>;
+  let getLeadTimeMock: ReturnType<typeof vi.spyOn>;
 
   const getOutput = () =>
     consoleSpy.mock.calls
@@ -76,6 +77,16 @@ describe('cli: Pipelines Commands', () => {
         monthly_counts: 10,
       },
     ] as never);
+
+    getLeadTimeMock = vi.spyOn(PipelineImplementation.prototype, 'getLeadTime').mockResolvedValue([
+      {
+        pipeline: '.github/workflows/deploy.yml',
+        job: 'deploy',
+        value: 42,
+        method: 'average',
+        count: 10,
+      },
+    ]);
 
     consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     program = commands();
@@ -499,37 +510,91 @@ describe('cli: Pipelines Commands', () => {
   });
 
   describe('pipelines lead-time', () => {
-    it('formats 42 minutes as "42 min" and rates as Elite', async () => {
+    it('formats 42 minutes per target and rates as Elite', async () => {
       await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
 
       const output = getOutput();
 
       expect(output).toContain('=== Lead Time for Changes (DORA) ===');
+      expect(output).toContain('Target: deploy (.github/workflows/deploy.yml)');
       expect(output).toContain('Lead Time: 42 min');
+      expect(output).toContain('Deployments: 10');
       expect(output).toContain('📈 DORA Rating: Elite');
     });
 
+    it('renders every configured target when no target filter is given', async () => {
+      getLeadTimeMock.mockResolvedValue([
+        {
+          pipeline: '.github/workflows/deploy.yml',
+          job: 'deploy',
+          value: 42,
+          method: 'average',
+          count: 10,
+        },
+        {
+          pipeline: '.github/workflows/mobile.yml',
+          job: 'deploy-mobile',
+          value: 120,
+          method: 'average',
+          count: 4,
+        },
+      ]);
+
+      await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
+
+      const output = getOutput();
+
+      expect(output).toContain('Target: deploy (.github/workflows/deploy.yml)');
+      expect(output).toContain('Target: deploy-mobile (.github/workflows/mobile.yml)');
+      expect(output).toContain('Lead Time: 2h');
+    });
+
+    it('scopes to a single target when --pipeline and --job are provided', async () => {
+      await program.parseAsync(
+        ['pipelines', 'lead-time', '--pipeline', 'deploy.yml', '--job', 'deploy'],
+        { from: 'user' }
+      );
+
+      expect(getLeadTimeMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workflowPath: 'deploy.yml',
+          jobName: 'deploy',
+        })
+      );
+    });
+
+    it('renders JSON output with one entry per target', async () => {
+      await program.parseAsync(['pipelines', 'lead-time', '--output', 'json'], { from: 'user' });
+
+      const output = getOutput();
+
+      expect(output).toContain('"leadTime"');
+      expect(output).toContain('"pipeline": ".github/workflows/deploy.yml"');
+      expect(output).toContain('"job": "deploy"');
+      expect(output).toContain('"leadTimeMinutes": 42');
+      expect(output).toContain('"deployments": 10');
+    });
+
+    it('reports no deployments when no successful deployments exist', async () => {
+      getLeadTimeMock.mockResolvedValue([]);
+
+      await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
+
+      expect(getOutput()).toContain(
+        'No successful deployments found for the configured deployment targets.'
+      );
+    });
+
     it('rates exactly 23h59m as Elite (boundary below 24 hours)', async () => {
-      dashboardMock.mockResolvedValue({
-        summary: {
-          total_runs: 1,
-          successful_runs: 1,
-          failed_runs: 0,
-          cancelled_runs: 0,
-          skipped_runs: 0,
-          timed_out_runs: 0,
-          success_rate: 100,
+      getLeadTimeMock.mockResolvedValue([
+        {
+          pipeline: '.github/workflows/deploy.yml',
+          job: 'deploy',
           value: 1439,
           method: 'average',
-          first_run: null,
-          last_run: null,
-          in_progress: 0,
-          queued: 0,
+          count: 1,
         },
-        runs_by: [],
-        jobs_summary: [],
-        job_steps_time: [],
-      } as never);
+      ]);
 
       await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
 
@@ -540,26 +605,15 @@ describe('cli: Pipelines Commands', () => {
     });
 
     it('rates exactly 24 hours as High (boundary at Elite threshold)', async () => {
-      dashboardMock.mockResolvedValue({
-        summary: {
-          total_runs: 1,
-          successful_runs: 1,
-          failed_runs: 0,
-          cancelled_runs: 0,
-          skipped_runs: 0,
-          timed_out_runs: 0,
-          success_rate: 100,
+      getLeadTimeMock.mockResolvedValue([
+        {
+          pipeline: '.github/workflows/deploy.yml',
+          job: 'deploy',
           value: 1440,
           method: 'average',
-          first_run: null,
-          last_run: null,
-          in_progress: 0,
-          queued: 0,
+          count: 1,
         },
-        runs_by: [],
-        jobs_summary: [],
-        job_steps_time: [],
-      } as never);
+      ]);
 
       await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
 
@@ -570,26 +624,15 @@ describe('cli: Pipelines Commands', () => {
     });
 
     it('rates exactly 168 hours as Medium (boundary at High threshold)', async () => {
-      dashboardMock.mockResolvedValue({
-        summary: {
-          total_runs: 1,
-          successful_runs: 1,
-          failed_runs: 0,
-          cancelled_runs: 0,
-          skipped_runs: 0,
-          timed_out_runs: 0,
-          success_rate: 100,
+      getLeadTimeMock.mockResolvedValue([
+        {
+          pipeline: '.github/workflows/deploy.yml',
+          job: 'deploy',
           value: 10080,
           method: 'average',
-          first_run: null,
-          last_run: null,
-          in_progress: 0,
-          queued: 0,
+          count: 1,
         },
-        runs_by: [],
-        jobs_summary: [],
-        job_steps_time: [],
-      } as never);
+      ]);
 
       await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
 
@@ -600,26 +643,15 @@ describe('cli: Pipelines Commands', () => {
     });
 
     it('rates exactly 720 hours as Low (boundary at Medium threshold)', async () => {
-      dashboardMock.mockResolvedValue({
-        summary: {
-          total_runs: 1,
-          successful_runs: 1,
-          failed_runs: 0,
-          cancelled_runs: 0,
-          skipped_runs: 0,
-          timed_out_runs: 0,
-          success_rate: 100,
+      getLeadTimeMock.mockResolvedValue([
+        {
+          pipeline: '.github/workflows/deploy.yml',
+          job: 'deploy',
           value: 43200,
           method: 'average',
-          first_run: null,
-          last_run: null,
-          in_progress: 0,
-          queued: 0,
+          count: 1,
         },
-        runs_by: [],
-        jobs_summary: [],
-        job_steps_time: [],
-      } as never);
+      ]);
 
       await program.parseAsync(['pipelines', 'lead-time'], { from: 'user' });
 

@@ -605,11 +605,11 @@ export const METRIC_CATALOG = {
     unit: 'minutes',
     direction: 'lower_is_better',
     computation: {
-      evidence: 'Pipeline dashboard summary for the selected window and deployment target.',
+      evidence:
+        'Successful deployment-target runs (configured pipeline plus job) with head commit and job completion timestamps.',
       formula:
-        'Returns the dashboard summary aggregate value in minutes (the same run-duration aggregation used by the pipeline dashboard).',
-      notation:
-        'lead_time = summary.duration = method(max(job.completed_at) − min(job.started_at))',
+        'For each successful deployment, computes minutes from the head commit timestamp to the target job completion, then aggregates with the selected method.',
+      notation: 'lead_time(target) = method(deploy_job.completed_at − run.commit_timestamp)',
     },
     shape: 'scalar',
     visibility: 'public',
@@ -1550,14 +1550,15 @@ export const METRIC_CATALOG = {
   'lead-time': {
     namespace: 'eh',
     label: 'Lead time',
-    description: 'Time from change creation to deployment.',
+    description: 'Time from code commit to successful production deployment.',
     unit: 'minutes',
     direction: 'lower_is_better',
     computation: {
-      evidence: 'Pipeline dashboard summary for the selected window and deployment target.',
+      evidence:
+        'Successful deployment-target runs (configured pipeline plus job) with head commit and job completion timestamps.',
       formula:
-        'Returns the summary aggregate value in minutes, using the same run-duration aggregation as the pipeline dashboard.',
-      notation: 'lead_time = summary.duration',
+        'For each successful deployment, computes minutes from the head commit timestamp to the target job completion, then aggregates with the selected method.',
+      notation: 'lead_time(target) = method(deploy_job.completed_at − run.commit_timestamp)',
     },
     shape: 'scalar',
     visibility: 'public',

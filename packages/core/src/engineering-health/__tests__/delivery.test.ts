@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DeploymentFrequencyMetric, PipelineDurationMetric } from '../adapters/delivery';
+import {
+  DeploymentFrequencyMetric,
+  LeadTimeMetric,
+  PipelineDurationMetric,
+} from '../adapters/delivery';
 import type { EngineeringHealthDependencies } from '../dependencies';
 
 function buildDependencies(): EngineeringHealthDependencies {
@@ -74,6 +78,29 @@ function buildDependencies(): EngineeringHealthDependencies {
     } as never,
     pipelineImplementation: {
       dashboard: vi.fn(),
+      getLeadTime: vi.fn(async (filters) => {
+        if (filters?.jobName === 'deploy-production') {
+          return [
+            {
+              pipeline: '.github/workflows/release.yml',
+              job: 'deploy-production',
+              value: 45,
+              method: 'average',
+              count: 2,
+            },
+          ];
+        }
+
+        return [
+          {
+            pipeline: '.github/workflows/mobile.yml',
+            job: 'deploy-mobile',
+            value: 90,
+            method: 'average',
+            count: 1,
+          },
+        ];
+      }),
     } as never,
     changeRequestsService: {} as never,
     pairingService: {} as never,
@@ -155,5 +182,55 @@ describe('delivery engineering health metrics', () => {
         jobName: 'deploy-mobile',
       })
     );
+  });
+
+  it('computes lead time per deployment target from commit to deploy', async () => {
+    const dependencies = buildDependencies();
+    const metric = new LeadTimeMetric(dependencies);
+
+    const evaluations = await metric.evaluate({
+      current: {
+        startDate: '2026-07-01',
+        endDate: '2026-07-31',
+      },
+    });
+
+    expect(evaluations).toHaveLength(2);
+    expect(evaluations[0].scope?.deploymentTarget).toEqual({
+      pipeline: '.github/workflows/release.yml',
+      job: 'deploy-production',
+    });
+    expect(evaluations[0].value.value).toBe(45);
+    expect(evaluations[0].value.sampleSize).toBe(2);
+    expect(evaluations[1].scope?.deploymentTarget).toEqual({
+      pipeline: '.github/workflows/mobile.yml',
+      job: 'deploy-mobile',
+    });
+    expect(evaluations[1].value.value).toBe(90);
+    expect(dependencies.pipelineImplementation.getLeadTime).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        workflowPath: '.github/workflows/release.yml',
+        jobName: 'deploy-production',
+      })
+    );
+    expect(dependencies.pipelineImplementation.getLeadTime).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        workflowPath: '.github/workflows/mobile.yml',
+        jobName: 'deploy-mobile',
+      })
+    );
+  });
+
+  it('returns null lead time value when no successful deployments exist', async () => {
+    const dependencies = buildDependencies();
+    dependencies.pipelineImplementation.getLeadTime = vi.fn(async () => []);
+    const metric = new LeadTimeMetric(dependencies);
+
+    const result = await metric.calculate({});
+
+    expect(result.value).toBeNull();
+    expect(result.unit).toBe('minutes');
   });
 });

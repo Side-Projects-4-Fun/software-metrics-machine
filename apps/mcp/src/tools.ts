@@ -300,7 +300,7 @@ export const tools: RegisteredTool[] = [
   {
     name: 'smm_get_dora_metrics',
     description:
-      'Get DORA and pipeline metrics (deployment frequency, lead time inputs, failure rate inputs, pipeline duration, jobs) with rich filtering by workflow, branch, status, conclusion, event, and cleaning options.',
+      'Get DORA and pipeline metrics (deployment frequency, lead time, failure rate inputs, pipeline duration, jobs) with rich filtering by workflow, branch, status, conclusion, event, and cleaning options.',
     inputSchema: buildDoraMetricsInputSchema(),
     async handler(argumentsValue: unknown): Promise<McpToolResult> {
       const parsed = parseDoraMetricsArguments(argumentsValue);

@@ -480,9 +480,13 @@ Calculate lead time for changes (DORA metric).
 ```
 --start-date <date>
 --end-date <date>
---output <format>     text|json  (default: text)
---weekends <mode>     include|exclude|weekends_only  (default: include)
---outlier-mode <mode> include|flag|exclude  (default: include)
+--pipeline <path>      limit to a single deployment target pipeline
+--job <name>           limit to a single deployment target job
+--raw-filters <filters>
+--output <format>      text|json  (default: text)
+--weekends <mode>      include|exclude|weekends_only  (default: include)
+--outlier-mode <mode>  include|flag|exclude  (default: include)
+--filter <name>        apply a saved filter
 ```
 
 ---

@@ -119,6 +119,7 @@ export class GithubWorkflowClient implements IGithubWorkflowClient {
         dayRuns.push({
           ...run,
           commit: run.head_sha,
+          commitTimestamp: run.head_commit?.timestamp,
           jobs: [],
           number: Number(run.run_number),
           createdAt: run.created_at,

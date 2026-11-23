@@ -40,6 +40,7 @@ export interface PipelineRun {
   branch: string;
   event?: string;
   commit?: string;
+  commitTimestamp?: string;
   path: string;
   jobs?: PipelineJob[];
 }
@@ -81,6 +82,15 @@ export interface PipelineMetrics {
   successRate: number;
   value: number;
   method: MetricMethod;
+  outliers?: PipelineMetricOutlier[];
+}
+
+export interface PipelineLeadTimeResult {
+  pipeline: string;
+  job: string;
+  value: number;
+  method: MetricMethod;
+  count: number;
   outliers?: PipelineMetricOutlier[];
 }
 
