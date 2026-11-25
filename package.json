@@ -70,10 +70,10 @@
     "mean-time-recovery"
   ],
   "engines": {
-    "node": ">=26.4.0",
-    "pnpm": ">=10.0.0"
+    "node": ">=26.13.1",
+    "pnpm": ">=12.23.0"
   },
-  "packageManager": "pnpm@12.21.0",
+  "packageManager": "pnpm@12.23.0",
   "dependencies": {
     "@emotion/cache": "catalog:",
     "@emotion/react": "catalog:",
