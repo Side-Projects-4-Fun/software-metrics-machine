@@ -1,23 +1,14 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-
-vi.mock(import('child_process'), async (importOriginal) => {
-  const actual = await importOriginal();
-  return {
-    ...actual,
-    execFileSync: vi.fn(),
-  };
-});
-
-import { execFileSync } from 'child_process';
-import { CommitTraverser } from '../../..';
+import { CommitTraverser, type CommitTraverserDependencies } from '../commit-traverser';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
-const mockExecFileSync = vi.mocked(execFileSync);
+const mockExecFileSync = vi.fn<CommitTraverserDependencies['execFileSync']>();
+const dependencies: CommitTraverserDependencies = { execFileSync: mockExecFileSync };
 const logger = new MockLoggerBuilder().build();
 
 describe('CommitTraverser', () => {
   const GIT_OUTPUT = `abc123\nAlice\nalice@b.com\n2025-01-01T00:00:00Z\nInitial commit\n\n---COMMIT-SEPARATOR---\ndef456\nBob\nbob@c.com\n2025-01-02T00:00:00Z\nAdd feature\nCo-authored-by: Alice <alice@b.com>\n---COMMIT-SEPARATOR---\n`;
-  const traverser = new CommitTraverser('/fake/path', logger);
+  const traverser = new CommitTraverser('/fake/path', logger, dependencies);
 
   beforeEach(() => {
     vi.clearAllMocks();

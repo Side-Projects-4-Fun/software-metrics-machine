@@ -23,6 +23,33 @@ export interface GitCloneProvider {
 const GITHUB_DEFAULT_BASE = 'https://github.com';
 const GITLAB_DEFAULT_BASE = 'https://gitlab.com';
 
+export interface GitCloneFileSystem {
+  existsSync(path: string): boolean;
+
+  statSync(path: string): { isDirectory(): boolean };
+
+  mkdirSync(path: string, options: { recursive: true }): unknown;
+}
+
+export interface GitCloneServiceDependencies {
+  execFileSync(
+    file: string,
+    args: readonly string[],
+    options: { stdio: ('ignore' | 'pipe' | 'inherit')[]; timeout: number }
+  ): unknown;
+
+  fileSystem: GitCloneFileSystem;
+}
+
+export const defaultGitCloneServiceDependencies: GitCloneServiceDependencies = {
+  execFileSync: (file, args, options) => execFileSync(file, args, options),
+  fileSystem: {
+    existsSync: (targetPath) => fs.existsSync(targetPath),
+    statSync: (targetPath) => fs.statSync(targetPath),
+    mkdirSync: (targetPath, options) => fs.mkdirSync(targetPath, options),
+  },
+};
+
 export const GIT_CLONE_PROVIDERS: GitCloneProvider[] = [
   {
     id: 'github',
@@ -38,10 +65,15 @@ export const GIT_CLONE_PROVIDERS: GitCloneProvider[] = [
 ];
 
 export class GitCloneService {
+  private dependencies: GitCloneServiceDependencies;
+
   constructor(
     private configuration: Configuration,
-    private logger: Logger
-  ) {}
+    private logger: Logger,
+    dependencies: GitCloneServiceDependencies = defaultGitCloneServiceDependencies
+  ) {
+    this.dependencies = dependencies;
+  }
 
   async cloneInto(targetPath: string): Promise<GitCloneResult> {
     const absolutePath = path.resolve(targetPath);
@@ -54,9 +86,9 @@ export class GitCloneService {
     const cloneUrl = this.buildCloneUrl();
     this.logger.info(`Cloning repository from ${this.redactUrl(cloneUrl)} into ${absolutePath}`);
 
-    fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+    this.dependencies.fileSystem.mkdirSync(path.dirname(absolutePath), { recursive: true });
 
-    execFileSync('git', ['clone', cloneUrl, absolutePath], {
+    this.dependencies.execFileSync('git', ['clone', cloneUrl, absolutePath], {
       stdio: ['ignore', 'ignore', 'ignore'],
       timeout: 300000,
     });
@@ -66,16 +98,16 @@ export class GitCloneService {
   }
 
   private isGitRepository(directoryPath: string): boolean {
-    if (!fs.existsSync(directoryPath)) {
+    if (!this.dependencies.fileSystem.existsSync(directoryPath)) {
       return false;
     }
 
-    const stats = fs.statSync(directoryPath);
+    const stats = this.dependencies.fileSystem.statSync(directoryPath);
     if (!stats.isDirectory()) {
       return false;
     }
 
-    return fs.existsSync(path.join(directoryPath, '.git'));
+    return this.dependencies.fileSystem.existsSync(path.join(directoryPath, '.git'));
   }
 
   private buildCloneUrl(): string {

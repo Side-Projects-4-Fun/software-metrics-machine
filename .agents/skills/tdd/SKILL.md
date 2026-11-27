@@ -24,6 +24,11 @@ description: "Test-Driven Development workflow for Software Metrics Machine. Cov
 - `testTimeout: 20000`
 - Globals enabled (`describe`, `it`, `expect`, `vi`)
 
+### Workspace overrides
+- `packages/core` sets `isolate: false`: one worker reuses its module registry across all test files (~18s → ~4s for 81 files)
+- Consequence: a module-level `vi.mock('...')` in a core test file stays active for every file that runs afterwards in that worker. Never mock whole modules in `packages/core`; inject the collaborator through the class's optional dependencies parameter instead (`CommitTraverser`, `GitCloneService`, `SonarqubeMeasuresClient`) or use MSW for HTTP
+- Other workspaces keep per-file isolation, so file-scope `vi.mock(...)` is still fine there
+
 ### Webapp Jest config
 - Environment: `jsdom`
 - Setup: `jest.setup.ts` (provides global mocks for `next/navigation` and `next/headers`)

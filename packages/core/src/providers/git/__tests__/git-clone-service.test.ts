@@ -1,33 +1,27 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-
-vi.mock(import('child_process'), async (importOriginal) => {
-  const actual = await importOriginal();
-  return {
-    ...actual,
-    execFileSync: vi.fn(),
-  };
-});
-
-vi.mock(import('fs'), async (importOriginal) => {
-  const actual = await importOriginal();
-  return {
-    ...actual,
-    existsSync: vi.fn(),
-    statSync: vi.fn(),
-    mkdirSync: vi.fn(),
-  };
-});
-
-import { execFileSync } from 'child_process';
-import { existsSync, statSync, mkdirSync, type PathLike, type Stats } from 'fs';
 import { Configuration } from '../../../infrastructure/configuration';
-import { GitCloneService, GIT_CLONE_PROVIDERS } from '../git-clone-service';
+import {
+  GitCloneService,
+  GIT_CLONE_PROVIDERS,
+  type GitCloneFileSystem,
+  type GitCloneServiceDependencies,
+} from '../git-clone-service';
 import { MockLoggerBuilder } from '../../../test/infrastructure/mock-logger-builder';
 
-const mockExecFileSync = vi.mocked(execFileSync);
-const mockExistsSync = vi.mocked(existsSync);
-const mockStatSync = vi.mocked(statSync);
-const mockMkdirSync = vi.mocked(mkdirSync);
+const mockExecFileSync = vi.fn<GitCloneServiceDependencies['execFileSync']>();
+const mockExistsSync = vi.fn<GitCloneFileSystem['existsSync']>();
+const mockStatSync = vi.fn<GitCloneFileSystem['statSync']>();
+const mockMkdirSync = vi.fn<GitCloneFileSystem['mkdirSync']>();
+
+const dependencies: GitCloneServiceDependencies = {
+  execFileSync: mockExecFileSync,
+  fileSystem: {
+    existsSync: mockExistsSync,
+    statSync: mockStatSync,
+    mkdirSync: mockMkdirSync,
+  },
+};
+
 const logger = new MockLoggerBuilder().build();
 
 function buildConfiguration(values: Partial<Configuration>): Configuration {
@@ -39,6 +33,10 @@ function buildConfiguration(values: Partial<Configuration>): Configuration {
   });
 }
 
+function buildService(values: Partial<Configuration>): GitCloneService {
+  return new GitCloneService(buildConfiguration(values), logger, dependencies);
+}
+
 describe('GitCloneService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -48,16 +46,16 @@ describe('GitCloneService', () => {
 
   describe('cloneInto', () => {
     it('skips cloning when the target path is already a git repository', async () => {
-      mockExistsSync.mockImplementation((targetPath: PathLike) => {
+      mockExistsSync.mockImplementation((targetPath: string) => {
         if (targetPath === '/data/repos/widgets' || targetPath === '/data/repos/widgets/.git') {
           return true;
         }
         return false;
       });
-      const dirStats = { isDirectory: () => true } as Stats;
+      const dirStats = { isDirectory: (): boolean => true };
       mockStatSync.mockReturnValue(dirStats);
 
-      const service = new GitCloneService(buildConfiguration({}), logger);
+      const service = buildService({});
       const result = await service.cloneInto('/data/repos/widgets');
 
       expect(result.cloned).toBe(false);
@@ -70,7 +68,7 @@ describe('GitCloneService', () => {
     it('clones a public GitHub repository into the target path', async () => {
       mockExistsSync.mockReturnValue(false);
 
-      const service = new GitCloneService(buildConfiguration({ githubToken: undefined }), logger);
+      const service = buildService({ githubToken: undefined });
       const result = await service.cloneInto('/data/repos/widgets');
 
       expect(result.cloned).toBe(true);
@@ -89,10 +87,7 @@ describe('GitCloneService', () => {
     it('embeds the GitHub token in the clone URL for private repositories', async () => {
       mockExistsSync.mockReturnValue(false);
 
-      const service = new GitCloneService(
-        buildConfiguration({ githubToken: 'ghp_secret' }),
-        logger
-      );
+      const service = buildService({ githubToken: 'ghp_secret' });
       const result = await service.cloneInto('/data/repos/widgets');
 
       expect(result.cloned).toBe(true);
@@ -107,15 +102,12 @@ describe('GitCloneService', () => {
     it('builds a GitLab clone URL using the configured gitlab_url and token', async () => {
       mockExistsSync.mockReturnValue(false);
 
-      const service = new GitCloneService(
-        buildConfiguration({
-          gitProvider: 'gitlab',
-          gitlabUrl: 'https://gitlab.example.com',
-          gitlabToken: 'glpat-secret',
-          githubToken: undefined,
-        }),
-        logger
-      );
+      const service = buildService({
+        gitProvider: 'gitlab',
+        gitlabUrl: 'https://gitlab.example.com',
+        gitlabToken: 'glpat-secret',
+        githubToken: undefined,
+      });
       const result = await service.cloneInto('/data/repos/widgets');
 
       expect(result.cloned).toBe(true);
@@ -134,31 +126,28 @@ describe('GitCloneService', () => {
     it('defaults the GitLab base URL to https://gitlab.com', async () => {
       mockExistsSync.mockReturnValue(false);
 
-      const service = new GitCloneService(
-        buildConfiguration({
-          gitProvider: 'gitlab',
-          gitlabUrl: undefined,
-          gitlabToken: undefined,
-          githubToken: undefined,
-        }),
-        logger
-      );
+      const service = buildService({
+        gitProvider: 'gitlab',
+        gitlabUrl: undefined,
+        gitlabToken: undefined,
+        githubToken: undefined,
+      });
       const result = await service.cloneInto('/data/repos/widgets');
 
       expect(result.cloneUrl).toBe('https://gitlab.com/acme/widgets.git');
     });
 
     it('re-clones when the target path exists but is not a git repository', async () => {
-      mockExistsSync.mockImplementation((targetPath: PathLike) => {
+      mockExistsSync.mockImplementation((targetPath: string) => {
         if (targetPath === '/data/repos/widgets') {
           return true;
         }
         return false;
       });
-      const dirStats = { isDirectory: () => true } as Stats;
+      const dirStats = { isDirectory: (): boolean => true };
       mockStatSync.mockReturnValue(dirStats);
 
-      const service = new GitCloneService(buildConfiguration({}), logger);
+      const service = buildService({});
       const result = await service.cloneInto('/data/repos/widgets');
 
       expect(result.cloned).toBe(true);
@@ -168,10 +157,7 @@ describe('GitCloneService', () => {
     it('throws when github_repository is missing', async () => {
       mockExistsSync.mockReturnValue(false);
 
-      const service = new GitCloneService(
-        buildConfiguration({ githubRepository: undefined }),
-        logger
-      );
+      const service = buildService({ githubRepository: undefined });
 
       await expect(service.cloneInto('/data/repos/widgets')).rejects.toThrow(
         'GITHUB_REPOSITORY is required in owner/repo format to clone the repository.'
@@ -182,10 +168,7 @@ describe('GitCloneService', () => {
     it('throws when github_repository does not include a slash', async () => {
       mockExistsSync.mockReturnValue(false);
 
-      const service = new GitCloneService(
-        buildConfiguration({ githubRepository: 'invalid-repo' }),
-        logger
-      );
+      const service = buildService({ githubRepository: 'invalid-repo' });
 
       await expect(service.cloneInto('/data/repos/widgets')).rejects.toThrow(
         'GITHUB_REPOSITORY is required in owner/repo format to clone the repository.'
@@ -195,7 +178,7 @@ describe('GitCloneService', () => {
     it('throws when the configured git provider is not registered for cloning', async () => {
       mockExistsSync.mockReturnValue(false);
 
-      const service = new GitCloneService(buildConfiguration({ gitProvider: 'bitbucket' }), logger);
+      const service = buildService({ gitProvider: 'bitbucket' });
 
       await expect(service.cloneInto('/data/repos/widgets')).rejects.toThrow(
         'Unsupported git provider "bitbucket" for cloning'
@@ -209,7 +192,7 @@ describe('GitCloneService', () => {
         throw new Error('fatal: repository not found');
       });
 
-      const service = new GitCloneService(buildConfiguration({}), logger);
+      const service = buildService({});
 
       await expect(service.cloneInto('/data/repos/widgets')).rejects.toThrow(
         'fatal: repository not found'

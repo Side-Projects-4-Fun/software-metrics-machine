@@ -12,14 +12,29 @@ export interface ICommitTraverser {
   }): Promise<TraverserResult>;
 }
 
+export interface CommitTraverserDependencies {
+  execFileSync(
+    file: string,
+    args: readonly string[],
+    options: { cwd: string; timeout: number; maxBuffer: number }
+  ): string | Buffer;
+}
+
+export const defaultCommitTraverserDependencies: CommitTraverserDependencies = {
+  execFileSync: (file, args, options) => execFileSync(file, args, options),
+};
+
 export class CommitTraverser implements ICommitTraverser {
   private logger: Logger;
+  private dependencies: CommitTraverserDependencies;
 
   constructor(
     private gitRepositoryPath: string,
-    logger: Logger
+    logger: Logger,
+    dependencies: CommitTraverserDependencies = defaultCommitTraverserDependencies
   ) {
     this.logger = logger;
+    this.dependencies = dependencies;
   }
 
   async traverseCommits(options?: {
@@ -79,7 +94,7 @@ export class CommitTraverser implements ICommitTraverser {
       const maxBufferBytes = (options?.maxBuffer ?? 100) * 1024 * 1024;
 
       this.logger.info(`Executing: git log --format=... --reverse`);
-      const output = execFileSync('git', gitArgs, {
+      const output = this.dependencies.execFileSync('git', gitArgs, {
         cwd: this.gitRepositoryPath,
         timeout: 120000,
         maxBuffer: maxBufferBytes,

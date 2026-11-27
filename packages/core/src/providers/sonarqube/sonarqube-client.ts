@@ -1,7 +1,60 @@
-import type { AxiosInstance } from 'axios';
 import axios from 'axios';
 import type { Logger } from '@smmachine/utils';
 import type { SonarqubeComponentMeasure, SonarqubeComponentTreeMeasure, CodeMetric } from '.';
+
+export interface SonarqubeHttpResponse<T> {
+  data: T;
+}
+
+export interface SonarqubeHttpRequestConfig {
+  params?: Record<string, unknown>;
+}
+
+export interface SonarqubeHttpClient {
+  get<T>(url: string, config?: SonarqubeHttpRequestConfig): Promise<SonarqubeHttpResponse<T>>;
+}
+
+export interface SonarqubeAxiosOptions {
+  baseURL: string;
+  timeout: number;
+  params?: { token: string };
+  auth?: { username: string; password: string };
+}
+
+export type SonarqubeHttpClientFactory = (options: SonarqubeAxiosOptions) => SonarqubeHttpClient;
+
+export const createSonarqubeHttpClient: SonarqubeHttpClientFactory = (options) => {
+  const instance = axios.create(options);
+
+  return {
+    get: <T>(url: string, config?: SonarqubeHttpRequestConfig) => instance.get<T>(url, config),
+  };
+};
+
+interface HistoricalMeasureHistoryEntry {
+  date: string;
+  value?: string;
+}
+
+interface HistoricalMeasureGroup {
+  metric: string;
+  history?: HistoricalMeasureHistoryEntry[];
+}
+
+interface HistoricalMeasuresPayload {
+  measures?: HistoricalMeasureGroup[];
+  paging?: { total?: number; pageSize?: number };
+}
+
+interface ComponentMeasuresPayload {
+  component?: SonarqubeComponentMeasure;
+}
+
+interface ComponentTreePayload {
+  baseComponent?: SonarqubeComponentTreeMeasure;
+  components?: SonarqubeComponentTreeMeasure[];
+  paging?: { total?: number };
+}
 
 export interface ISonarqubeMeasuresClient {
   fetchComponentMeasures(options?: { metrics?: string[] }): Promise<SonarqubeComponentMeasure>;
@@ -20,7 +73,7 @@ export interface ISonarqubeMeasuresClient {
 }
 
 export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
-  private axiosInstance: AxiosInstance;
+  private httpClient: SonarqubeHttpClient;
   private logger: Logger;
   private isSonarCloud: boolean;
 
@@ -28,14 +81,15 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
     private url: string,
     private token: string,
     private projectKey: string,
-    logger: Logger
+    logger: Logger,
+    createHttpClient: SonarqubeHttpClientFactory = createSonarqubeHttpClient
   ) {
     this.logger = logger;
 
     const baseURL = this.url.endsWith('/') ? this.url.slice(0, -1) : this.url;
     this.isSonarCloud = baseURL === 'https://sonarcloud.io';
 
-    this.axiosInstance = axios.create({
+    this.httpClient = createHttpClient({
       baseURL,
       timeout: 30000,
       ...(this.isSonarCloud
@@ -62,12 +116,15 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
         `Fetching SonarQube metrics for project ${this.projectKey} (${this.url}): ${metrics.join(', ')}`
       );
 
-      const response = await this.axiosInstance.get('/api/measures/component', {
-        params: {
-          component: this.projectKey,
-          metricKeys: metrics.join(','),
-        },
-      });
+      const response = await this.httpClient.get<ComponentMeasuresPayload>(
+        '/api/measures/component',
+        {
+          params: {
+            component: this.projectKey,
+            metricKeys: metrics.join(','),
+          },
+        }
+      );
 
       const { component } = response.data;
 
@@ -124,16 +181,19 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
       let pageSize = 100;
 
       do {
-        const response = await this.axiosInstance.get('/api/measures/search_history', {
-          params: {
-            component: this.projectKey,
-            metrics: metrics.join(','),
-            ...(options?.startDate && { from: options.startDate }),
-            ...(options?.endDate && { to: options.endDate }),
-            p: pageIndex,
-            ps: 100,
-          },
-        });
+        const response = await this.httpClient.get<HistoricalMeasuresPayload>(
+          '/api/measures/search_history',
+          {
+            params: {
+              component: this.projectKey,
+              metrics: metrics.join(','),
+              ...(options?.startDate && { from: options.startDate }),
+              ...(options?.endDate && { to: options.endDate }),
+              p: pageIndex,
+              ps: 100,
+            },
+          }
+        );
 
         const { measures, paging } = response.data;
 
@@ -236,9 +296,12 @@ export class SonarqubeMeasuresClient implements ISonarqubeMeasuresClient {
       let total = 0;
 
       do {
-        const response = await this.axiosInstance.get('/api/measures/component_tree', {
-          params: { ...treeParams, p: pageIndex },
-        });
+        const response = await this.httpClient.get<ComponentTreePayload>(
+          '/api/measures/component_tree',
+          {
+            params: { ...treeParams, p: pageIndex },
+          }
+        );
 
         const { baseComponent: pageBase, components, paging } = response.data;
 
